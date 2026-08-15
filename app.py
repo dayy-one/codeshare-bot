@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify
 import stripe
 import requests
 import os
+from datetime import datetime
 
 app = Flask(__name__)
 
@@ -12,7 +13,6 @@ ADMIN_ID = os.getenv("ADMIN_ID")
 CHANNEL_ID = "-1004414166682"
 SERVER_URL = "https://codeshare-bot-production.up.railway.app"
 
-# Mode admin anonyme (en mémoire)
 admin_mode = False
 
 def send_telegram_message(chat_id, text, reply_markup=None, parse_mode="HTML"):
@@ -26,10 +26,9 @@ def send_telegram_message(chat_id, text, reply_markup=None, parse_mode="HTML"):
         payload["reply_markup"] = reply_markup
     try:
         response = requests.post(url, json=payload, timeout=10)
-        print(f"Envoi à {chat_id} → Status: {response.status_code}")
-        print(f"Réponse: {response.text[:200]}")
+        print(f"Envoi à {chat_id} → {response.status_code}")
     except Exception as e:
-        print("Erreur envoi:", e)
+        print("Erreur:", e)
 
 @app.route("/")
 def home():
@@ -87,8 +86,8 @@ def webhook():
                 f"Voici le lien du canal privé :\n{CHANNEL_LINK}\n\n"
                 "Bienvenue dans <b>CodeShare</b> !\n\n"
                 "Tu peux maintenant partager tes codes :\n"
-                "• /promo NomDuSite CODE\n"
-                "• /parrainage NomDuSite CODE"
+                "• <code>/promo NomDuSite 30 CODE</code>\n"
+                "• <code>/parrainage NomDuSite 20 CODE</code>"
             )
             send_telegram_message(telegram_id, message)
             if ADMIN_ID:
@@ -100,7 +99,7 @@ def telegram_webhook():
     global admin_mode
     data = request.get_json()
 
-    # Gestion des clics sur les boutons
+    # Boutons admin
     if "callback_query" in data:
         query = data["callback_query"]
         chat_id = query["from"]["id"]
@@ -111,10 +110,10 @@ def telegram_webhook():
 
         if data_btn == "admin_start":
             admin_mode = True
-            send_telegram_message(chat_id, "✅ <b>Mode Admin activé</b>\n\nTout ce que tu écris maintenant sera publié dans le canal <b>sans ton nom</b>.\n\nClique sur Arrêter pour désactiver.")
+            send_telegram_message(chat_id, "✅ <b>Mode Admin activé</b>\n\nTout ce que tu écris sera publié anonymement dans le canal.")
         elif data_btn == "admin_stop":
             admin_mode = False
-            send_telegram_message(chat_id, "🛑 <b>Mode Admin désactivé</b>\n\nTes messages restent maintenant privés.")
+            send_telegram_message(chat_id, "🛑 <b>Mode Admin désactivé</b>")
 
         return jsonify(success=True)
 
@@ -127,14 +126,13 @@ def telegram_webhook():
         username = user.get("username")
         display_name = f"@{username}" if username else first_name
 
-        # === MODE ADMIN ANONYME ===
+        # Mode admin anonyme
         if str(chat_id) == str(ADMIN_ID) and admin_mode and not text.startswith("/"):
-            # Publier dans le canal sans aucune info sur l'admin
             send_telegram_message(CHANNEL_ID, text)
-            send_telegram_message(chat_id, "✅ Message publié anonymement dans le canal")
+            send_telegram_message(chat_id, "✅ Publié anonymement dans le canal")
             return jsonify(success=True)
 
-        # === COMMANDES NORMALES ===
+        # /start
         if text.startswith("/start"):
             try:
                 response = requests.post(f"{SERVER_URL}/create-checkout", json={"telegram_id": chat_id}, timeout=10)
@@ -150,8 +148,8 @@ def telegram_webhook():
                         f"• 150 codes de parrainage actifs\n"
                         f"• Possibilité de partager ton propre code\n\n"
                         f"<b>Prix : 10 €</b> (accès à vie)\n\n"
-                        f"Clique sur le bouton ci-dessous pour payer.\n"
-                        f"Dès que le paiement est terminé, tu recevras <b>automatiquement</b> le lien du canal.",
+                        f"Clique sur le bouton pour payer.\n"
+                        f"Dès le paiement terminé, tu recevras automatiquement le lien du canal.",
                         reply_markup=keyboard
                     )
                 else:
@@ -160,6 +158,7 @@ def telegram_webhook():
                 send_telegram_message(chat_id, "Erreur de connexion.")
                 print(e)
 
+        # /admin1
         elif text == "/admin1" and str(chat_id) == str(ADMIN_ID):
             keyboard = {
                 "inline_keyboard": [
@@ -167,45 +166,63 @@ def telegram_webhook():
                     [{"text": "⏹️ Arrêter", "callback_data": "admin_stop"}]
                 ]
             }
-            send_telegram_message(
-                chat_id,
-                "🔐 <b>Mode Administrateur</b>\n\n"
-                "Clique sur <b>Démarrer</b> pour publier anonymement dans le canal.\n"
-                "Clique sur <b>Arrêter</b> pour désactiver le mode.",
-                reply_markup=keyboard
-            )
+            send_telegram_message(chat_id, "🔐 <b>Mode Administrateur</b>\n\nClique sur Démarrer pour publier anonymement.", reply_markup=keyboard)
 
+        # /promo Site Pourcentage Code [Date]
         elif text.lower().startswith("/promo "):
-            parts = text[7:].strip().split(maxsplit=1)
-            if len(parts) == 2:
+            parts = text[7:].strip().split()
+            if len(parts) >= 3:
                 site = parts[0]
-                code = parts[1].upper()
-                channel_message = (
-                    f"🏷️ <b>CODE PROMO</b>\n\n"
-                    f"De : {display_name}\n"
-                    f"Site : {site}\n"
-                    f"Code : <code>{code}</code>"
-                )
-                send_telegram_message(CHANNEL_ID, channel_message)
-                send_telegram_message(chat_id, f"✅ Ton code promo a été publié !\nSite : {site}\nCode : <code>{code}</code>")
-            else:
-                send_telegram_message(chat_id, "Utilisation : /promo NomDuSite TONCODE")
+                try:
+                    percent = int(parts[1])
+                    code = parts[2].upper()
+                    expire = parts[3] if len(parts) >= 4 else None
 
-        elif text.lower().startswith("/parrainage "):
-            parts = text[12:].strip().split(maxsplit=1)
-            if len(parts) == 2:
-                site = parts[0]
-                code = parts[1].upper()
-                channel_message = (
-                    f"🔗 <b>CODE DE PARRAINAGE</b>\n\n"
-                    f"De : {display_name}\n"
-                    f"Site : {site}\n"
-                    f"Code : <code>{code}</code>"
-                )
-                send_telegram_message(CHANNEL_ID, channel_message)
-                send_telegram_message(chat_id, f"✅ Ton code de parrainage a été publié !\nSite : {site}\nCode : <code>{code}</code>")
+                    channel_message = (
+                        f"🏷️ <b>CODE PROMO</b>\n\n"
+                        f"De : {display_name}\n"
+                        f"Site : {site}\n"
+                        f"Réduction : <b>-{percent}%</b>\n"
+                        f"Code : <code>{code}</code>\n"
+                        f"Statut : ✅ Actif"
+                    )
+                    if expire:
+                        channel_message += f"\nExpire le : {expire}"
+
+                    send_telegram_message(CHANNEL_ID, channel_message)
+                    send_telegram_message(chat_id, f"✅ Code promo publié !\n{site} | -{percent}% | {code}")
+                except:
+                    send_telegram_message(chat_id, "Format incorrect.\nUtilise : /promo Site 30 CODE\nou /promo Site 30 CODE 31/12/2026")
             else:
-                send_telegram_message(chat_id, "Utilisation : /parrainage NomDuSite TONCODE")
+                send_telegram_message(chat_id, "Utilisation : /promo Site 30 CODE\nExemple : /promo Zara 30 SOLDES20")
+
+        # /parrainage Site Montant Code [Date]
+        elif text.lower().startswith("/parrainage "):
+            parts = text[12:].strip().split()
+            if len(parts) >= 3:
+                site = parts[0]
+                try:
+                    montant = int(parts[1])
+                    code = parts[2].upper()
+                    expire = parts[3] if len(parts) >= 4 else None
+
+                    channel_message = (
+                        f"🔗 <b>CODE DE PARRAINAGE</b>\n\n"
+                        f"De : {display_name}\n"
+                        f"Site : {site}\n"
+                        f"Bonus : <b>+{montant}€</b>\n"
+                        f"Code : <code>{code}</code>\n"
+                        f"Statut : ✅ Actif"
+                    )
+                    if expire:
+                        channel_message += f"\nExpire le : {expire}"
+
+                    send_telegram_message(CHANNEL_ID, channel_message)
+                    send_telegram_message(chat_id, f"✅ Code de parrainage publié !\n{site} | +{montant}€ | {code}")
+                except:
+                    send_telegram_message(chat_id, "Format incorrect.\nUtilise : /parrainage Site 20 CODE\nou /parrainage Site 20 CODE 15/09/2026")
+            else:
+                send_telegram_message(chat_id, "Utilisation : /parrainage Site 20 CODE\nExemple : /parrainage Boursorama 20 REF123")
 
         elif text.startswith("/acces"):
             send_telegram_message(chat_id, f"Voici le lien du canal :\n{CHANNEL_LINK}")
