@@ -44,12 +44,12 @@ def create_checkout():
                         "name": "Accès CodeShare - À vie",
                         "description": "350 codes promo + 150 codes de parrainage"
                     },
-                    "unit_amount": 1000,  # 10 €
+                    "unit_amount": 1000,
                 },
                 "quantity": 1,
             }],
             mode="payment",
-            success_url="https://t.me/",  # on améliorera plus tard
+            success_url="https://t.me/",
             cancel_url="https://t.me/",
             client_reference_id=str(telegram_id),
             metadata={"telegram_id": str(telegram_id)}
@@ -69,11 +69,12 @@ def webhook():
     except Exception as e:
         return str(e), 400
 
-   if event["type"] == "checkout.session.completed":
-    session = event["data"]["object"]
-    telegram_id = getattr(session, "client_reference_id", None)
-    if not telegram_id and hasattr(session, "metadata") and session.metadata:
-        telegram_id = session.metadata.get("telegram_id")
+    if event["type"] == "checkout.session.completed":
+        session = event["data"]["object"]
+        
+        telegram_id = getattr(session, "client_reference_id", None)
+        if not telegram_id and hasattr(session, "metadata") and session.metadata:
+            telegram_id = session.metadata.get("telegram_id")
 
         if telegram_id:
             message = (
