@@ -22,7 +22,9 @@ def send_telegram_message(chat_id, text, reply_markup=None):
     if reply_markup:
         payload["reply_markup"] = reply_markup
     try:
-        requests.post(url, json=payload, timeout=10)
+        response = requests.post(url, json=payload, timeout=10)
+        print(f"Envoi à {chat_id} → Status: {response.status_code}")
+        print(f"Réponse Telegram: {response.text}")
     except Exception as e:
         print("Erreur envoi Telegram:", e)
 
