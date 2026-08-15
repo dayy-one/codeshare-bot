@@ -12,12 +12,12 @@ ADMIN_ID = os.getenv("ADMIN_ID")
 CHANNEL_ID = "-1004414166682"
 SERVER_URL = "https://codeshare-bot-production.up.railway.app"
 
-def send_telegram_message(chat_id, text, reply_markup=None):
+def send_telegram_message(chat_id, text, reply_markup=None, parse_mode="HTML"):
     url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
     payload = {
         "chat_id": chat_id,
         "text": text,
-        "parse_mode": "Markdown"
+        "parse_mode": parse_mode
     }
     if reply_markup:
         payload["reply_markup"] = reply_markup
@@ -84,15 +84,18 @@ def webhook():
 
         if telegram_id:
             message = (
-                "🎉 *Paiement confirmé !*\n\n"
+                "🎉 <b>Paiement confirmé !</b>\n\n"
                 "Ton accès a été activé automatiquement.\n\n"
                 f"Voici le lien du canal privé :\n{CHANNEL_LINK}\n\n"
-                "Bienvenue dans *CodeShare* !"
+                "Bienvenue dans <b>CodeShare</b> !\n\n"
+                "Tu peux maintenant partager tes codes :\n"
+                "• /promo NomDuSite CODE\n"
+                "• /parrainage NomDuSite CODE"
             )
             send_telegram_message(telegram_id, message)
 
             if ADMIN_ID:
-                send_telegram_message(ADMIN_ID, f"✅ Nouveau paiement\nID : `{telegram_id}`")
+                send_telegram_message(ADMIN_ID, f"✅ Nouveau paiement\nID : <code>{telegram_id}</code>")
 
     return jsonify(success=True)
 
@@ -109,7 +112,6 @@ def telegram_webhook():
         username = user.get("username")
         display_name = f"@{username}" if username else first_name
 
-        # /start
         if text.startswith("/start"):
             try:
                 response = requests.post(
@@ -127,15 +129,15 @@ def telegram_webhook():
                     }
                     send_telegram_message(
                         chat_id,
-                        f"👋 Salut *{first_name}* !\n\n"
-                        f"Bienvenue sur *CodeShare*.\n\n"
+                        f"👋 Salut <b>{first_name}</b> !\n\n"
+                        f"Bienvenue sur <b>CodeShare</b>.\n\n"
                         f"Tu auras accès à :\n"
                         f"• 350 codes promo actifs\n"
                         f"• 150 codes de parrainage actifs\n"
                         f"• Possibilité de partager ton propre code\n\n"
-                        f"*Prix : 10 €* (accès à vie)\n\n"
+                        f"<b>Prix : 10 €</b> (accès à vie)\n\n"
                         f"Clique sur le bouton ci-dessous pour payer.\n"
-                        f"Dès que le paiement est terminé, tu recevras **automatiquement** le lien du canal.",
+                        f"Dès que le paiement est terminé, tu recevras <b>automatiquement</b> le lien du canal.",
                         reply_markup=keyboard
                     )
                 else:
@@ -144,37 +146,35 @@ def telegram_webhook():
                 send_telegram_message(chat_id, "Erreur de connexion. Réessaie plus tard.")
                 print(e)
 
-        # /promo Site Code
         elif text.lower().startswith("/promo "):
             parts = text[7:].strip().split(maxsplit=1)
             if len(parts) == 2:
                 site = parts[0]
                 code = parts[1].upper()
                 channel_message = (
-                    f"🏷️ *CODE PROMO*\n\n"
+                    f"🏷️ <b>CODE PROMO</b>\n\n"
                     f"De : {display_name}\n"
                     f"Site : {site}\n"
-                    f"Code : `{code}`"
+                    f"Code : <code>{code}</code>"
                 )
                 send_telegram_message(CHANNEL_ID, channel_message)
-                send_telegram_message(chat_id, f"✅ Ton code promo a été publié dans le canal !\nSite : {site}\nCode : `{code}`")
+                send_telegram_message(chat_id, f"✅ Ton code promo a été publié dans le canal !\nSite : {site}\nCode : <code>{code}</code>")
             else:
                 send_telegram_message(chat_id, "Utilisation : /promo NomDuSite TONCODE\nExemple : /promo Zara SOLDES20")
 
-        # /parrainage Site Code
         elif text.lower().startswith("/parrainage "):
             parts = text[12:].strip().split(maxsplit=1)
             if len(parts) == 2:
                 site = parts[0]
                 code = parts[1].upper()
                 channel_message = (
-                    f"🔗 *CODE DE PARRAINAGE*\n\n"
+                    f"🔗 <b>CODE DE PARRAINAGE</b>\n\n"
                     f"De : {display_name}\n"
                     f"Site : {site}\n"
-                    f"Code : `{code}`"
+                    f"Code : <code>{code}</code>"
                 )
                 send_telegram_message(CHANNEL_ID, channel_message)
-                send_telegram_message(chat_id, f"✅ Ton code de parrainage a été publié dans le canal !\nSite : {site}\nCode : `{code}`")
+                send_telegram_message(chat_id, f"✅ Ton code de parrainage a été publié dans le canal !\nSite : {site}\nCode : <code>{code}</code>")
             else:
                 send_telegram_message(chat_id, "Utilisation : /parrainage NomDuSite TONCODE\nExemple : /parrainage Boursorama REF123")
 
