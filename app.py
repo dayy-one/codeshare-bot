@@ -2,15 +2,14 @@ from flask import Flask, request, jsonify
 import stripe
 import requests
 import os
-import json
 
 app = Flask(__name__)
 
-# === Variables d'environnement ===
 stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 CHANNEL_LINK = os.getenv("CHANNEL_LINK")
 ADMIN_ID = os.getenv("ADMIN_ID")
+CHANNEL_ID = "-1004414166682"
 SERVER_URL = "https://codeshare-bot-production.up.railway.app"
 
 def send_telegram_message(chat_id, text, reply_markup=None):
@@ -31,7 +30,6 @@ def send_telegram_message(chat_id, text, reply_markup=None):
 def home():
     return "CodeShare Server + Bot 24/7 is running ✅"
 
-# ========== CRÉATION DU PAIEMENT ==========
 @app.route("/create-checkout", methods=["POST"])
 def create_checkout():
     data = request.json or {}
@@ -64,7 +62,6 @@ def create_checkout():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-# ========== WEBHOOK STRIPE ==========
 @app.route("/webhook", methods=["POST"])
 def webhook():
     payload = request.data
@@ -97,7 +94,6 @@ def webhook():
 
     return jsonify(success=True)
 
-# ========== BOT TELEGRAM (Webhook) ==========
 @app.route("/telegram", methods=["POST"])
 def telegram_webhook():
     data = request.get_json()
@@ -105,12 +101,14 @@ def telegram_webhook():
     if "message" in data:
         message = data["message"]
         chat_id = message["chat"]["id"]
-        text = message.get("text", "")
+        text = message.get("text", "").strip()
         user = message.get("from", {})
         first_name = user.get("first_name", "Utilisateur")
+        username = user.get("username")
+        display_name = f"@{username}" if username else first_name
 
+        # /start
         if text.startswith("/start"):
-            # Créer le paiement
             try:
                 response = requests.post(
                     f"{SERVER_URL}/create-checkout",
@@ -139,10 +137,44 @@ def telegram_webhook():
                         reply_markup=keyboard
                     )
                 else:
-                    send_telegram_message(chat_id, "Erreur lors de la création du paiement. Réessaie plus tard.")
+                    send_telegram_message(chat_id, "Erreur lors de la création du paiement.")
             except Exception as e:
-                send_telegram_message(chat_id, "Erreur de connexion. Réessaie dans quelques instants.")
+                send_telegram_message(chat_id, "Erreur de connexion. Réessaie plus tard.")
                 print(e)
+
+        # /promo Site Code
+        elif text.lower().startswith("/promo "):
+            parts = text[7:].strip().split(maxsplit=1)
+            if len(parts) == 2:
+                site = parts[0]
+                code = parts[1].upper()
+                channel_message = (
+                    f"🏷️ *CODE PROMO*\n\n"
+                    f"De : {display_name}\n"
+                    f"Site : {site}\n"
+                    f"Code : `{code}`"
+                )
+                send_telegram_message(CHANNEL_ID, channel_message)
+                send_telegram_message(chat_id, f"✅ Ton code promo a été publié dans le canal !\nSite : {site}\nCode : `{code}`")
+            else:
+                send_telegram_message(chat_id, "Utilisation : /promo NomDuSite TONCODE\nExemple : /promo Zara SOLDES20")
+
+        # /parrainage Site Code
+        elif text.lower().startswith("/parrainage "):
+            parts = text[12:].strip().split(maxsplit=1)
+            if len(parts) == 2:
+                site = parts[0]
+                code = parts[1].upper()
+                channel_message = (
+                    f"🔗 *CODE DE PARRAINAGE*\n\n"
+                    f"De : {display_name}\n"
+                    f"Site : {site}\n"
+                    f"Code : `{code}`"
+                )
+                send_telegram_message(CHANNEL_ID, channel_message)
+                send_telegram_message(chat_id, f"✅ Ton code de parrainage a été publié dans le canal !\nSite : {site}\nCode : `{code}`")
+            else:
+                send_telegram_message(chat_id, "Utilisation : /parrainage NomDuSite TONCODE\nExemple : /parrainage Boursorama REF123")
 
         elif text.startswith("/acces"):
             send_telegram_message(chat_id, f"Voici le lien du canal :\n{CHANNEL_LINK}")
