@@ -69,9 +69,11 @@ def webhook():
     except Exception as e:
         return str(e), 400
 
-    if event["type"] == "checkout.session.completed":
-        session = event["data"]["object"]
-        telegram_id = session.get("client_reference_id") or session.get("metadata", {}).get("telegram_id")
+   if event["type"] == "checkout.session.completed":
+    session = event["data"]["object"]
+    telegram_id = getattr(session, "client_reference_id", None)
+    if not telegram_id and hasattr(session, "metadata") and session.metadata:
+        telegram_id = session.metadata.get("telegram_id")
 
         if telegram_id:
             message = (
