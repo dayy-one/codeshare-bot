@@ -9,12 +9,12 @@
     :root {
       --bg:#000; --card:#121212; --text:#fff; --text2:#a1a1aa;
       --border:#1f1f1f; --accent:#8b5cf6; --accent2:#06b6d4;
-      --green:#22c55e; --pink:#ec4899;
+      --green:#22c55e; --pink:#ec4899; --red:#ef4444;
     }
     body.light {
       --bg:#fafafa; --card:#fff; --text:#0a0a0a; --text2:#737373;
       --border:#e5e5e5; --accent:#7c3aed; --accent2:#0891b2;
-      --green:#16a34a; --pink:#db2777;
+      --green:#16a34a; --pink:#db2777; --red:#dc2626;
     }
     *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
     body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",Inter,Roboto,sans-serif;background:var(--bg);color:var(--text);height:100vh;overflow:hidden;transition:.25s}
@@ -24,7 +24,8 @@
     .logo-mark{width:32px;height:32px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff}
     .name{font-size:18px;font-weight:700}
     .sub{font-size:11px;color:var(--text2)}
-    .icon-btn{width:36px;height:36px;border-radius:12px;border:1px solid var(--border);background:var(--card);color:var(--text)}
+    .header-actions{display:flex;gap:8px}
+    .icon-btn{width:36px;height:36px;border-radius:12px;border:1px solid var(--border);background:var(--card);color:var(--text);font-size:15px}
     .stories{display:flex;gap:12px;overflow-x:auto;padding:12px 16px;border-bottom:1px solid var(--border)}
     .story{min-width:66px;text-align:center;font-size:11px;color:var(--text2)}
     .story-ring{width:56px;height:56px;border-radius:50%;padding:2px;margin:0 auto 6px;background:linear-gradient(45deg,var(--accent),var(--pink),var(--accent2))}
@@ -56,11 +57,22 @@
     .modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:50;align-items:flex-end;justify-content:center}
     .modal.active{display:flex}
     .sheet{width:100%;max-width:430px;background:var(--card);border-radius:22px 22px 0 0;padding:22px 18px 34px}
-    .sheet button{width:100%;margin-bottom:10px;padding:14px;border-radius:14px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:15px}
+    .sheet button,.sheet input{width:100%;margin-bottom:10px;padding:14px;border-radius:14px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:15px}
+    .sheet input{outline:none}
     .welcome{margin:12px 16px;padding:14px;border-radius:16px;background:var(--card);border:1px solid var(--border);font-size:13px;line-height:1.45}
     .welcome strong{display:block;margin-bottom:6px;font-size:14px}
     .empty{text-align:center;color:var(--text2);padding:30px 16px;font-size:14px}
     .clickable{cursor:pointer}
+    .reaction-pop{
+      position:fixed;left:50%;top:40%;transform:translate(-50%,-50%);
+      background:rgba(20,20,20,.92);border:1px solid var(--border);border-radius:22px;
+      padding:18px;display:none;z-index:80;gap:14px;align-items:center;justify-content:center;
+    }
+    .reaction-pop.active{display:flex}
+    .reaction-pop button{
+      width:64px;height:64px;border-radius:18px;border:1px solid var(--border);
+      background:var(--card);font-size:28px;
+    }
   </style>
 </head>
 <body>
@@ -70,10 +82,13 @@
       <div class="logo-mark">C</div>
       <div>
         <div class="name">Codia</div>
-        <div class="sub">16,254 members</div>
+        <div class="sub">16,254k members</div>
       </div>
     </div>
-    <button class="icon-btn" onclick="toggleTheme()">◐</button>
+    <div class="header-actions">
+      <button class="icon-btn" id="notifBtn" onclick="toggleNotif()">🔔</button>
+      <button class="icon-btn" onclick="toggleTheme()">◐</button>
+    </div>
   </div>
 
   <div class="stories" id="stories"></div>
@@ -84,7 +99,7 @@
       1) Explore le feed et les bulles<br>
       2) Cherche un code dans Discover<br>
       3) Partage tes codes avec ＋ Partager<br>
-      4) Like / valide les codes utiles
+      4) Maintiens un code à la une pour 🔥 ou 👎
     </div>
     <div class="section">À la une</div>
     <div id="daily-codes"></div>
@@ -112,52 +127,78 @@
   </div>
 </div>
 
+<!-- Share modal -->
 <div class="modal" id="shareModal">
   <div class="sheet">
     <div style="text-align:center;font-weight:700;margin-bottom:14px">Partager un code</div>
-    <button onclick="shareType('promo')">Code promo</button>
-    <button onclick="shareType('parrainage')">Code parrainage</button>
+    <button onclick="chooseShare('promo')">Code promo</button>
+    <button onclick="chooseShare('parrainage')">Code parrainage</button>
     <button onclick="closeShare()">Annuler</button>
   </div>
+</div>
+
+<!-- Form modal -->
+<div class="modal" id="formModal">
+  <div class="sheet">
+    <div style="text-align:center;font-weight:700;margin-bottom:14px" id="formTitle">Nouveau code</div>
+    <input id="formSite" placeholder="Site (ex: Uber Eats)">
+    <input id="formCode" placeholder="Code">
+    <input id="formDesc" placeholder="Ex: -20% ou +80€">
+    <button onclick="submitCode()">Publier</button>
+    <button onclick="closeForm()">Annuler</button>
+  </div>
+</div>
+
+<!-- Reaction stickers -->
+<div class="reaction-pop" id="reactionPop">
+  <button onclick="reactFire()">🔥</button>
+  <button onclick="reactDown()">👎</button>
 </div>
 
 <script>
   Telegram.WebApp.ready();
   Telegram.WebApp.expand();
 
-  // Archives permanentes (toujours affichées)
   const ARCHIVES = {
     "Top": [
-      {site:"Uber Eats", code:"EATS10", description:"-10€", type:"promo", added_by:"Archive Codia"},
-      {site:"Booking", code:"TRAVEL15", description:"-15%", type:"promo", added_by:"Archive Codia"}
+      {site:"Uber Eats", code:"EATS10", description:"-10€", type:"promo", added_by:"Archive Codia", is_ai:true, views:4200},
+      {site:"Booking", code:"TRAVEL15", description:"-15%", type:"promo", added_by:"Archive Codia", is_ai:true, views:5100}
     ],
     "Uber Eats": [
-      {site:"Uber Eats", code:"EATS10", description:"-10€", type:"promo", added_by:"Archive Codia"},
-      {site:"Uber Eats", code:"FOOD5", description:"-5€", type:"promo", added_by:"Archive Codia"}
+      {site:"Uber Eats", code:"EATS10", description:"-10€", type:"promo", added_by:"Archive Codia", is_ai:true, views:3900}
     ],
     "Booking": [
-      {site:"Booking", code:"TRAVEL15", description:"-15%", type:"promo", added_by:"Archive Codia"},
-      {site:"Booking", code:"STAY20", description:"-20%", type:"promo", added_by:"Archive Codia"}
+      {site:"Booking", code:"TRAVEL15", description:"-15%", type:"promo", added_by:"Archive Codia", is_ai:true, views:4400}
     ],
     "Airbnb": [
-      {site:"Airbnb", code:"HOME12", description:"-12%", type:"promo", added_by:"Archive Codia"}
+      {site:"Airbnb", code:"HOME12", description:"-12%", type:"promo", added_by:"Archive Codia", is_ai:true, views:3600}
     ],
     "Getaround": [
-      {site:"Getaround", code:"DRIVE20", description:"-20%", type:"promo", added_by:"Archive Codia"}
+      {site:"Getaround", code:"DRIVE20", description:"-20%", type:"promo", added_by:"Archive Codia", is_ai:true, views:3100}
     ],
     "Banques": [
-      {site:"Fortuneo", code:"FORTU80", description:"+80€", type:"parrainage", added_by:"Archive Codia"},
-      {site:"BoursoBank", code:"BOURSO100", description:"+100€", type:"parrainage", added_by:"Archive Codia"}
+      {site:"Fortuneo", code:"FORTU80", description:"+80€", type:"parrainage", added_by:"Archive Codia", is_ai:true, views:4800}
     ]
   };
 
   let allCodes = [];
   let userCity = null;
+  let currentShareType = "promo";
+  let pressTimer = null;
+  let reactionId = null;
 
   if (localStorage.getItem('theme') === 'light') document.body.classList.add('light');
+  if (localStorage.getItem('notif') === 'off') document.getElementById('notifBtn').textContent = '🔕';
+
   function toggleTheme(){
     document.body.classList.toggle('light');
     localStorage.setItem('theme', document.body.classList.contains('light') ? 'light' : 'dark');
+  }
+  function toggleNotif(){
+    const off = localStorage.getItem('notif') === 'off';
+    localStorage.setItem('notif', off ? 'on' : 'off');
+    document.getElementById('notifBtn').textContent = off ? '🔔' : '🔕';
+    alert(off ? 'Notifications activées' : 'Notifications désactivées');
   }
 
   if (navigator.geolocation) {
@@ -167,7 +208,7 @@
         const data = await res.json();
         userCity = data.address?.city || data.address?.town || data.address?.village || null;
       }catch(e){}
-    },()=>{}, {timeout:4000});
+    },()=>{},{timeout:4000});
   }
 
   function showPage(page){
@@ -176,33 +217,71 @@
     if(page==='home'){
       document.getElementById('page-home').classList.add('active');
       document.querySelectorAll('.nav')[0].classList.add('active');
-    }else{
+    } else {
       document.getElementById('page-ia').classList.add('active');
       document.querySelectorAll('.nav')[1].classList.add('active');
     }
   }
 
-  function openShare(){document.getElementById('shareModal').classList.add('active')}
-  function closeShare(){document.getElementById('shareModal').classList.remove('active')}
-  function shareType(type){
+  function openShare(){ document.getElementById('shareModal').classList.add('active'); }
+  function closeShare(){ document.getElementById('shareModal').classList.remove('active'); }
+  function closeForm(){ document.getElementById('formModal').classList.remove('active'); }
+
+  function chooseShare(type){
+    currentShareType = type;
     closeShare();
-    alert(type==='promo'
-      ? "Envoie dans le bot :\n/promo Site 20 TONCODE"
-      : "Envoie dans le bot :\n/parrainage Site 50 TONCODE");
+    document.getElementById('formTitle').textContent = type === 'promo' ? 'Nouveau code promo' : 'Nouveau code parrainage';
+    document.getElementById('formSite').value = '';
+    document.getElementById('formCode').value = '';
+    document.getElementById('formDesc').value = '';
+    document.getElementById('formModal').classList.add('active');
+  }
+
+  async function submitCode(){
+    const site = document.getElementById('formSite').value.trim();
+    const code = document.getElementById('formCode').value.trim();
+    const description = document.getElementById('formDesc').value.trim();
+    if(!site || !code){ alert('Site et code obligatoires'); return; }
+
+    const tgUser = window.Telegram?.WebApp?.initDataUnsafe?.user;
+    const added_by = tgUser?.username ? '@'+tgUser.username : (tgUser?.first_name || 'Membre Codia');
+
+    try{
+      const res = await fetch('/codes/add', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({
+          type: currentShareType,
+          site, code, description, added_by
+        })
+      });
+      const data = await res.json();
+      if(data.success){
+        closeForm();
+        alert('Code publié sur Codia ✅');
+        if(localStorage.getItem('notif') !== 'off'){
+          // simple feedback local
+        }
+        await loadCodes();
+        showPage('home');
+      } else {
+        alert('Erreur publication');
+      }
+    }catch(e){
+      alert('Erreur publication');
+    }
   }
 
   function renderStories(){
     const base = ["Top","Uber Eats","Booking","Airbnb","Getaround","Banques"];
     const dynamicSites = [...new Set(allCodes.map(c => c.site).filter(Boolean))];
     const names = ["+ Partager", ...base, ...dynamicSites.filter(s => !base.includes(s)).slice(0,6)];
-
     document.getElementById('stories').innerHTML = names.map(name=>{
       const label = name === "+ Partager" ? "+" : name.slice(0,1).toUpperCase();
-      return `
-        <div class="story clickable" onclick="onStoryClick('${name.replace(/'/g,"\\'")}')">
-          <div class="story-ring"><div>${label}</div></div>
-          ${name.length>10 ? name.slice(0,9)+'…' : name}
-        </div>`;
+      return `<div class="story clickable" onclick="onStoryClick('${name.replace(/'/g,"\\'")}')">
+        <div class="story-ring"><div>${label}</div></div>
+        ${name.length>10 ? name.slice(0,9)+'…' : name}
+      </div>`;
     }).join('');
   }
 
@@ -214,44 +293,42 @@
 
   function showArchive(name){
     const fromDb = allCodes.filter(c =>
-      (c.site || '').toLowerCase().includes(name.toLowerCase()) ||
-      (name==='Top') ||
-      (name==='Banques' && /fortuneo|bourso|bourse|bank|banque/i.test(c.site||''))
+      (c.site||'').toLowerCase().includes(name.toLowerCase()) ||
+      name==='Top' ||
+      (name==='Banques' && /fortuneo|bourso|bank|banque/i.test(c.site||''))
     );
     const archive = ARCHIVES[name] || [];
     const merged = [...fromDb, ...archive];
-
     document.getElementById('feed-title').textContent = `Archive • ${name}`;
     document.getElementById('welcome').style.display = 'none';
-
     const list = document.getElementById('codes-list');
     if(!merged.length){
-      list.innerHTML = `<div class="empty">Pas encore de code pour ${name}.<br>Tu peux être le premier à en partager.</div>`;
+      list.innerHTML = `<div class="empty">Pas encore de code pour ${name}.</div>`;
       return;
     }
-    list.innerHTML = merged.map((c,i)=> renderPost(c, i+1000)).join('');
+    list.innerHTML = merged.map((c,i)=>renderPost(c,i+1000)).join('');
   }
 
   function renderPost(c, fallbackId){
     const id = c.id || fallbackId;
-    return `
-      <div class="post">
-        <div class="post-top">
-          <div class="avatar">${(c.added_by||'C')[0].toUpperCase()}</div>
-          <div>
-            <div style="font-weight:600">${c.added_by || 'Archive Codia'}</div>
-            <div class="muted">${c.site}</div>
-          </div>
+    const views = c.views || 2000;
+    return `<div class="post">
+      <div class="post-top">
+        <div class="avatar">${(c.added_by||'C')[0].toUpperCase()}</div>
+        <div>
+          <div style="font-weight:600">${c.added_by || 'Membre Codia'}</div>
+          <div class="muted">${c.site}</div>
         </div>
-        <div>${c.type==='parrainage' ? 'code parrainage' : 'code promo'}</div>
-        <div class="code"><span>${c.code}</span><span style="color:var(--green)">${c.description||''}</span></div>
-        <div class="actions">
-          ${c.id ? `<button onclick="likeCode(${c.id}, this)">♥ ${c.likes||0}</button>
-          <button onclick="markWorking(${c.id})">Validé</button>
-          <button onclick="markDead(${c.id})">Expiré</button>` : `<span class="muted">Archive</span>`}
-          <span class="muted">👁 ${(c.views || (2000 + Math.floor(Math.random()*4000))).toLocaleString('fr-FR')}</span>
-        </div>
-      </div>`;
+      </div>
+      <div>${c.type==='parrainage' ? 'code parrainage' : 'code promo'}</div>
+      <div class="code"><span>${c.code}</span><span style="color:var(--green)">${c.description||''}</span></div>
+      <div class="actions">
+        ${c.id ? `<button onclick="likeCode(${c.id}, this)">♥ ${c.likes||0}</button>
+        <button onclick="markWorking(${c.id})">Validé</button>
+        <button onclick="markDead(${c.id})">Expiré</button>` : `<span class="muted">Archive</span>`}
+        <span class="muted">👁 ${Number(views).toLocaleString('fr-FR')}</span>
+      </div>
+    </div>`;
   }
 
   function renderSuggestions(){
@@ -266,17 +343,36 @@
       .filter(s => !base.find(b => b.site.toLowerCase()===s.toLowerCase()))
       .slice(0,6)
       .map(s => ({site:s, subtitle:"Nouveau site", desc:"Codes"}));
-
     const items = [...base, ...dynamic];
     document.getElementById('suggestions').innerHTML = items.map(item => `
       <div class="card row clickable" onclick="onStoryClick('${item.site.replace(/'/g,"\\'")}')">
-        <div>
-          <strong>${item.site}</strong>
-          <div class="muted">${item.subtitle}</div>
-        </div>
+        <div><strong>${item.site}</strong><div class="muted">${item.subtitle}</div></div>
         <div class="pill">${item.desc}</div>
       </div>
     `).join('');
+  }
+
+  function startPress(id){
+    if(!id) return;
+    pressTimer = setTimeout(()=>{
+      reactionId = id;
+      document.getElementById('reactionPop').classList.add('active');
+    }, 480);
+  }
+  function endPress(){
+    if(pressTimer) clearTimeout(pressTimer);
+  }
+  function hideReaction(){
+    document.getElementById('reactionPop').classList.remove('active');
+    reactionId = null;
+  }
+  function reactFire(){
+    if(reactionId) markWorking(reactionId);
+    hideReaction();
+  }
+  function reactDown(){
+    if(reactionId) markDead(reactionId);
+    hideReaction();
   }
 
   async function askAI(){
@@ -316,7 +412,11 @@
     const top = allCodes.length ? allCodes.slice(0,3) : ARCHIVES["Top"];
 
     daily.innerHTML = top.map(c => `
-      <div class="card row">
+      <div class="card row"
+           onpointerdown="startPress(${c.id||0})"
+           onpointerup="endPress()"
+           onpointerleave="endPress()"
+           onpointercancel="endPress()">
         <div>
           <strong>${c.site}</strong>
           <div class="muted">${c.type || 'promo'} • ${c.code}</div>
@@ -330,7 +430,7 @@
       list.innerHTML = allCodes.map(c => renderPost(c)).join('');
     } else {
       document.getElementById('feed-title').textContent = 'Archives Codia';
-      list.innerHTML = ARCHIVES["Top"].map((c,i)=>renderPost(c, i+1)).join('');
+      list.innerHTML = ARCHIVES["Top"].map((c,i)=>renderPost(c,i+1)).join('');
     }
   }
 
@@ -343,12 +443,16 @@
   }
   async function markWorking(id){
     await fetch('/code/working',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id})});
-    alert('Merci, code marqué comme valide.');
+    alert('🔥 Code marqué comme valide');
   }
   async function markDead(id){
     await fetch('/code/dead',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id})});
-    alert('Merci pour le signalement.');
+    alert('👎 Code marqué comme expiré');
   }
+
+  document.getElementById('reactionPop').addEventListener('click', (e)=>{
+    if(e.target.id === 'reactionPop') hideReaction();
+  });
 
   loadCodes();
 </script>
