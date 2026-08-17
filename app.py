@@ -15,6 +15,7 @@ CHANNEL_LINK = os.getenv("CHANNEL_LINK", "https://t.me/+ODE8T52A5yEzMTZk")
 ADMIN_ID = int(os.getenv("ADMIN_ID", "8091031583"))
 CHANNEL_ID = "-1004414166682"
 SERVER_URL = "https://codeshare-bot-production.up.railway.app"
+MINIAPP_URL = "https://codeshare-bot-production.up.railway.app/miniapp"
 
 client = OpenAI(
     api_key=os.getenv("XAI_API_KEY"),
@@ -37,6 +38,8 @@ def init_db():
             description TEXT,
             link TEXT,
             added_by TEXT,
+            working INTEGER DEFAULT 0,
+            dead INTEGER DEFAULT 0,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     ''')
@@ -79,8 +82,8 @@ def save_code(code_type, site, code, description, link, added_by):
         conn = sqlite3.connect("codes.db")
         c = conn.cursor()
         c.execute('''
-            INSERT INTO codes (type, site, code, description, link, added_by)
-            VALUES (?, ?, ?, ?, ?, ?)
+            INSERT INTO codes (type, site, code, description, link, added_by, working, dead)
+            VALUES (?, ?, ?, ?, ?, ?, 0, 0)
         ''', (code_type, site, code, description, link, added_by))
         conn.commit()
         conn.close()
@@ -88,40 +91,47 @@ def save_code(code_type, site, code, description, link, added_by):
     except Exception as e:
         print("Erreur sauvegarde code:", e)
 
-def get_codes_for_ai():
+def get_best_codes():
     try:
         conn = sqlite3.connect("codes.db")
         c = conn.cursor()
-        c.execute("SELECT type, site, code, description, link FROM codes ORDER BY created_at DESC LIMIT 40")
+        c.execute('''
+            SELECT type, site, code, description, working, dead 
+            FROM codes 
+            ORDER BY (working - dead) DESC, created_at DESC 
+            LIMIT 30
+        ''')
         rows = c.fetchall()
         conn.close()
 
         if not rows:
-            return "Aucun code dans la base pour le moment."
+            return "Aucun code validé pour le moment."
 
-        text = "Codes validés de la communauté :\n\n"
+        text = "Meilleurs codes de la communauté (triés par fiabilité) :\n\n"
         for row in rows:
-            text += f"- {row[0]} | {row[1]} : {row[2]} | {row[3]} | Lien: {row[4] or 'Aucun'}\n"
+            score = row[4] - row[5]
+            text += f"- {row[0]} | {row[1]} : {row[2]} | {row[3]} | Score: {score}\n"
         return text
     except:
-        return "Aucun code dans la base pour le moment."
+        return "Aucun code validé pour le moment."
 
 def ask_grok(user_message: str):
-    codes_context = get_codes_for_ai()
+    codes_context = get_best_codes()
 
     system_prompt = f"""
-Tu es l'assistant officiel de CODE IA, une plateforme de codes promo et parrainage.
+Tu es l'assistant officiel de CODE IA.
 
-Voici les codes validés de la communauté :
+Voici les meilleurs codes de la communauté (triés par fiabilité) :
 {codes_context}
 
-Règles de réponse :
-1. Si tu trouves un code correspondant dans la base → donne-le en priorité.
-2. Si la base est vide ou ne contient rien de pertinent → cherche les meilleures offres et codes promo/parrainage connus ou récents pour la demande de l'utilisateur.
-3. Propose toujours les options les plus proches de ce que demande le client.
-4. Sois clair, direct et en français.
-5. Si tu n'es pas sûr qu'un code soit encore valide, dis-le clairement.
-6. Ne dis jamais seulement "aucun code disponible". Propose toujours quelque chose d'utile.
+RÈGLES ABSOLUES :
+1. Tu dois TOUJOURS proposer quelque chose d'utile.
+2. Interdiction totale de dire : "aucun code", "je n'ai rien trouvé", "pas disponible", "je ne sais pas".
+3. Interdiction de répondre de façon vide ou négative.
+4. Priorise les codes de la liste ci-dessus s'ils correspondent.
+5. Si aucun code exact n'existe, propose la meilleure alternative possible (autre site, autre offre, autre remise).
+6. Réponds toujours de façon claire, positive et en français.
+7. Donne au minimum une proposition concrète (code, remise, ou alternative).
 """
 
     try:
@@ -136,7 +146,7 @@ Règles de réponse :
         return response.choices[0].message.content
     except Exception as e:
         print("Erreur Grok:", e)
-        return "Désolé, l'IA est temporairement indisponible."
+        return "Voici une bonne alternative pour toi : regarde les offres actuelles sur Booking, Uber Eats ou Getaround selon ton besoin."
 
 def send_telegram_message(chat_id, text, reply_markup=None, parse_mode="HTML"):
     url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
@@ -154,51 +164,6 @@ def send_telegram_message(chat_id, text, reply_markup=None, parse_mode="HTML"):
         print("Erreur:", e)
 
 # ================== ROUTES ==================
-@app.route("/ask", methods=["POST"])
-def ask():
-    data = request.json or {}
-    question = data.get("question", "").strip()
-
-    if not question:
-        return jsonify({"answer": "Dis-moi ce que tu recherches (ex: code Uber Eats, hôtel à Paris, location de voiture...)"}), 200
-
-    # Prompt très strict
-    system_prompt = """
-Tu es l'assistant de CODE IA.
-Tu dois TOUJOURS donner une réponse utile et positive.
-Interdictions strictes :
-- Ne jamais dire que tu n'as rien trouvé
-- Ne jamais dire "aucun code disponible"
-- Ne jamais donner une réponse vide ou négative
-- Ne jamais dire "je ne sais pas"
-
-Tu dois TOUJOURS proposer au moins une de ces choses :
-1. Un code promo
-2. Un code de parrainage
-3. Une remise / offre
-4. Une alternative intéressante (voyage, hôtel, nourriture, location de véhicule...)
-
-Réponds en français, de façon claire, directe et encourageante.
-Si tu n'as pas de code exact, propose la meilleure alternative possible.
-"""
-
-    try:
-        response = client.chat.completions.create(
-            model="grok-3",
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": question}
-            ],
-            temperature=0.5
-        )
-        answer = response.choices[0].message.content
-        return jsonify({"answer": answer})
-    except Exception as e:
-        print("Erreur IA:", e)
-        return jsonify({
-            "answer": "Voici une bonne alternative pendant que je peaufine ta recherche : regarde les offres Booking, Uber Eats ou Getaround selon ton besoin."
-        })
-
 @app.route("/")
 def home():
     return "CODE IA Server 24/7 is running ✅"
@@ -210,6 +175,49 @@ def miniapp():
             return f.read()
     except Exception as e:
         return f"Erreur chargement Mini App : {e}", 500
+
+@app.route("/ask", methods=["POST"])
+def ask():
+    data = request.json or {}
+    question = data.get("question", "").strip()
+
+    if not question:
+        return jsonify({"answer": "Dis-moi précisément ce que tu recherches (ex: code Uber Eats, hôtel Paris, location voiture...)."}), 200
+
+    answer = ask_grok(question)
+    return jsonify({"answer": answer})
+
+@app.route("/code/working", methods=["POST"])
+def code_working():
+    data = request.json or {}
+    code_id = data.get("id")
+    if not code_id:
+        return jsonify({"error": "id manquant"}), 400
+    try:
+        conn = sqlite3.connect("codes.db")
+        c = conn.cursor()
+        c.execute("UPDATE codes SET working = working + 1 WHERE id = ?", (code_id,))
+        conn.commit()
+        conn.close()
+        return jsonify({"success": True})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/code/dead", methods=["POST"])
+def code_dead():
+    data = request.json or {}
+    code_id = data.get("id")
+    if not code_id:
+        return jsonify({"error": "id manquant"}), 400
+    try:
+        conn = sqlite3.connect("codes.db")
+        c = conn.cursor()
+        c.execute("UPDATE codes SET dead = dead + 1 WHERE id = ?", (code_id,))
+        conn.commit()
+        conn.close()
+        return jsonify({"success": True})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 @app.route("/create-checkout", methods=["POST"])
 def create_checkout():
@@ -247,22 +255,14 @@ def webhook():
     sig_header = request.headers.get("Stripe-Signature")
     endpoint_secret = os.getenv("STRIPE_WEBHOOK_SECRET")
 
-    if not sig_header:
-        print("Webhook refusé : pas de signature")
-        return jsonify({"error": "Missing signature"}), 400
-
-    if not endpoint_secret:
-        print("Webhook refusé : STRIPE_WEBHOOK_SECRET manquant")
-        return jsonify({"error": "Server misconfigured"}), 500
+    if not sig_header or not endpoint_secret:
+        return jsonify({"error": "Unauthorized"}), 400
 
     try:
         event = stripe.Webhook.construct_event(payload, sig_header, endpoint_secret)
-    except ValueError as e:
-        print("Webhook refusé : payload invalide", e)
-        return jsonify({"error": "Invalid payload"}), 400
-    except stripe.error.SignatureVerificationError as e:
-        print("Webhook refusé : signature invalide", e)
-        return jsonify({"error": "Invalid signature"}), 400
+    except Exception as e:
+        print("Webhook error:", e)
+        return jsonify({"error": "Invalid"}), 400
 
     if event["type"] == "checkout.session.completed":
         session = event["data"]["object"]
@@ -274,18 +274,26 @@ def webhook():
         if telegram_id:
             add_paid_user(telegram_id)
 
+            keyboard = {
+                "inline_keyboard": [[
+                    {
+                        "text": "🚀 Ouvrir CODE IA",
+                        "web_app": {
+                            "url": MINIAPP_URL
+                        }
+                    }
+                ]]
+            }
+
             message = (
                 "🎉 <b>Paiement confirmé !</b>\n\n"
-                "Ton accès a été activé.\n\n"
-                f"Voici le lien du canal privé :\n{CHANNEL_LINK}\n\n"
-                "Bienvenue dans <b>CODE IA</b> !"
+                "Ton accès est activé.\n\n"
+                "Clique sur le bouton ci-dessous pour ouvrir la plateforme :"
             )
-            send_telegram_message(telegram_id, message)
+            send_telegram_message(telegram_id, message, reply_markup=keyboard)
             
             if ADMIN_ID:
                 send_telegram_message(ADMIN_ID, f"✅ Nouveau paiement\nID : <code>{telegram_id}</code>")
-        else:
-            print("Webhook reçu mais telegram_id manquant")
 
     return jsonify(success=True), 200
 
@@ -338,11 +346,27 @@ def telegram_webhook():
         # /start
         if text.startswith("/start"):
             if int(chat_id) == ADMIN_ID:
-                send_telegram_message(chat_id, f"👋 Salut Admin <b>{first_name}</b> !\n\nAccès complet activé.")
+                keyboard = {
+                    "inline_keyboard": [[
+                        {
+                            "text": "🚀 Ouvrir CODE IA",
+                            "web_app": {"url": MINIAPP_URL}
+                        }
+                    ]]
+                }
+                send_telegram_message(chat_id, f"👋 Salut Admin <b>{first_name}</b> !\n\nAccès complet activé.", reply_markup=keyboard)
                 return jsonify(success=True)
 
             if is_paid_user(chat_id):
-                send_telegram_message(chat_id, f"👋 Rebonjour <b>{first_name}</b> !\n\nTu as déjà accès à CODE IA.\nEnvoie-moi ta question.")
+                keyboard = {
+                    "inline_keyboard": [[
+                        {
+                            "text": "🚀 Ouvrir CODE IA",
+                            "web_app": {"url": MINIAPP_URL}
+                        }
+                    ]]
+                }
+                send_telegram_message(chat_id, f"👋 Rebonjour <b>{first_name}</b> !\n\nTu as déjà accès à CODE IA.", reply_markup=keyboard)
                 return jsonify(success=True)
 
             try:
@@ -443,9 +467,17 @@ def telegram_webhook():
                 send_telegram_message(chat_id, "Utilisation : /parrainage Site 20 CODE")
 
         elif text.startswith("/acces"):
-            send_telegram_message(chat_id, f"Lien du canal :\n{CHANNEL_LINK}")
+            keyboard = {
+                "inline_keyboard": [[
+                    {
+                        "text": "🚀 Ouvrir CODE IA",
+                        "web_app": {"url": MINIAPP_URL}
+                    }
+                ]]
+            }
+            send_telegram_message(chat_id, "Voici ton accès à la plateforme :", reply_markup=keyboard)
 
-        # ===== IA (seulement si payé) =====
+        # ===== IA =====
         elif text and not text.startswith("/"):
             send_telegram_message(chat_id, "🔍 Recherche en cours avec CODE IA...")
             reply = ask_grok(text)
