@@ -381,13 +381,18 @@ def telegram_webhook():
                 send_telegram_message(chat_id, "Erreur de connexion.")
                 print(e)
 
-        elif text == "/payadmin" and str(chat_id) == str(ADMIN_ID):
+               elif text.strip().lower() == "/payadmin":
+            if int(chat_id) != ADMIN_ID:
+                send_telegram_message(chat_id, "⛔ Commande réservée à l'admin.")
+                return jsonify(success=True)
+
             message = (
                 "🎉 <b>Paiement confirmé !</b>\n\n"
                 "Ton accès est activé.\n\n"
                 "Clique sur le bouton pour ouvrir la plateforme :"
             )
             send_telegram_message(chat_id, message, reply_markup=miniapp_keyboard())
+            return jsonify(success=True)
 
         elif text == "/admin1" and str(chat_id) == str(ADMIN_ID):
             keyboard = {
