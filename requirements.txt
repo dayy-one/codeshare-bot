@@ -3,3 +3,4 @@ stripe
 requests
 gunicorn
 python-dotenv
+openai
