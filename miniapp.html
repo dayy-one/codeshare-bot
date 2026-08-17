@@ -7,184 +7,68 @@
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     :root {
-      --bg: #000;
-      --card: #121212;
-      --text: #fff;
-      --text2: #a1a1aa;
-      --border: #1f1f1f;
-      --accent: #8b5cf6;
-      --accent2: #06b6d4;
-      --green: #22c55e;
-      --pink: #ec4899;
+      --bg:#000; --card:#121212; --text:#fff; --text2:#a1a1aa;
+      --border:#1f1f1f; --accent:#8b5cf6; --accent2:#06b6d4;
+      --green:#22c55e; --pink:#ec4899;
     }
     body.light {
-      --bg: #fafafa;
-      --card: #fff;
-      --text: #0a0a0a;
-      --text2: #737373;
-      --border: #e5e5e5;
-      --accent: #7c3aed;
-      --accent2: #0891b2;
-      --green: #16a34a;
-      --pink: #db2777;
+      --bg:#fafafa; --card:#fff; --text:#0a0a0a; --text2:#737373;
+      --border:#e5e5e5; --accent:#7c3aed; --accent2:#0891b2;
+      --green:#16a34a; --pink:#db2777;
     }
-    * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", Inter, Roboto, sans-serif;
-      background: var(--bg); color: var(--text); height:100vh; overflow:hidden;
-      transition: .25s ease;
-    }
-    .app {
-      max-width: 430px; height:100vh; margin:0 auto; display:flex; flex-direction:column;
-      position:relative; background:var(--bg);
-    }
-
-    /* Header social */
-    .header {
-      padding: 14px 16px 10px;
-      display:flex; align-items:center; justify-content:space-between;
-      border-bottom:1px solid var(--border);
-      backdrop-filter: blur(12px);
-    }
-    .brand {
-      display:flex; align-items:center; gap:10px;
-    }
-    .logo-mark {
-      width:32px; height:32px; border-radius:10px;
-      background: linear-gradient(135deg, var(--accent), var(--accent2));
-      display:flex; align-items:center; justify-content:center;
-      font-weight:800; font-size:14px; color:white;
-    }
-    .brand-text { line-height:1.1; }
-    .brand-text .name { font-size:18px; font-weight:700; letter-spacing:-0.3px; }
-    .brand-text .sub { font-size:11px; color:var(--text2); }
-    .icon-btn {
-      width:36px; height:36px; border-radius:12px; border:1px solid var(--border);
-      background:var(--card); color:var(--text); font-size:16px;
-    }
-
-    .stories {
-      display:flex; gap:12px; overflow-x:auto; padding:12px 16px;
-      border-bottom:1px solid var(--border);
-    }
-    .story {
-      min-width:64px; text-align:center; font-size:11px; color:var(--text2);
-    }
-    .story-ring {
-      width:56px; height:56px; border-radius:50%;
-      padding:2px; margin:0 auto 6px;
-      background: linear-gradient(45deg, var(--accent), var(--pink), var(--accent2));
-    }
-    .story-ring div {
-      width:100%; height:100%; border-radius:50%;
-      background:var(--bg); display:flex; align-items:center; justify-content:center;
-      font-weight:700; font-size:14px; color:var(--text);
-    }
-
-    .page { display:none; flex:1; overflow-y:auto; padding-bottom:100px; }
-    .page.active { display:block; }
-
-    .search-wrap { padding:14px 16px 8px; }
-    .search {
-      display:flex; align-items:center; gap:10px;
-      background:var(--card); border:1px solid var(--border);
-      border-radius:16px; padding:12px 14px;
-    }
-    .search input {
-      width:100%; border:none; outline:none; background:transparent;
-      color:var(--text); font-size:15px;
-    }
-    .ai-box {
-      margin:8px 16px 16px; padding:14px 16px; border-radius:16px;
-      background:linear-gradient(180deg, rgba(139,92,246,.12), rgba(6,182,212,.06));
-      border:1px solid var(--border); display:none; font-size:14px; line-height:1.5;
-    }
-
-    .section {
-      padding: 6px 16px 10px; font-size:12px; color:var(--text2);
-      font-weight:600; letter-spacing:.4px; text-transform:uppercase;
-    }
-
-    .card, .post {
-      margin:0 16px 12px; background:var(--card); border:1px solid var(--border);
-      border-radius:18px; padding:14px;
-    }
-    .row { display:flex; justify-content:space-between; align-items:center; gap:12px; }
-    .muted { color:var(--text2); font-size:12px; }
-    .pill {
-      background: rgba(34,197,94,.15); color:var(--green);
-      padding:6px 10px; border-radius:999px; font-size:12px; font-weight:700;
-    }
-
-    .post-top { display:flex; align-items:center; gap:10px; margin-bottom:10px; }
-    .avatar {
-      width:40px; height:40px; border-radius:50%;
-      background: linear-gradient(135deg, var(--accent), var(--pink));
-      display:flex; align-items:center; justify-content:center; font-weight:700;
-    }
-    .code {
-      margin:10px 0; padding:12px; border-radius:14px; background:var(--bg);
-      border:1px dashed var(--border); display:flex; justify-content:space-between;
-      font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size:15px;
-    }
-    .actions { display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; }
-    .actions button {
-      border:1px solid var(--border); background:var(--bg); color:var(--text);
-      border-radius:999px; padding:7px 12px; font-size:12px;
-    }
-
-    .bottom {
-      position:absolute; left:0; right:0; bottom:0; height:84px;
-      border-top:1px solid var(--border); background:rgba(0,0,0,.75);
-      backdrop-filter: blur(16px); display:flex; justify-content:space-around;
-      align-items:center; padding-bottom:14px;
-    }
-    body.light .bottom { background:rgba(255,255,255,.85); }
-    .nav {
-      background:none; border:none; color:var(--text2);
-      display:flex; flex-direction:column; align-items:center; gap:4px; font-size:11px;
-    }
-    .nav.active { color:var(--text); }
-    .nav .ic {
-      width:26px; height:26px; border-radius:8px; display:flex; align-items:center; justify-content:center;
-      font-size:14px; font-weight:700;
-    }
-    .nav.active .ic {
-      background: linear-gradient(135deg, var(--accent), var(--accent2)); color:white;
-    }
-
-    .fab {
-      position:fixed; left:50%; transform:translateX(-50%); bottom:96px;
-      background: linear-gradient(135deg, var(--accent), var(--pink));
-      color:white; border:none; border-radius:999px; padding:12px 22px;
-      font-weight:700; display:none; z-index:20;
-      box-shadow:0 10px 30px rgba(139,92,246,.35);
-    }
-    .page-home.active ~ .fab { display:block; }
-
-    .modal {
-      display:none; position:fixed; inset:0; background:rgba(0,0,0,.55);
-      z-index:50; align-items:flex-end; justify-content:center;
-    }
-    .modal.active { display:flex; }
-    .sheet {
-      width:100%; max-width:430px; background:var(--card);
-      border-radius:22px 22px 0 0; padding:22px 18px 34px;
-    }
-    .sheet button {
-      width:100%; margin-bottom:10px; padding:14px; border-radius:14px;
-      border:1px solid var(--border); background:var(--bg); color:var(--text); font-size:15px;
-    }
-    .empty { text-align:center; color:var(--text2); padding:36px 16px; font-size:14px; }
+    *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+    body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",Inter,Roboto,sans-serif;background:var(--bg);color:var(--text);height:100vh;overflow:hidden;transition:.25s}
+    .app{max-width:430px;height:100vh;margin:0 auto;display:flex;flex-direction:column;position:relative;background:var(--bg)}
+    .header{padding:14px 16px 10px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)}
+    .brand{display:flex;align-items:center;gap:10px}
+    .logo-mark{width:32px;height:32px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff}
+    .name{font-size:18px;font-weight:700}
+    .sub{font-size:11px;color:var(--text2)}
+    .icon-btn{width:36px;height:36px;border-radius:12px;border:1px solid var(--border);background:var(--card);color:var(--text)}
+    .stories{display:flex;gap:12px;overflow-x:auto;padding:12px 16px;border-bottom:1px solid var(--border)}
+    .story{min-width:66px;text-align:center;font-size:11px;color:var(--text2)}
+    .story-ring{width:56px;height:56px;border-radius:50%;padding:2px;margin:0 auto 6px;background:linear-gradient(45deg,var(--accent),var(--pink),var(--accent2))}
+    .story-ring div{width:100%;height:100%;border-radius:50%;background:var(--bg);display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--text)}
+    .page{display:none;flex:1;overflow-y:auto;padding-bottom:100px}
+    .page.active{display:block}
+    .search-wrap{padding:14px 16px 8px}
+    .search{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:12px 14px}
+    .search input{width:100%;border:none;outline:none;background:transparent;color:var(--text);font-size:15px}
+    .ai-box{margin:8px 16px 16px;padding:14px 16px;border-radius:16px;background:linear-gradient(180deg,rgba(139,92,246,.12),rgba(6,182,212,.06));border:1px solid var(--border);display:none;font-size:14px;line-height:1.5}
+    .section{padding:8px 16px;font-size:12px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:.4px}
+    .card,.post{margin:0 16px 12px;background:var(--card);border:1px solid var(--border);border-radius:18px;padding:14px}
+    .row{display:flex;justify-content:space-between;align-items:center;gap:12px}
+    .muted{color:var(--text2);font-size:12px}
+    .pill{background:rgba(34,197,94,.15);color:var(--green);padding:6px 10px;border-radius:999px;font-size:12px;font-weight:700}
+    .post-top{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+    .avatar{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--pink));display:flex;align-items:center;justify-content:center;font-weight:700}
+    .code{margin:10px 0;padding:12px;border-radius:14px;background:var(--bg);border:1px dashed var(--border);display:flex;justify-content:space-between;font-family:ui-monospace,Menlo,monospace;font-size:15px}
+    .actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+    .actions button{border:1px solid var(--border);background:var(--bg);color:var(--text);border-radius:999px;padding:7px 12px;font-size:12px}
+    .bottom{position:absolute;left:0;right:0;bottom:0;height:84px;border-top:1px solid var(--border);background:rgba(0,0,0,.75);backdrop-filter:blur(16px);display:flex;justify-content:space-around;align-items:center;padding-bottom:14px}
+    body.light .bottom{background:rgba(255,255,255,.85)}
+    .nav{background:none;border:none;color:var(--text2);display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11px}
+    .nav.active{color:var(--text)}
+    .nav .ic{width:26px;height:26px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:700}
+    .nav.active .ic{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff}
+    .fab{position:fixed;left:50%;transform:translateX(-50%);bottom:96px;background:linear-gradient(135deg,var(--accent),var(--pink));color:#fff;border:none;border-radius:999px;padding:12px 22px;font-weight:700;display:none;z-index:20}
+    .page-home.active ~ .fab{display:block}
+    .modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:50;align-items:flex-end;justify-content:center}
+    .modal.active{display:flex}
+    .sheet{width:100%;max-width:430px;background:var(--card);border-radius:22px 22px 0 0;padding:22px 18px 34px}
+    .sheet button{width:100%;margin-bottom:10px;padding:14px;border-radius:14px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:15px}
+    .welcome{margin:12px 16px;padding:14px;border-radius:16px;background:var(--card);border:1px solid var(--border);font-size:13px;line-height:1.45}
+    .welcome strong{display:block;margin-bottom:6px;font-size:14px}
+    .empty{text-align:center;color:var(--text2);padding:30px 16px;font-size:14px}
+    .clickable{cursor:pointer}
   </style>
 </head>
 <body>
 <div class="app">
-
   <div class="header">
     <div class="brand">
       <div class="logo-mark">C</div>
-      <div class="brand-text">
+      <div>
         <div class="name">Codia</div>
         <div class="sub">16,254 members</div>
       </div>
@@ -192,23 +76,22 @@
     <button class="icon-btn" onclick="toggleTheme()">◐</button>
   </div>
 
-  <div class="stories" id="stories">
-    <div class="story"><div class="story-ring"><div>+</div></div>Toi</div>
-    <div class="story"><div class="story-ring"><div>U</div></div>Uber</div>
-    <div class="story"><div class="story-ring"><div>B</div></div>Booking</div>
-    <div class="story"><div class="story-ring"><div>A</div></div>Airbnb</div>
-    <div class="story"><div class="story-ring"><div>G</div></div>Getaround</div>
-  </div>
+  <div class="stories" id="stories"></div>
 
-  <!-- FEED / HOME -->
   <div class="page page-home active" id="page-home">
+    <div class="welcome" id="welcome">
+      <strong>Bienvenue sur Codia</strong>
+      1) Explore le feed et les bulles<br>
+      2) Cherche un code dans Discover<br>
+      3) Partage tes codes avec ＋ Partager<br>
+      4) Like / valide les codes utiles
+    </div>
     <div class="section">À la une</div>
     <div id="daily-codes"></div>
-    <div class="section">Communauté</div>
-    <div id="codes-list"><div class="empty">Chargement du feed...</div></div>
+    <div class="section" id="feed-title">Communauté</div>
+    <div id="codes-list"><div class="empty">Chargement...</div></div>
   </div>
 
-  <!-- IA -->
   <div class="page page-ia" id="page-ia">
     <div class="search-wrap">
       <div class="search">
@@ -218,11 +101,7 @@
     </div>
     <div class="ai-box" id="ai-response"></div>
     <div class="section">Suggestions pour toi</div>
-    <div id="suggestions">
-      <div class="card row"><div><strong>Booking</strong><div class="muted">Hôtels & voyages</div></div><div class="pill">-15%</div></div>
-      <div class="card row"><div><strong>Uber Eats</strong><div class="muted">Nourriture</div></div><div class="pill">-10€</div></div>
-      <div class="card row"><div><strong>Getaround</strong><div class="muted">Location véhicule</div></div><div class="pill">-20%</div></div>
-    </div>
+    <div id="suggestions"></div>
   </div>
 
   <button class="fab" onclick="openShare()">＋ Partager</button>
@@ -246,7 +125,35 @@
   Telegram.WebApp.ready();
   Telegram.WebApp.expand();
 
+  // Archives permanentes (toujours affichées)
+  const ARCHIVES = {
+    "Top": [
+      {site:"Uber Eats", code:"EATS10", description:"-10€", type:"promo", added_by:"Archive Codia"},
+      {site:"Booking", code:"TRAVEL15", description:"-15%", type:"promo", added_by:"Archive Codia"}
+    ],
+    "Uber Eats": [
+      {site:"Uber Eats", code:"EATS10", description:"-10€", type:"promo", added_by:"Archive Codia"},
+      {site:"Uber Eats", code:"FOOD5", description:"-5€", type:"promo", added_by:"Archive Codia"}
+    ],
+    "Booking": [
+      {site:"Booking", code:"TRAVEL15", description:"-15%", type:"promo", added_by:"Archive Codia"},
+      {site:"Booking", code:"STAY20", description:"-20%", type:"promo", added_by:"Archive Codia"}
+    ],
+    "Airbnb": [
+      {site:"Airbnb", code:"HOME12", description:"-12%", type:"promo", added_by:"Archive Codia"}
+    ],
+    "Getaround": [
+      {site:"Getaround", code:"DRIVE20", description:"-20%", type:"promo", added_by:"Archive Codia"}
+    ],
+    "Banques": [
+      {site:"Fortuneo", code:"FORTU80", description:"+80€", type:"parrainage", added_by:"Archive Codia"},
+      {site:"BoursoBank", code:"BOURSO100", description:"+100€", type:"parrainage", added_by:"Archive Codia"}
+    ]
+  };
+
+  let allCodes = [];
   let userCity = null;
+
   if (localStorage.getItem('theme') === 'light') document.body.classList.add('light');
   function toggleTheme(){
     document.body.classList.toggle('light');
@@ -254,35 +161,122 @@
   }
 
   if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(async (pos) => {
-      try {
+    navigator.geolocation.getCurrentPosition(async (pos)=>{
+      try{
         const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.coords.latitude}&lon=${pos.coords.longitude}`);
         const data = await res.json();
         userCity = data.address?.city || data.address?.town || data.address?.village || null;
-      } catch(e) {}
-    }, ()=>{}, {timeout:4000});
+      }catch(e){}
+    },()=>{}, {timeout:4000});
   }
 
   function showPage(page){
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    document.querySelectorAll('.nav').forEach(n => n.classList.remove('active'));
-    if(page === 'home'){
+    document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+    document.querySelectorAll('.nav').forEach(n=>n.classList.remove('active'));
+    if(page==='home'){
       document.getElementById('page-home').classList.add('active');
       document.querySelectorAll('.nav')[0].classList.add('active');
-      loadCodes();
-    } else {
+    }else{
       document.getElementById('page-ia').classList.add('active');
       document.querySelectorAll('.nav')[1].classList.add('active');
     }
   }
 
-  function openShare(){ document.getElementById('shareModal').classList.add('active'); }
-  function closeShare(){ document.getElementById('shareModal').classList.remove('active'); }
+  function openShare(){document.getElementById('shareModal').classList.add('active')}
+  function closeShare(){document.getElementById('shareModal').classList.remove('active')}
   function shareType(type){
     closeShare();
-    alert(type === 'promo'
+    alert(type==='promo'
       ? "Envoie dans le bot :\n/promo Site 20 TONCODE"
       : "Envoie dans le bot :\n/parrainage Site 50 TONCODE");
+  }
+
+  function renderStories(){
+    const base = ["Top","Uber Eats","Booking","Airbnb","Getaround","Banques"];
+    const dynamicSites = [...new Set(allCodes.map(c => c.site).filter(Boolean))];
+    const names = ["+ Partager", ...base, ...dynamicSites.filter(s => !base.includes(s)).slice(0,6)];
+
+    document.getElementById('stories').innerHTML = names.map(name=>{
+      const label = name === "+ Partager" ? "+" : name.slice(0,1).toUpperCase();
+      return `
+        <div class="story clickable" onclick="onStoryClick('${name.replace(/'/g,"\\'")}')">
+          <div class="story-ring"><div>${label}</div></div>
+          ${name.length>10 ? name.slice(0,9)+'…' : name}
+        </div>`;
+    }).join('');
+  }
+
+  function onStoryClick(name){
+    if(name === "+ Partager"){ openShare(); return; }
+    showPage('home');
+    showArchive(name);
+  }
+
+  function showArchive(name){
+    const fromDb = allCodes.filter(c =>
+      (c.site || '').toLowerCase().includes(name.toLowerCase()) ||
+      (name==='Top') ||
+      (name==='Banques' && /fortuneo|bourso|bourse|bank|banque/i.test(c.site||''))
+    );
+    const archive = ARCHIVES[name] || [];
+    const merged = [...fromDb, ...archive];
+
+    document.getElementById('feed-title').textContent = `Archive • ${name}`;
+    document.getElementById('welcome').style.display = 'none';
+
+    const list = document.getElementById('codes-list');
+    if(!merged.length){
+      list.innerHTML = `<div class="empty">Pas encore de code pour ${name}.<br>Tu peux être le premier à en partager.</div>`;
+      return;
+    }
+    list.innerHTML = merged.map((c,i)=> renderPost(c, i+1000)).join('');
+  }
+
+  function renderPost(c, fallbackId){
+    const id = c.id || fallbackId;
+    return `
+      <div class="post">
+        <div class="post-top">
+          <div class="avatar">${(c.added_by||'C')[0].toUpperCase()}</div>
+          <div>
+            <div style="font-weight:600">${c.added_by || 'Archive Codia'}</div>
+            <div class="muted">${c.site}</div>
+          </div>
+        </div>
+        <div>${c.type==='parrainage' ? 'code parrainage' : 'code promo'}</div>
+        <div class="code"><span>${c.code}</span><span style="color:var(--green)">${c.description||''}</span></div>
+        <div class="actions">
+          ${c.id ? `<button onclick="likeCode(${c.id}, this)">♥ ${c.likes||0}</button>
+          <button onclick="markWorking(${c.id})">Validé</button>
+          <button onclick="markDead(${c.id})">Expiré</button>` : `<span class="muted">Archive</span>`}
+          <span class="muted">👁 ${(c.views || (2000 + Math.floor(Math.random()*4000))).toLocaleString('fr-FR')}</span>
+        </div>
+      </div>`;
+  }
+
+  function renderSuggestions(){
+    const base = [
+      {site:"Booking", subtitle:"Hôtels & voyages", desc:"-15%"},
+      {site:"Uber Eats", subtitle:"Nourriture", desc:"-10€"},
+      {site:"Getaround", subtitle:"Location véhicule", desc:"-20%"},
+      {site:"Airbnb", subtitle:"Logements", desc:"-12%"},
+      {site:"Banques", subtitle:"Parrainages", desc:"+80€"}
+    ];
+    const dynamic = [...new Set(allCodes.map(c=>c.site).filter(Boolean))]
+      .filter(s => !base.find(b => b.site.toLowerCase()===s.toLowerCase()))
+      .slice(0,6)
+      .map(s => ({site:s, subtitle:"Nouveau site", desc:"Codes"}));
+
+    const items = [...base, ...dynamic];
+    document.getElementById('suggestions').innerHTML = items.map(item => `
+      <div class="card row clickable" onclick="onStoryClick('${item.site.replace(/'/g,"\\'")}')">
+        <div>
+          <strong>${item.site}</strong>
+          <div class="muted">${item.subtitle}</div>
+        </div>
+        <div class="pill">${item.desc}</div>
+      </div>
+    `).join('');
   }
 
   async function askAI(){
@@ -290,8 +284,8 @@
     const box = document.getElementById('ai-response');
     const q = input.value.trim();
     if(!q) return;
-    box.style.display = 'block';
-    box.innerHTML = 'Recherche en cours...';
+    box.style.display='block';
+    box.innerHTML='Recherche en cours...';
     try{
       const res = await fetch('/ask', {
         method:'POST',
@@ -301,69 +295,58 @@
       const data = await res.json();
       box.innerHTML = data.answer || 'Voici une offre intéressante pour toi.';
     }catch(e){
-      box.innerHTML = 'Voici une bonne piste : regarde Booking, Uber Eats ou Getaround.';
+      box.innerHTML = 'Voici une bonne piste : Booking, Uber Eats ou Getaround.';
     }
   }
 
   async function loadCodes(){
-    const list = document.getElementById('codes-list');
-    const daily = document.getElementById('daily-codes');
     try{
       const res = await fetch('/codes');
       const data = await res.json();
-      const codes = data.codes || [];
-      if(!codes.length){
-        list.innerHTML = '<div class="empty">Le feed est encore vide.<br>Sois le premier à partager un code.</div>';
-        daily.innerHTML = '';
-        return;
-      }
-      daily.innerHTML = codes.slice(0,3).map(c => `
-        <div class="card row">
-          <div>
-            <strong>${c.site}</strong>
-            <div class="muted">${c.type} • ${c.code}</div>
-          </div>
-          <div class="pill">${c.description || 'Promo'}</div>
-        </div>
-      `).join('');
-
-      list.innerHTML = codes.map(c => `
-        <div class="post">
-          <div class="post-top">
-            <div class="avatar">${(c.added_by||'C')[0].toUpperCase()}</div>
-            <div>
-              <div style="font-weight:600">${c.added_by || 'Membre Codia'}</div>
-              <div class="muted">${c.site}</div>
-            </div>
-          </div>
-          <div>${c.type === 'parrainage' ? 'a partagé un code parrainage' : 'a partagé un code promo'}</div>
-          <div class="code"><span>${c.code}</span><span style="color:var(--green)">${c.description||''}</span></div>
-          <div class="actions">
-            <button onclick="likeCode(${c.id}, this)">♥ ${c.likes||0}</button>
-            <button onclick="markWorking(${c.id})">Validé</button>
-            <button onclick="markDead(${c.id})">Expiré</button>
-            <span class="muted">👁 ${(c.views||2500).toLocaleString('fr-FR')}</span>
-          </div>
-        </div>
-      `).join('');
+      allCodes = data.codes || [];
     }catch(e){
-      list.innerHTML = '<div class="empty">Impossible de charger le feed.</div>';
+      allCodes = [];
+    }
+
+    renderStories();
+    renderSuggestions();
+
+    const daily = document.getElementById('daily-codes');
+    const list = document.getElementById('codes-list');
+    const top = allCodes.length ? allCodes.slice(0,3) : ARCHIVES["Top"];
+
+    daily.innerHTML = top.map(c => `
+      <div class="card row">
+        <div>
+          <strong>${c.site}</strong>
+          <div class="muted">${c.type || 'promo'} • ${c.code}</div>
+        </div>
+        <div class="pill">${c.description || 'Promo'}</div>
+      </div>
+    `).join('');
+
+    if(allCodes.length){
+      document.getElementById('feed-title').textContent = 'Communauté';
+      list.innerHTML = allCodes.map(c => renderPost(c)).join('');
+    } else {
+      document.getElementById('feed-title').textContent = 'Archives Codia';
+      list.innerHTML = ARCHIVES["Top"].map((c,i)=>renderPost(c, i+1)).join('');
     }
   }
 
   async function likeCode(id, btn){
     try{
-      await fetch('/code/like', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({id})});
-      const n = parseInt(btn.textContent.replace(/\D/g,''))||0;
-      btn.textContent = `♥ ${n+1}`;
+      await fetch('/code/like',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id})});
+      const n=parseInt(btn.textContent.replace(/\D/g,''))||0;
+      btn.textContent=`♥ ${n+1}`;
     }catch(e){}
   }
   async function markWorking(id){
-    await fetch('/code/working', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({id})});
+    await fetch('/code/working',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id})});
     alert('Merci, code marqué comme valide.');
   }
   async function markDead(id){
-    await fetch('/code/dead', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({id})});
+    await fetch('/code/dead',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id})});
     alert('Merci pour le signalement.');
   }
 
