@@ -193,31 +193,49 @@ def webhook():
     payload = request.data
     sig_header = request.headers.get("Stripe-Signature")
     endpoint_secret = os.getenv("STRIPE_WEBHOOK_SECRET")
+
+    # Sécurité webhook
+    if not sig_header:
+        print("Webhook refusé : pas de signature")
+        return jsonify({"error": "Missing signature"}), 400
+
+    if not endpoint_secret:
+        print("Webhook refusé : STRIPE_WEBHOOK_SECRET manquant")
+        return jsonify({"error": "Server misconfigured"}), 500
+
     try:
         event = stripe.Webhook.construct_event(payload, sig_header, endpoint_secret)
-    except Exception as e:
-        return str(e), 400
+    except ValueError as e:
+        print("Webhook refusé : payload invalide", e)
+        return jsonify({"error": "Invalid payload"}), 400
+    except stripe.error.SignatureVerificationError as e:
+        print("Webhook refusé : signature invalide", e)
+        return jsonify({"error": "Invalid signature"}), 400
 
     if event["type"] == "checkout.session.completed":
         session = event["data"]["object"]
-        telegram_id = getattr(session, "client_reference_id", None)
-        if not telegram_id and hasattr(session, "metadata") and session.metadata:
-            telegram_id = session.metadata.get("telegram_id")
         
+        telegram_id = session.get("client_reference_id")
+        if not telegram_id and session.get("metadata"):
+            telegram_id = session["metadata"].get("telegram_id")
+
         if telegram_id:
             add_paid_user(telegram_id)
-            
+
             message = (
                 "🎉 <b>Paiement confirmé !</b>\n\n"
                 "Ton accès a été activé.\n\n"
                 f"Voici le lien du canal privé :\n{CHANNEL_LINK}\n\n"
-                "Bienvenue dans <b>CODE IA</b> !\n"
-                "Tu peux maintenant discuter avec l'IA."
+                "Bienvenue dans <b>CODE IA</b> !"
             )
             send_telegram_message(telegram_id, message)
+            
             if ADMIN_ID:
                 send_telegram_message(ADMIN_ID, f"✅ Nouveau paiement\nID : <code>{telegram_id}</code>")
-    return jsonify(success=True)
+        else:
+            print("Webhook reçu mais telegram_id manquant")
+
+    return jsonify(success=True), 200
 
 @app.route("/telegram", methods=["POST"])
 def telegram_webhook():
@@ -250,7 +268,6 @@ def telegram_webhook():
         display_name = f"@{username}" if username else first_name
 
         # ========== BLOCAGE GLOBAL ==========
-        # Seul /start est autorisé pour les non-payeurs
         if not is_paid_user(chat_id) and not text.startswith("/start"):
             send_telegram_message(
                 chat_id,
