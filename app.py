@@ -16,7 +16,6 @@ ADMIN_ID = int(os.getenv("ADMIN_ID", "8091031583"))
 CHANNEL_ID = "-1004414166682"
 SERVER_URL = "https://codeshare-bot-production.up.railway.app"
 
-# Client Grok
 client = OpenAI(
     api_key=os.getenv("XAI_API_KEY"),
     base_url="https://api.x.ai/v1"
@@ -28,6 +27,8 @@ admin_mode = False
 def init_db():
     conn = sqlite3.connect("codes.db")
     c = conn.cursor()
+    
+    # Table des codes
     c.execute('''
         CREATE TABLE IF NOT EXISTS codes (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -40,8 +41,40 @@ def init_db():
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     ''')
+    
+    # Table des utilisateurs qui ont payé
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS paid_users (
+            telegram_id INTEGER PRIMARY KEY,
+            paid_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
+    
     conn.commit()
     conn.close()
+
+def is_paid_user(telegram_id):
+    if int(telegram_id) == ADMIN_ID:
+        return True
+    try:
+        conn = sqlite3.connect("codes.db")
+        c = conn.cursor()
+        c.execute("SELECT 1 FROM paid_users WHERE telegram_id = ?", (int(telegram_id),))
+        result = c.fetchone()
+        conn.close()
+        return result is not None
+    except:
+        return False
+
+def add_paid_user(telegram_id):
+    try:
+        conn = sqlite3.connect("codes.db")
+        c = conn.cursor()
+        c.execute("INSERT OR IGNORE INTO paid_users (telegram_id) VALUES (?)", (int(telegram_id),))
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        print("Erreur ajout paid_user:", e)
 
 def get_codes_for_ai():
     try:
@@ -75,7 +108,7 @@ Règles de réponse :
 2. Si la base est vide ou ne contient rien de pertinent → cherche les meilleures offres et codes promo/parrainage connus ou récents pour la demande de l'utilisateur.
 3. Propose toujours les options les plus proches de ce que demande le client.
 4. Sois clair, direct et en français.
-5. Si tu n'es pas sûr qu'un code soit encore valide, dis-le clairement (ex: "À vérifier car les codes changent souvent").
+5. Si tu n'es pas sûr qu'un code soit encore valide, dis-le clairement.
 6. Ne dis jamais seulement "aucun code disponible". Propose toujours quelque chose d'utile.
 """
 
@@ -91,7 +124,7 @@ Règles de réponse :
         return response.choices[0].message.content
     except Exception as e:
         print("Erreur Grok:", e)
-        return "Désolé, l'IA est temporairement indisponible. Réessaie dans un moment."
+        return "Désolé, l'IA est temporairement indisponible."
 
 def send_telegram_message(chat_id, text, reply_markup=None, parse_mode="HTML"):
     url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
@@ -158,13 +191,16 @@ def webhook():
         telegram_id = getattr(session, "client_reference_id", None)
         if not telegram_id and hasattr(session, "metadata") and session.metadata:
             telegram_id = session.metadata.get("telegram_id")
+        
         if telegram_id:
+            add_paid_user(telegram_id)  # ← On enregistre le payeur
+            
             message = (
                 "🎉 <b>Paiement confirmé !</b>\n\n"
                 "Ton accès a été activé.\n\n"
                 f"Voici le lien du canal privé :\n{CHANNEL_LINK}\n\n"
-                "Bienvenue dans <b>CODE IA</b> !\n\n"
-                "Tu peux maintenant utiliser l'IA et partager tes codes."
+                "Bienvenue dans <b>CODE IA</b> !\n"
+                "Tu peux maintenant discuter avec l'IA."
             )
             send_telegram_message(telegram_id, message)
             if ADMIN_ID:
@@ -176,7 +212,6 @@ def telegram_webhook():
     global admin_mode
     data = request.get_json()
 
-    # Callbacks admin
     if "callback_query" in data:
         query = data["callback_query"]
         chat_id = query["from"]["id"]
@@ -187,10 +222,10 @@ def telegram_webhook():
 
         if data_btn == "admin_start":
             admin_mode = True
-            send_telegram_message(chat_id, "✅ <b>Mode Admin activé</b>")
+            send_telegram_message(chat_id, "✅ Mode Admin activé")
         elif data_btn == "admin_stop":
             admin_mode = False
-            send_telegram_message(chat_id, "🛑 <b>Mode Admin désactivé</b>")
+            send_telegram_message(chat_id, "🛑 Mode Admin désactivé")
         return jsonify(success=True)
 
     if "message" in data:
@@ -205,19 +240,17 @@ def telegram_webhook():
         # Mode admin anonyme
         if str(chat_id) == str(ADMIN_ID) and admin_mode and not text.startswith("/"):
             send_telegram_message(CHANNEL_ID, text)
-            send_telegram_message(chat_id, "✅ Publié anonymement dans le canal")
+            send_telegram_message(chat_id, "✅ Publié anonymement")
             return jsonify(success=True)
 
         # /start
         if text.startswith("/start"):
-            # Accès admin gratuit
             if int(chat_id) == ADMIN_ID:
-                send_telegram_message(
-                    chat_id,
-                    f"👋 Salut Admin <b>{first_name}</b> !\n\n"
-                    f"Tu as un accès complet sans paiement.\n"
-                    f"Tu peux utiliser l'IA et toutes les commandes."
-                )
+                send_telegram_message(chat_id, f"👋 Salut Admin <b>{first_name}</b> !\n\nAccès complet activé.")
+                return jsonify(success=True)
+
+            if is_paid_user(chat_id):
+                send_telegram_message(chat_id, f"👋 Rebonjour <b>{first_name}</b> !\n\nTu as déjà accès à CODE IA.\nEnvoie-moi ta question.")
                 return jsonify(success=True)
 
             try:
@@ -233,8 +266,7 @@ def telegram_webhook():
                         f"• Codes promo & parrainage\n"
                         f"• Assistant IA intelligent\n"
                         f"• Espace communauté\n\n"
-                        f"<b>Prix : 10 €</b> (accès à vie)\n\n"
-                        f"Clique sur le bouton pour payer.",
+                        f"<b>Prix : 10 €</b> (accès à vie)",
                         reply_markup=keyboard
                     )
                 else:
@@ -243,7 +275,6 @@ def telegram_webhook():
                 send_telegram_message(chat_id, "Erreur de connexion.")
                 print(e)
 
-        # /admin1
         elif text == "/admin1" and str(chat_id) == str(ADMIN_ID):
             keyboard = {
                 "inline_keyboard": [
@@ -251,10 +282,13 @@ def telegram_webhook():
                     [{"text": "⏹️ Arrêter", "callback_data": "admin_stop"}]
                 ]
             }
-            send_telegram_message(chat_id, "🔐 <b>Mode Administrateur</b>", reply_markup=keyboard)
+            send_telegram_message(chat_id, "🔐 Mode Administrateur", reply_markup=keyboard)
 
-        # /promo
         elif text.lower().startswith("/promo "):
+            if not is_paid_user(chat_id):
+                send_telegram_message(chat_id, "Tu dois avoir un accès payant pour partager des codes.")
+                return jsonify(success=True)
+                
             parts = text[7:].strip().split()
             if len(parts) >= 3:
                 site = parts[0]
@@ -275,14 +309,17 @@ def telegram_webhook():
                         channel_message += f"\nExpire le : {expire}"
 
                     send_telegram_message(CHANNEL_ID, channel_message)
-                    send_telegram_message(chat_id, f"✅ Code promo publié !\n{site} | -{percent}% | {code}")
+                    send_telegram_message(chat_id, f"✅ Code promo publié !")
                 except:
                     send_telegram_message(chat_id, "Format incorrect.\nUtilise : /promo Site 30 CODE")
             else:
                 send_telegram_message(chat_id, "Utilisation : /promo Site 30 CODE")
 
-        # /parrainage
         elif text.lower().startswith("/parrainage "):
+            if not is_paid_user(chat_id):
+                send_telegram_message(chat_id, "Tu dois avoir un accès payant pour partager des codes.")
+                return jsonify(success=True)
+
             parts = text[12:].strip().split()
             if len(parts) >= 3:
                 site = parts[0]
@@ -303,17 +340,21 @@ def telegram_webhook():
                         channel_message += f"\nExpire le : {expire}"
 
                     send_telegram_message(CHANNEL_ID, channel_message)
-                    send_telegram_message(chat_id, f"✅ Code de parrainage publié !\n{site} | +{montant}€ | {code}")
+                    send_telegram_message(chat_id, f"✅ Code de parrainage publié !")
                 except:
-                    send_telegram_message(chat_id, "Format incorrect.\nUtilise : /parrainage Site 20 CODE")
+                    send_telegram_message(chat_id, "Format incorrect.")
             else:
                 send_telegram_message(chat_id, "Utilisation : /parrainage Site 20 CODE")
 
         elif text.startswith("/acces"):
-            send_telegram_message(chat_id, f"Voici le lien du canal :\n{CHANNEL_LINK}")
+            send_telegram_message(chat_id, f"Lien du canal :\n{CHANNEL_LINK}")
 
-        # ===== IA pour tous les autres messages =====
+        # ===== IA uniquement pour les payeurs + admin =====
         elif text and not text.startswith("/"):
+            if not is_paid_user(chat_id):
+                send_telegram_message(chat_id, "🔒 Tu dois avoir un accès payant pour utiliser l'IA.\nFais /start pour obtenir l'accès.")
+                return jsonify(success=True)
+
             send_telegram_message(chat_id, "🔍 Recherche en cours avec CODE IA...")
             reply = ask_grok(text)
             send_telegram_message(chat_id, reply)
