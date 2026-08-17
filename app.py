@@ -141,11 +141,15 @@ RÈGLES ABSOLUES :
         return response.choices[0].message.content
     except Exception as e:
         print("Erreur Grok:", e)
-        return "Voici une bonne alternative : regarde Booking, Uber Eats ou Getaround selon ton besoin. Je continue de chercher les meilleurs codes pour toi."
+        return "Voici une bonne alternative : regarde Booking, Uber Eats ou Getaround selon ton besoin."
 
 def send_telegram_message(chat_id, text, reply_markup=None, parse_mode="HTML"):
     url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
-    payload = {"chat_id": chat_id, "text": text, "parse_mode": parse_mode}
+    payload = {
+        "chat_id": chat_id,
+        "text": text,
+        "parse_mode": parse_mode
+    }
     if reply_markup:
         payload["reply_markup"] = reply_markup
     try:
@@ -156,11 +160,13 @@ def send_telegram_message(chat_id, text, reply_markup=None, parse_mode="HTML"):
 def miniapp_keyboard():
     return {
         "inline_keyboard": [[
-            {"text": "🚀 Ouvrir CODE IA", "web_app": {"url": MINIAPP_URL}}
+            {
+                "text": "🚀 Ouvrir CODE IA",
+                "web_app": {"url": MINIAPP_URL}
+            }
         ]]
     }
 
-# ================== ROUTES ==================
 @app.route("/")
 def home():
     return "CODE IA Server 24/7 is running ✅"
@@ -365,11 +371,21 @@ def telegram_webhook():
                     reply_markup=miniapp_keyboard()
                 )
                 return jsonify(success=True)
+
             try:
-                response = requests.post(f"{SERVER_URL}/create-checkout", json={"telegram_id": chat_id}, timeout=10)
+                response = requests.post(
+                    f"{SERVER_URL}/create-checkout",
+                    json={"telegram_id": chat_id},
+                    timeout=10
+                )
                 result = response.json()
                 if "url" in result:
-                    keyboard = {"inline_keyboard": [[{"text": "💳 Payer 10 € – Accès à vie", "url": result["url"]}]]}
+                    keyboard = {
+                        "inline_keyboard": [[{
+                            "text": "💳 Payer 10 € – Accès à vie",
+                            "url": result["url"]
+                        }]]
+                    }
                     send_telegram_message(
                         chat_id,
                         f"👋 Salut <b>{first_name}</b> !\n\nBienvenue sur <b>CODE IA</b>.\n\nPrix : <b>10 €</b>",
@@ -381,7 +397,7 @@ def telegram_webhook():
                 send_telegram_message(chat_id, "Erreur de connexion.")
                 print(e)
 
-               elif text.strip().lower() == "/payadmin":
+        elif text.lower() == "/payadmin":
             if int(chat_id) != ADMIN_ID:
                 send_telegram_message(chat_id, "⛔ Commande réservée à l'admin.")
                 return jsonify(success=True)
@@ -392,7 +408,6 @@ def telegram_webhook():
                 "Clique sur le bouton pour ouvrir la plateforme :"
             )
             send_telegram_message(chat_id, message, reply_markup=miniapp_keyboard())
-            return jsonify(success=True)
 
         elif text == "/admin1" and str(chat_id) == str(ADMIN_ID):
             keyboard = {
@@ -416,8 +431,11 @@ def telegram_webhook():
                         description += f" (expire {expire})"
                     save_code("promo", site, code, description, None, display_name)
                     channel_message = (
-                        f"🏷️ <b>CODE PROMO</b>\n\nDe : {display_name}\nSite : {site}\n"
-                        f"Réduction : <b>-{percent}%</b>\nCode : <code>{code}</code>"
+                        f"🏷️ <b>CODE PROMO</b>\n\n"
+                        f"De : {display_name}\n"
+                        f"Site : {site}\n"
+                        f"Réduction : <b>-{percent}%</b>\n"
+                        f"Code : <code>{code}</code>"
                     )
                     send_telegram_message(CHANNEL_ID, channel_message)
                     send_telegram_message(chat_id, "✅ Code promo publié et enregistré !")
@@ -439,8 +457,11 @@ def telegram_webhook():
                         description += f" (expire {expire})"
                     save_code("parrainage", site, code, description, None, display_name)
                     channel_message = (
-                        f"🔗 <b>CODE PARRAINAGE</b>\n\nDe : {display_name}\nSite : {site}\n"
-                        f"Bonus : <b>+{montant}€</b>\nCode : <code>{code}</code>"
+                        f"🔗 <b>CODE PARRAINAGE</b>\n\n"
+                        f"De : {display_name}\n"
+                        f"Site : {site}\n"
+                        f"Bonus : <b>+{montant}€</b>\n"
+                        f"Code : <code>{code}</code>"
                     )
                     send_telegram_message(CHANNEL_ID, channel_message)
                     send_telegram_message(chat_id, "✅ Code parrainage publié et enregistré !")
