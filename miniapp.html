@@ -7,52 +7,43 @@
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     :root {
-      --bg: #000000;
+      --bg: #000;
       --card: #1c1c1e;
-      --text: #ffffff;
+      --text: #fff;
       --text2: #8e8e93;
       --border: #2c2c2e;
       --accent: #0095f6;
       --green: #30d158;
+      --red: #ff453a;
     }
-
     body.light {
       --bg: #f2f2f7;
-      --card: #ffffff;
-      --text: #000000;
+      --card: #fff;
+      --text: #000;
       --text2: #6c6c70;
       --border: #d1d1d6;
       --accent: #007aff;
       --green: #34c759;
+      --red: #ff3b30;
     }
-
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      -webkit-tap-highlight-color: transparent;
-    }
-
+    * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", Roboto, sans-serif;
       background: var(--bg);
       color: var(--text);
       height: 100vh;
       overflow: hidden;
-      transition: background 0.3s, color 0.3s;
+      transition: 0.3s;
     }
-
     .phone {
       max-width: 430px;
       height: 100vh;
       margin: 0 auto;
-      background: var(--bg);
-      position: relative;
       display: flex;
       flex-direction: column;
+      position: relative;
+      background: var(--bg);
     }
-
-    /* Header */
     .header {
       padding: 14px 16px;
       display: flex;
@@ -60,220 +51,98 @@
       align-items: center;
       border-bottom: 1px solid var(--border);
     }
-
-    .logo {
-      font-size: 20px;
-      font-weight: 700;
-    }
-
-    .viewers {
-      font-size: 12px;
-      color: var(--text2);
-    }
-
+    .logo { font-size: 20px; font-weight: 700; }
+    .viewers { font-size: 12px; color: var(--text2); text-align: center; }
     .theme-btn {
-      background: var(--card);
-      border: 1px solid var(--border);
-      color: var(--text);
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-      font-size: 16px;
-      cursor: pointer;
+      width: 36px; height: 36px; border-radius: 50%;
+      border: 1px solid var(--border); background: var(--card);
+      color: var(--text); font-size: 16px;
     }
-
-    /* Pages */
-    .page {
-      display: none;
-      flex: 1;
-      overflow-y: auto;
-      padding-bottom: 100px;
-    }
+    .page { display: none; flex: 1; overflow-y: auto; padding-bottom: 100px; }
     .page.active { display: block; }
 
-    /* Search */
     .search-box {
-      margin: 16px;
-      background: var(--card);
-      border-radius: 14px;
-      padding: 12px 16px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      border: 1px solid var(--border);
+      margin: 16px; background: var(--card); border: 1px solid var(--border);
+      border-radius: 14px; padding: 12px 16px; display: flex; gap: 10px; align-items: center;
     }
-
     .search-box input {
-      background: transparent;
-      border: none;
-      color: var(--text);
-      font-size: 16px;
-      width: 100%;
-      outline: none;
+      background: transparent; border: none; color: var(--text);
+      font-size: 16px; width: 100%; outline: none;
     }
-
     .ai-response {
-      margin: 0 16px 20px;
-      background: var(--card);
-      border-radius: 16px;
-      padding: 16px;
-      font-size: 15px;
-      line-height: 1.5;
-      border: 1px solid var(--border);
-      display: none;
+      margin: 0 16px 16px; background: var(--card); border: 1px solid var(--border);
+      border-radius: 16px; padding: 16px; font-size: 15px; line-height: 1.5; display: none;
     }
-
-    .offers {
-      padding: 0 16px 20px;
+    .section-title {
+      padding: 8px 16px; font-size: 13px; color: var(--text2); font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.5px;
     }
-
+    .offer-card, .post {
+      background: var(--card); border: 1px solid var(--border);
+      margin: 0 16px 12px; border-radius: 16px; padding: 14px 16px;
+    }
     .offer-card {
-      background: var(--card);
-      border-radius: 16px;
-      padding: 16px;
-      margin-bottom: 12px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border: 1px solid var(--border);
+      display: flex; justify-content: space-between; align-items: center;
     }
-
-    .offer-info h3 { font-size: 16px; margin-bottom: 3px; }
-    .offer-info p { font-size: 13px; color: var(--text2); }
-
-    .offer-badge {
-      background: var(--green);
-      color: #000;
-      font-weight: 700;
-      font-size: 14px;
-      padding: 6px 10px;
-      border-radius: 8px;
+    .offer-info h3 { font-size: 15px; margin-bottom: 2px; }
+    .offer-info p { font-size: 12px; color: var(--text2); }
+    .badge {
+      background: var(--green); color: #000; font-weight: 700;
+      font-size: 13px; padding: 5px 9px; border-radius: 8px;
     }
-
-    /* Home posts */
-    .post {
-      border-bottom: 1px solid var(--border);
-      padding: 16px;
-    }
-
-    .post-header {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 10px;
-    }
-
+    .post-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
     .avatar {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      background: linear-gradient(45deg, #ff6b6b, #feca57);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 700;
+      width: 38px; height: 38px; border-radius: 50%;
+      background: linear-gradient(45deg,#ff6b6b,#feca57);
+      display: flex; align-items: center; justify-content: center; font-weight: 700;
     }
-
     .code-box {
-      background: var(--card);
-      border-radius: 12px;
-      padding: 12px 14px;
-      font-family: monospace;
-      font-size: 15px;
-      margin: 10px 0;
-      display: flex;
-      justify-content: space-between;
-      border: 1px solid var(--border);
+      background: var(--bg); border: 1px solid var(--border); border-radius: 12px;
+      padding: 10px 12px; font-family: monospace; font-size: 15px;
+      display: flex; justify-content: space-between; margin: 8px 0;
     }
-
-    .post-actions {
-      display: flex;
-      gap: 18px;
-      font-size: 13px;
-      color: var(--text2);
+    .actions {
+      display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; font-size: 13px;
     }
-
-    /* Bottom bar */
+    .actions button {
+      background: var(--bg); border: 1px solid var(--border); color: var(--text);
+      border-radius: 20px; padding: 6px 12px; font-size: 12px;
+    }
     .bottom-bar {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      height: 82px;
-      background: var(--bg);
-      border-top: 1px solid var(--border);
-      display: flex;
-      justify-content: space-around;
-      align-items: center;
-      padding-bottom: 18px;
+      position: absolute; bottom: 0; left: 0; right: 0; height: 82px;
+      background: var(--bg); border-top: 1px solid var(--border);
+      display: flex; justify-content: space-around; align-items: center;
+      padding-bottom: 16px;
     }
-
     .nav-btn {
-      background: none;
-      border: none;
-      color: var(--text2);
-      font-size: 11px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 3px;
+      background: none; border: none; color: var(--text2);
+      font-size: 11px; display: flex; flex-direction: column; align-items: center; gap: 3px;
     }
-
     .nav-btn.active { color: var(--text); }
     .nav-btn .icon { font-size: 24px; }
-
     .share-bar {
-      position: fixed;
-      bottom: 95px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: var(--accent);
-      color: white;
-      border: none;
-      padding: 12px 26px;
-      border-radius: 30px;
-      font-weight: 600;
-      font-size: 15px;
-      display: none;
-      z-index: 50;
+      position: fixed; bottom: 95px; left: 50%; transform: translateX(-50%);
+      background: var(--accent); color: #fff; border: none;
+      padding: 12px 26px; border-radius: 30px; font-weight: 600; display: none; z-index: 50;
     }
-
     .page-home.active ~ .share-bar { display: block; }
-
-    /* Modal */
     .modal {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.6);
-      z-index: 100;
-      align-items: flex-end;
-      justify-content: center;
+      display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+      z-index: 100; align-items: flex-end; justify-content: center;
     }
     .modal.active { display: flex; }
-
     .modal-content {
-      background: var(--card);
-      width: 100%;
-      max-width: 430px;
-      border-radius: 20px 20px 0 0;
-      padding: 24px 20px 40px;
+      background: var(--card); width: 100%; max-width: 430px;
+      border-radius: 20px 20px 0 0; padding: 24px 20px 40px;
     }
-
     .choice-btn {
-      width: 100%;
-      background: var(--bg);
-      border: 1px solid var(--border);
-      color: var(--text);
-      padding: 15px;
-      border-radius: 14px;
-      font-size: 16px;
-      margin-bottom: 10px;
+      width: 100%; background: var(--bg); border: 1px solid var(--border);
+      color: var(--text); padding: 15px; border-radius: 14px; font-size: 16px; margin-bottom: 10px;
     }
+    .empty { text-align: center; color: var(--text2); padding: 40px 20px; font-size: 14px; }
   </style>
 </head>
 <body>
-
 <div class="phone">
 
   <div class="header">
@@ -289,89 +158,34 @@
   <div class="page page-ia active" id="page-ia">
     <div class="search-box">
       <span>🔍</span>
-      <input type="text" id="ai-input" placeholder="Ex: code Uber Eats, hôtel Paris..." onkeypress="if(event.key==='Enter') askAI()">
+      <input id="ai-input" type="text" placeholder="Ex: code Uber Eats, hôtel Paris..." onkeypress="if(event.key==='Enter') askAI()">
     </div>
-
     <div class="ai-response" id="ai-response"></div>
 
-    <div class="offers">
-      <div class="offer-card">
-        <div class="offer-info">
-          <h3>Booking.com</h3>
-          <p>Voyages & Hôtels</p>
-        </div>
-        <div class="offer-badge">-15%</div>
-      </div>
-      <div class="offer-card">
-        <div class="offer-info">
-          <h3>Uber Eats</h3>
-          <p>Nourriture</p>
-        </div>
-        <div class="offer-badge">-10€</div>
-      </div>
-      <div class="offer-card">
-        <div class="offer-info">
-          <h3>Getaround</h3>
-          <p>Location véhicule</p>
-        </div>
-        <div class="offer-badge">-20%</div>
-      </div>
-      <div class="offer-card">
-        <div class="offer-info">
-          <h3>Airbnb</h3>
-          <p>Logements</p>
-        </div>
-        <div class="offer-badge">-12%</div>
-      </div>
+    <div class="section-title">Codes du jour</div>
+    <div id="daily-codes"></div>
+
+    <div class="section-title">Suggestions</div>
+    <div class="offers" id="suggestions">
+      <div class="offer-card"><div class="offer-info"><h3>Booking.com</h3><p>Voyages & Hôtels</p></div><div class="badge">-15%</div></div>
+      <div class="offer-card"><div class="offer-info"><h3>Uber Eats</h3><p>Nourriture</p></div><div class="badge">-10€</div></div>
+      <div class="offer-card"><div class="offer-info"><h3>Getaround</h3><p>Location véhicule</p></div><div class="badge">-20%</div></div>
+      <div class="offer-card"><div class="offer-info"><h3>Airbnb</h3><p>Logements</p></div><div class="badge">-12%</div></div>
     </div>
   </div>
 
   <!-- PAGE HOME -->
   <div class="page page-home" id="page-home">
-    <div class="post">
-      <div class="post-header">
-        <div class="avatar">A</div>
-        <div class="username">alex_codes</div>
-      </div>
-      <div class="post-content">Code Uber Eats valable aujourd'hui</div>
-      <div class="code-box">
-        <span>EATS20</span>
-        <span style="color:var(--green)">-20%</span>
-      </div>
-      <div class="post-actions">
-        <span>❤️ 128</span>
-        <span>👁️ 3 842</span>
-      </div>
-    </div>
-
-    <div class="post">
-      <div class="post-header">
-        <div class="avatar">S</div>
-        <div class="username">sarah.b</div>
-      </div>
-      <div class="post-content">Parrainage Fortuneo encore actif</div>
-      <div class="code-box">
-        <span>FORTU80</span>
-        <span style="color:var(--green)">+80€</span>
-      </div>
-      <div class="post-actions">
-        <span>❤️ 89</span>
-        <span>👁️ 5 217</span>
-      </div>
+    <div id="codes-list">
+      <div class="empty">Chargement des codes...</div>
     </div>
   </div>
 
   <button class="share-bar" onclick="openShareModal()">＋ Partager</button>
 
   <div class="bottom-bar">
-    <button class="nav-btn active" onclick="showPage('ia')">
-      <span class="icon">🤖</span>
-      IA
-    </button>
-    <button class="nav-btn" onclick="showPage('home')">
-      <span class="icon">🏠</span>
-      Home
-    </button>
+    <button class="nav-btn active" onclick="showPage('ia')"><span class="icon">🤖</span>IA</button>
+    <button class="nav-btn" onclick="showPage('home')"><span class="icon">🏠</span>Home</button>
   </div>
 </div>
 
@@ -388,64 +202,152 @@
   Telegram.WebApp.ready();
   Telegram.WebApp.expand();
 
+  let userCity = null;
+
   // Thème
   function toggleTheme() {
     document.body.classList.toggle('light');
     localStorage.setItem('theme', document.body.classList.contains('light') ? 'light' : 'dark');
   }
+  if (localStorage.getItem('theme') === 'light') document.body.classList.add('light');
 
-  if (localStorage.getItem('theme') === 'light') {
-    document.body.classList.add('light');
+  // Géolocalisation (ville approximative)
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(async (pos) => {
+      try {
+        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.coords.latitude}&lon=${pos.coords.longitude}`);
+        const data = await res.json();
+        userCity = data.address?.city || data.address?.town || data.address?.village || null;
+      } catch(e) {}
+    }, () => {}, { timeout: 5000 });
   }
 
   function showPage(page) {
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
     document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-    
     if (page === 'ia') {
       document.getElementById('page-ia').classList.add('active');
       document.querySelectorAll('.nav-btn')[0].classList.add('active');
     } else {
       document.getElementById('page-home').classList.add('active');
       document.querySelectorAll('.nav-btn')[1].classList.add('active');
+      loadCodes();
     }
   }
 
-  function openShareModal() {
-    document.getElementById('shareModal').classList.add('active');
-  }
-  function closeShareModal() {
-    document.getElementById('shareModal').classList.remove('active');
-  }
-  function shareType(type) {
+  function openShareModal(){ document.getElementById('shareModal').classList.add('active'); }
+  function closeShareModal(){ document.getElementById('shareModal').classList.remove('active'); }
+  function shareType(type){
     closeShareModal();
-    alert(type === 'promo' 
-      ? "Envoie dans le bot : /promo Site 20 CODE" 
-      : "Envoie dans le bot : /parrainage Site 50 CODE");
+    alert(type === 'promo'
+      ? "Envoie dans le bot :\n/promo Site 20 TONCODE"
+      : "Envoie dans le bot :\n/parrainage Site 50 TONCODE");
   }
 
   // IA
   async function askAI() {
     const input = document.getElementById('ai-input');
-    const responseDiv = document.getElementById('ai-response');
-    const question = input.value.trim();
-    if (!question) return;
-
-    responseDiv.style.display = 'block';
-    responseDiv.innerHTML = "🔍 Recherche en cours...";
-
+    const box = document.getElementById('ai-response');
+    const q = input.value.trim();
+    if (!q) return;
+    box.style.display = 'block';
+    box.innerHTML = '🔍 Recherche en cours...';
     try {
       const res = await fetch('/ask', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ question: question })
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ question: q, city: userCity })
       });
       const data = await res.json();
-      responseDiv.innerHTML = data.answer || "Voici une offre intéressante que j'ai trouvée pour toi.";
-    } catch (e) {
-      responseDiv.innerHTML = "Voici une alternative intéressante pendant que je recherche mieux pour toi.";
+      box.innerHTML = data.answer || 'Voici une offre intéressante pour toi.';
+    } catch(e) {
+      box.innerHTML = 'Voici une bonne alternative : regarde Booking, Uber Eats ou Getaround.';
     }
   }
+
+  // Charger les vrais codes
+  async function loadCodes() {
+    const list = document.getElementById('codes-list');
+    const daily = document.getElementById('daily-codes');
+    try {
+      const res = await fetch('/codes');
+      const data = await res.json();
+      const codes = data.codes || [];
+
+      if (!codes.length) {
+        list.innerHTML = '<div class="empty">Aucun code partagé pour le moment.<br>Sois le premier à en ajouter !</div>';
+        daily.innerHTML = '<div class="empty" style="padding:10px">Pas encore de code du jour</div>';
+        return;
+      }
+
+      // Codes du jour = top 3
+      daily.innerHTML = codes.slice(0,3).map(c => `
+        <div class="offer-card">
+          <div class="offer-info">
+            <h3>${c.site}</h3>
+            <p>${c.type} • ${c.code}</p>
+          </div>
+          <div class="badge">${c.description || 'Promo'}</div>
+        </div>
+      `).join('');
+
+      // Home
+      list.innerHTML = codes.map(c => `
+        <div class="post">
+          <div class="post-header">
+            <div class="avatar">${(c.added_by || 'A')[0].toUpperCase()}</div>
+            <div>
+              <div style="font-weight:600">${c.added_by || 'Anonyme'}</div>
+              <div style="font-size:12px;color:var(--text2)">${c.site}</div>
+            </div>
+          </div>
+          <div>${c.type === 'parrainage' ? 'Code de parrainage' : 'Code promo'}</div>
+          <div class="code-box">
+            <span>${c.code}</span>
+            <span style="color:var(--green)">${c.description || ''}</span>
+          </div>
+          <div class="actions">
+            <button onclick="likeCode(${c.id}, this)">❤️ ${c.likes || 0}</button>
+            <button onclick="markWorking(${c.id})">✅ Fonctionne</button>
+            <button onclick="markDead(${c.id})">❌ Mort</button>
+            <span style="color:var(--text2)">👁️ ${(c.views || 2500).toLocaleString('fr-FR')}</span>
+          </div>
+        </div>
+      `).join('');
+    } catch(e) {
+      list.innerHTML = '<div class="empty">Impossible de charger les codes.</div>';
+    }
+  }
+
+  async function likeCode(id, btn) {
+    try {
+      await fetch('/code/like', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({id})
+      });
+      const n = parseInt(btn.textContent.replace(/\D/g,'')) || 0;
+      btn.textContent = `❤️ ${n+1}`;
+    } catch(e) {}
+  }
+
+  async function markWorking(id) {
+    await fetch('/code/working', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({id})
+    });
+    alert('Merci ! Code marqué comme fonctionnel.');
+  }
+
+  async function markDead(id) {
+    await fetch('/code/dead', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({id})
+    });
+    alert('Merci pour le signalement.');
+  }
+
+  // charge aussi les codes du jour au démarrage
+  loadCodes();
 </script>
 </body>
 </html>
