@@ -4,7 +4,6 @@ import requests
 import os
 import sqlite3
 from openai import OpenAI
-from datetime import datetime
 
 app = Flask(__name__)
 
@@ -113,7 +112,7 @@ def ask_grok(user_message: str, city=None):
     location_info = f"Localisation approximative de l'utilisateur : {city}." if city else ""
 
     system_prompt = f"""
-Tu es l'assistant officiel de CODE IA.
+Tu es l'assistant officiel de Codia.
 {location_info}
 
 Voici les meilleurs codes de la communauté :
@@ -161,15 +160,22 @@ def miniapp_keyboard():
     return {
         "inline_keyboard": [[
             {
-                "text": "🚀 Ouvrir CODE IA",
+                "text": "Ouvrir Codia",
                 "web_app": {"url": MINIAPP_URL}
             }
         ]]
     }
 
+def access_message():
+    return (
+        "✅ <b>Accès activé</b>\n\n"
+        "Bienvenue sur Codia.\n"
+        "Clique ci-dessous pour ouvrir l’application :"
+    )
+
 @app.route("/")
 def home():
-    return "CODE IA Server 24/7 is running ✅"
+    return "Codia Server 24/7 is running ✅"
 
 @app.route("/miniapp")
 def miniapp():
@@ -209,7 +215,7 @@ def get_codes():
                 "site": r[2],
                 "code": r[3],
                 "description": r[4],
-                "added_by": r[5] or "Anonyme",
+                "added_by": r[5] or "Membre Codia",
                 "working": r[6],
                 "dead": r[7],
                 "likes": r[8],
@@ -280,7 +286,7 @@ def create_checkout():
                 "price_data": {
                     "currency": "eur",
                     "product_data": {
-                        "name": "Accès CODE IA - À vie",
+                        "name": "Accès Codia - À vie",
                         "description": "Codes promo + IA + Communauté"
                     },
                     "unit_amount": 1000,
@@ -316,12 +322,7 @@ def webhook():
             telegram_id = session["metadata"].get("telegram_id")
         if telegram_id:
             add_paid_user(telegram_id)
-            message = (
-                "🎉 <b>Paiement confirmé !</b>\n\n"
-                "Ton accès est activé.\n\n"
-                "Clique sur le bouton pour ouvrir la plateforme :"
-            )
-            send_telegram_message(telegram_id, message, reply_markup=miniapp_keyboard())
+            send_telegram_message(telegram_id, access_message(), reply_markup=miniapp_keyboard())
             if ADMIN_ID:
                 send_telegram_message(ADMIN_ID, f"✅ Nouveau paiement\nID : <code>{telegram_id}</code>")
     return jsonify(success=True), 200
@@ -355,7 +356,7 @@ def telegram_webhook():
         display_name = f"@{username}" if username else first_name
 
         if not is_paid_user(chat_id) and not text.startswith("/start"):
-            send_telegram_message(chat_id, "🔒 <b>Accès refusé</b>\n\nFais /start pour obtenir l'accès.")
+            send_telegram_message(chat_id, "🔒 Accès refusé.\nFais /start pour obtenir l'accès.")
             return jsonify(success=True)
 
         if str(chat_id) == str(ADMIN_ID) and admin_mode and not text.startswith("/"):
@@ -365,11 +366,7 @@ def telegram_webhook():
 
         if text.startswith("/start"):
             if int(chat_id) == ADMIN_ID or is_paid_user(chat_id):
-                send_telegram_message(
-                    chat_id,
-                    f"👋 Salut <b>{first_name}</b> !\n\nAccès activé.",
-                    reply_markup=miniapp_keyboard()
-                )
+                send_telegram_message(chat_id, access_message(), reply_markup=miniapp_keyboard())
                 return jsonify(success=True)
 
             try:
@@ -382,13 +379,13 @@ def telegram_webhook():
                 if "url" in result:
                     keyboard = {
                         "inline_keyboard": [[{
-                            "text": "💳 Payer 10 € – Accès à vie",
+                            "text": "Payer 10 € – Accès à vie",
                             "url": result["url"]
                         }]]
                     }
                     send_telegram_message(
                         chat_id,
-                        f"👋 Salut <b>{first_name}</b> !\n\nBienvenue sur <b>CODE IA</b>.\n\nPrix : <b>10 €</b>",
+                        f"👋 Salut <b>{first_name}</b> !\n\nBienvenue sur <b>Codia</b>.\n\nPrix : <b>10 €</b>",
                         reply_markup=keyboard
                     )
                 else:
@@ -401,13 +398,7 @@ def telegram_webhook():
             if int(chat_id) != ADMIN_ID:
                 send_telegram_message(chat_id, "⛔ Commande réservée à l'admin.")
                 return jsonify(success=True)
-
-            message = (
-                "🎉 <b>Paiement confirmé !</b>\n\n"
-                "Ton accès est activé.\n\n"
-                "Clique sur le bouton pour ouvrir la plateforme :"
-            )
-            send_telegram_message(chat_id, message, reply_markup=miniapp_keyboard())
+            send_telegram_message(chat_id, access_message(), reply_markup=miniapp_keyboard())
 
         elif text == "/admin1" and str(chat_id) == str(ADMIN_ID):
             keyboard = {
@@ -471,7 +462,7 @@ def telegram_webhook():
                 send_telegram_message(chat_id, "Format : /parrainage Site 20 CODE")
 
         elif text.startswith("/acces"):
-            send_telegram_message(chat_id, "Voici ton accès :", reply_markup=miniapp_keyboard())
+            send_telegram_message(chat_id, access_message(), reply_markup=miniapp_keyboard())
 
         elif text and not text.startswith("/"):
             send_telegram_message(chat_id, "🔍 Recherche en cours...")
