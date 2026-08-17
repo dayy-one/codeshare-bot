@@ -2,18 +2,96 @@ from flask import Flask, request, jsonify
 import stripe
 import requests
 import os
+import sqlite3
+from openai import OpenAI
 from datetime import datetime
 
 app = Flask(__name__)
 
+# ================== CONFIGURATION ==================
 stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
-CHANNEL_LINK = os.getenv("CHANNEL_LINK")
-ADMIN_ID = os.getenv("ADMIN_ID")
+CHANNEL_LINK = os.getenv("CHANNEL_LINK", "https://t.me/+ODE8T52A5yEzMTZk")
+ADMIN_ID = int(os.getenv("ADMIN_ID", "8091031583"))
 CHANNEL_ID = "-1004414166682"
 SERVER_URL = "https://codeshare-bot-production.up.railway.app"
 
+# Client Grok
+client = OpenAI(
+    api_key=os.getenv("XAI_API_KEY"),
+    base_url="https://api.x.ai/v1"
+)
+
 admin_mode = False
+
+# ========== BASE DE DONNÉES ==========
+def init_db():
+    conn = sqlite3.connect("codes.db")
+    c = conn.cursor()
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS codes (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            type TEXT,
+            site TEXT,
+            code TEXT,
+            description TEXT,
+            link TEXT,
+            added_by TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
+    conn.commit()
+    conn.close()
+
+def get_codes_for_ai():
+    try:
+        conn = sqlite3.connect("codes.db")
+        c = conn.cursor()
+        c.execute("SELECT type, site, code, description, link FROM codes ORDER BY created_at DESC LIMIT 40")
+        rows = c.fetchall()
+        conn.close()
+
+        if not rows:
+            return "Aucun code dans la base pour le moment."
+
+        text = "Codes validés de la communauté :\n\n"
+        for row in rows:
+            text += f"- {row[0]} | {row[1]} : {row[2]} | {row[3]} | Lien: {row[4] or 'Aucun'}\n"
+        return text
+    except:
+        return "Aucun code dans la base pour le moment."
+
+def ask_grok(user_message: str):
+    codes_context = get_codes_for_ai()
+
+    system_prompt = f"""
+Tu es l'assistant officiel de CODE IA, une plateforme de codes promo et parrainage.
+
+Voici les codes validés de la communauté :
+{codes_context}
+
+Règles de réponse :
+1. Si tu trouves un code correspondant dans la base → donne-le en priorité.
+2. Si la base est vide ou ne contient rien de pertinent → cherche les meilleures offres et codes promo/parrainage connus ou récents pour la demande de l'utilisateur.
+3. Propose toujours les options les plus proches de ce que demande le client.
+4. Sois clair, direct et en français.
+5. Si tu n'es pas sûr qu'un code soit encore valide, dis-le clairement (ex: "À vérifier car les codes changent souvent").
+6. Ne dis jamais seulement "aucun code disponible". Propose toujours quelque chose d'utile.
+"""
+
+    try:
+        response = client.chat.completions.create(
+            model="grok-3",
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_message}
+            ],
+            temperature=0.4
+        )
+        return response.choices[0].message.content
+    except Exception as e:
+        print("Erreur Grok:", e)
+        return "Désolé, l'IA est temporairement indisponible. Réessaie dans un moment."
 
 def send_telegram_message(chat_id, text, reply_markup=None, parse_mode="HTML"):
     url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
@@ -30,9 +108,10 @@ def send_telegram_message(chat_id, text, reply_markup=None, parse_mode="HTML"):
     except Exception as e:
         print("Erreur:", e)
 
+# ================== ROUTES ==================
 @app.route("/")
 def home():
-    return "CodeShare Server + Bot 24/7 is running ✅"
+    return "CODE IA Server 24/7 is running ✅"
 
 @app.route("/create-checkout", methods=["POST"])
 def create_checkout():
@@ -47,8 +126,8 @@ def create_checkout():
                 "price_data": {
                     "currency": "eur",
                     "product_data": {
-                        "name": "Accès CodeShare - À vie",
-                        "description": "350 codes promo + 150 codes de parrainage"
+                        "name": "Accès CODE IA - À vie",
+                        "description": "Codes promo + IA intelligente + Communauté"
                     },
                     "unit_amount": 1000,
                 },
@@ -82,12 +161,10 @@ def webhook():
         if telegram_id:
             message = (
                 "🎉 <b>Paiement confirmé !</b>\n\n"
-                "Ton accès a été activé automatiquement.\n\n"
+                "Ton accès a été activé.\n\n"
                 f"Voici le lien du canal privé :\n{CHANNEL_LINK}\n\n"
-                "Bienvenue dans <b>CodeShare</b> !\n\n"
-                "Tu peux maintenant partager tes codes :\n"
-                "• <code>/promo NomDuSite 30 CODE</code>\n"
-                "• <code>/parrainage NomDuSite 20 CODE</code>"
+                "Bienvenue dans <b>CODE IA</b> !\n\n"
+                "Tu peux maintenant utiliser l'IA et partager tes codes."
             )
             send_telegram_message(telegram_id, message)
             if ADMIN_ID:
@@ -99,7 +176,7 @@ def telegram_webhook():
     global admin_mode
     data = request.get_json()
 
-    # Boutons admin
+    # Callbacks admin
     if "callback_query" in data:
         query = data["callback_query"]
         chat_id = query["from"]["id"]
@@ -110,11 +187,10 @@ def telegram_webhook():
 
         if data_btn == "admin_start":
             admin_mode = True
-            send_telegram_message(chat_id, "✅ <b>Mode Admin activé</b>\n\nTout ce que tu écris sera publié anonymement dans le canal.")
+            send_telegram_message(chat_id, "✅ <b>Mode Admin activé</b>")
         elif data_btn == "admin_stop":
             admin_mode = False
             send_telegram_message(chat_id, "🛑 <b>Mode Admin désactivé</b>")
-
         return jsonify(success=True)
 
     if "message" in data:
@@ -134,6 +210,16 @@ def telegram_webhook():
 
         # /start
         if text.startswith("/start"):
+            # Accès admin gratuit
+            if int(chat_id) == ADMIN_ID:
+                send_telegram_message(
+                    chat_id,
+                    f"👋 Salut Admin <b>{first_name}</b> !\n\n"
+                    f"Tu as un accès complet sans paiement.\n"
+                    f"Tu peux utiliser l'IA et toutes les commandes."
+                )
+                return jsonify(success=True)
+
             try:
                 response = requests.post(f"{SERVER_URL}/create-checkout", json={"telegram_id": chat_id}, timeout=10)
                 result = response.json()
@@ -142,14 +228,13 @@ def telegram_webhook():
                     send_telegram_message(
                         chat_id,
                         f"👋 Salut <b>{first_name}</b> !\n\n"
-                        f"Bienvenue sur <b>CodeShare</b>.\n\n"
+                        f"Bienvenue sur <b>CODE IA</b>.\n\n"
                         f"Tu auras accès à :\n"
-                        f"• 350 codes promo actifs\n"
-                        f"• 150 codes de parrainage actifs\n"
-                        f"• Possibilité de partager ton propre code\n\n"
+                        f"• Codes promo & parrainage\n"
+                        f"• Assistant IA intelligent\n"
+                        f"• Espace communauté\n\n"
                         f"<b>Prix : 10 €</b> (accès à vie)\n\n"
-                        f"Clique sur le bouton pour payer.\n"
-                        f"Dès le paiement terminé, tu recevras automatiquement le lien du canal.",
+                        f"Clique sur le bouton pour payer.",
                         reply_markup=keyboard
                     )
                 else:
@@ -166,9 +251,9 @@ def telegram_webhook():
                     [{"text": "⏹️ Arrêter", "callback_data": "admin_stop"}]
                 ]
             }
-            send_telegram_message(chat_id, "🔐 <b>Mode Administrateur</b>\n\nClique sur Démarrer pour publier anonymement.", reply_markup=keyboard)
+            send_telegram_message(chat_id, "🔐 <b>Mode Administrateur</b>", reply_markup=keyboard)
 
-        # /promo Site Pourcentage Code [Date]
+        # /promo
         elif text.lower().startswith("/promo "):
             parts = text[7:].strip().split()
             if len(parts) >= 3:
@@ -192,11 +277,11 @@ def telegram_webhook():
                     send_telegram_message(CHANNEL_ID, channel_message)
                     send_telegram_message(chat_id, f"✅ Code promo publié !\n{site} | -{percent}% | {code}")
                 except:
-                    send_telegram_message(chat_id, "Format incorrect.\nUtilise : /promo Site 30 CODE\nou /promo Site 30 CODE 31/12/2026")
+                    send_telegram_message(chat_id, "Format incorrect.\nUtilise : /promo Site 30 CODE")
             else:
-                send_telegram_message(chat_id, "Utilisation : /promo Site 30 CODE\nExemple : /promo Zara 30 SOLDES20")
+                send_telegram_message(chat_id, "Utilisation : /promo Site 30 CODE")
 
-        # /parrainage Site Montant Code [Date]
+        # /parrainage
         elif text.lower().startswith("/parrainage "):
             parts = text[12:].strip().split()
             if len(parts) >= 3:
@@ -220,15 +305,22 @@ def telegram_webhook():
                     send_telegram_message(CHANNEL_ID, channel_message)
                     send_telegram_message(chat_id, f"✅ Code de parrainage publié !\n{site} | +{montant}€ | {code}")
                 except:
-                    send_telegram_message(chat_id, "Format incorrect.\nUtilise : /parrainage Site 20 CODE\nou /parrainage Site 20 CODE 15/09/2026")
+                    send_telegram_message(chat_id, "Format incorrect.\nUtilise : /parrainage Site 20 CODE")
             else:
-                send_telegram_message(chat_id, "Utilisation : /parrainage Site 20 CODE\nExemple : /parrainage Boursorama 20 REF123")
+                send_telegram_message(chat_id, "Utilisation : /parrainage Site 20 CODE")
 
         elif text.startswith("/acces"):
             send_telegram_message(chat_id, f"Voici le lien du canal :\n{CHANNEL_LINK}")
 
+        # ===== IA pour tous les autres messages =====
+        elif text and not text.startswith("/"):
+            send_telegram_message(chat_id, "🔍 Recherche en cours avec CODE IA...")
+            reply = ask_grok(text)
+            send_telegram_message(chat_id, reply)
+
     return jsonify(success=True)
 
 if __name__ == "__main__":
+    init_db()
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
