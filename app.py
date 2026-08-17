@@ -349,12 +349,19 @@ def telegram_webhook():
         elif text.startswith("/acces"):
             send_telegram_message(chat_id, f"Lien du canal :\n{CHANNEL_LINK}")
 
-        # ===== IA uniquement pour les payeurs + admin =====
+               # ===== IA uniquement pour les payeurs + admin =====
         elif text and not text.startswith("/"):
+            # Blocage total si pas payé
             if not is_paid_user(chat_id):
-                send_telegram_message(chat_id, "🔒 Tu dois avoir un accès payant pour utiliser l'IA.\nFais /start pour obtenir l'accès.")
+                send_telegram_message(
+                    chat_id,
+                    "🔒 <b>Accès refusé</b>\n\n"
+                    "Tu dois payer pour utiliser l'IA et les codes.\n\n"
+                    "Fais /start pour obtenir l'accès."
+                )
                 return jsonify(success=True)
 
+            # Si payé → on lance l'IA
             send_telegram_message(chat_id, "🔍 Recherche en cours avec CODE IA...")
             reply = ask_grok(text)
             send_telegram_message(chat_id, reply)
