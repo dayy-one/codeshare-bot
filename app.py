@@ -158,6 +158,14 @@ def send_telegram_message(chat_id, text, reply_markup=None, parse_mode="HTML"):
 def home():
     return "CODE IA Server 24/7 is running ✅"
 
+@app.route("/miniapp")
+def miniapp():
+    try:
+        with open("miniapp.html", "r", encoding="utf-8") as f:
+            return f.read()
+    except Exception as e:
+        return f"Erreur chargement Mini App : {e}", 500
+
 @app.route("/create-checkout", methods=["POST"])
 def create_checkout():
     data = request.json or {}
@@ -194,7 +202,6 @@ def webhook():
     sig_header = request.headers.get("Stripe-Signature")
     endpoint_secret = os.getenv("STRIPE_WEBHOOK_SECRET")
 
-    # Sécurité webhook
     if not sig_header:
         print("Webhook refusé : pas de signature")
         return jsonify({"error": "Missing signature"}), 400
