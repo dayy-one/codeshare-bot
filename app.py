@@ -4,8 +4,6 @@ import requests
 import os
 import sqlite3
 import json
-import random
-from datetime import datetime
 from openai import OpenAI
 
 app = Flask(__name__)
@@ -37,9 +35,8 @@ def init_db():
             description TEXT,
             link TEXT,
             added_by TEXT,
-            working INTEGER DEFAULT 0,
-            dead INTEGER DEFAULT 0,
             likes INTEGER DEFAULT 0,
+            dislikes INTEGER DEFAULT 0,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     ''')
@@ -49,6 +46,14 @@ def init_db():
             paid_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     ''')
+    try:
+        c.execute("ALTER TABLE codes ADD COLUMN likes INTEGER DEFAULT 0")
+    except:
+        pass
+    try:
+        c.execute("ALTER TABLE codes ADD COLUMN dislikes INTEGER DEFAULT 0")
+    except:
+        pass
     conn.commit()
     conn.close()
 
@@ -80,8 +85,8 @@ def save_code(code_type, site, code, description, link, added_by):
         conn = sqlite3.connect("codes.db")
         c = conn.cursor()
         c.execute('''
-            INSERT INTO codes (type, site, code, description, link, added_by, working, dead, likes)
-            VALUES (?, ?, ?, ?, ?, ?, 0, 0, 0)
+            INSERT INTO codes (type, site, code, description, link, added_by, likes, dislikes)
+            VALUES (?, ?, ?, ?, ?, ?, 0, 0)
         ''', (code_type, site, code, description, link, added_by))
         conn.commit()
         conn.close()
@@ -100,7 +105,7 @@ def ensure_daily_codes():
 
         prompt = """
 Donne entre 3 et 5 codes promo ou parrainage utiles pour la France.
-Réponds UNIQUEMENT avec un JSON valide de ce format:
+Réponds UNIQUEMENT avec un JSON valide:
 [
   {"type":"promo","site":"Uber Eats","code":"XXXX","description":"-10€"},
   {"type":"parrainage","site":"Fortuneo","code":"XXXX","description":"+80€"}
@@ -134,9 +139,9 @@ def get_best_codes_text():
         conn = sqlite3.connect("codes.db")
         c = conn.cursor()
         c.execute('''
-            SELECT type, site, code, description, working, dead, likes
+            SELECT type, site, code, description, likes, dislikes
             FROM codes
-            ORDER BY (working - dead + likes) DESC, created_at DESC
+            ORDER BY (likes - dislikes) DESC, created_at DESC
             LIMIT 30
         ''')
         rows = c.fetchall()
@@ -145,7 +150,7 @@ def get_best_codes_text():
             return "Aucun code validé pour le moment."
         text = "Meilleurs codes de la communauté :\n\n"
         for r in rows:
-            score = r[4] - r[5] + r[6]
+            score = (r[4] or 0) - (r[5] or 0)
             text += f"- {r[0]} | {r[1]} : {r[2]} | {r[3]} | Score:{score}\n"
         return text
     except:
@@ -237,27 +242,15 @@ def get_codes():
         conn = sqlite3.connect("codes.db")
         c = conn.cursor()
         c.execute('''
-            SELECT id, type, site, code, description, added_by, working, dead, likes, created_at
+            SELECT id, type, site, code, description, added_by, likes, dislikes, created_at
             FROM codes
-            ORDER BY (working - dead + likes) DESC, created_at DESC
+            ORDER BY (likes - dislikes) DESC, created_at DESC
             LIMIT 50
         ''')
         rows = c.fetchall()
         conn.close()
         codes = []
-        now = datetime.utcnow()
         for r in rows:
-            try:
-                created = datetime.fromisoformat(str(r[9]).replace("Z", ""))
-            except:
-                created = now
-            days = max(0, (now - created).days)
-            is_ai = (r[5] or "") == "Codia IA"
-            if is_ai:
-                views = 1200 + days * random.randint(800, 1600) + random.randint(200, 900)
-            else:
-                steps = days // 3
-                views = 180 + steps * random.randint(120, 280) + random.randint(20, 80)
             codes.append({
                 "id": r[0],
                 "type": r[1],
@@ -265,11 +258,8 @@ def get_codes():
                 "code": r[3],
                 "description": r[4],
                 "added_by": r[5] or "Membre Codia",
-                "working": r[6],
-                "dead": r[7],
-                "likes": r[8],
-                "is_ai": is_ai,
-                "views": views
+                "likes": r[6] or 0,
+                "dislikes": r[7] or 0
             })
         return jsonify({"codes": codes})
     except Exception as e:
@@ -290,51 +280,28 @@ def add_code_from_app():
     save_code(code_type, site, code, description, None, added_by)
     return jsonify({"success": True})
 
-@app.route("/code/like", methods=["POST"])
-def code_like():
+@app.route("/code/react", methods=["POST"])
+def code_react():
     data = request.json or {}
     code_id = data.get("id")
-    if not code_id:
-        return jsonify({"error": "id manquant"}), 400
-    try:
-        conn = sqlite3.connect("codes.db")
-        c = conn.cursor()
-        c.execute("UPDATE codes SET likes = likes + 1 WHERE id = ?", (code_id,))
-        conn.commit()
-        conn.close()
-        return jsonify({"success": True})
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    reaction = data.get("reaction")  # like | dislike
+    action = data.get("action")      # add | remove
 
-@app.route("/code/working", methods=["POST"])
-def code_working():
-    data = request.json or {}
-    code_id = data.get("id")
-    if not code_id:
-        return jsonify({"error": "id manquant"}), 400
-    try:
-        conn = sqlite3.connect("codes.db")
-        c = conn.cursor()
-        c.execute("UPDATE codes SET working = working + 1 WHERE id = ?", (code_id,))
-        conn.commit()
-        conn.close()
-        return jsonify({"success": True})
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    if not code_id or reaction not in ("like", "dislike") or action not in ("add", "remove"):
+        return jsonify({"error": "paramètres invalides"}), 400
 
-@app.route("/code/dead", methods=["POST"])
-def code_dead():
-    data = request.json or {}
-    code_id = data.get("id")
-    if not code_id:
-        return jsonify({"error": "id manquant"}), 400
+    column = "likes" if reaction == "like" else "dislikes"
+    delta = 1 if action == "add" else -1
+
     try:
         conn = sqlite3.connect("codes.db")
         c = conn.cursor()
-        c.execute("UPDATE codes SET dead = dead + 1 WHERE id = ?", (code_id,))
+        c.execute(f"UPDATE codes SET {column} = MAX(COALESCE({column},0) + ?, 0) WHERE id = ?", (delta, code_id))
         conn.commit()
+        c.execute(f"SELECT COALESCE({column},0) FROM codes WHERE id = ?", (code_id,))
+        value = c.fetchone()[0]
         conn.close()
-        return jsonify({"success": True})
+        return jsonify({"success": True, "value": value})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
