@@ -9,12 +9,12 @@
     :root {
       --bg:#000; --card:#121212; --text:#fff; --text2:#a1a1aa;
       --border:#1f1f1f; --accent:#8b5cf6; --accent2:#06b6d4;
-      --green:#22c55e; --pink:#ec4899; --red:#ef4444;
+      --green:#22c55e; --pink:#ec4899;
     }
     body.light {
       --bg:#fafafa; --card:#fff; --text:#0a0a0a; --text2:#737373;
       --border:#e5e5e5; --accent:#7c3aed; --accent2:#0891b2;
-      --green:#16a34a; --pink:#db2777; --red:#dc2626;
+      --green:#16a34a; --pink:#db2777;
     }
     *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
     body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",Inter,Roboto,sans-serif;background:var(--bg);color:var(--text);height:100vh;overflow:hidden;transition:.25s}
@@ -45,7 +45,7 @@
     .avatar{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--pink));display:flex;align-items:center;justify-content:center;font-weight:700}
     .code{margin:10px 0;padding:12px;border-radius:14px;background:var(--bg);border:1px dashed var(--border);display:flex;justify-content:space-between;font-family:ui-monospace,Menlo,monospace;font-size:15px}
     .actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
-    .actions button{border:1px solid var(--border);background:var(--bg);color:var(--text);border-radius:999px;padding:7px 12px;font-size:12px}
+    .actions button{border:1px solid var(--border);background:var(--bg);color:var(--text);border-radius:999px;padding:7px 12px;font-size:13px}
     .bottom{position:absolute;left:0;right:0;bottom:0;height:84px;border-top:1px solid var(--border);background:rgba(0,0,0,.75);backdrop-filter:blur(16px);display:flex;justify-content:space-around;align-items:center;padding-bottom:14px}
     body.light .bottom{background:rgba(255,255,255,.85)}
     .nav{background:none;border:none;color:var(--text2);display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11px}
@@ -63,16 +63,6 @@
     .welcome strong{display:block;margin-bottom:6px;font-size:14px}
     .empty{text-align:center;color:var(--text2);padding:30px 16px;font-size:14px}
     .clickable{cursor:pointer}
-    .reaction-pop{
-      position:fixed;left:50%;top:40%;transform:translate(-50%,-50%);
-      background:rgba(20,20,20,.92);border:1px solid var(--border);border-radius:22px;
-      padding:18px;display:none;z-index:80;gap:14px;align-items:center;justify-content:center;
-    }
-    .reaction-pop.active{display:flex}
-    .reaction-pop button{
-      width:64px;height:64px;border-radius:18px;border:1px solid var(--border);
-      background:var(--card);font-size:28px;
-    }
   </style>
 </head>
 <body>
@@ -99,7 +89,7 @@
       1) Explore le feed et les bulles<br>
       2) Cherche un code dans Discover<br>
       3) Partage tes codes avec ＋ Partager<br>
-      4) Maintiens un code à la une pour 🔥 ou 👎
+      4) Like ou “j’aime pas” un code
     </div>
     <div class="section">À la une</div>
     <div id="daily-codes"></div>
@@ -127,7 +117,6 @@
   </div>
 </div>
 
-<!-- Share modal -->
 <div class="modal" id="shareModal">
   <div class="sheet">
     <div style="text-align:center;font-weight:700;margin-bottom:14px">Partager un code</div>
@@ -137,7 +126,6 @@
   </div>
 </div>
 
-<!-- Form modal -->
 <div class="modal" id="formModal">
   <div class="sheet">
     <div style="text-align:center;font-weight:700;margin-bottom:14px" id="formTitle">Nouveau code</div>
@@ -149,43 +137,35 @@
   </div>
 </div>
 
-<!-- Reaction stickers -->
-<div class="reaction-pop" id="reactionPop">
-  <button onclick="reactFire()">🔥</button>
-  <button onclick="reactDown()">👎</button>
-</div>
-
 <script>
   Telegram.WebApp.ready();
   Telegram.WebApp.expand();
 
   const ARCHIVES = {
     "Top": [
-      {site:"Uber Eats", code:"EATS10", description:"-10€", type:"promo", added_by:"Archive Codia", is_ai:true, views:4200},
-      {site:"Booking", code:"TRAVEL15", description:"-15%", type:"promo", added_by:"Archive Codia", is_ai:true, views:5100}
+      {site:"Uber Eats", code:"EATS10", description:"-10€", type:"promo", added_by:"Archive Codia"},
+      {site:"Booking", code:"TRAVEL15", description:"-15%", type:"promo", added_by:"Archive Codia"}
     ],
     "Uber Eats": [
-      {site:"Uber Eats", code:"EATS10", description:"-10€", type:"promo", added_by:"Archive Codia", is_ai:true, views:3900}
+      {site:"Uber Eats", code:"EATS10", description:"-10€", type:"promo", added_by:"Archive Codia"}
     ],
     "Booking": [
-      {site:"Booking", code:"TRAVEL15", description:"-15%", type:"promo", added_by:"Archive Codia", is_ai:true, views:4400}
+      {site:"Booking", code:"TRAVEL15", description:"-15%", type:"promo", added_by:"Archive Codia"}
     ],
     "Airbnb": [
-      {site:"Airbnb", code:"HOME12", description:"-12%", type:"promo", added_by:"Archive Codia", is_ai:true, views:3600}
+      {site:"Airbnb", code:"HOME12", description:"-12%", type:"promo", added_by:"Archive Codia"}
     ],
     "Getaround": [
-      {site:"Getaround", code:"DRIVE20", description:"-20%", type:"promo", added_by:"Archive Codia", is_ai:true, views:3100}
+      {site:"Getaround", code:"DRIVE20", description:"-20%", type:"promo", added_by:"Archive Codia"}
     ],
     "Banques": [
-      {site:"Fortuneo", code:"FORTU80", description:"+80€", type:"parrainage", added_by:"Archive Codia", is_ai:true, views:4800}
+      {site:"Fortuneo", code:"FORTU80", description:"+80€", type:"parrainage", added_by:"Archive Codia"}
     ]
   };
 
   let allCodes = [];
   let userCity = null;
   let currentShareType = "promo";
-  let pressTimer = null;
-  let reactionId = null;
 
   if (localStorage.getItem('theme') === 'light') document.body.classList.add('light');
   if (localStorage.getItem('notif') === 'off') document.getElementById('notifBtn').textContent = '🔕';
@@ -250,26 +230,16 @@
       const res = await fetch('/codes/add', {
         method:'POST',
         headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({
-          type: currentShareType,
-          site, code, description, added_by
-        })
+        body: JSON.stringify({ type: currentShareType, site, code, description, added_by })
       });
       const data = await res.json();
       if(data.success){
         closeForm();
         alert('Code publié sur Codia ✅');
-        if(localStorage.getItem('notif') !== 'off'){
-          // simple feedback local
-        }
         await loadCodes();
         showPage('home');
-      } else {
-        alert('Erreur publication');
-      }
-    }catch(e){
-      alert('Erreur publication');
-    }
+      } else alert('Erreur publication');
+    }catch(e){ alert('Erreur publication'); }
   }
 
   function renderStories(){
@@ -311,7 +281,9 @@
 
   function renderPost(c, fallbackId){
     const id = c.id || fallbackId;
-    const views = c.views || 2000;
+    const liked = localStorage.getItem('like_'+id) === '1';
+    const disliked = localStorage.getItem('dislike_'+id) === '1';
+
     return `<div class="post">
       <div class="post-top">
         <div class="avatar">${(c.added_by||'C')[0].toUpperCase()}</div>
@@ -323,10 +295,10 @@
       <div>${c.type==='parrainage' ? 'code parrainage' : 'code promo'}</div>
       <div class="code"><span>${c.code}</span><span style="color:var(--green)">${c.description||''}</span></div>
       <div class="actions">
-        ${c.id ? `<button onclick="likeCode(${c.id}, this)">♥ ${c.likes||0}</button>
-        <button onclick="markWorking(${c.id})">Validé</button>
-        <button onclick="markDead(${c.id})">Expiré</button>` : `<span class="muted">Archive</span>`}
-        <span class="muted">👁 ${Number(views).toLocaleString('fr-FR')}</span>
+        ${c.id ? `
+          <button onclick="toggleReact(${c.id}, 'like', this)">${liked ? '❤️' : '🤍'} <span>${c.likes||0}</span></button>
+          <button onclick="toggleReact(${c.id}, 'dislike', this)">${disliked ? '💔' : '👎'} <span>${c.dislikes||0}</span></button>
+        ` : `<span class="muted">Archive</span>`}
       </div>
     </div>`;
   }
@@ -352,27 +324,46 @@
     `).join('');
   }
 
-  function startPress(id){
-    if(!id) return;
-    pressTimer = setTimeout(()=>{
-      reactionId = id;
-      document.getElementById('reactionPop').classList.add('active');
-    }, 480);
-  }
-  function endPress(){
-    if(pressTimer) clearTimeout(pressTimer);
-  }
-  function hideReaction(){
-    document.getElementById('reactionPop').classList.remove('active');
-    reactionId = null;
-  }
-  function reactFire(){
-    if(reactionId) markWorking(reactionId);
-    hideReaction();
-  }
-  function reactDown(){
-    if(reactionId) markDead(reactionId);
-    hideReaction();
+  async function toggleReact(id, reaction, btn){
+    const key = reaction + '_' + id;
+    const isActive = localStorage.getItem(key) === '1';
+    const action = isActive ? 'remove' : 'add';
+
+    // si like actif, retire dislike (et inversement)
+    if(action === 'add'){
+      const other = reaction === 'like' ? 'dislike' : 'like';
+      if(localStorage.getItem(other + '_' + id) === '1'){
+        localStorage.setItem(other + '_' + id, '0');
+        fetch('/code/react', {
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({id, reaction: other, action:'remove'})
+        });
+      }
+    }
+
+    localStorage.setItem(key, action === 'add' ? '1' : '0');
+
+    try{
+      const res = await fetch('/code/react', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({id, reaction, action})
+      });
+      const data = await res.json();
+      const span = btn.querySelector('span');
+      if(data && typeof data.value !== 'undefined'){
+        span.textContent = data.value;
+      } else {
+        const n = parseInt(span.textContent||'0')||0;
+        span.textContent = action === 'add' ? n+1 : Math.max(n-1,0);
+      }
+      if(reaction === 'like'){
+        btn.innerHTML = `${action==='add'?'❤️':'🤍'} <span>${span.textContent}</span>`;
+      } else {
+        btn.innerHTML = `${action==='add'?'💔':'👎'} <span>${span.textContent}</span>`;
+      }
+    }catch(e){}
   }
 
   async function askAI(){
@@ -412,11 +403,7 @@
     const top = allCodes.length ? allCodes.slice(0,3) : ARCHIVES["Top"];
 
     daily.innerHTML = top.map(c => `
-      <div class="card row"
-           onpointerdown="startPress(${c.id||0})"
-           onpointerup="endPress()"
-           onpointerleave="endPress()"
-           onpointercancel="endPress()">
+      <div class="card row">
         <div>
           <strong>${c.site}</strong>
           <div class="muted">${c.type || 'promo'} • ${c.code}</div>
@@ -433,26 +420,6 @@
       list.innerHTML = ARCHIVES["Top"].map((c,i)=>renderPost(c,i+1)).join('');
     }
   }
-
-  async function likeCode(id, btn){
-    try{
-      await fetch('/code/like',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id})});
-      const n=parseInt(btn.textContent.replace(/\D/g,''))||0;
-      btn.textContent=`♥ ${n+1}`;
-    }catch(e){}
-  }
-  async function markWorking(id){
-    await fetch('/code/working',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id})});
-    alert('🔥 Code marqué comme valide');
-  }
-  async function markDead(id){
-    await fetch('/code/dead',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id})});
-    alert('👎 Code marqué comme expiré');
-  }
-
-  document.getElementById('reactionPop').addEventListener('click', (e)=>{
-    if(e.target.id === 'reactionPop') hideReaction();
-  });
 
   loadCodes();
 </script>
