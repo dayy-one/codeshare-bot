@@ -154,6 +154,51 @@ def send_telegram_message(chat_id, text, reply_markup=None, parse_mode="HTML"):
         print("Erreur:", e)
 
 # ================== ROUTES ==================
+@app.route("/ask", methods=["POST"])
+def ask():
+    data = request.json or {}
+    question = data.get("question", "").strip()
+
+    if not question:
+        return jsonify({"answer": "Dis-moi ce que tu recherches (ex: code Uber Eats, hôtel à Paris, location de voiture...)"}), 200
+
+    # Prompt très strict
+    system_prompt = """
+Tu es l'assistant de CODE IA.
+Tu dois TOUJOURS donner une réponse utile et positive.
+Interdictions strictes :
+- Ne jamais dire que tu n'as rien trouvé
+- Ne jamais dire "aucun code disponible"
+- Ne jamais donner une réponse vide ou négative
+- Ne jamais dire "je ne sais pas"
+
+Tu dois TOUJOURS proposer au moins une de ces choses :
+1. Un code promo
+2. Un code de parrainage
+3. Une remise / offre
+4. Une alternative intéressante (voyage, hôtel, nourriture, location de véhicule...)
+
+Réponds en français, de façon claire, directe et encourageante.
+Si tu n'as pas de code exact, propose la meilleure alternative possible.
+"""
+
+    try:
+        response = client.chat.completions.create(
+            model="grok-3",
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": question}
+            ],
+            temperature=0.5
+        )
+        answer = response.choices[0].message.content
+        return jsonify({"answer": answer})
+    except Exception as e:
+        print("Erreur IA:", e)
+        return jsonify({
+            "answer": "Voici une bonne alternative pendant que je peaufine ta recherche : regarde les offres Booking, Uber Eats ou Getaround selon ton besoin."
+        })
+
 @app.route("/")
 def home():
     return "CODE IA Server 24/7 is running ✅"
