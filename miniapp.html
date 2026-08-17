@@ -6,6 +6,26 @@
   <title>CODE IA</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
+    :root {
+      --bg: #000000;
+      --card: #1c1c1e;
+      --text: #ffffff;
+      --text2: #8e8e93;
+      --border: #2c2c2e;
+      --accent: #0095f6;
+      --green: #30d158;
+    }
+
+    body.light {
+      --bg: #f2f2f7;
+      --card: #ffffff;
+      --text: #000000;
+      --text2: #6c6c70;
+      --border: #d1d1d6;
+      --accent: #007aff;
+      --green: #34c759;
+    }
+
     * {
       margin: 0;
       padding: 0;
@@ -15,70 +35,78 @@
 
     body {
       font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
-      background: #000;
-      color: #fff;
+      background: var(--bg);
+      color: var(--text);
       height: 100vh;
       overflow: hidden;
+      transition: background 0.3s, color 0.3s;
     }
 
-    /* ===== IPHONE CONTAINER ===== */
     .phone {
       max-width: 430px;
       height: 100vh;
       margin: 0 auto;
-      background: #000;
+      background: var(--bg);
       position: relative;
       display: flex;
       flex-direction: column;
     }
 
-    /* ===== HEADER ===== */
+    /* Header */
     .header {
-      padding: 16px 20px 12px;
-      text-align: center;
-      border-bottom: 1px solid #1c1c1e;
-      background: #000;
+      padding: 14px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
     }
 
-    .header h1 {
-      font-size: 22px;
+    .logo {
+      font-size: 20px;
       font-weight: 700;
-      letter-spacing: -0.5px;
     }
 
     .viewers {
-      font-size: 13px;
-      color: #8e8e93;
-      margin-top: 2px;
+      font-size: 12px;
+      color: var(--text2);
     }
 
-    /* ===== PAGES ===== */
+    .theme-btn {
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--text);
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    /* Pages */
     .page {
       display: none;
       flex: 1;
       overflow-y: auto;
-      padding-bottom: 90px;
+      padding-bottom: 100px;
     }
+    .page.active { display: block; }
 
-    .page.active {
-      display: block;
-    }
-
-    /* ===== PAGE IA ===== */
+    /* Search */
     .search-box {
       margin: 16px;
-      background: #1c1c1e;
+      background: var(--card);
       border-radius: 14px;
       padding: 12px 16px;
       display: flex;
       align-items: center;
       gap: 10px;
+      border: 1px solid var(--border);
     }
 
     .search-box input {
       background: transparent;
       border: none;
-      color: white;
+      color: var(--text);
       font-size: 16px;
       width: 100%;
       outline: none;
@@ -86,50 +114,45 @@
 
     .ai-response {
       margin: 0 16px 20px;
-      background: #1c1c1e;
+      background: var(--card);
       border-radius: 16px;
       padding: 16px;
       font-size: 15px;
       line-height: 1.5;
+      border: 1px solid var(--border);
       display: none;
     }
 
     .offers {
-      padding: 0 16px;
+      padding: 0 16px 20px;
     }
 
     .offer-card {
-      background: #1c1c1e;
+      background: var(--card);
       border-radius: 16px;
       padding: 16px;
       margin-bottom: 12px;
       display: flex;
       justify-content: space-between;
       align-items: center;
+      border: 1px solid var(--border);
     }
 
-    .offer-info h3 {
-      font-size: 16px;
-      margin-bottom: 4px;
-    }
-
-    .offer-info p {
-      font-size: 13px;
-      color: #8e8e93;
-    }
+    .offer-info h3 { font-size: 16px; margin-bottom: 3px; }
+    .offer-info p { font-size: 13px; color: var(--text2); }
 
     .offer-badge {
-      background: #30d158;
-      color: black;
+      background: var(--green);
+      color: #000;
       font-weight: 700;
       font-size: 14px;
       padding: 6px 10px;
       border-radius: 8px;
     }
 
-    /* ===== PAGE HOME (Communauté) ===== */
+    /* Home posts */
     .post {
-      border-bottom: 1px solid #1c1c1e;
+      border-bottom: 1px solid var(--border);
       padding: 16px;
     }
 
@@ -137,152 +160,115 @@
       display: flex;
       align-items: center;
       gap: 12px;
-      margin-bottom: 12px;
+      margin-bottom: 10px;
     }
 
     .avatar {
-      width: 42px;
-      height: 42px;
+      width: 40px;
+      height: 40px;
       border-radius: 50%;
-      background: linear-gradient(45deg, #ff6b6b, #ff9f43, #feca57);
+      background: linear-gradient(45deg, #ff6b6b, #feca57);
       display: flex;
       align-items: center;
       justify-content: center;
       font-weight: 700;
-      font-size: 16px;
-    }
-
-    .username {
-      font-weight: 600;
-      font-size: 15px;
-    }
-
-    .post-content {
-      font-size: 15px;
-      margin-bottom: 12px;
-      line-height: 1.4;
     }
 
     .code-box {
-      background: #1c1c1e;
+      background: var(--card);
       border-radius: 12px;
       padding: 12px 14px;
       font-family: monospace;
-      font-size: 16px;
-      margin-bottom: 12px;
+      font-size: 15px;
+      margin: 10px 0;
       display: flex;
       justify-content: space-between;
-      align-items: center;
+      border: 1px solid var(--border);
     }
 
     .post-actions {
       display: flex;
       gap: 18px;
-      font-size: 14px;
-      color: #8e8e93;
+      font-size: 13px;
+      color: var(--text2);
     }
 
-    .post-actions span {
-      display: flex;
-      align-items: center;
-      gap: 5px;
-    }
-
-    /* ===== BOTTOM BAR ===== */
+    /* Bottom bar */
     .bottom-bar {
       position: absolute;
       bottom: 0;
       left: 0;
       right: 0;
-      height: 80px;
-      background: #000;
-      border-top: 1px solid #1c1c1e;
+      height: 82px;
+      background: var(--bg);
+      border-top: 1px solid var(--border);
       display: flex;
       justify-content: space-around;
       align-items: center;
-      padding-bottom: 20px;
+      padding-bottom: 18px;
     }
 
     .nav-btn {
       background: none;
       border: none;
-      color: #8e8e93;
+      color: var(--text2);
       font-size: 11px;
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 4px;
-      cursor: pointer;
+      gap: 3px;
     }
 
-    .nav-btn.active {
-      color: white;
-    }
+    .nav-btn.active { color: var(--text); }
+    .nav-btn .icon { font-size: 24px; }
 
-    .nav-btn .icon {
-      font-size: 26px;
-    }
-
-    /* ===== SHARE BUTTON ===== */
     .share-bar {
       position: fixed;
-      bottom: 90px;
+      bottom: 95px;
       left: 50%;
       transform: translateX(-50%);
-      background: #0095f6;
+      background: var(--accent);
       color: white;
       border: none;
-      padding: 12px 28px;
+      padding: 12px 26px;
       border-radius: 30px;
       font-weight: 600;
       font-size: 15px;
       display: none;
       z-index: 50;
-      box-shadow: 0 4px 20px rgba(0,149,246,0.4);
     }
 
-    .page-home.active ~ .share-bar {
-      display: block;
-    }
+    .page-home.active ~ .share-bar { display: block; }
 
-    /* Modal Share */
+    /* Modal */
     .modal {
       display: none;
       position: fixed;
       inset: 0;
-      background: rgba(0,0,0,0.7);
+      background: rgba(0,0,0,0.6);
       z-index: 100;
       align-items: flex-end;
       justify-content: center;
     }
-
-    .modal.active {
-      display: flex;
-    }
+    .modal.active { display: flex; }
 
     .modal-content {
-      background: #1c1c1e;
+      background: var(--card);
       width: 100%;
       max-width: 430px;
       border-radius: 20px 20px 0 0;
       padding: 24px 20px 40px;
     }
 
-    .modal-content h3 {
-      text-align: center;
-      margin-bottom: 20px;
-    }
-
     .choice-btn {
       width: 100%;
-      background: #2c2c2e;
-      border: none;
-      color: white;
-      padding: 16px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 15px;
       border-radius: 14px;
       font-size: 16px;
-      margin-bottom: 12px;
-      font-weight: 500;
+      margin-bottom: 10px;
     }
   </style>
 </head>
@@ -290,17 +276,20 @@
 
 <div class="phone">
 
-  <!-- HEADER -->
   <div class="header">
-    <h1>CodeIa</h1>
-    <div class="viewers" id="viewers">16,254 viewers</div>
+    <button class="theme-btn" onclick="toggleTheme()">🌓</button>
+    <div>
+      <div class="logo">CodeIa</div>
+      <div class="viewers">16,254 viewers</div>
+    </div>
+    <div style="width:36px"></div>
   </div>
 
-  <!-- ========== PAGE IA ========== -->
+  <!-- PAGE IA -->
   <div class="page page-ia active" id="page-ia">
     <div class="search-box">
       <span>🔍</span>
-      <input type="text" id="ai-input" placeholder="Que recherches-tu ? (ex: code Uber Eats)" onkeypress="if(event.key==='Enter') askAI()">
+      <input type="text" id="ai-input" placeholder="Ex: code Uber Eats, hôtel Paris..." onkeypress="if(event.key==='Enter') askAI()">
     </div>
 
     <div class="ai-response" id="ai-response"></div>
@@ -313,7 +302,6 @@
         </div>
         <div class="offer-badge">-15%</div>
       </div>
-
       <div class="offer-card">
         <div class="offer-info">
           <h3>Uber Eats</h3>
@@ -321,15 +309,13 @@
         </div>
         <div class="offer-badge">-10€</div>
       </div>
-
       <div class="offer-card">
         <div class="offer-info">
           <h3>Getaround</h3>
-          <p>Location de voiture</p>
+          <p>Location véhicule</p>
         </div>
         <div class="offer-badge">-20%</div>
       </div>
-
       <div class="offer-card">
         <div class="offer-info">
           <h3>Airbnb</h3>
@@ -340,23 +326,21 @@
     </div>
   </div>
 
-  <!-- ========== PAGE HOME (Communauté) ========== -->
+  <!-- PAGE HOME -->
   <div class="page page-home" id="page-home">
-
-    <!-- Exemple de posts -->
     <div class="post">
       <div class="post-header">
         <div class="avatar">A</div>
         <div class="username">alex_codes</div>
       </div>
-      <div class="post-content">Code Uber Eats valable aujourd'hui 🔥</div>
+      <div class="post-content">Code Uber Eats valable aujourd'hui</div>
       <div class="code-box">
         <span>EATS20</span>
-        <span style="color:#30d158">-20%</span>
+        <span style="color:var(--green)">-20%</span>
       </div>
       <div class="post-actions">
         <span>❤️ 128</span>
-        <span>👁️ <span class="views">3 842</span></span>
+        <span>👁️ 3 842</span>
       </div>
     </div>
 
@@ -368,36 +352,17 @@
       <div class="post-content">Parrainage Fortuneo encore actif</div>
       <div class="code-box">
         <span>FORTU80</span>
-        <span style="color:#30d158">+80€</span>
+        <span style="color:var(--green)">+80€</span>
       </div>
       <div class="post-actions">
         <span>❤️ 89</span>
-        <span>👁️ <span class="views">5 217</span></span>
+        <span>👁️ 5 217</span>
       </div>
     </div>
-
-    <div class="post">
-      <div class="post-header">
-        <div class="avatar">M</div>
-        <div class="username">maxime_fr</div>
-      </div>
-      <div class="post-content">Code Booking pour les hôtels</div>
-      <div class="code-box">
-        <span>TRAVEL15</span>
-        <span style="color:#30d158">-15%</span>
-      </div>
-      <div class="post-actions">
-        <span>❤️ 204</span>
-        <span>👁️ <span class="views">4 103</span></span>
-      </div>
-    </div>
-
   </div>
 
-  <!-- BOUTON PARTAGER -->
   <button class="share-bar" onclick="openShareModal()">＋ Partager</button>
 
-  <!-- BOTTOM NAV -->
   <div class="bottom-bar">
     <button class="nav-btn active" onclick="showPage('ia')">
       <span class="icon">🤖</span>
@@ -408,16 +373,14 @@
       Home
     </button>
   </div>
-
 </div>
 
-<!-- MODAL PARTAGER -->
 <div class="modal" id="shareModal">
   <div class="modal-content">
-    <h3>Que veux-tu partager ?</h3>
+    <h3 style="text-align:center;margin-bottom:20px">Que veux-tu partager ?</h3>
     <button class="choice-btn" onclick="shareType('promo')">🏷️ Code Promo</button>
     <button class="choice-btn" onclick="shareType('parrainage')">🔗 Code Parrainage</button>
-    <button class="choice-btn" style="background:#3a3a3c; margin-top:10px;" onclick="closeShareModal()">Annuler</button>
+    <button class="choice-btn" onclick="closeShareModal()">Annuler</button>
   </div>
 </div>
 
@@ -425,20 +388,20 @@
   Telegram.WebApp.ready();
   Telegram.WebApp.expand();
 
-  // Vues aléatoires progressives
-  function randomViews() {
-    return Math.floor(Math.random() * (6000 - 2000 + 1)) + 2000;
+  // Thème
+  function toggleTheme() {
+    document.body.classList.toggle('light');
+    localStorage.setItem('theme', document.body.classList.contains('light') ? 'light' : 'dark');
   }
 
-  document.querySelectorAll('.views').forEach(el => {
-    el.textContent = randomViews().toLocaleString('fr-FR');
-  });
+  if (localStorage.getItem('theme') === 'light') {
+    document.body.classList.add('light');
+  }
 
-  // Navigation
   function showPage(page) {
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
     document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-
+    
     if (page === 'ia') {
       document.getElementById('page-ia').classList.add('active');
       document.querySelectorAll('.nav-btn')[0].classList.add('active');
@@ -448,36 +411,40 @@
     }
   }
 
-  // Modal
   function openShareModal() {
     document.getElementById('shareModal').classList.add('active');
   }
-
   function closeShareModal() {
     document.getElementById('shareModal').classList.remove('active');
   }
-
   function shareType(type) {
     closeShareModal();
-    const message = type === 'promo' 
-      ? "Envoie dans le bot : /promo NomDuSite 20 TONCODE"
-      : "Envoie dans le bot : /parrainage NomDuSite 50 TONCODE";
-    alert(message);
+    alert(type === 'promo' 
+      ? "Envoie dans le bot : /promo Site 20 CODE" 
+      : "Envoie dans le bot : /parrainage Site 50 CODE");
   }
 
-  // IA (pour l'instant message simple)
-  function askAI() {
+  // IA
+  async function askAI() {
     const input = document.getElementById('ai-input');
-    const response = document.getElementById('ai-response');
-    if (!input.value.trim()) return;
+    const responseDiv = document.getElementById('ai-response');
+    const question = input.value.trim();
+    if (!question) return;
 
-    response.style.display = 'block';
-    response.innerHTML = "🔍 Recherche en cours...";
+    responseDiv.style.display = 'block';
+    responseDiv.innerHTML = "🔍 Recherche en cours...";
 
-    // Plus tard on connectera vraiment l'IA ici
-    setTimeout(() => {
-      response.innerHTML = `Voici ce que j'ai trouvé pour "<b>${input.value}</b>" :<br><br>→ Utilise le bot pour une réponse complète de l'IA pour le moment.`;
-    }, 1000);
+    try {
+      const res = await fetch('/ask', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ question: question })
+      });
+      const data = await res.json();
+      responseDiv.innerHTML = data.answer || "Voici une offre intéressante que j'ai trouvée pour toi.";
+    } catch (e) {
+      responseDiv.innerHTML = "Voici une alternative intéressante pendant que je recherche mieux pour toi.";
+    }
   }
 </script>
 </body>
