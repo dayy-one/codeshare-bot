@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>CODE IA</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #0f0f0f;
+      color: #ffffff;
+      margin: 0;
+      padding: 20px;
+      text-align: center;
+    }
+    h1 {
+      font-size: 28px;
+      margin-bottom: 10px;
+    }
+    .subtitle {
+      color: #aaaaaa;
+      margin-bottom: 40px;
+    }
+    .card {
+      background: #1c1c1c;
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 20px;
+      text-align: left;
+    }
+    .btn {
+      background: #2ea6ff;
+      color: white;
+      border: none;
+      padding: 14px 28px;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      width: 100%;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>CODE IA</h1>
+  <p class="subtitle">Ta plateforme de codes promo & IA</p>
+
+  <div class="card">
+    <h3>🤖 Assistant IA</h3>
+    <p>Pose ta question directement dans le bot pour l'instant.</p>
+  </div>
+
+  <div class="card">
+    <h3>🏷️ Codes Promo & Parrainage</h3>
+    <p>Les codes de la communauté arriveront ici bientôt.</p>
+  </div>
+
+  <div class="card">
+    <h3>👥 Communauté</h3>
+    <p>Partage et trouve des codes validés par les membres.</p>
+  </div>
+
+  <button class="btn" onclick="Telegram.WebApp.close()">Fermer</button>
+
+  <script>
+    // Initialise la Mini App Telegram
+    Telegram.WebApp.ready();
+    Telegram.WebApp.expand();
+  </script>
+</body>
+</html>
