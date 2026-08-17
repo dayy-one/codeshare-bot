@@ -3,6 +3,9 @@ import stripe
 import requests
 import os
 import sqlite3
+import json
+import random
+from datetime import datetime
 from openai import OpenAI
 
 app = Flask(__name__)
@@ -85,6 +88,47 @@ def save_code(code_type, site, code, description, link, added_by):
     except Exception as e:
         print("Erreur save_code:", e)
 
+def ensure_daily_codes():
+    try:
+        conn = sqlite3.connect("codes.db")
+        c = conn.cursor()
+        c.execute("SELECT COUNT(*) FROM codes WHERE added_by = 'Codia IA' AND date(created_at) = date('now')")
+        count = c.fetchone()[0]
+        conn.close()
+        if count >= 3:
+            return
+
+        prompt = """
+Donne entre 3 et 5 codes promo ou parrainage utiles pour la France.
+Réponds UNIQUEMENT avec un JSON valide de ce format:
+[
+  {"type":"promo","site":"Uber Eats","code":"XXXX","description":"-10€"},
+  {"type":"parrainage","site":"Fortuneo","code":"XXXX","description":"+80€"}
+]
+"""
+        response = client.chat.completions.create(
+            model="grok-3",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.7
+        )
+        text = response.choices[0].message.content.strip()
+        start = text.find("[")
+        end = text.rfind("]") + 1
+        if start == -1 or end <= 0:
+            return
+        items = json.loads(text[start:end])
+        for item in items[:5]:
+            save_code(
+                item.get("type", "promo"),
+                item.get("site", "Offre"),
+                str(item.get("code", "CODE")).upper(),
+                item.get("description", "Promo"),
+                None,
+                "Codia IA"
+            )
+    except Exception as e:
+        print("daily codes error:", e)
+
 def get_best_codes_text():
     try:
         conn = sqlite3.connect("codes.db")
@@ -110,7 +154,6 @@ def get_best_codes_text():
 def ask_grok(user_message: str, city=None):
     codes_context = get_best_codes_text()
     location_info = f"Localisation approximative de l'utilisateur : {city}." if city else ""
-
     system_prompt = f"""
 Tu es l'assistant officiel de Codia.
 {location_info}
@@ -127,7 +170,6 @@ RÈGLES ABSOLUES :
 6. Si pas de code exact, propose une alternative concrète.
 7. Réponds en français, clair et positif.
 """
-
     try:
         response = client.chat.completions.create(
             model="grok-3",
@@ -144,11 +186,7 @@ RÈGLES ABSOLUES :
 
 def send_telegram_message(chat_id, text, reply_markup=None, parse_mode="HTML"):
     url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
-    payload = {
-        "chat_id": chat_id,
-        "text": text,
-        "parse_mode": parse_mode
-    }
+    payload = {"chat_id": chat_id, "text": text, "parse_mode": parse_mode}
     if reply_markup:
         payload["reply_markup"] = reply_markup
     try:
@@ -158,12 +196,10 @@ def send_telegram_message(chat_id, text, reply_markup=None, parse_mode="HTML"):
 
 def miniapp_keyboard():
     return {
-        "inline_keyboard": [[
-            {
-                "text": "Ouvrir Codia",
-                "web_app": {"url": MINIAPP_URL}
-            }
-        ]]
+        "inline_keyboard": [[{
+            "text": "Ouvrir Codia",
+            "web_app": {"url": MINIAPP_URL}
+        }]]
     }
 
 def access_message():
@@ -196,6 +232,7 @@ def ask():
 
 @app.route("/codes", methods=["GET"])
 def get_codes():
+    ensure_daily_codes()
     try:
         conn = sqlite3.connect("codes.db")
         c = conn.cursor()
@@ -208,7 +245,19 @@ def get_codes():
         rows = c.fetchall()
         conn.close()
         codes = []
+        now = datetime.utcnow()
         for r in rows:
+            try:
+                created = datetime.fromisoformat(str(r[9]).replace("Z", ""))
+            except:
+                created = now
+            days = max(0, (now - created).days)
+            is_ai = (r[5] or "") == "Codia IA"
+            if is_ai:
+                views = 1200 + days * random.randint(800, 1600) + random.randint(200, 900)
+            else:
+                steps = days // 3
+                views = 180 + steps * random.randint(120, 280) + random.randint(20, 80)
             codes.append({
                 "id": r[0],
                 "type": r[1],
@@ -219,11 +268,27 @@ def get_codes():
                 "working": r[6],
                 "dead": r[7],
                 "likes": r[8],
-                "views": 2000 + (r[0] * 137) % 4000
+                "is_ai": is_ai,
+                "views": views
             })
         return jsonify({"codes": codes})
     except Exception as e:
         return jsonify({"codes": [], "error": str(e)})
+
+@app.route("/codes/add", methods=["POST"])
+def add_code_from_app():
+    data = request.json or {}
+    code_type = data.get("type", "promo")
+    site = (data.get("site") or "").strip()
+    code = (data.get("code") or "").strip().upper()
+    description = (data.get("description") or "").strip()
+    added_by = data.get("added_by") or "Membre Codia"
+    if not site or not code:
+        return jsonify({"error": "site et code requis"}), 400
+    if not description:
+        description = "Promo" if code_type == "promo" else "Parrainage"
+    save_code(code_type, site, code, description, None, added_by)
+    return jsonify({"success": True})
 
 @app.route("/code/like", methods=["POST"])
 def code_like():
@@ -368,21 +433,11 @@ def telegram_webhook():
             if int(chat_id) == ADMIN_ID or is_paid_user(chat_id):
                 send_telegram_message(chat_id, access_message(), reply_markup=miniapp_keyboard())
                 return jsonify(success=True)
-
             try:
-                response = requests.post(
-                    f"{SERVER_URL}/create-checkout",
-                    json={"telegram_id": chat_id},
-                    timeout=10
-                )
+                response = requests.post(f"{SERVER_URL}/create-checkout", json={"telegram_id": chat_id}, timeout=10)
                 result = response.json()
                 if "url" in result:
-                    keyboard = {
-                        "inline_keyboard": [[{
-                            "text": "Payer 10 € – Accès à vie",
-                            "url": result["url"]
-                        }]]
-                    }
+                    keyboard = {"inline_keyboard": [[{"text": "Payer 10 € – Accès à vie", "url": result["url"]}]]}
                     send_telegram_message(
                         chat_id,
                         f"👋 Salut <b>{first_name}</b> !\n\nBienvenue sur <b>Codia</b>.\n\nPrix : <b>10 €</b>",
@@ -422,11 +477,8 @@ def telegram_webhook():
                         description += f" (expire {expire})"
                     save_code("promo", site, code, description, None, display_name)
                     channel_message = (
-                        f"🏷️ <b>CODE PROMO</b>\n\n"
-                        f"De : {display_name}\n"
-                        f"Site : {site}\n"
-                        f"Réduction : <b>-{percent}%</b>\n"
-                        f"Code : <code>{code}</code>"
+                        f"🏷️ <b>CODE PROMO</b>\n\nDe : {display_name}\nSite : {site}\n"
+                        f"Réduction : <b>-{percent}%</b>\nCode : <code>{code}</code>"
                     )
                     send_telegram_message(CHANNEL_ID, channel_message)
                     send_telegram_message(chat_id, "✅ Code promo publié et enregistré !")
@@ -448,11 +500,8 @@ def telegram_webhook():
                         description += f" (expire {expire})"
                     save_code("parrainage", site, code, description, None, display_name)
                     channel_message = (
-                        f"🔗 <b>CODE PARRAINAGE</b>\n\n"
-                        f"De : {display_name}\n"
-                        f"Site : {site}\n"
-                        f"Bonus : <b>+{montant}€</b>\n"
-                        f"Code : <code>{code}</code>"
+                        f"🔗 <b>CODE PARRAINAGE</b>\n\nDe : {display_name}\nSite : {site}\n"
+                        f"Bonus : <b>+{montant}€</b>\nCode : <code>{code}</code>"
                     )
                     send_telegram_message(CHANNEL_ID, channel_message)
                     send_telegram_message(chat_id, "✅ Code parrainage publié et enregistré !")
