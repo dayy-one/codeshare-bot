@@ -83,7 +83,6 @@ def add_paid_user(telegram_id):
         print("Erreur paid_user:", e)
 
 def set_menu_button(chat_id, text="Découvrir"):
-    """Bouton permanent en bas: Découvrir (non payé) ou Ouvrir (payé)."""
     try:
         requests.post(
             f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/setChatMenuButton",
@@ -239,7 +238,6 @@ Garde confidence >= 0.7 sinon [].
         print("Daily error:", e)
         return 0
 
-# ---------- ROUTES ----------
 @app.route("/")
 def home():
     return "Codia Server 24/7 is running ✅"
@@ -262,8 +260,7 @@ def access():
     if not user_id:
         return jsonify({"paid": False})
     try:
-        paid = is_paid_user(int(user_id))
-        return jsonify({"paid": bool(paid)})
+        return jsonify({"paid": bool(is_paid_user(int(user_id)))})
     except Exception:
         return jsonify({"paid": False})
 
@@ -462,7 +459,6 @@ def telegram_webhook():
         user = message.get("from", {})
         first_name = user.get("first_name", "toi")
 
-        # /start = bienvenue (1ère fois / retour)
         if text.startswith("/start"):
             paid = is_paid_user(chat_id)
             if paid:
@@ -492,7 +488,6 @@ def telegram_webhook():
             )
             return jsonify(success=True)
 
-        # payé
         set_menu_button(chat_id, "Ouvrir")
 
         if text.lower() == "/payadmin" and int(chat_id) == ADMIN_ID:
