@@ -94,7 +94,6 @@
 
   <div class="stories" id="stories"></div>
 
-  <!-- FEED -->
   <div class="page page-home active" id="page-home">
     <div class="section">À la une</div>
     <div id="daily-codes"></div>
@@ -102,7 +101,6 @@
     <div id="codes-list"><div class="empty">Chargement...</div></div>
   </div>
 
-  <!-- DISCOVER -->
   <div class="page page-ia" id="page-ia">
     <div class="search-wrap">
       <div class="search">
@@ -119,7 +117,6 @@
     <div id="suggestions"></div>
   </div>
 
-  <!-- PROFIL -->
   <div class="page page-profile" id="page-profile">
     <div class="card" id="profile-card">Chargement profil...</div>
     <div class="section">Mes codes</div>
@@ -176,14 +173,14 @@
 
   const ARCHIVES = {
     "Top": [
-      {site:"Uber Eats", code:"EATS10", description:"-10€", type:"promo", added_by:"Codia IA", likes:12, dislikes:1, created_at:new Date().toISOString()},
-      {site:"Booking", code:"TRAVEL15", description:"-15%", type:"promo", added_by:"Codia IA", likes:9, dislikes:0, created_at:new Date().toISOString()}
+      {site:"Uber Eats", code:"EATS10", description:"-10€", type:"promo", added_by:"Codia IA", likes:12, dislikes:1, copies:3, created_at:new Date().toISOString()},
+      {site:"Booking", code:"TRAVEL15", description:"-15%", type:"promo", added_by:"Codia IA", likes:9, dislikes:0, copies:2, created_at:new Date().toISOString()}
     ],
-    "Uber Eats":[{site:"Uber Eats", code:"EATS10", description:"-10€", type:"promo", added_by:"Archive Codia", likes:4, dislikes:0}],
-    "Booking":[{site:"Booking", code:"TRAVEL15", description:"-15%", type:"promo", added_by:"Archive Codia", likes:5, dislikes:0}],
-    "Airbnb":[{site:"Airbnb", code:"HOME12", description:"-12%", type:"promo", added_by:"Archive Codia", likes:3, dislikes:0}],
-    "Getaround":[{site:"Getaround", code:"DRIVE20", description:"-20%", type:"promo", added_by:"Archive Codia", likes:3, dislikes:0}],
-    "Banques":[{site:"Fortuneo", code:"FORTU80", description:"+80€", type:"parrainage", added_by:"Archive Codia", likes:6, dislikes:0}]
+    "Uber Eats":[{site:"Uber Eats", code:"EATS10", description:"-10€", type:"promo", added_by:"Archive Codia", likes:4, dislikes:0, copies:1}],
+    "Booking":[{site:"Booking", code:"TRAVEL15", description:"-15%", type:"promo", added_by:"Archive Codia", likes:5, dislikes:0, copies:1}],
+    "Airbnb":[{site:"Airbnb", code:"HOME12", description:"-12%", type:"promo", added_by:"Archive Codia", likes:3, dislikes:0, copies:0}],
+    "Getaround":[{site:"Getaround", code:"DRIVE20", description:"-20%", type:"promo", added_by:"Archive Codia", likes:3, dislikes:0, copies:0}],
+    "Banques":[{site:"Fortuneo", code:"FORTU80", description:"+80€", type:"parrainage", added_by:"Archive Codia", likes:6, dislikes:0, copies:2}]
   };
 
   let allCodes = [];
@@ -251,8 +248,7 @@
     } else if(page==='ia'){
       document.getElementById('page-ia').classList.add('active');
       document.querySelectorAll('.nav')[1].classList.add('active');
-      renderHistory();
-      renderSuggestions();
+      renderHistory(); renderSuggestions();
     } else {
       document.getElementById('page-profile').classList.add('active');
       document.querySelectorAll('.nav')[2].classList.add('active');
@@ -286,18 +282,15 @@
       const res = await fetch('/codes/add', {
         method:'POST', headers:{'Content-Type':'application/json'},
         body: JSON.stringify({
-          type: currentShareType, site, code, description,
-          added_by,
+          type: currentShareType, site, code, description, added_by,
           user_id: tgUser?.id || null,
           photo_url: tgUser?.photo_url || null
         })
       });
       const data = await res.json();
       if(data.success){
-        closeForm();
-        alert('Code en ligne ✅');
-        await loadCodes();
-        showPage('home');
+        closeForm(); alert('Code en ligne ✅');
+        await loadCodes(); showPage('home');
       } else alert('Erreur publication');
     }catch(e){ alert('Erreur publication'); }
   }
@@ -317,6 +310,7 @@
     const popular = score >= 5 ? `<span class="badge-pop">Populaire</span>` : '';
     const who = c.added_by || 'Membre Codia';
     const actionText = c.type==='parrainage' ? 'a partagé un code parrainage' : 'a partagé un code promo';
+    const copies = c.copies || 0;
     return `<div class="post">
       <div class="post-top">
         ${avatarHTML(c)}
@@ -328,7 +322,7 @@
       <div class="muted">${c.site}</div>
       <div class="code">
         <span>${c.code} <span style="color:var(--green)">${c.description||''}</span></span>
-        <button class="copy-btn" onclick="copyCode('${String(c.code).replace(/'/g,"\\'")}', this)">Copier</button>
+        <button class="copy-btn" onclick="copyCode(${c.id||0}, '${String(c.code).replace(/'/g,"\\'")}', this)">Copier${copies? ' · '+copies : ''}</button>
       </div>
       <div class="actions">
         ${c.id ? `
@@ -339,11 +333,23 @@
     </div>`;
   }
 
-  function copyCode(code, btn){
-    navigator.clipboard.writeText(code).then(()=>{
-      const old = btn.textContent; btn.textContent='Copié';
-      setTimeout(()=>btn.textContent=old, 1000);
-    }).catch(()=>alert(code));
+  async function copyCode(id, code, btn){
+    try { await navigator.clipboard.writeText(code); } catch(e) { alert(code); }
+    btn.textContent = 'Copié';
+    if(id){
+      try{
+        const res = await fetch('/code/copy', {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({id})
+        });
+        const data = await res.json();
+        if(data.copies !== undefined){
+          setTimeout(()=>{ btn.textContent = `Copier · ${data.copies}`; }, 800);
+          return;
+        }
+      }catch(e){}
+    }
+    setTimeout(()=>{ btn.textContent = 'Copier'; }, 1000);
   }
 
   function renderStories(){
@@ -438,7 +444,6 @@
     const q = document.getElementById('ai-input').value.trim();
     if(!q) return;
     saveHistory(q);
-
     const results = document.getElementById('search-results');
     const box = document.getElementById('ai-response');
     results.innerHTML = '<div class="empty">Recherche des codes...</div>';
@@ -480,11 +485,7 @@
       ? `<img class="avatar-img" src="${u.photo_url}">`
       : `<div class="avatar">${name[0].toUpperCase()}</div>`;
     card.innerHTML = `<div class="post-top">${photo}<div><div style="font-weight:700">${name}</div><div class="muted">Membre Codia</div></div></div>`;
-
-    if(!u.id){
-      document.getElementById('my-codes').innerHTML = '<div class="empty">Impossible de charger tes codes.</div>';
-      return;
-    }
+    if(!u.id) return;
     try{
       const res = await fetch('/codes/mine?user_id=' + u.id);
       const data = await res.json();
