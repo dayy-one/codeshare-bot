@@ -231,6 +231,84 @@ def ask():
         return jsonify({"answer": "Dis-moi ce que tu recherches."})
     return jsonify({"answer": ask_grok(question, city)})
 
+@app.route("/codes/search", methods=["GET"])
+def search_codes():
+    q = (request.args.get("q") or "").strip().lower()
+    try:
+        conn = get_conn()
+        c = conn.cursor(cursor_factory=RealDictCursor)
+        if q:
+            c.execute('''
+                SELECT id, type, site, code, description, added_by, user_id, photo_url, likes, dislikes, created_at
+                FROM codes
+                WHERE LOWER(site) LIKE %s OR LOWER(code) LIKE %s OR LOWER(description) LIKE %s OR LOWER(type) LIKE %s
+                ORDER BY (likes - dislikes) DESC, created_at DESC
+                LIMIT 30
+            ''', (f'%{q}%', f'%{q}%', f'%{q}%', f'%{q}%'))
+        else:
+            c.execute('''
+                SELECT id, type, site, code, description, added_by, user_id, photo_url, likes, dislikes, created_at
+                FROM codes
+                ORDER BY (likes - dislikes) DESC, created_at DESC
+                LIMIT 20
+            ''')
+        rows = c.fetchall()
+        conn.close()
+        codes = []
+        for r in rows:
+            codes.append({
+                "id": r["id"],
+                "type": r["type"],
+                "site": r["site"],
+                "code": r["code"],
+                "description": r["description"],
+                "added_by": r["added_by"] or "Membre Codia",
+                "user_id": r["user_id"],
+                "photo_url": r["photo_url"],
+                "likes": r["likes"] or 0,
+                "dislikes": r["dislikes"] or 0,
+                "created_at": r["created_at"].isoformat() if r["created_at"] else None
+            })
+        return jsonify({"codes": codes})
+    except Exception as e:
+        return jsonify({"codes": [], "error": str(e)})
+
+@app.route("/codes/mine", methods=["GET"])
+def my_codes():
+    user_id = request.args.get("user_id")
+    if not user_id:
+        return jsonify({"codes": []})
+    try:
+        conn = get_conn()
+        c = conn.cursor(cursor_factory=RealDictCursor)
+        c.execute('''
+            SELECT id, type, site, code, description, added_by, user_id, photo_url, likes, dislikes, created_at
+            FROM codes
+            WHERE user_id = %s
+            ORDER BY created_at DESC
+            LIMIT 50
+        ''', (int(user_id),))
+        rows = c.fetchall()
+        conn.close()
+        codes = []
+        for r in rows:
+            codes.append({
+                "id": r["id"],
+                "type": r["type"],
+                "site": r["site"],
+                "code": r["code"],
+                "description": r["description"],
+                "added_by": r["added_by"] or "Membre Codia",
+                "user_id": r["user_id"],
+                "photo_url": r["photo_url"],
+                "likes": r["likes"] or 0,
+                "dislikes": r["dislikes"] or 0,
+                "created_at": r["created_at"].isoformat() if r["created_at"] else None
+            })
+        return jsonify({"codes": codes})
+    except Exception as e:
+        return jsonify({"codes": [], "error": str(e)})
+
 @app.route("/codes", methods=["GET"])
 def get_codes():
     ensure_daily_codes()
