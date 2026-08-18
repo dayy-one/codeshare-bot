@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Codia</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script src="https://js.stripe.com/v3/"></script>
   <style>
     :root {
       --bg:#000; --card:#121212; --text:#fff; --text2:#a1a1aa;
@@ -17,19 +18,45 @@
       --green:#16a34a; --pink:#db2777; --orange:#d97706;
     }
     *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-    body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",Inter,Roboto,sans-serif;background:var(--bg);color:var(--text);height:100vh;overflow:hidden;transition:.25s}
+    body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",Inter,Roboto,sans-serif;background:var(--bg);color:var(--text);height:100vh;overflow:hidden}
     .app{max-width:430px;height:100vh;margin:0 auto;display:flex;flex-direction:column;position:relative;background:var(--bg)}
+    .hidden{display:none !important}
+
+    /* PAYWALL */
+    #paywall{position:fixed;inset:0;z-index:100;display:flex;align-items:flex-end;justify-content:center}
+    .pw-bg{position:absolute;inset:0;background:
+      radial-gradient(circle at 20% 20%, rgba(139,92,246,.35), transparent 40%),
+      radial-gradient(circle at 80% 30%, rgba(6,182,212,.25), transparent 40%),
+      #0a0a0a;
+      filter:blur(2px); transform:scale(1.05)}
+    .pw-overlay{position:absolute;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(10px)}
+    .pw-sheet{position:relative;width:100%;max-width:430px;background:rgba(18,18,18,.96);border:1px solid var(--border);
+      border-radius:24px 24px 0 0;padding:22px 18px 28px;max-height:92vh;overflow-y:auto}
+    .pw-logo{width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,var(--accent),var(--accent2));
+      display:flex;align-items:center;justify-content:center;font-weight:800;margin-bottom:12px}
+    .pw-sheet h1{font-size:24px;margin-bottom:6px}
+    .pw-sheet .sub{color:var(--text2);font-size:14px;margin-bottom:16px;line-height:1.4}
+    .pw-list{list-style:none;margin:0 0 16px}
+    .pw-list li{padding:10px 0;border-bottom:1px solid var(--border);font-size:14px;display:flex;gap:10px;align-items:center}
+    .pw-list li:last-child{border-bottom:none}
+    .price{font-size:28px;font-weight:800;margin:8px 0 4px}
+    .price small{font-size:13px;font-weight:500;color:var(--text2)}
+    .secure{font-size:12px;color:var(--text2);margin-bottom:12px}
+    #checkout{min-height:120px}
+    .pw-error{color:#f87171;font-size:13px;margin-top:8px}
+
+    /* APP */
     .header{padding:14px 16px 10px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)}
     .brand{display:flex;align-items:center;gap:10px}
     .logo-mark{width:32px;height:32px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff}
     .name{font-size:18px;font-weight:700}
     .sub{font-size:11px;color:var(--text2)}
     .header-actions{display:flex;gap:8px}
-    .icon-btn{width:36px;height:36px;border-radius:12px;border:1px solid var(--border);background:var(--card);color:var(--text);font-size:15px}
+    .icon-btn{width:36px;height:36px;border-radius:12px;border:1px solid var(--border);background:var(--card);color:var(--text)}
     .stories{display:flex;gap:12px;overflow-x:auto;padding:12px 16px;border-bottom:1px solid var(--border)}
     .story{min-width:66px;text-align:center;font-size:11px;color:var(--text2)}
     .story-ring{width:56px;height:56px;border-radius:50%;padding:2px;margin:0 auto 6px;background:linear-gradient(45deg,var(--accent),var(--pink),var(--accent2))}
-    .story-ring div{width:100%;height:100%;border-radius:50%;background:var(--bg);display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--text)}
+    .story-ring div{width:100%;height:100%;border-radius:50%;background:var(--bg);display:flex;align-items:center;justify-content:center;font-weight:700}
     .page{display:none;flex:1;overflow-y:auto;padding-bottom:110px}
     .page.active{display:block}
     .search-wrap{padding:14px 16px 8px}
@@ -52,7 +79,6 @@
     .actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
     .actions button{border:1px solid var(--border);background:var(--bg);color:var(--text);border-radius:999px;padding:7px 12px;font-size:13px}
     .bottom{position:absolute;left:0;right:0;bottom:0;height:88px;border-top:1px solid var(--border);background:rgba(0,0,0,.8);backdrop-filter:blur(16px);display:flex;justify-content:space-around;align-items:center;padding-bottom:14px}
-    body.light .bottom{background:rgba(255,255,255,.9)}
     .nav{background:none;border:none;color:var(--text2);display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11px}
     .nav.active{color:var(--text)}
     .nav .ic{width:26px;height:26px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:700}
@@ -63,21 +89,37 @@
     .modal.active{display:flex}
     .sheet{width:100%;max-width:430px;background:var(--card);border-radius:22px 22px 0 0;padding:22px 18px 34px}
     .sheet button,.sheet input{width:100%;margin-bottom:10px;padding:14px;border-radius:14px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:15px}
-    .sheet input{outline:none}
     .quick{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
     .quick button{width:auto;padding:8px 12px;margin:0;font-size:12px;border-radius:999px}
     .empty{text-align:center;color:var(--text2);padding:30px 16px;font-size:14px}
     .clickable{cursor:pointer}
-    .onboarding{position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:90;display:none;align-items:center;justify-content:center;padding:20px}
-    .onboarding.active{display:flex}
-    .onboard-card{width:100%;max-width:360px;background:var(--card);border:1px solid var(--border);border-radius:20px;padding:22px}
-    .onboard-card h2{font-size:20px;margin-bottom:8px}
-    .onboard-card p{color:var(--text2);font-size:14px;line-height:1.5;margin-bottom:18px}
-    .onboard-card button{width:100%;padding:12px;border:none;border-radius:12px;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;font-weight:700}
   </style>
 </head>
 <body>
-<div class="app">
+
+<!-- PAYWALL -->
+<div id="paywall" class="hidden">
+  <div class="pw-bg"></div>
+  <div class="pw-overlay"></div>
+  <div class="pw-sheet">
+    <div class="pw-logo">C</div>
+    <h1>Débloque Codia</h1>
+    <p class="sub">Accède au feed, à la recherche IA et aux codes de la communauté.</p>
+    <ul class="pw-list">
+      <li>🏠 Feed communauté — codes partagés</li>
+      <li>✦ Discover — recherche + cartes codes</li>
+      <li>☺ Profil — tes codes publiés</li>
+      <li>🔔 Alertes remises du jour</li>
+    </ul>
+    <div class="price">10 € <small>· accès à vie</small></div>
+    <div class="secure">Paiement sécurisé par Stripe · accès immédiat</div>
+    <div id="checkout">Chargement du paiement…</div>
+    <div class="pw-error" id="pw-error"></div>
+  </div>
+</div>
+
+<!-- APP -->
+<div class="app hidden" id="main-app">
   <div class="header">
     <div class="brand">
       <div class="logo-mark">C</div>
@@ -105,12 +147,12 @@
     <div class="search-wrap">
       <div class="search">
         <span style="opacity:.7">⌕</span>
-        <input id="ai-input" placeholder="Ex: Uber Eats, Booking, Fortuneo..." onkeypress="if(event.key==='Enter') askAI()">
+        <input id="ai-input" placeholder="Ex: Uber Eats, Booking..." onkeypress="if(event.key==='Enter') askAI()">
       </div>
     </div>
     <div class="chips" id="history"></div>
     <div class="section">Résultats codes</div>
-    <div id="search-results"><div class="empty">Lance une recherche pour voir les codes</div></div>
+    <div id="search-results"><div class="empty">Lance une recherche</div></div>
     <div class="section">Assistant Codia</div>
     <div class="ai-box" id="ai-response"></div>
     <div class="section">Suggestions</div>
@@ -120,11 +162,10 @@
   <div class="page page-profile" id="page-profile">
     <div class="card" id="profile-card">Chargement profil...</div>
     <div class="section">Mes codes</div>
-    <div id="my-codes"><div class="empty">Aucun code pour le moment</div></div>
+    <div id="my-codes"><div class="empty">Aucun code</div></div>
   </div>
 
   <button class="fab" onclick="openShare()">＋ Partager</button>
-
   <div class="bottom">
     <button class="nav active" onclick="showPage('home')"><div class="ic">⌂</div>Feed</button>
     <button class="nav" onclick="showPage('ia')"><div class="ic">✦</div>Discover</button>
@@ -148,7 +189,7 @@
       <button type="button" onclick="fillSite('Uber Eats')">Uber Eats</button>
       <button type="button" onclick="fillSite('Booking')">Booking</button>
       <button type="button" onclick="fillSite('Airbnb')">Airbnb</button>
-      <button type="button" onclick="fillSite('Getaround')">Getaround</button>
+      <button type="button" onclick="fillSite('Zara')">Zara</button>
       <button type="button" onclick="fillSite('Fortuneo')">Fortuneo</button>
     </div>
     <input id="formSite" placeholder="Site">
@@ -159,372 +200,291 @@
   </div>
 </div>
 
-<div class="onboarding" id="onboarding">
-  <div class="onboard-card">
-    <h2 id="obTitle">Bienvenue sur Codia</h2>
-    <p id="obText">Trouve, copie et partage des codes promo & parrainage.</p>
-    <button onclick="nextOnboard()" id="obBtn">Continuer</button>
-  </div>
-</div>
-
 <script>
   Telegram.WebApp.ready();
   Telegram.WebApp.expand();
 
-  const ARCHIVES = {
-    "Top": [
-      {site:"Uber Eats", code:"EATS10", description:"-10€", type:"promo", added_by:"Codia IA", likes:12, dislikes:1, copies:3, created_at:new Date().toISOString()},
-      {site:"Booking", code:"TRAVEL15", description:"-15%", type:"promo", added_by:"Codia IA", likes:9, dislikes:0, copies:2, created_at:new Date().toISOString()}
-    ],
-    "Uber Eats":[{site:"Uber Eats", code:"EATS10", description:"-10€", type:"promo", added_by:"Archive Codia", likes:4, dislikes:0, copies:1}],
-    "Booking":[{site:"Booking", code:"TRAVEL15", description:"-15%", type:"promo", added_by:"Archive Codia", likes:5, dislikes:0, copies:1}],
-    "Airbnb":[{site:"Airbnb", code:"HOME12", description:"-12%", type:"promo", added_by:"Archive Codia", likes:3, dislikes:0, copies:0}],
-    "Getaround":[{site:"Getaround", code:"DRIVE20", description:"-20%", type:"promo", added_by:"Archive Codia", likes:3, dislikes:0, copies:0}],
-    "Banques":[{site:"Fortuneo", code:"FORTU80", description:"+80€", type:"parrainage", added_by:"Archive Codia", likes:6, dislikes:0, copies:2}]
-  };
-
-  let allCodes = [];
-  let userCity = null;
-  let currentShareType = "promo";
-  let obStep = 0;
-
-  if (localStorage.getItem('theme') === 'light') document.body.classList.add('light');
-  if (localStorage.getItem('notif') === 'off') document.getElementById('notifBtn').textContent = '🔕';
-  if (!localStorage.getItem('onboard_done')) document.getElementById('onboarding').classList.add('active');
-
-  function toggleTheme(){
-    document.body.classList.toggle('light');
-    localStorage.setItem('theme', document.body.classList.contains('light') ? 'light' : 'dark');
-  }
-  function toggleNotif(){
-    const off = localStorage.getItem('notif') === 'off';
-    localStorage.setItem('notif', off ? 'on' : 'off');
-    document.getElementById('notifBtn').textContent = off ? '🔔' : '🔕';
-  }
-  function nextOnboard(){
-    obStep++;
-    if(obStep===1){
-      document.getElementById('obTitle').textContent = 'Discover';
-      document.getElementById('obText').textContent = 'Cherche un site et récupère les meilleurs codes en cartes.';
-    } else if(obStep===2){
-      document.getElementById('obTitle').textContent = 'Partage & Profil';
-      document.getElementById('obText').textContent = 'Publie tes codes et retrouve-les dans ton profil.';
-      document.getElementById('obBtn').textContent = 'C’est parti';
-    } else {
-      localStorage.setItem('onboard_done','1');
-      document.getElementById('onboarding').classList.remove('active');
-    }
-  }
-
-  if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(async (pos)=>{
-      try{
-        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.coords.latitude}&lon=${pos.coords.longitude}`);
-        const data = await res.json();
-        userCity = data.address?.city || data.address?.town || data.address?.village || null;
-      }catch(e){}
-    },()=>{},{timeout:4000});
-  }
+  let allCodes = [], userCity = null, currentShareType = "promo", stripe = null;
 
   function getTgUser(){ return window.Telegram?.WebApp?.initDataUnsafe?.user || null; }
 
+  async function boot(){
+    const params = new URLSearchParams(location.search);
+    const u = getTgUser();
+    const userId = u?.id;
+
+    // après retour paiement
+    if(params.get('paid') === '1' && userId){
+      // laisse le webhook finaliser, on recheck
+      await new Promise(r => setTimeout(r, 1200));
+    }
+
+    if(!userId){
+      // hors Telegram: affiche paywall quand même
+      showPaywall();
+      return;
+    }
+
+    try{
+      const res = await fetch('/access?user_id=' + userId);
+      const data = await res.json();
+      if(data.paid){
+        showApp();
+      } else {
+        showPaywall();
+        await initEmbeddedCheckout(userId);
+      }
+    }catch(e){
+      showPaywall();
+      document.getElementById('pw-error').textContent = 'Erreur accès. Réessaie.';
+    }
+  }
+
+  function showPaywall(){
+    document.getElementById('paywall').classList.remove('hidden');
+    document.getElementById('main-app').classList.add('hidden');
+  }
+  function showApp(){
+    document.getElementById('paywall').classList.add('hidden');
+    document.getElementById('main-app').classList.remove('hidden');
+    loadCodes();
+  }
+
+  async function initEmbeddedCheckout(telegramId){
+    const err = document.getElementById('pw-error');
+    const box = document.getElementById('checkout');
+    try{
+      const cfg = await fetch('/config').then(r => r.json());
+      if(!cfg.stripe_pk){
+        err.textContent = 'STRIPE_PUBLISHABLE_KEY manquante';
+        box.textContent = '';
+        return;
+      }
+      stripe = Stripe(cfg.stripe_pk);
+
+      const res = await fetch('/create-embedded-checkout', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({telegram_id: telegramId})
+      });
+      const data = await res.json();
+      if(!data.clientSecret){
+        err.textContent = data.error || 'Impossible de créer le paiement';
+        box.textContent = '';
+        return;
+      }
+
+      const checkout = await stripe.initEmbeddedCheckout({ clientSecret: data.clientSecret });
+      box.innerHTML = '';
+      checkout.mount('#checkout');
+    }catch(e){
+      err.textContent = 'Paiement indisponible pour le moment.';
+      box.textContent = '';
+      console.error(e);
+    }
+  }
+
+  // ---- app logic (si payé) ----
+  if (localStorage.getItem('theme') === 'light') document.body.classList.add('light');
+  if (localStorage.getItem('notif') === 'off') {
+    const b = document.getElementById('notifBtn'); if(b) b.textContent = '🔕';
+  }
+  function toggleTheme(){ document.body.classList.toggle('light'); localStorage.setItem('theme', document.body.classList.contains('light')?'light':'dark'); }
+  function toggleNotif(){
+    const off = localStorage.getItem('notif')==='off';
+    localStorage.setItem('notif', off?'on':'off');
+    document.getElementById('notifBtn').textContent = off?'🔔':'🔕';
+  }
+
   function timeAgo(dateStr){
     if(!dateStr) return 'à l’instant';
-    const d = new Date(dateStr);
-    const diff = Math.max(0, (Date.now() - d.getTime())/1000);
-    if(diff < 60) return 'à l’instant';
-    if(diff < 3600) return `il y a ${Math.floor(diff/60)} min`;
-    if(diff < 86400) return `il y a ${Math.floor(diff/3600)} h`;
-    const days = Math.floor(diff/86400);
-    return days === 1 ? 'il y a 1 j' : `il y a ${days} j`;
+    const diff = Math.max(0,(Date.now()-new Date(dateStr).getTime())/1000);
+    if(diff<60) return 'à l’instant';
+    if(diff<3600) return `il y a ${Math.floor(diff/60)} min`;
+    if(diff<86400) return `il y a ${Math.floor(diff/3600)} h`;
+    return `il y a ${Math.floor(diff/86400)} j`;
   }
 
   function showPage(page){
     document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
     document.querySelectorAll('.nav').forEach(n=>n.classList.remove('active'));
-    if(page==='home'){
-      document.getElementById('page-home').classList.add('active');
-      document.querySelectorAll('.nav')[0].classList.add('active');
-    } else if(page==='ia'){
-      document.getElementById('page-ia').classList.add('active');
-      document.querySelectorAll('.nav')[1].classList.add('active');
-      renderHistory(); renderSuggestions();
-    } else {
-      document.getElementById('page-profile').classList.add('active');
-      document.querySelectorAll('.nav')[2].classList.add('active');
-      loadProfile();
-    }
+    if(page==='home'){ document.getElementById('page-home').classList.add('active'); document.querySelectorAll('.nav')[0].classList.add('active'); }
+    else if(page==='ia'){ document.getElementById('page-ia').classList.add('active'); document.querySelectorAll('.nav')[1].classList.add('active'); renderHistory(); renderSuggestions(); }
+    else { document.getElementById('page-profile').classList.add('active'); document.querySelectorAll('.nav')[2].classList.add('active'); loadProfile(); }
   }
 
   function openShare(){ document.getElementById('shareModal').classList.add('active'); }
   function closeShare(){ document.getElementById('shareModal').classList.remove('active'); }
   function closeForm(){ document.getElementById('formModal').classList.remove('active'); }
-  function fillSite(v){ document.getElementById('formSite').value = v; }
-
+  function fillSite(v){ document.getElementById('formSite').value=v; }
   function chooseShare(type){
-    currentShareType = type;
-    closeShare();
-    document.getElementById('formTitle').textContent = type === 'promo' ? 'Nouveau code promo' : 'Nouveau code parrainage';
-    document.getElementById('formSite').value = '';
-    document.getElementById('formCode').value = '';
-    document.getElementById('formDesc').value = '';
+    currentShareType=type; closeShare();
+    document.getElementById('formTitle').textContent = type==='promo'?'Nouveau code promo':'Nouveau code parrainage';
+    document.getElementById('formSite').value='';
+    document.getElementById('formCode').value='';
+    document.getElementById('formDesc').value='';
     document.getElementById('formModal').classList.add('active');
   }
 
   async function submitCode(){
-    const site = document.getElementById('formSite').value.trim();
-    const code = document.getElementById('formCode').value.trim();
-    const description = document.getElementById('formDesc').value.trim();
-    if(!site || !code){ alert('Site et code obligatoires'); return; }
-    const tgUser = getTgUser();
-    const added_by = tgUser?.username ? '@'+tgUser.username : (tgUser?.first_name || 'Membre Codia');
+    const site=document.getElementById('formSite').value.trim();
+    const code=document.getElementById('formCode').value.trim();
+    const description=document.getElementById('formDesc').value.trim();
+    if(!site||!code){ alert('Site et code obligatoires'); return; }
+    const u=getTgUser();
+    const added_by=u?.username?('@'+u.username):(u?.first_name||'Membre Codia');
     try{
-      const res = await fetch('/codes/add', {
-        method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({
-          type: currentShareType, site, code, description, added_by,
-          user_id: tgUser?.id || null,
-          photo_url: tgUser?.photo_url || null
-        })
-      });
-      const data = await res.json();
-      if(data.success){
-        closeForm(); alert('Code en ligne ✅');
-        await loadCodes(); showPage('home');
-      } else alert('Erreur publication');
+      const res=await fetch('/codes/add',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+        type:currentShareType,site,code,description,added_by,user_id:u?.id||null,photo_url:u?.photo_url||null
+      })});
+      const data=await res.json();
+      if(data.success){ closeForm(); alert('Code en ligne ✅'); await loadCodes(); showPage('home'); }
+      else alert('Erreur publication');
     }catch(e){ alert('Erreur publication'); }
   }
 
   function avatarHTML(c){
-    if(c.photo_url){
-      return `<img class="avatar-img" src="${c.photo_url}" onerror="this.outerHTML='<div class=\\'avatar\\'>${(c.added_by||'C')[0].toUpperCase()}</div>'">`;
-    }
+    if(c.photo_url) return `<img class="avatar-img" src="${c.photo_url}">`;
     return `<div class="avatar">${(c.added_by||'C')[0].toUpperCase()}</div>`;
   }
 
   function renderPost(c, fallbackId){
-    const id = c.id || fallbackId;
-    const liked = localStorage.getItem('like_'+id) === '1';
-    const disliked = localStorage.getItem('dislike_'+id) === '1';
-    const score = (c.likes||0) - (c.dislikes||0);
-    const popular = score >= 5 ? `<span class="badge-pop">Populaire</span>` : '';
-    const who = c.added_by || 'Membre Codia';
-    const actionText = c.type==='parrainage' ? 'a partagé un code parrainage' : 'a partagé un code promo';
-    const copies = c.copies || 0;
+    const id=c.id||fallbackId;
+    const liked=localStorage.getItem('like_'+id)==='1';
+    const disliked=localStorage.getItem('dislike_'+id)==='1';
+    const score=(c.likes||0)-(c.dislikes||0);
+    const popular=score>=5?'<span class="badge-pop">Populaire</span>':'';
+    const who=c.added_by||'Membre Codia';
+    const actionText=c.type==='parrainage'?'a partagé un code parrainage':'a partagé un code promo';
+    const copies=c.copies||0;
     return `<div class="post">
-      <div class="post-top">
-        ${avatarHTML(c)}
-        <div style="flex:1">
-          <div style="font-weight:600">${who} ${popular}</div>
-          <div class="muted">${actionText} • ${timeAgo(c.created_at)}</div>
-        </div>
-      </div>
+      <div class="post-top">${avatarHTML(c)}<div style="flex:1"><div style="font-weight:600">${who} ${popular}</div><div class="muted">${actionText} • ${timeAgo(c.created_at)}</div></div></div>
       <div class="muted">${c.site}</div>
-      <div class="code">
-        <span>${c.code} <span style="color:var(--green)">${c.description||''}</span></span>
-        <button class="copy-btn" onclick="copyCode(${c.id||0}, '${String(c.code).replace(/'/g,"\\'")}', this)">Copier${copies? ' · '+copies : ''}</button>
-      </div>
-      <div class="actions">
-        ${c.id ? `
-          <button onclick="toggleReact(${c.id}, 'like', this)">${liked?'❤️':'🤍'} <span>${c.likes||0}</span></button>
-          <button onclick="toggleReact(${c.id}, 'dislike', this)">${disliked?'💔':'👎'} <span>${c.dislikes||0}</span></button>
-        ` : `<span class="muted">Archive</span>`}
-      </div>
-    </div>`;
+      <div class="code"><span>${c.code} <span style="color:var(--green)">${c.description||''}</span></span>
+        <button class="copy-btn" onclick="copyCode(${c.id||0}, '${String(c.code).replace(/'/g,"\\'")}', this)">Copier${copies?' · '+copies:''}</button></div>
+      <div class="actions">${c.id?`
+        <button onclick="toggleReact(${c.id},'like',this)">${liked?'❤️':'🤍'} <span>${c.likes||0}</span></button>
+        <button onclick="toggleReact(${c.id},'dislike',this)">${disliked?'💔':'👎'} <span>${c.dislikes||0}</span></button>`:'<span class="muted">Archive</span>'}</div></div>`;
   }
 
   async function copyCode(id, code, btn){
-    try { await navigator.clipboard.writeText(code); } catch(e) { alert(code); }
-    btn.textContent = 'Copié';
+    try{ await navigator.clipboard.writeText(code); }catch(e){ alert(code); }
+    btn.textContent='Copié';
     if(id){
       try{
-        const res = await fetch('/code/copy', {
-          method:'POST', headers:{'Content-Type':'application/json'},
-          body: JSON.stringify({id})
-        });
-        const data = await res.json();
-        if(data.copies !== undefined){
-          setTimeout(()=>{ btn.textContent = `Copier · ${data.copies}`; }, 800);
-          return;
-        }
+        const res=await fetch('/code/copy',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id})});
+        const data=await res.json();
+        if(data.copies!==undefined){ setTimeout(()=>btn.textContent=`Copier · ${data.copies}`,800); return; }
       }catch(e){}
     }
-    setTimeout(()=>{ btn.textContent = 'Copier'; }, 1000);
-  }
-
-  function renderStories(){
-    const base = ["Top","Uber Eats","Booking","Airbnb","Getaround","Banques"];
-    const dynamicSites = [...new Set(allCodes.map(c => c.site).filter(Boolean))];
-    const names = ["+ Partager", ...base, ...dynamicSites.filter(s => !base.includes(s)).slice(0,5)];
-    document.getElementById('stories').innerHTML = names.map(name=>{
-      const label = name === "+ Partager" ? "+" : name.slice(0,1).toUpperCase();
-      return `<div class="story clickable" onclick="onStoryClick('${name.replace(/'/g,"\\'")}')">
-        <div class="story-ring"><div>${label}</div></div>
-        ${name.length>10 ? name.slice(0,9)+'…' : name}
-      </div>`;
-    }).join('');
-  }
-
-  function onStoryClick(name){
-    if(name === "+ Partager"){ openShare(); return; }
-    showPage('home');
-    const fromDb = allCodes.filter(c =>
-      (c.site||'').toLowerCase().includes(name.toLowerCase()) || name==='Top' ||
-      (name==='Banques' && /fortuneo|bourso|bank|banque/i.test(c.site||''))
-    );
-    const merged = [...fromDb, ...(ARCHIVES[name]||[])];
-    document.getElementById('feed-title').textContent = `Archive • ${name}`;
-    document.getElementById('codes-list').innerHTML = merged.length
-      ? merged.map((c,i)=>renderPost(c,i+1000)).join('')
-      : `<div class="empty">Pas encore de code pour ${name}.</div>`;
-  }
-
-  function renderSuggestions(){
-    const items = [
-      {site:"Uber Eats", q:"Uber Eats"},
-      {site:"Booking", q:"Booking"},
-      {site:"Airbnb", q:"Airbnb"},
-      {site:"Fortuneo", q:"Fortuneo"},
-      {site:"Getaround", q:"Getaround"}
-    ];
-    document.getElementById('suggestions').innerHTML = items.map(item => `
-      <div class="card row clickable" onclick="quickSearch('${item.q}')">
-        <div><strong>${item.site}</strong><div class="muted">Chercher des codes</div></div>
-        <div class="pill">Go</div>
-      </div>
-    `).join('');
-  }
-
-  function quickSearch(q){
-    document.getElementById('ai-input').value = q;
-    showPage('ia');
-    askAI();
-  }
-
-  function renderHistory(){
-    const hist = JSON.parse(localStorage.getItem('search_history') || '[]');
-    document.getElementById('history').innerHTML = hist.slice(0,8).map(h =>
-      `<button class="chip" onclick="quickSearch('${h.replace(/'/g,"\\'")}')">${h}</button>`
-    ).join('');
-  }
-  function saveHistory(q){
-    let hist = JSON.parse(localStorage.getItem('search_history') || '[]');
-    hist = [q, ...hist.filter(x => x !== q)].slice(0,8);
-    localStorage.setItem('search_history', JSON.stringify(hist));
-    renderHistory();
+    setTimeout(()=>btn.textContent='Copier',1000);
   }
 
   async function toggleReact(id, reaction, btn){
-    const key = reaction + '_' + id;
-    const isActive = localStorage.getItem(key) === '1';
-    const action = isActive ? 'remove' : 'add';
-    if(action === 'add'){
-      const other = reaction === 'like' ? 'dislike' : 'like';
-      if(localStorage.getItem(other + '_' + id) === '1'){
-        localStorage.setItem(other + '_' + id, '0');
-        fetch('/code/react', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({id, reaction:other, action:'remove'})});
+    const key=reaction+'_'+id;
+    const isActive=localStorage.getItem(key)==='1';
+    const action=isActive?'remove':'add';
+    if(action==='add'){
+      const other=reaction==='like'?'dislike':'like';
+      if(localStorage.getItem(other+'_'+id)==='1'){
+        localStorage.setItem(other+'_'+id,'0');
+        fetch('/code/react',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,reaction:other,action:'remove'})});
       }
     }
-    localStorage.setItem(key, action === 'add' ? '1' : '0');
+    localStorage.setItem(key, action==='add'?'1':'0');
     try{
-      const res = await fetch('/code/react', {
-        method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({id, reaction, action})
-      });
-      const data = await res.json();
-      const value = (data && typeof data.value !== 'undefined') ? data.value :
-        Math.max((parseInt(btn.querySelector('span').textContent)||0) + (action==='add'?1:-1), 0);
-      btn.innerHTML = reaction==='like'
-        ? `${action==='add'?'❤️':'🤍'} <span>${value}</span>`
-        : `${action==='add'?'💔':'👎'} <span>${value}</span>`;
+      const res=await fetch('/code/react',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,reaction,action})});
+      const data=await res.json();
+      const value=data.value??0;
+      btn.innerHTML = reaction==='like' ? `${action==='add'?'❤️':'🤍'} <span>${value}</span>` : `${action==='add'?'💔':'👎'} <span>${value}</span>`;
     }catch(e){}
   }
 
+  function renderStories(){
+    const base=["Top","Uber Eats","Booking","Airbnb","Zara","Banques"];
+    const dynamic=[...new Set(allCodes.map(c=>c.site).filter(Boolean))];
+    const names=["+ Partager",...base,...dynamic.filter(s=>!base.includes(s)).slice(0,4)];
+    document.getElementById('stories').innerHTML=names.map(n=>{
+      const label=n==="+ Partager"?"+":n.slice(0,1).toUpperCase();
+      return `<div class="story clickable" onclick="onStoryClick('${n.replace(/'/g,"\\'")}')"><div class="story-ring"><div>${label}</div></div>${n.length>10?n.slice(0,9)+'…':n}</div>`;
+    }).join('');
+  }
+  function onStoryClick(name){
+    if(name==="+ Partager"){ openShare(); return; }
+    showPage('home');
+    const fromDb=allCodes.filter(c=>(c.site||'').toLowerCase().includes(name.toLowerCase())||name==='Top');
+    document.getElementById('feed-title').textContent=`Archive • ${name}`;
+    document.getElementById('codes-list').innerHTML=fromDb.length?fromDb.map(c=>renderPost(c)).join(''):`<div class="empty">Pas de code pour ${name}</div>`;
+  }
+
+  function renderSuggestions(){
+    const items=[{site:"Uber Eats",q:"Uber Eats"},{site:"Booking",q:"Booking"},{site:"Airbnb",q:"Airbnb"},{site:"Zara",q:"Zara"}];
+    document.getElementById('suggestions').innerHTML=items.map(i=>`<div class="card row clickable" onclick="quickSearch('${i.q}')"><div><strong>${i.site}</strong><div class="muted">Chercher</div></div><div class="pill">Go</div></div>`).join('');
+  }
+  function quickSearch(q){ document.getElementById('ai-input').value=q; showPage('ia'); askAI(); }
+  function renderHistory(){
+    const hist=JSON.parse(localStorage.getItem('search_history')||'[]');
+    document.getElementById('history').innerHTML=hist.slice(0,8).map(h=>`<button class="chip" onclick="quickSearch('${h.replace(/'/g,"\\'")}')">${h}</button>`).join('');
+  }
+  function saveHistory(q){
+    let hist=JSON.parse(localStorage.getItem('search_history')||'[]');
+    hist=[q,...hist.filter(x=>x!==q)].slice(0,8);
+    localStorage.setItem('search_history',JSON.stringify(hist));
+    renderHistory();
+  }
+
   async function askAI(){
-    const q = document.getElementById('ai-input').value.trim();
+    const q=document.getElementById('ai-input').value.trim();
     if(!q) return;
     saveHistory(q);
-    const results = document.getElementById('search-results');
-    const box = document.getElementById('ai-response');
-    results.innerHTML = '<div class="empty">Recherche des codes...</div>';
-    box.style.display = 'block';
-    box.innerHTML = 'Analyse IA...';
-
+    const results=document.getElementById('search-results');
+    const box=document.getElementById('ai-response');
+    results.innerHTML='<div class="empty">Recherche...</div>';
+    box.style.display='block'; box.innerHTML='Analyse IA...';
     try{
-      const res = await fetch('/codes/search?q=' + encodeURIComponent(q));
-      const data = await res.json();
-      const codes = data.codes || [];
-      results.innerHTML = codes.length
-        ? codes.map(c => renderPost(c)).join('')
-        : '<div class="empty">Aucun code exact en base. L’IA propose une alternative...</div>';
-    }catch(e){
-      results.innerHTML = '<div class="empty">Erreur recherche codes</div>';
-    }
-
+      const res=await fetch('/codes/search?q='+encodeURIComponent(q));
+      const data=await res.json();
+      const codes=data.codes||[];
+      results.innerHTML=codes.length?codes.map(c=>renderPost(c)).join(''):'<div class="empty">Aucun code exact en base</div>';
+    }catch(e){ results.innerHTML='<div class="empty">Erreur recherche</div>'; }
     try{
-      const res = await fetch('/ask', {
-        method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({question:q, city:userCity})
-      });
-      const data = await res.json();
-      box.innerHTML = data.answer || 'Voici une alternative utile.';
-    }catch(e){
-      box.innerHTML = 'Alternative : Booking, Uber Eats ou Getaround.';
-    }
+      const res=await fetch('/ask',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question:q,city:userCity})});
+      const data=await res.json();
+      box.innerHTML=data.answer||'Voici une alternative utile.';
+    }catch(e){ box.innerHTML='Alternative: Booking, Uber Eats, Zara.'; }
   }
 
   async function loadProfile(){
-    const u = getTgUser();
-    const card = document.getElementById('profile-card');
-    if(!u){
-      card.innerHTML = 'Ouvre Codia depuis Telegram pour voir ton profil.';
-      return;
-    }
-    const name = u.username ? '@'+u.username : (u.first_name || 'Membre Codia');
-    const photo = u.photo_url
-      ? `<img class="avatar-img" src="${u.photo_url}">`
-      : `<div class="avatar">${name[0].toUpperCase()}</div>`;
-    card.innerHTML = `<div class="post-top">${photo}<div><div style="font-weight:700">${name}</div><div class="muted">Membre Codia</div></div></div>`;
+    const u=getTgUser();
+    const card=document.getElementById('profile-card');
+    if(!u){ card.innerHTML='Ouvre Codia depuis Telegram'; return; }
+    const name=u.username?('@'+u.username):(u.first_name||'Membre');
+    const photo=u.photo_url?`<img class="avatar-img" src="${u.photo_url}">`:`<div class="avatar">${name[0]}</div>`;
+    card.innerHTML=`<div class="post-top">${photo}<div><div style="font-weight:700">${name}</div><div class="muted">Membre Codia</div></div></div>`;
     if(!u.id) return;
     try{
-      const res = await fetch('/codes/mine?user_id=' + u.id);
-      const data = await res.json();
-      const codes = data.codes || [];
-      document.getElementById('my-codes').innerHTML = codes.length
-        ? codes.map(c => renderPost(c)).join('')
-        : '<div class="empty">Tu n’as pas encore publié de code.</div>';
-    }catch(e){
-      document.getElementById('my-codes').innerHTML = '<div class="empty">Erreur chargement.</div>';
-    }
+      const res=await fetch('/codes/mine?user_id='+u.id);
+      const data=await res.json();
+      const codes=data.codes||[];
+      document.getElementById('my-codes').innerHTML=codes.length?codes.map(c=>renderPost(c)).join(''):'<div class="empty">Aucun code publié</div>';
+    }catch(e){ document.getElementById('my-codes').innerHTML='<div class="empty">Erreur</div>'; }
   }
 
   async function loadCodes(){
     try{
-      const res = await fetch('/codes');
-      const data = await res.json();
-      allCodes = data.codes || [];
-    }catch(e){ allCodes = []; }
-
-    allCodes.sort((a,b)=> ((b.likes||0)-(b.dislikes||0)) - ((a.likes||0)-(a.dislikes||0)));
+      const res=await fetch('/codes');
+      const data=await res.json();
+      allCodes=data.codes||[];
+    }catch(e){ allCodes=[]; }
     renderStories();
-
-    const top = allCodes.length ? allCodes.slice(0,3) : ARCHIVES.Top;
-    document.getElementById('daily-codes').innerHTML = top.map(c => `
-      <div class="card row">
-        <div>
-          <strong>${c.site}</strong>
-          <div class="muted">${c.type || 'promo'} • ${c.code}</div>
-        </div>
-        <div class="pill">${c.description || 'Promo'}</div>
-      </div>
-    `).join('');
-
-    document.getElementById('feed-title').textContent = allCodes.length ? 'Communauté' : 'Archives Codia';
-    document.getElementById('codes-list').innerHTML = (allCodes.length ? allCodes : ARCHIVES.Top)
-      .map((c,i)=>renderPost(c, i+1)).join('');
+    const top=allCodes.slice(0,3);
+    document.getElementById('daily-codes').innerHTML=top.map(c=>`
+      <div class="card row"><div><strong>${c.site}</strong><div class="muted">${c.type||'promo'} • ${c.code}</div></div>
+      <div class="pill">${c.description||'Promo'}</div></div>`).join('') || '<div class="empty">Pas encore de code</div>';
+    document.getElementById('codes-list').innerHTML=allCodes.length?allCodes.map(c=>renderPost(c)).join(''):'<div class="empty">Feed vide — sois le premier</div>';
   }
 
-  loadCodes();
+  boot();
 </script>
 </body>
 </html>
