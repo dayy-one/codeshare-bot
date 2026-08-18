@@ -272,7 +272,7 @@ def create_embedded_checkout():
         return jsonify({"error": "telegram_id manquant"}), 400
     try:
         session = stripe.checkout.Session.create(
-            ui_mode="embedded",
+            ui_mode="embedded_page",
             mode="payment",
             payment_method_types=["card"],
             line_items=[{
