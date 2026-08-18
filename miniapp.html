@@ -30,7 +30,7 @@
     .story{min-width:66px;text-align:center;font-size:11px;color:var(--text2)}
     .story-ring{width:56px;height:56px;border-radius:50%;padding:2px;margin:0 auto 6px;background:linear-gradient(45deg,var(--accent),var(--pink),var(--accent2))}
     .story-ring div{width:100%;height:100%;border-radius:50%;background:var(--bg);display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--text)}
-    .page{display:none;flex:1;overflow-y:auto;padding-bottom:100px}
+    .page{display:none;flex:1;overflow-y:auto;padding-bottom:110px}
     .page.active{display:block}
     .search-wrap{padding:14px 16px 8px}
     .search{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:12px 14px}
@@ -51,13 +51,13 @@
     .copy-btn{border:1px solid var(--border);background:var(--card);color:var(--text);border-radius:10px;padding:6px 10px;font-size:12px}
     .actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
     .actions button{border:1px solid var(--border);background:var(--bg);color:var(--text);border-radius:999px;padding:7px 12px;font-size:13px}
-    .bottom{position:absolute;left:0;right:0;bottom:0;height:84px;border-top:1px solid var(--border);background:rgba(0,0,0,.75);backdrop-filter:blur(16px);display:flex;justify-content:space-around;align-items:center;padding-bottom:14px}
-    body.light .bottom{background:rgba(255,255,255,.85)}
+    .bottom{position:absolute;left:0;right:0;bottom:0;height:88px;border-top:1px solid var(--border);background:rgba(0,0,0,.8);backdrop-filter:blur(16px);display:flex;justify-content:space-around;align-items:center;padding-bottom:14px}
+    body.light .bottom{background:rgba(255,255,255,.9)}
     .nav{background:none;border:none;color:var(--text2);display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11px}
     .nav.active{color:var(--text)}
     .nav .ic{width:26px;height:26px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:700}
     .nav.active .ic{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff}
-    .fab{position:fixed;left:50%;transform:translateX(-50%);bottom:96px;background:linear-gradient(135deg,var(--accent),var(--pink));color:#fff;border:none;border-radius:999px;padding:12px 22px;font-weight:700;display:none;z-index:20}
+    .fab{position:fixed;left:50%;transform:translateX(-50%);bottom:100px;background:linear-gradient(135deg,var(--accent),var(--pink));color:#fff;border:none;border-radius:999px;padding:12px 22px;font-weight:700;display:none;z-index:20}
     .page-home.active ~ .fab{display:block}
     .modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:50;align-items:flex-end;justify-content:center}
     .modal.active{display:flex}
@@ -94,6 +94,7 @@
 
   <div class="stories" id="stories"></div>
 
+  <!-- FEED -->
   <div class="page page-home active" id="page-home">
     <div class="section">À la une</div>
     <div id="daily-codes"></div>
@@ -101,17 +102,28 @@
     <div id="codes-list"><div class="empty">Chargement...</div></div>
   </div>
 
+  <!-- DISCOVER -->
   <div class="page page-ia" id="page-ia">
     <div class="search-wrap">
       <div class="search">
         <span style="opacity:.7">⌕</span>
-        <input id="ai-input" placeholder="Que cherches-tu ? Uber, hôtel, voyage..." onkeypress="if(event.key==='Enter') askAI()">
+        <input id="ai-input" placeholder="Ex: Uber Eats, Booking, Fortuneo..." onkeypress="if(event.key==='Enter') askAI()">
       </div>
     </div>
     <div class="chips" id="history"></div>
+    <div class="section">Résultats codes</div>
+    <div id="search-results"><div class="empty">Lance une recherche pour voir les codes</div></div>
+    <div class="section">Assistant Codia</div>
     <div class="ai-box" id="ai-response"></div>
-    <div class="section">Suggestions pour toi</div>
+    <div class="section">Suggestions</div>
     <div id="suggestions"></div>
+  </div>
+
+  <!-- PROFIL -->
+  <div class="page page-profile" id="page-profile">
+    <div class="card" id="profile-card">Chargement profil...</div>
+    <div class="section">Mes codes</div>
+    <div id="my-codes"><div class="empty">Aucun code pour le moment</div></div>
   </div>
 
   <button class="fab" onclick="openShare()">＋ Partager</button>
@@ -119,6 +131,7 @@
   <div class="bottom">
     <button class="nav active" onclick="showPage('home')"><div class="ic">⌂</div>Feed</button>
     <button class="nav" onclick="showPage('ia')"><div class="ic">✦</div>Discover</button>
+    <button class="nav" onclick="showPage('profile')"><div class="ic">☺</div>Profil</button>
   </div>
 </div>
 
@@ -141,7 +154,7 @@
       <button type="button" onclick="fillSite('Getaround')">Getaround</button>
       <button type="button" onclick="fillSite('Fortuneo')">Fortuneo</button>
     </div>
-    <input id="formSite" placeholder="Site (ex: Uber Eats)">
+    <input id="formSite" placeholder="Site">
     <input id="formCode" placeholder="Code">
     <input id="formDesc" placeholder="Ex: -20% ou +80€">
     <button onclick="submitCode()">Publier</button>
@@ -152,7 +165,7 @@
 <div class="onboarding" id="onboarding">
   <div class="onboard-card">
     <h2 id="obTitle">Bienvenue sur Codia</h2>
-    <p id="obText">Découvre des codes promo et parrainage partagés par la communauté.</p>
+    <p id="obText">Trouve, copie et partage des codes promo & parrainage.</p>
     <button onclick="nextOnboard()" id="obBtn">Continuer</button>
   </div>
 </div>
@@ -191,15 +204,14 @@
     localStorage.setItem('notif', off ? 'on' : 'off');
     document.getElementById('notifBtn').textContent = off ? '🔔' : '🔕';
   }
-
   function nextOnboard(){
     obStep++;
     if(obStep===1){
-      document.getElementById('obTitle').textContent = 'Explore & like';
-      document.getElementById('obText').textContent = 'Parcours le feed, ouvre les bulles, like les bons codes.';
+      document.getElementById('obTitle').textContent = 'Discover';
+      document.getElementById('obText').textContent = 'Cherche un site et récupère les meilleurs codes en cartes.';
     } else if(obStep===2){
-      document.getElementById('obTitle').textContent = 'Cherche & partage';
-      document.getElementById('obText').textContent = 'Utilise Discover pour trouver un code, puis partage les tiens avec +.';
+      document.getElementById('obTitle').textContent = 'Partage & Profil';
+      document.getElementById('obText').textContent = 'Publie tes codes et retrouve-les dans ton profil.';
       document.getElementById('obBtn').textContent = 'C’est parti';
     } else {
       localStorage.setItem('onboard_done','1');
@@ -216,6 +228,8 @@
       }catch(e){}
     },()=>{},{timeout:4000});
   }
+
+  function getTgUser(){ return window.Telegram?.WebApp?.initDataUnsafe?.user || null; }
 
   function timeAgo(dateStr){
     if(!dateStr) return 'à l’instant';
@@ -234,10 +248,15 @@
     if(page==='home'){
       document.getElementById('page-home').classList.add('active');
       document.querySelectorAll('.nav')[0].classList.add('active');
-    } else {
+    } else if(page==='ia'){
       document.getElementById('page-ia').classList.add('active');
       document.querySelectorAll('.nav')[1].classList.add('active');
       renderHistory();
+      renderSuggestions();
+    } else {
+      document.getElementById('page-profile').classList.add('active');
+      document.querySelectorAll('.nav')[2].classList.add('active');
+      loadProfile();
     }
   }
 
@@ -256,29 +275,21 @@
     document.getElementById('formModal').classList.add('active');
   }
 
-  function getTgUser(){
-    return window.Telegram?.WebApp?.initDataUnsafe?.user || null;
-  }
-
   async function submitCode(){
     const site = document.getElementById('formSite').value.trim();
     const code = document.getElementById('formCode').value.trim();
     const description = document.getElementById('formDesc').value.trim();
     if(!site || !code){ alert('Site et code obligatoires'); return; }
-
     const tgUser = getTgUser();
     const added_by = tgUser?.username ? '@'+tgUser.username : (tgUser?.first_name || 'Membre Codia');
-    const user_id = tgUser?.id || null;
-    const photo_url = tgUser?.photo_url || null;
-
     try{
       const res = await fetch('/codes/add', {
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
+        method:'POST', headers:{'Content-Type':'application/json'},
         body: JSON.stringify({
-          type: currentShareType,
-          site, code, description,
-          added_by, user_id, photo_url
+          type: currentShareType, site, code, description,
+          added_by,
+          user_id: tgUser?.id || null,
+          photo_url: tgUser?.photo_url || null
         })
       });
       const data = await res.json();
@@ -291,45 +302,9 @@
     }catch(e){ alert('Erreur publication'); }
   }
 
-  function renderStories(){
-    const base = ["Top","Uber Eats","Booking","Airbnb","Getaround","Banques"];
-    const dynamicSites = [...new Set(allCodes.map(c => c.site).filter(Boolean))];
-    const names = ["+ Partager", ...base, ...dynamicSites.filter(s => !base.includes(s)).slice(0,6)];
-    document.getElementById('stories').innerHTML = names.map(name=>{
-      const label = name === "+ Partager" ? "+" : name.slice(0,1).toUpperCase();
-      return `<div class="story clickable" onclick="onStoryClick('${name.replace(/'/g,"\\'")}')">
-        <div class="story-ring"><div>${label}</div></div>
-        ${name.length>10 ? name.slice(0,9)+'…' : name}
-      </div>`;
-    }).join('');
-  }
-
-  function onStoryClick(name){
-    if(name === "+ Partager"){ openShare(); return; }
-    showPage('home');
-    showArchive(name);
-  }
-
-  function showArchive(name){
-    const fromDb = allCodes.filter(c =>
-      (c.site||'').toLowerCase().includes(name.toLowerCase()) ||
-      name==='Top' ||
-      (name==='Banques' && /fortuneo|bourso|bank|banque/i.test(c.site||''))
-    );
-    const archive = ARCHIVES[name] || [];
-    const merged = [...fromDb, ...archive];
-    document.getElementById('feed-title').textContent = `Archive • ${name}`;
-    const list = document.getElementById('codes-list');
-    if(!merged.length){
-      list.innerHTML = `<div class="empty">Pas encore de code pour ${name}.</div>`;
-      return;
-    }
-    list.innerHTML = merged.map((c,i)=>renderPost(c,i+1000)).join('');
-  }
-
   function avatarHTML(c){
     if(c.photo_url){
-      return `<img class="avatar-img" src="${c.photo_url}" alt="profile" onerror="this.outerHTML='<div class=\\'avatar\\'>${(c.added_by||'C')[0].toUpperCase()}</div>'">`;
+      return `<img class="avatar-img" src="${c.photo_url}" onerror="this.outerHTML='<div class=\\'avatar\\'>${(c.added_by||'C')[0].toUpperCase()}</div>'">`;
     }
     return `<div class="avatar">${(c.added_by||'C')[0].toUpperCase()}</div>`;
   }
@@ -342,14 +317,12 @@
     const popular = score >= 5 ? `<span class="badge-pop">Populaire</span>` : '';
     const who = c.added_by || 'Membre Codia';
     const actionText = c.type==='parrainage' ? 'a partagé un code parrainage' : 'a partagé un code promo';
-    const when = timeAgo(c.created_at);
-
     return `<div class="post">
       <div class="post-top">
         ${avatarHTML(c)}
         <div style="flex:1">
           <div style="font-weight:600">${who} ${popular}</div>
-          <div class="muted">${actionText} • ${when}</div>
+          <div class="muted">${actionText} • ${timeAgo(c.created_at)}</div>
         </div>
       </div>
       <div class="muted">${c.site}</div>
@@ -359,8 +332,8 @@
       </div>
       <div class="actions">
         ${c.id ? `
-          <button onclick="toggleReact(${c.id}, 'like', this)">${liked ? '❤️' : '🤍'} <span>${c.likes||0}</span></button>
-          <button onclick="toggleReact(${c.id}, 'dislike', this)">${disliked ? '💔' : '👎'} <span>${c.dislikes||0}</span></button>
+          <button onclick="toggleReact(${c.id}, 'like', this)">${liked?'❤️':'🤍'} <span>${c.likes||0}</span></button>
+          <button onclick="toggleReact(${c.id}, 'dislike', this)">${disliked?'💔':'👎'} <span>${c.dislikes||0}</span></button>
         ` : `<span class="muted">Archive</span>`}
       </div>
     </div>`;
@@ -368,36 +341,57 @@
 
   function copyCode(code, btn){
     navigator.clipboard.writeText(code).then(()=>{
-      const old = btn.textContent;
-      btn.textContent = 'Copié';
-      setTimeout(()=>btn.textContent=old, 1200);
+      const old = btn.textContent; btn.textContent='Copié';
+      setTimeout(()=>btn.textContent=old, 1000);
     }).catch(()=>alert(code));
   }
 
+  function renderStories(){
+    const base = ["Top","Uber Eats","Booking","Airbnb","Getaround","Banques"];
+    const dynamicSites = [...new Set(allCodes.map(c => c.site).filter(Boolean))];
+    const names = ["+ Partager", ...base, ...dynamicSites.filter(s => !base.includes(s)).slice(0,5)];
+    document.getElementById('stories').innerHTML = names.map(name=>{
+      const label = name === "+ Partager" ? "+" : name.slice(0,1).toUpperCase();
+      return `<div class="story clickable" onclick="onStoryClick('${name.replace(/'/g,"\\'")}')">
+        <div class="story-ring"><div>${label}</div></div>
+        ${name.length>10 ? name.slice(0,9)+'…' : name}
+      </div>`;
+    }).join('');
+  }
+
+  function onStoryClick(name){
+    if(name === "+ Partager"){ openShare(); return; }
+    showPage('home');
+    const fromDb = allCodes.filter(c =>
+      (c.site||'').toLowerCase().includes(name.toLowerCase()) || name==='Top' ||
+      (name==='Banques' && /fortuneo|bourso|bank|banque/i.test(c.site||''))
+    );
+    const merged = [...fromDb, ...(ARCHIVES[name]||[])];
+    document.getElementById('feed-title').textContent = `Archive • ${name}`;
+    document.getElementById('codes-list').innerHTML = merged.length
+      ? merged.map((c,i)=>renderPost(c,i+1000)).join('')
+      : `<div class="empty">Pas encore de code pour ${name}.</div>`;
+  }
+
   function renderSuggestions(){
-    const base = [
-      {site:"Booking", subtitle:"Hôtels & voyages", q:"code Booking hôtel"},
-      {site:"Uber Eats", subtitle:"Nourriture", q:"code Uber Eats"},
-      {site:"Getaround", subtitle:"Location véhicule", q:"code Getaround voiture"},
-      {site:"Airbnb", subtitle:"Logements", q:"code Airbnb"},
-      {site:"Banques", subtitle:"Parrainages", q:"code parrainage banque"}
+    const items = [
+      {site:"Uber Eats", q:"Uber Eats"},
+      {site:"Booking", q:"Booking"},
+      {site:"Airbnb", q:"Airbnb"},
+      {site:"Fortuneo", q:"Fortuneo"},
+      {site:"Getaround", q:"Getaround"}
     ];
-    const dynamic = [...new Set(allCodes.map(c=>c.site).filter(Boolean))]
-      .filter(s => !base.find(b => b.site.toLowerCase()===s.toLowerCase()))
-      .slice(0,6)
-      .map(s => ({site:s, subtitle:"Nouveau site", q:`code ${s}`}));
-    const items = [...base, ...dynamic];
     document.getElementById('suggestions').innerHTML = items.map(item => `
-      <div class="card row clickable" onclick="quickSearch('${item.q.replace(/'/g,"\\'")}')">
-        <div><strong>${item.site}</strong><div class="muted">${item.subtitle}</div></div>
-        <div class="pill">Chercher</div>
+      <div class="card row clickable" onclick="quickSearch('${item.q}')">
+        <div><strong>${item.site}</strong><div class="muted">Chercher des codes</div></div>
+        <div class="pill">Go</div>
       </div>
     `).join('');
   }
 
   function quickSearch(q){
-    showPage('ia');
     document.getElementById('ai-input').value = q;
+    showPage('ia');
     askAI();
   }
 
@@ -407,7 +401,6 @@
       `<button class="chip" onclick="quickSearch('${h.replace(/'/g,"\\'")}')">${h}</button>`
     ).join('');
   }
-
   function saveHistory(q){
     let hist = JSON.parse(localStorage.getItem('search_history') || '[]');
     hist = [q, ...hist.filter(x => x !== q)].slice(0,8);
@@ -423,7 +416,7 @@
       const other = reaction === 'like' ? 'dislike' : 'like';
       if(localStorage.getItem(other + '_' + id) === '1'){
         localStorage.setItem(other + '_' + id, '0');
-        fetch('/code/react', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({id, reaction: other, action:'remove'})});
+        fetch('/code/react', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({id, reaction:other, action:'remove'})});
       }
     }
     localStorage.setItem(key, action === 'add' ? '1' : '0');
@@ -442,22 +435,65 @@
   }
 
   async function askAI(){
-    const input = document.getElementById('ai-input');
-    const box = document.getElementById('ai-response');
-    const q = input.value.trim();
+    const q = document.getElementById('ai-input').value.trim();
     if(!q) return;
     saveHistory(q);
-    box.style.display='block';
-    box.innerHTML='Recherche en cours...';
+
+    const results = document.getElementById('search-results');
+    const box = document.getElementById('ai-response');
+    results.innerHTML = '<div class="empty">Recherche des codes...</div>';
+    box.style.display = 'block';
+    box.innerHTML = 'Analyse IA...';
+
+    try{
+      const res = await fetch('/codes/search?q=' + encodeURIComponent(q));
+      const data = await res.json();
+      const codes = data.codes || [];
+      results.innerHTML = codes.length
+        ? codes.map(c => renderPost(c)).join('')
+        : '<div class="empty">Aucun code exact en base. L’IA propose une alternative...</div>';
+    }catch(e){
+      results.innerHTML = '<div class="empty">Erreur recherche codes</div>';
+    }
+
     try{
       const res = await fetch('/ask', {
         method:'POST', headers:{'Content-Type':'application/json'},
         body: JSON.stringify({question:q, city:userCity})
       });
       const data = await res.json();
-      box.innerHTML = data.answer || 'Voici une offre intéressante pour toi.';
+      box.innerHTML = data.answer || 'Voici une alternative utile.';
     }catch(e){
-      box.innerHTML = 'Voici une bonne piste : Booking, Uber Eats ou Getaround.';
+      box.innerHTML = 'Alternative : Booking, Uber Eats ou Getaround.';
+    }
+  }
+
+  async function loadProfile(){
+    const u = getTgUser();
+    const card = document.getElementById('profile-card');
+    if(!u){
+      card.innerHTML = 'Ouvre Codia depuis Telegram pour voir ton profil.';
+      return;
+    }
+    const name = u.username ? '@'+u.username : (u.first_name || 'Membre Codia');
+    const photo = u.photo_url
+      ? `<img class="avatar-img" src="${u.photo_url}">`
+      : `<div class="avatar">${name[0].toUpperCase()}</div>`;
+    card.innerHTML = `<div class="post-top">${photo}<div><div style="font-weight:700">${name}</div><div class="muted">Membre Codia</div></div></div>`;
+
+    if(!u.id){
+      document.getElementById('my-codes').innerHTML = '<div class="empty">Impossible de charger tes codes.</div>';
+      return;
+    }
+    try{
+      const res = await fetch('/codes/mine?user_id=' + u.id);
+      const data = await res.json();
+      const codes = data.codes || [];
+      document.getElementById('my-codes').innerHTML = codes.length
+        ? codes.map(c => renderPost(c)).join('')
+        : '<div class="empty">Tu n’as pas encore publié de code.</div>';
+    }catch(e){
+      document.getElementById('my-codes').innerHTML = '<div class="empty">Erreur chargement.</div>';
     }
   }
 
@@ -470,29 +506,21 @@
 
     allCodes.sort((a,b)=> ((b.likes||0)-(b.dislikes||0)) - ((a.likes||0)-(a.dislikes||0)));
     renderStories();
-    renderSuggestions();
 
-    const daily = document.getElementById('daily-codes');
-    const list = document.getElementById('codes-list');
-    const top = allCodes.length ? allCodes.slice(0,3) : ARCHIVES["Top"];
-
-    daily.innerHTML = top.map(c => `
+    const top = allCodes.length ? allCodes.slice(0,3) : ARCHIVES.Top;
+    document.getElementById('daily-codes').innerHTML = top.map(c => `
       <div class="card row">
         <div>
-          <strong>${c.site} ${(c.likes||0)-(c.dislikes||0)>=5?'🔥':''}</strong>
+          <strong>${c.site}</strong>
           <div class="muted">${c.type || 'promo'} • ${c.code}</div>
         </div>
         <div class="pill">${c.description || 'Promo'}</div>
       </div>
     `).join('');
 
-    if(allCodes.length){
-      document.getElementById('feed-title').textContent = 'Communauté';
-      list.innerHTML = allCodes.map(c => renderPost(c)).join('');
-    } else {
-      document.getElementById('feed-title').textContent = 'Archives Codia';
-      list.innerHTML = ARCHIVES["Top"].map((c,i)=>renderPost(c,i+1)).join('');
-    }
+    document.getElementById('feed-title').textContent = allCodes.length ? 'Communauté' : 'Archives Codia';
+    document.getElementById('codes-list').innerHTML = (allCodes.length ? allCodes : ARCHIVES.Top)
+      .map((c,i)=>renderPost(c, i+1)).join('');
   }
 
   loadCodes();
