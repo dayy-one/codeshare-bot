@@ -3,7 +3,6 @@ import stripe
 import requests
 import os
 import json
-from datetime import datetime
 from openai import OpenAI
 import psycopg2
 from psycopg2.extras import RealDictCursor
@@ -47,6 +46,7 @@ def init_db():
             photo_url TEXT,
             likes INTEGER DEFAULT 0,
             dislikes INTEGER DEFAULT 0,
+            copies INTEGER DEFAULT 0,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     ''')
@@ -56,6 +56,17 @@ def init_db():
             paid_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     ''')
+    for col in [
+        "ALTER TABLE codes ADD COLUMN IF NOT EXISTS likes INTEGER DEFAULT 0",
+        "ALTER TABLE codes ADD COLUMN IF NOT EXISTS dislikes INTEGER DEFAULT 0",
+        "ALTER TABLE codes ADD COLUMN IF NOT EXISTS copies INTEGER DEFAULT 0",
+        "ALTER TABLE codes ADD COLUMN IF NOT EXISTS user_id BIGINT",
+        "ALTER TABLE codes ADD COLUMN IF NOT EXISTS photo_url TEXT",
+    ]:
+        try:
+            c.execute(col)
+        except Exception:
+            pass
     conn.commit()
     conn.close()
 
@@ -91,13 +102,29 @@ def save_code(code_type, site, code, description, link, added_by, user_id=None, 
         conn = get_conn()
         c = conn.cursor()
         c.execute('''
-            INSERT INTO codes (type, site, code, description, link, added_by, user_id, photo_url, likes, dislikes)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, 0, 0)
+            INSERT INTO codes (type, site, code, description, link, added_by, user_id, photo_url, likes, dislikes, copies)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, 0, 0, 0)
         ''', (code_type, site, code, description, link, added_by, user_id, photo_url))
         conn.commit()
         conn.close()
     except Exception as e:
         print("Erreur save_code:", e)
+
+def row_to_code(r):
+    return {
+        "id": r["id"],
+        "type": r["type"],
+        "site": r["site"],
+        "code": r["code"],
+        "description": r["description"],
+        "added_by": r["added_by"] or "Membre Codia",
+        "user_id": r["user_id"],
+        "photo_url": r["photo_url"],
+        "likes": r["likes"] or 0,
+        "dislikes": r["dislikes"] or 0,
+        "copies": r["copies"] or 0,
+        "created_at": r["created_at"].isoformat() if r.get("created_at") else None
+    }
 
 def ensure_daily_codes():
     try:
@@ -135,9 +162,7 @@ Réponds UNIQUEMENT avec un JSON valide:
                 str(item.get("code", "CODE")).upper(),
                 item.get("description", "Promo"),
                 None,
-                "Codia IA",
-                None,
-                None
+                "Codia IA"
             )
     except Exception as e:
         print("daily codes error:", e)
@@ -149,7 +174,8 @@ def get_best_codes_text():
         c.execute('''
             SELECT type, site, code, description, likes, dislikes
             FROM codes
-            ORDER BY (likes - dislikes) DESC, created_at DESC
+            WHERE COALESCE(dislikes,0) < 8 OR COALESCE(likes,0) >= COALESCE(dislikes,0)
+            ORDER BY (COALESCE(likes,0) - COALESCE(dislikes,0)) DESC, created_at DESC
             LIMIT 30
         ''')
         rows = c.fetchall()
@@ -176,7 +202,7 @@ Voici les meilleurs codes de la communauté :
 
 RÈGLES ABSOLUES :
 1. Toujours proposer quelque chose d'utile.
-2. Interdiction de répondre négativement ou vide.
+2. Interdiction de réponse négative ou vide.
 3. Priorise les codes de la liste.
 4. Réponds en français, clair et positif.
 """
@@ -210,6 +236,36 @@ def miniapp_keyboard():
 def access_message():
     return "✅ <b>Accès activé</b>\n\nBienvenue sur Codia.\nClique ci-dessous pour ouvrir l’application :"
 
+def send_daily_codes():
+    conn = get_conn()
+    c = conn.cursor(cursor_factory=RealDictCursor)
+    c.execute('''
+        SELECT site, code, description
+        FROM codes
+        WHERE COALESCE(dislikes,0) < 8 OR COALESCE(likes,0) >= COALESCE(dislikes,0)
+        ORDER BY (COALESCE(likes,0) - COALESCE(dislikes,0)) DESC, created_at DESC
+        LIMIT 5
+    ''')
+    rows = c.fetchall()
+    c.execute("SELECT telegram_id FROM paid_users")
+    users = [u["telegram_id"] for u in c.fetchall()]
+    # admin aussi
+    if ADMIN_ID not in users:
+        users.append(ADMIN_ID)
+    conn.close()
+
+    if not rows:
+        return 0
+
+    text = "🔥 <b>Codes du jour Codia</b>\n\n"
+    for r in rows:
+        text += f"• <b>{r['site']}</b> — <code>{r['code']}</code> {r['description'] or ''}\n"
+    text += "\nOuvre Codia pour copier."
+
+    for uid in users:
+        send_telegram_message(uid, text, reply_markup=miniapp_keyboard())
+    return len(users)
+
 @app.route("/")
 def home():
     return "Codia Server 24/7 is running ✅"
@@ -231,6 +287,26 @@ def ask():
         return jsonify({"answer": "Dis-moi ce que tu recherches."})
     return jsonify({"answer": ask_grok(question, city)})
 
+@app.route("/codes", methods=["GET"])
+def get_codes():
+    ensure_daily_codes()
+    try:
+        conn = get_conn()
+        c = conn.cursor(cursor_factory=RealDictCursor)
+        c.execute('''
+            SELECT id, type, site, code, description, added_by, user_id, photo_url,
+                   likes, dislikes, copies, created_at
+            FROM codes
+            WHERE COALESCE(dislikes,0) < 8 OR COALESCE(likes,0) >= COALESCE(dislikes,0)
+            ORDER BY (COALESCE(likes,0) - COALESCE(dislikes,0)) DESC, created_at DESC
+            LIMIT 50
+        ''')
+        rows = c.fetchall()
+        conn.close()
+        return jsonify({"codes": [row_to_code(r) for r in rows]})
+    except Exception as e:
+        return jsonify({"codes": [], "error": str(e)})
+
 @app.route("/codes/search", methods=["GET"])
 def search_codes():
     q = (request.args.get("q") or "").strip().lower()
@@ -239,37 +315,29 @@ def search_codes():
         c = conn.cursor(cursor_factory=RealDictCursor)
         if q:
             c.execute('''
-                SELECT id, type, site, code, description, added_by, user_id, photo_url, likes, dislikes, created_at
+                SELECT id, type, site, code, description, added_by, user_id, photo_url,
+                       likes, dislikes, copies, created_at
                 FROM codes
-                WHERE LOWER(site) LIKE %s OR LOWER(code) LIKE %s OR LOWER(description) LIKE %s OR LOWER(type) LIKE %s
-                ORDER BY (likes - dislikes) DESC, created_at DESC
+                WHERE (COALESCE(dislikes,0) < 8 OR COALESCE(likes,0) >= COALESCE(dislikes,0))
+                  AND (
+                    LOWER(site) LIKE %s OR LOWER(code) LIKE %s
+                    OR LOWER(COALESCE(description,'')) LIKE %s OR LOWER(COALESCE(type,'')) LIKE %s
+                  )
+                ORDER BY (COALESCE(likes,0) - COALESCE(dislikes,0)) DESC, created_at DESC
                 LIMIT 30
             ''', (f'%{q}%', f'%{q}%', f'%{q}%', f'%{q}%'))
         else:
             c.execute('''
-                SELECT id, type, site, code, description, added_by, user_id, photo_url, likes, dislikes, created_at
+                SELECT id, type, site, code, description, added_by, user_id, photo_url,
+                       likes, dislikes, copies, created_at
                 FROM codes
-                ORDER BY (likes - dislikes) DESC, created_at DESC
+                WHERE COALESCE(dislikes,0) < 8 OR COALESCE(likes,0) >= COALESCE(dislikes,0)
+                ORDER BY (COALESCE(likes,0) - COALESCE(dislikes,0)) DESC, created_at DESC
                 LIMIT 20
             ''')
         rows = c.fetchall()
         conn.close()
-        codes = []
-        for r in rows:
-            codes.append({
-                "id": r["id"],
-                "type": r["type"],
-                "site": r["site"],
-                "code": r["code"],
-                "description": r["description"],
-                "added_by": r["added_by"] or "Membre Codia",
-                "user_id": r["user_id"],
-                "photo_url": r["photo_url"],
-                "likes": r["likes"] or 0,
-                "dislikes": r["dislikes"] or 0,
-                "created_at": r["created_at"].isoformat() if r["created_at"] else None
-            })
-        return jsonify({"codes": codes})
+        return jsonify({"codes": [row_to_code(r) for r in rows]})
     except Exception as e:
         return jsonify({"codes": [], "error": str(e)})
 
@@ -282,7 +350,8 @@ def my_codes():
         conn = get_conn()
         c = conn.cursor(cursor_factory=RealDictCursor)
         c.execute('''
-            SELECT id, type, site, code, description, added_by, user_id, photo_url, likes, dislikes, created_at
+            SELECT id, type, site, code, description, added_by, user_id, photo_url,
+                   likes, dislikes, copies, created_at
             FROM codes
             WHERE user_id = %s
             ORDER BY created_at DESC
@@ -290,55 +359,7 @@ def my_codes():
         ''', (int(user_id),))
         rows = c.fetchall()
         conn.close()
-        codes = []
-        for r in rows:
-            codes.append({
-                "id": r["id"],
-                "type": r["type"],
-                "site": r["site"],
-                "code": r["code"],
-                "description": r["description"],
-                "added_by": r["added_by"] or "Membre Codia",
-                "user_id": r["user_id"],
-                "photo_url": r["photo_url"],
-                "likes": r["likes"] or 0,
-                "dislikes": r["dislikes"] or 0,
-                "created_at": r["created_at"].isoformat() if r["created_at"] else None
-            })
-        return jsonify({"codes": codes})
-    except Exception as e:
-        return jsonify({"codes": [], "error": str(e)})
-
-@app.route("/codes", methods=["GET"])
-def get_codes():
-    ensure_daily_codes()
-    try:
-        conn = get_conn()
-        c = conn.cursor(cursor_factory=RealDictCursor)
-        c.execute('''
-            SELECT id, type, site, code, description, added_by, user_id, photo_url, likes, dislikes, created_at
-            FROM codes
-            ORDER BY (likes - dislikes) DESC, created_at DESC
-            LIMIT 50
-        ''')
-        rows = c.fetchall()
-        conn.close()
-        codes = []
-        for r in rows:
-            codes.append({
-                "id": r["id"],
-                "type": r["type"],
-                "site": r["site"],
-                "code": r["code"],
-                "description": r["description"],
-                "added_by": r["added_by"] or "Membre Codia",
-                "user_id": r["user_id"],
-                "photo_url": r["photo_url"],
-                "likes": r["likes"] or 0,
-                "dislikes": r["dislikes"] or 0,
-                "created_at": r["created_at"].isoformat() if r["created_at"] else None
-            })
-        return jsonify({"codes": codes})
+        return jsonify({"codes": [row_to_code(r) for r in rows]})
     except Exception as e:
         return jsonify({"codes": [], "error": str(e)})
 
@@ -384,6 +405,35 @@ def code_react():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route("/code/copy", methods=["POST"])
+def code_copy():
+    data = request.json or {}
+    code_id = data.get("id")
+    if not code_id:
+        return jsonify({"error": "id manquant"}), 400
+    try:
+        conn = get_conn()
+        c = conn.cursor()
+        c.execute("UPDATE codes SET copies = COALESCE(copies,0) + 1 WHERE id = %s", (code_id,))
+        conn.commit()
+        c.execute("SELECT COALESCE(copies,0) FROM codes WHERE id = %s", (code_id,))
+        value = c.fetchone()[0]
+        conn.close()
+        return jsonify({"success": True, "copies": value})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/notify/daily", methods=["POST"])
+def notify_daily():
+    data = request.json or {}
+    if str(data.get("admin_id")) != str(ADMIN_ID):
+        return jsonify({"error": "unauthorized"}), 403
+    try:
+        sent = send_daily_codes()
+        return jsonify({"ok": True, "sent": sent})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 @app.route("/create-checkout", methods=["POST"])
 def create_checkout():
     data = request.json or {}
@@ -396,7 +446,10 @@ def create_checkout():
             line_items=[{
                 "price_data": {
                     "currency": "eur",
-                    "product_data": {"name": "Accès Codia - À vie", "description": "Codes + IA + Communauté"},
+                    "product_data": {
+                        "name": "Accès Codia - À vie",
+                        "description": "Codes + IA + Communauté"
+                    },
                     "unit_amount": 1000,
                 },
                 "quantity": 1,
@@ -481,7 +534,11 @@ def telegram_webhook():
                 result = response.json()
                 if "url" in result:
                     keyboard = {"inline_keyboard": [[{"text": "Payer 10 € – Accès à vie", "url": result["url"]}]]}
-                    send_telegram_message(chat_id, f"👋 Salut <b>{first_name}</b> !\n\nBienvenue sur <b>Codia</b>.\n\nPrix : <b>10 €</b>", reply_markup=keyboard)
+                    send_telegram_message(
+                        chat_id,
+                        f"👋 Salut <b>{first_name}</b> !\n\nBienvenue sur <b>Codia</b>.\n\nPrix : <b>10 €</b>",
+                        reply_markup=keyboard
+                    )
                 else:
                     send_telegram_message(chat_id, "Erreur paiement.")
             except Exception as e:
@@ -494,8 +551,23 @@ def telegram_webhook():
                 return jsonify(success=True)
             send_telegram_message(chat_id, access_message(), reply_markup=miniapp_keyboard())
 
+        elif text.lower() == "/daily":
+            if int(chat_id) != ADMIN_ID:
+                send_telegram_message(chat_id, "⛔ Commande réservée à l'admin.")
+                return jsonify(success=True)
+            try:
+                sent = send_daily_codes()
+                send_telegram_message(chat_id, f"✅ Codes du jour envoyés à {sent} personne(s)")
+            except Exception as e:
+                send_telegram_message(chat_id, f"Erreur: {e}")
+
         elif text == "/admin1" and str(chat_id) == str(ADMIN_ID):
-            keyboard = {"inline_keyboard": [[{"text": "▶️ Démarrer", "callback_data": "admin_start"}], [{"text": "⏹️ Arrêter", "callback_data": "admin_stop"}]]}
+            keyboard = {
+                "inline_keyboard": [
+                    [{"text": "▶️ Démarrer", "callback_data": "admin_start"}],
+                    [{"text": "⏹️ Arrêter", "callback_data": "admin_stop"}]
+                ]
+            }
             send_telegram_message(chat_id, "🔐 Mode Administrateur", reply_markup=keyboard)
 
         elif text.lower().startswith("/promo "):
@@ -539,7 +611,6 @@ def telegram_webhook():
 
     return jsonify(success=True)
 
-# init DB au démarrage
 try:
     init_db()
 except Exception as e:
