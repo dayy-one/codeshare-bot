@@ -4,3 +4,4 @@ requests
 gunicorn
 python-dotenv
 openai
+psycopg2-binary
