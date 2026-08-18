@@ -126,47 +126,6 @@ def row_to_code(r):
         "created_at": r["created_at"].isoformat() if r.get("created_at") else None
     }
 
-def ensure_daily_codes():
-    try:
-        conn = get_conn()
-        c = conn.cursor()
-        c.execute("SELECT COUNT(*) FROM codes WHERE added_by = 'Codia IA' AND created_at::date = CURRENT_DATE")
-        count = c.fetchone()[0]
-        conn.close()
-        if count >= 3:
-            return
-
-        prompt = """
-Donne entre 3 et 5 codes promo ou parrainage utiles pour la France.
-Réponds UNIQUEMENT avec un JSON valide:
-[
-  {"type":"promo","site":"Uber Eats","code":"XXXX","description":"-10€"},
-  {"type":"parrainage","site":"Fortuneo","code":"XXXX","description":"+80€"}
-]
-"""
-        response = client.chat.completions.create(
-            model="grok-3",
-            messages=[{"role": "user", "content": prompt}],
-            temperature=0.7
-        )
-        text = response.choices[0].message.content.strip()
-        start = text.find("[")
-        end = text.rfind("]") + 1
-        if start == -1 or end <= 0:
-            return
-        items = json.loads(text[start:end])
-        for item in items[:5]:
-            save_code(
-                item.get("type", "promo"),
-                item.get("site", "Offre"),
-                str(item.get("code", "CODE")).upper(),
-                item.get("description", "Promo"),
-                None,
-                "Codia IA"
-            )
-    except Exception as e:
-        print("daily codes error:", e)
-
 def get_best_codes_text():
     try:
         conn = get_conn()
@@ -237,34 +196,133 @@ def access_message():
     return "✅ <b>Accès activé</b>\n\nBienvenue sur Codia.\nClique ci-dessous pour ouvrir l’application :"
 
 def send_daily_codes():
-    conn = get_conn()
-    c = conn.cursor(cursor_factory=RealDictCursor)
-    c.execute('''
-        SELECT site, code, description
-        FROM codes
-        WHERE COALESCE(dislikes,0) < 8 OR COALESCE(likes,0) >= COALESCE(dislikes,0)
-        ORDER BY (COALESCE(likes,0) - COALESCE(dislikes,0)) DESC, created_at DESC
-        LIMIT 5
-    ''')
-    rows = c.fetchall()
-    c.execute("SELECT telegram_id FROM paid_users")
-    users = [u["telegram_id"] for u in c.fetchall()]
-    # admin aussi
-    if ADMIN_ID not in users:
-        users.append(ADMIN_ID)
-    conn.close()
+    """
+    Notification = nouveautés trouvées via IA (pas les codes déjà en base pour décider l'envoi).
+    Si aucune remise jugée fiable -> aucun envoi.
+    """
+    prompt = """
+Tu es un assistant de chasseur de promos pour la France.
 
-    if not rows:
+Mission:
+Trouver des REMISES / CODES PROMO actuellement plausibles et utiles.
+Priorité:
+1) Voyages / hôtels (Booking, Airbnb, etc.)
+2) Vêtements (Zara, Nike, H&M, Adidas, Asos, etc.)
+3) Autres gros sites FR seulement si vraiment pertinent
+
+Règles STRICTES:
+- N'invente AUCUN code.
+- Si tu n'as pas de remise claire et crédible, renvoie [].
+- Ne renvoie que des offres que tu considères réelles.
+- Maximum 5 offres.
+- Réponds UNIQUEMENT en JSON valide.
+
+Format:
+[
+  {
+    "site": "Booking",
+    "code": "CODE123",
+    "description": "-15%",
+    "type": "promo",
+    "confidence": 0.0
+  }
+]
+
+confidence = score de 0 à 1.
+Ne garde que les offres avec confidence >= 0.7
+Si aucune, renvoie [].
+"""
+    try:
+        response = client.chat.completions.create(
+            model="grok-3",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.1
+        )
+        text = response.choices[0].message.content.strip()
+        start = text.find("[")
+        end = text.rfind("]") + 1
+        if start == -1 or end <= 0:
+            print("Daily net: JSON invalide -> aucun envoi")
+            return 0
+
+        items = json.loads(text[start:end])
+        if not isinstance(items, list) or len(items) == 0:
+            print("Daily net: liste vide -> aucun envoi")
+            return 0
+
+        selected = []
+        used_sites = set()
+        for item in items:
+            site = str(item.get("site", "")).strip()
+            code = str(item.get("code", "")).strip().upper()
+            desc = str(item.get("description", "")).strip()
+            conf = float(item.get("confidence", 0) or 0)
+
+            if not site or not code:
+                continue
+            if code in ("XXXX", "CODE", "N/A", "NONE"):
+                continue
+            if conf < 0.7:
+                continue
+            if site.lower() in used_sites:
+                continue
+
+            used_sites.add(site.lower())
+            selected.append({
+                "site": site,
+                "code": code,
+                "description": desc or "Remise",
+                "type": item.get("type", "promo")
+            })
+            if len(selected) >= 5:
+                break
+
+        if not selected:
+            print("Daily net: aucune offre fiable -> aucun envoi")
+            return 0
+
+        # Sauvegarde feed (nouveauté), sans servir de source de décision d'envoi
+        for s in selected:
+            save_code(
+                s.get("type", "promo"),
+                s["site"],
+                s["code"],
+                s["description"],
+                None,
+                "Codia IA"
+            )
+
+        conn = get_conn()
+        c = conn.cursor(cursor_factory=RealDictCursor)
+        c.execute("SELECT telegram_id FROM paid_users")
+        users = [u["telegram_id"] for u in c.fetchall()]
+        conn.close()
+        if ADMIN_ID not in users:
+            users.append(ADMIN_ID)
+
+        text_msg = "🆕 <b>Nouvelles remises détectées — Codia</b>\n\n"
+        text_msg += "Suggestions du jour (sources web)\n"
+        text_msg += "Focus : voyages, hôtels, vêtements\n\n"
+
+        for s in selected:
+            site_l = s["site"].lower()
+            emoji = "🏷️"
+            if any(k in site_l for k in ["booking", "airbnb", "hotel", "voyage", "expedia"]):
+                emoji = "✈️"
+            elif any(k in site_l for k in ["zara", "nike", "adidas", "hm", "h&m", "asos", "uniqlo", "mango"]):
+                emoji = "👗"
+            text_msg += f"{emoji} <b>{s['site']}</b> — <code>{s['code']}</code> {s['description']}\n"
+
+        text_msg += "\nVérifie toujours avant paiement.\nOuvre Codia pour copier."
+
+        for uid in users:
+            send_telegram_message(uid, text_msg, reply_markup=miniapp_keyboard())
+
+        return len(users)
+
+    except Exception as e:
+        print("Daily net error:", e)
         return 0
-
-    text = "🔥 <b>Codes du jour Codia</b>\n\n"
-    for r in rows:
-        text += f"• <b>{r['site']}</b> — <code>{r['code']}</code> {r['description'] or ''}\n"
-    text += "\nOuvre Codia pour copier."
-
-    for uid in users:
-        send_telegram_message(uid, text, reply_markup=miniapp_keyboard())
-    return len(users)
 
 @app.route("/")
 def home():
@@ -289,7 +347,6 @@ def ask():
 
 @app.route("/codes", methods=["GET"])
 def get_codes():
-    ensure_daily_codes()
     try:
         conn = get_conn()
         c = conn.cursor(cursor_factory=RealDictCursor)
@@ -557,7 +614,14 @@ def telegram_webhook():
                 return jsonify(success=True)
             try:
                 sent = send_daily_codes()
-                send_telegram_message(chat_id, f"✅ Codes du jour envoyés à {sent} personne(s)")
+                if sent == 0:
+                    send_telegram_message(
+                        chat_id,
+                        "ℹ️ Aucune nouvelle remise fiable trouvée sur le net.\n"
+                        "Aucun message envoyé aux utilisateurs."
+                    )
+                else:
+                    send_telegram_message(chat_id, f"✅ Nouvelles remises envoyées à {sent} personne(s)")
             except Exception as e:
                 send_telegram_message(chat_id, f"Erreur: {e}")
 
