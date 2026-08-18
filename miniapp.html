@@ -15,37 +15,59 @@
     body.light {
       --bg:#fafafa; --card:#fff; --text:#0a0a0a; --text2:#737373;
       --border:#e5e5e5; --accent:#7c3aed; --accent2:#0891b2;
-      --green:#16a34a; --pink:#db2777; --orange:#d97706;
     }
     *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
     body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",Inter,Roboto,sans-serif;background:var(--bg);color:var(--text);height:100vh;overflow:hidden}
     .app{max-width:430px;height:100vh;margin:0 auto;display:flex;flex-direction:column;position:relative;background:var(--bg)}
     .hidden{display:none !important}
 
-    /* PAYWALL */
-    #paywall{position:fixed;inset:0;z-index:100;display:flex;align-items:flex-end;justify-content:center}
-    .pw-bg{position:absolute;inset:0;background:
-      radial-gradient(circle at 20% 20%, rgba(139,92,246,.35), transparent 40%),
-      radial-gradient(circle at 80% 30%, rgba(6,182,212,.25), transparent 40%),
-      #0a0a0a;
-      filter:blur(2px); transform:scale(1.05)}
-    .pw-overlay{position:absolute;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(10px)}
-    .pw-sheet{position:relative;width:100%;max-width:430px;background:rgba(18,18,18,.96);border:1px solid var(--border);
-      border-radius:24px 24px 0 0;padding:22px 18px 28px;max-height:92vh;overflow-y:auto}
-    .pw-logo{width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,var(--accent),var(--accent2));
-      display:flex;align-items:center;justify-content:center;font-weight:800;margin-bottom:12px}
-    .pw-sheet h1{font-size:24px;margin-bottom:6px}
-    .pw-sheet .sub{color:var(--text2);font-size:14px;margin-bottom:16px;line-height:1.4}
-    .pw-list{list-style:none;margin:0 0 16px}
-    .pw-list li{padding:10px 0;border-bottom:1px solid var(--border);font-size:14px;display:flex;gap:10px;align-items:center}
-    .pw-list li:last-child{border-bottom:none}
-    .price{font-size:28px;font-weight:800;margin:8px 0 4px}
-    .price small{font-size:13px;font-weight:500;color:var(--text2)}
-    .secure{font-size:12px;color:var(--text2);margin-bottom:12px}
-    #checkout{min-height:120px}
-    .pw-error{color:#f87171;font-size:13px;margin-top:8px}
+    /* ===== PAYWALL ===== */
+    #paywall{position:fixed;inset:0;z-index:100;overflow:hidden}
+    .pw-preview{position:absolute;inset:0;background:#0a0a0a;padding:16px;opacity:.95}
+    .pv-header{display:flex;gap:10px;align-items:center;margin-bottom:14px}
+    .pv-logo{width:32px;height:32px;border-radius:10px;background:linear-gradient(135deg,#8b5cf6,#06b6d4);display:flex;align-items:center;justify-content:center;font-weight:800}
+    .pv-name{font-weight:700}.pv-sub{font-size:11px;color:#a1a1aa}
+    .pv-stories{display:flex;gap:12px;overflow:hidden;margin-bottom:14px}
+    .pv-story{width:58px;text-align:center;font-size:10px;color:#a1a1aa}
+    .pv-story div{width:52px;height:52px;border-radius:50%;margin:0 auto 6px;border:2px solid #8b5cf6;background:#171717}
+    .pv-cards{display:flex;flex-direction:column;gap:10px}
+    .pv-card{height:84px;border-radius:16px;background:#141414;border:1px solid #222}
 
-    /* APP */
+    .pw-blur{position:absolute;inset:0;backdrop-filter:blur(11px);-webkit-backdrop-filter:blur(11px);background:rgba(0,0,0,.38)}
+    .pw-sheet{
+      position:absolute;left:0;right:0;bottom:0;max-width:430px;margin:0 auto;
+      background:rgba(18,18,18,.97);border:1px solid #2a2a2a;border-radius:22px 22px 0 0;
+      padding:10px 16px 18px;max-height:78vh;display:flex;flex-direction:column;
+    }
+    .pw-handle{width:42px;height:4px;border-radius:99px;background:#333;margin:6px auto 12px}
+    .pw-brand{font-size:12px;color:#a1a1aa}
+    .pw-sheet h1{font-size:26px;margin:4px 0 6px}
+    .pw-desc{color:#a1a1aa;font-size:14px;line-height:1.4;margin-bottom:10px}
+    .pw-scroll{overflow-y:auto;flex:1;margin-bottom:10px}
+    .pw-item{display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-bottom:1px solid #242424}
+    .pw-item:last-child{border-bottom:none}
+    .pw-item span{font-size:18px;width:24px}
+    .pw-item b{display:block;font-size:14px}
+    .pw-item small{color:#a1a1aa;font-size:12px}
+    .pw-footer{padding-top:8px;border-top:1px solid #242424}
+    .pw-price{font-size:28px;font-weight:800;margin-bottom:10px}
+    .pw-price span{font-size:13px;font-weight:500;color:#a1a1aa}
+    .pw-cta{
+      width:100%;border:none;border-radius:14px;padding:14px 16px;font-size:16px;font-weight:700;
+      color:#fff;background:linear-gradient(135deg,#8b5cf6,#06b6d4)
+    }
+    .pw-note{text-align:center;font-size:11px;color:#737373;margin-top:8px}
+    .pw-error{color:#f87171;font-size:12px;margin-top:8px;text-align:center}
+
+    .pw-pay{position:absolute;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:flex-end;justify-content:center}
+    .pw-pay-card{
+      width:100%;max-width:430px;background:#121212;border-radius:22px 22px 0 0;
+      border:1px solid #2a2a2a;padding:16px 16px 24px;max-height:88vh;overflow:auto
+    }
+    .pw-back{background:none;border:none;color:#a1a1aa;margin-bottom:8px;font-size:14px}
+    .pw-pay-card h2{font-size:20px;margin-bottom:4px}
+
+    /* ===== APP ===== */
     .header{padding:14px 16px 10px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)}
     .brand{display:flex;align-items:center;gap:10px}
     .logo-mark{width:32px;height:32px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff}
@@ -99,22 +121,59 @@
 
 <!-- PAYWALL -->
 <div id="paywall" class="hidden">
-  <div class="pw-bg"></div>
-  <div class="pw-overlay"></div>
+  <div class="pw-preview">
+    <div class="pv-header">
+      <div class="pv-logo">C</div>
+      <div>
+        <div class="pv-name">Codia</div>
+        <div class="pv-sub">16,254k members</div>
+      </div>
+    </div>
+    <div class="pv-stories">
+      <div class="pv-story"><div></div>Top</div>
+      <div class="pv-story"><div></div>Uber</div>
+      <div class="pv-story"><div></div>Booking</div>
+      <div class="pv-story"><div></div>Zara</div>
+      <div class="pv-story"><div></div>Airbnb</div>
+    </div>
+    <div class="pv-cards">
+      <div class="pv-card"></div>
+      <div class="pv-card"></div>
+      <div class="pv-card"></div>
+    </div>
+  </div>
+  <div class="pw-blur"></div>
+
   <div class="pw-sheet">
-    <div class="pw-logo">C</div>
-    <h1>Débloque Codia</h1>
-    <p class="sub">Accède au feed, à la recherche IA et aux codes de la communauté.</p>
-    <ul class="pw-list">
-      <li>🏠 Feed communauté — codes partagés</li>
-      <li>✦ Discover — recherche + cartes codes</li>
-      <li>☺ Profil — tes codes publiés</li>
-      <li>🔔 Alertes remises du jour</li>
-    </ul>
-    <div class="price">10 € <small>· accès à vie</small></div>
-    <div class="secure">Paiement sécurisé par Stripe · accès immédiat</div>
-    <div id="checkout">Chargement du paiement…</div>
-    <div class="pw-error" id="pw-error"></div>
+    <div class="pw-handle"></div>
+    <div class="pw-brand">Codia</div>
+    <h1>Passe à Codia</h1>
+    <p class="pw-desc">Débloque l’app complète : codes, IA, communauté.</p>
+
+    <div class="pw-scroll">
+      <div class="pw-item"><span>🏠</span><div><b>Feed communauté</b><small>Codes partagés en temps réel</small></div></div>
+      <div class="pw-item"><span>✦</span><div><b>Discover + IA</b><small>Recherche de remises intelligente</small></div></div>
+      <div class="pw-item"><span>☺</span><div><b>Profil</b><small>Tes codes et ton activité</small></div></div>
+      <div class="pw-item"><span>🔔</span><div><b>Alertes du jour</b><small>Voyages, hôtels, mode</small></div></div>
+      <div class="pw-item"><span>📋</span><div><b>Copie en 1 clic</b><small>Codes prêts à utiliser</small></div></div>
+    </div>
+
+    <div class="pw-footer">
+      <div class="pw-price">10 € <span>accès à vie</span></div>
+      <button class="pw-cta" onclick="startPayment()">Passer à Codia</button>
+      <div class="pw-note">Paiement sécurisé · Apple Pay & carte</div>
+      <div class="pw-error" id="pw-error"></div>
+    </div>
+  </div>
+
+  <div class="pw-pay hidden" id="pw-pay">
+    <div class="pw-pay-card">
+      <button class="pw-back" onclick="backToOffer()">← Retour</button>
+      <h2>Finaliser l’accès</h2>
+      <p class="pw-desc">10 € · accès à vie</p>
+      <div id="checkout">Chargement…</div>
+      <div class="pw-error" id="pw-error-2"></div>
+    </div>
   </div>
 </div>
 
@@ -204,7 +263,7 @@
   Telegram.WebApp.ready();
   Telegram.WebApp.expand();
 
-  let allCodes = [], userCity = null, currentShareType = "promo", stripe = null;
+  let allCodes = [], userCity = null, currentShareType = "promo";
 
   function getTgUser(){ return window.Telegram?.WebApp?.initDataUnsafe?.user || null; }
 
@@ -213,14 +272,11 @@
     const u = getTgUser();
     const userId = u?.id;
 
-    // après retour paiement
     if(params.get('paid') === '1' && userId){
-      // laisse le webhook finaliser, on recheck
       await new Promise(r => setTimeout(r, 1200));
     }
 
     if(!userId){
-      // hors Telegram: affiche paywall quand même
       showPaywall();
       return;
     }
@@ -228,12 +284,8 @@
     try{
       const res = await fetch('/access?user_id=' + userId);
       const data = await res.json();
-      if(data.paid){
-        showApp();
-      } else {
-        showPaywall();
-        await initEmbeddedCheckout(userId);
-      }
+      if(data.paid) showApp();
+      else showPaywall();
     }catch(e){
       showPaywall();
       document.getElementById('pw-error').textContent = 'Erreur accès. Réessaie.';
@@ -250,18 +302,34 @@
     loadCodes();
   }
 
+  function backToOffer(){
+    document.getElementById('pw-pay').classList.add('hidden');
+  }
+
+  async function startPayment(){
+    const u = getTgUser();
+    const userId = u?.id;
+    if(!userId){
+      document.getElementById('pw-error').textContent = 'Ouvre Codia depuis Telegram';
+      return;
+    }
+    document.getElementById('pw-pay').classList.remove('hidden');
+    document.getElementById('checkout').textContent = 'Chargement du paiement…';
+    document.getElementById('pw-error-2').textContent = '';
+    await initEmbeddedCheckout(userId);
+  }
+
   async function initEmbeddedCheckout(telegramId){
-    const err = document.getElementById('pw-error');
+    const err = document.getElementById('pw-error-2');
     const box = document.getElementById('checkout');
     try{
       const cfg = await fetch('/config').then(r => r.json());
       if(!cfg.stripe_pk){
-        err.textContent = 'STRIPE_PUBLISHABLE_KEY manquante';
+        err.textContent = 'Clé Stripe manquante';
         box.textContent = '';
         return;
       }
-      stripe = Stripe(cfg.stripe_pk);
-
+      const stripe = Stripe(cfg.stripe_pk);
       const res = await fetch('/create-embedded-checkout', {
         method:'POST',
         headers:{'Content-Type':'application/json'},
@@ -269,22 +337,19 @@
       });
       const data = await res.json();
       if(!data.clientSecret){
-        err.textContent = data.error || 'Impossible de créer le paiement';
+        err.textContent = data.error || 'Paiement indisponible';
         box.textContent = '';
         return;
       }
-
       const checkout = await stripe.initEmbeddedCheckout({ clientSecret: data.clientSecret });
       box.innerHTML = '';
       checkout.mount('#checkout');
     }catch(e){
       err.textContent = 'Paiement indisponible pour le moment.';
       box.textContent = '';
-      console.error(e);
     }
   }
 
-  // ---- app logic (si payé) ----
   if (localStorage.getItem('theme') === 'light') document.body.classList.add('light');
   if (localStorage.getItem('notif') === 'off') {
     const b = document.getElementById('notifBtn'); if(b) b.textContent = '🔕';
