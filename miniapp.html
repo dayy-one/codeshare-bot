@@ -30,12 +30,14 @@
       overflow:hidden;
     }
     .sg-bg{ position:absolute; inset:0; overflow:hidden; }
+
+    /* preview accueil floutée */
     .sg-home-preview{
       position:absolute; inset:0;
-      background:#000;
-      filter:blur(14px);
-      transform:scale(1.08);
-      opacity:.55;
+      background:#050505;
+      filter:blur(11px);
+      transform:scale(1.07);
+      opacity:.7;
       pointer-events:none;
     }
     .sg-home-preview .hp-header{
@@ -49,101 +51,182 @@
     }
     .sg-home-preview .hp-name{font-weight:700;font-size:16px}
     .sg-home-preview .hp-sub{font-size:11px;color:#a1a1aa}
-    .sg-home-preview .hp-stories{
-      display:flex; gap:12px; padding:14px 16px;
-      border-bottom:1px solid rgba(255,255,255,.06);
-    }
-    .sg-home-preview .hp-story{
-      width:52px; text-align:center; font-size:10px; color:#a1a1aa;
-    }
+    .sg-home-preview .hp-stories{display:flex; gap:12px; padding:14px 16px}
+    .sg-home-preview .hp-story{ width:52px; text-align:center; font-size:10px; color:#a1a1aa; }
     .sg-home-preview .hp-ring{
       width:48px; height:48px; border-radius:50%;
       margin:0 auto 6px;
-      border:2px solid #8b5cf6;
-      background:#171717;
+      border:2px solid transparent;
+      background:
+        linear-gradient(#171717,#171717) padding-box,
+        linear-gradient(45deg,#8b5cf6,#ec4899,#06b6d4) border-box;
     }
     .sg-home-preview .hp-card{
-      margin:12px 16px; height:88px; border-radius:16px;
-      background:#141414; border:1px solid #222;
+      margin:10px 16px; height:78px; border-radius:16px;
+      background:rgba(255,255,255,.05);
+      border:1px solid rgba(255,255,255,.07);
     }
+
+    /* bulles animées 3D */
+    .sg-orbs{ position:absolute; inset:0; pointer-events:none; overflow:hidden; }
+    .orb{
+      position:absolute; border-radius:50%;
+      filter:blur(2px);
+      opacity:.55;
+      animation: floatOrb 9s ease-in-out infinite;
+      box-shadow:0 0 40px rgba(139,92,246,.25);
+    }
+    .orb.o1{ width:120px; height:120px; left:-20px; top:18%; background:radial-gradient(circle at 30% 30%, #c4b5fd, #7c3aed 55%, transparent 70%); animation-duration:8s; }
+    .orb.o2{ width:90px; height:90px; right:-10px; top:28%; background:radial-gradient(circle at 30% 30%, #67e8f9, #0891b2 55%, transparent 70%); animation-duration:10s; animation-delay:-2s; }
+    .orb.o3{ width:70px; height:70px; left:20%; bottom:22%; background:radial-gradient(circle at 30% 30%, #f9a8d4, #db2777 55%, transparent 70%); animation-duration:7s; animation-delay:-1s; }
+    .orb.o4{ width:100px; height:100px; right:18%; bottom:18%; background:radial-gradient(circle at 30% 30%, #fcd34d, #f59e0b 55%, transparent 70%); animation-duration:11s; animation-delay:-3s; }
+    .orb.o5{ width:55px; height:55px; left:42%; top:12%; background:radial-gradient(circle at 30% 30%, #86efac, #22c55e 55%, transparent 70%); animation-duration:9s; animation-delay:-4s; }
+    @keyframes floatOrb{
+      0%,100%{ transform:translate3d(0,0,0) scale(1); }
+      50%{ transform:translate3d(12px,-18px,0) scale(1.08); }
+    }
+
     .sg-dim{
       position:absolute; inset:0;
-      background:rgba(0,0,0,.45);
+      background:radial-gradient(circle at 50% 28%, rgba(0,0,0,.2), rgba(0,0,0,.58));
     }
 
     .sg-wrap{
-      position:relative; z-index:1;
+      position:relative; z-index:2;
       height:100%;
       display:flex; flex-direction:column;
-      padding:14px 18px 18px;
+      padding:10px 16px 14px;
+      animation: rise .45s ease-out;
     }
+    @keyframes rise{
+      from{ opacity:0; transform:translateY(18px) scale(.98); }
+      to{ opacity:1; transform:translateY(0) scale(1); }
+    }
+
     .sg-close{
-      width:28px; height:28px; border:none; background:transparent;
-      color:#fff; font-size:22px; line-height:1; opacity:.85;
-      align-self:flex-start; margin-bottom:8px;
+      width:30px; height:30px; border:none;
+      background:rgba(255,255,255,.08);
+      border:1px solid rgba(255,255,255,.12);
+      border-radius:50%;
+      color:#fff; font-size:18px; line-height:1;
+      align-self:flex-start; margin-bottom:6px;
     }
-    .sg-head{ text-align:center; padding:6px 0 18px; }
+
+    .sg-head{ text-align:center; padding:2px 0 10px; }
     .sg-title-row{
       display:flex; align-items:center; justify-content:center; gap:10px;
-      margin-bottom:8px;
+      margin-bottom:6px;
     }
-    .sg-title{ font-size:34px; font-weight:700; letter-spacing:-.04em; }
+    .sg-title{ font-size:32px; font-weight:800; letter-spacing:-.04em; }
     .sg-badge{
-      font-size:12px; font-weight:600;
-      padding:4px 10px; border-radius:999px;
-      background:#1c1c22; border:1px solid #2e2e36; color:#d4d4d8;
+      font-size:11px; font-weight:700;
+      padding:5px 10px; border-radius:999px;
+      color:#e9d5ff;
+      background:linear-gradient(135deg,rgba(139,92,246,.35),rgba(6,182,212,.2));
+      border:1px solid rgba(167,139,250,.35);
+      box-shadow:0 0 20px rgba(139,92,246,.25);
+      animation: pulseBadge 2.4s ease-in-out infinite;
+    }
+    @keyframes pulseBadge{
+      0%,100%{ box-shadow:0 0 14px rgba(139,92,246,.2); }
+      50%{ box-shadow:0 0 26px rgba(139,92,246,.45); }
     }
     .sg-sub{
-      color:#c4c4c8; font-size:16px; line-height:1.35;
+      color:#d4d4d8; font-size:14px; line-height:1.35;
       max-width:300px; margin:0 auto;
     }
-    .sg-scroll{ flex:1; overflow-y:auto; padding-bottom:8px; }
+
     .sg-features{
-      background:rgba(28,28,32,.92);
-      border:1px solid rgba(255,255,255,.08);
-      border-radius:22px;
-      padding:8px 14px;
-      margin-bottom:12px;
+      flex:0 1 auto;
+      max-height:40vh;
+      overflow:hidden;
+      background:rgba(20,20,28,.52);
+      border:1px solid rgba(255,255,255,.14);
+      border-radius:24px;
+      padding:6px 10px;
+      margin-bottom:10px;
+      backdrop-filter:blur(18px);
+      -webkit-backdrop-filter:blur(18px);
+      box-shadow:
+        0 18px 40px rgba(0,0,0,.45),
+        inset 0 1px 0 rgba(255,255,255,.12),
+        0 0 0 1px rgba(139,92,246,.05);
+      transform:perspective(800px) rotateX(2deg);
+      transition: max-height .35s ease, transform .25s ease;
     }
+    .sg-features.open{ max-height:52vh; overflow-y:auto; transform:perspective(800px) rotateX(0deg); }
+
     .sg-item{
-      display:flex; gap:14px; align-items:flex-start;
-      padding:14px 4px;
+      display:flex; gap:12px; align-items:flex-start;
+      padding:11px 6px;
+      animation: itemIn .4s ease both;
     }
-    .sg-item + .sg-item{ border-top:1px solid rgba(255,255,255,.06); }
+    .sg-item:nth-child(1){animation-delay:.05s}
+    .sg-item:nth-child(2){animation-delay:.1s}
+    .sg-item:nth-child(3){animation-delay:.15s}
+    .sg-item:nth-child(4){animation-delay:.2s}
+    .sg-item:nth-child(5){animation-delay:.25s}
+    .sg-item:nth-child(6){animation-delay:.3s}
+    @keyframes itemIn{
+      from{opacity:0; transform:translateY(10px)}
+      to{opacity:1; transform:translateY(0)}
+    }
+    .sg-item + .sg-item{ border-top:1px solid rgba(255,255,255,.07); }
+
     .sg-ic{
-      width:36px; height:36px; border-radius:50%;
-      background:rgba(255,255,255,.08);
+      width:38px; height:38px; border-radius:14px;
       display:flex; align-items:center; justify-content:center;
-      flex:0 0 36px; font-size:15px; color:#fff;
+      flex:0 0 38px; font-size:16px; color:#fff;
+      border:1px solid rgba(255,255,255,.16);
+      box-shadow:0 10px 20px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.25);
+      transform:translateZ(20px);
     }
-    .sg-item-text{ font-size:15px; line-height:1.35; font-weight:500; padding-top:6px; }
+    .sg-ic.c1{ background:linear-gradient(145deg,#a78bfa,#6d28d9); }
+    .sg-ic.c2{ background:linear-gradient(145deg,#22d3ee,#0284c7); }
+    .sg-ic.c3{ background:linear-gradient(145deg,#fb923c,#ef4444); }
+    .sg-ic.c4{ background:linear-gradient(145deg,#f472b6,#9333ea); }
+    .sg-ic.c5{ background:linear-gradient(145deg,#4ade80,#0d9488); }
+    .sg-ic.c6{ background:linear-gradient(145deg,#fbbf24,#ea580c); }
+
+    .sg-item-text{ font-size:14px; line-height:1.3; font-weight:600; padding-top:4px; }
     .sg-item-text small{
-      display:block; margin-top:3px;
-      color:#a1a1aa; font-size:12px; font-weight:400;
+      display:block; margin-top:2px;
+      color:#b0b0b8; font-size:11.5px; font-weight:400;
     }
+
+    .sg-more{
+      width:100%; border:none; background:transparent;
+      color:#c4b5fd; font-size:12px; font-weight:700;
+      padding:6px 0 8px; cursor:pointer;
+    }
+
     .sg-price-card{
-      background:rgba(28,28,32,.92);
-      border:1px solid rgba(255,255,255,.08);
+      background:rgba(255,255,255,.07);
+      border:1px solid rgba(255,255,255,.14);
       border-radius:18px;
-      padding:14px 16px;
-      margin-bottom:12px;
+      padding:12px 14px;
+      margin-bottom:10px;
+      backdrop-filter:blur(14px);
+      -webkit-backdrop-filter:blur(14px);
+      box-shadow:0 12px 30px rgba(0,0,0,.32), inset 0 1px 0 rgba(255,255,255,.12);
     }
-    .sg-price-card .label{ color:#c4c4c8; font-size:14px; margin-bottom:4px; }
-    .sg-price-card .amount{
-      font-size:28px; font-weight:700; letter-spacing:-.02em;
-    }
+    .sg-price-card .label{ color:#c4c4c8; font-size:13px; margin-bottom:2px; }
+    .sg-price-card .amount{ font-size:26px; font-weight:800; letter-spacing:-.02em; }
+
     .sg-cta{
       width:100%; border:none; border-radius:999px;
-      padding:16px 18px; font-size:17px; font-weight:700;
+      padding:15px 18px; font-size:16px; font-weight:800;
       background:#fff; color:#000; cursor:pointer;
-      margin-bottom:12px;
+      margin-bottom:8px;
+      box-shadow:0 10px 30px rgba(255,255,255,.14);
+      transition: transform .15s ease;
     }
     .sg-cta:active{ transform:scale(.98); }
     .sg-links{
       display:flex; justify-content:center; gap:8px; flex-wrap:wrap;
-      font-size:11px; color:#737373; text-align:center;
+      font-size:10px; color:#737373; text-align:center;
     }
-    .sg-error{ color:#f87171; font-size:12px; text-align:center; margin-top:8px; }
+    .sg-error{ color:#f87171; font-size:12px; text-align:center; margin-top:6px; }
 
     .pw-pay{
       position:absolute; inset:0; z-index:30;
@@ -233,6 +316,13 @@
       <div class="hp-card"></div>
       <div class="hp-card"></div>
     </div>
+    <div class="sg-orbs">
+      <div class="orb o1"></div>
+      <div class="orb o2"></div>
+      <div class="orb o3"></div>
+      <div class="orb o4"></div>
+      <div class="orb o5"></div>
+    </div>
     <div class="sg-dim"></div>
   </div>
 
@@ -244,50 +334,49 @@
         <div class="sg-title">Codia</div>
         <div class="sg-badge">Premium</div>
       </div>
-      <div class="sg-sub">La plateforme pour trouver et partager les meilleures remises</div>
+      <div class="sg-sub">Trouve et partage les meilleures remises</div>
     </div>
 
-    <div class="sg-scroll">
-      <div class="sg-features">
-        <div class="sg-item">
-          <div class="sg-ic">⌂</div>
-          <div class="sg-item-text">Feed communauté<small>Codes partagés en temps réel</small></div>
-        </div>
-        <div class="sg-item">
-          <div class="sg-ic">✦</div>
-          <div class="sg-item-text">Discover + IA<small>Recherche de remises intelligente</small></div>
-        </div>
-        <div class="sg-item">
-          <div class="sg-ic">✈</div>
-          <div class="sg-item-text">Voyages & hôtels<small>Booking, Airbnb, mobilité</small></div>
-        </div>
-        <div class="sg-item">
-          <div class="sg-ic">▦</div>
-          <div class="sg-item-text">Mode & shopping<small>Zara, Nike et marques du quotidien</small></div>
-        </div>
-        <div class="sg-item">
-          <div class="sg-ic">🔔</div>
-          <div class="sg-item-text">Alertes du jour<small>Nouveautés quand c’est pertinent</small></div>
-        </div>
-        <div class="sg-item">
-          <div class="sg-ic">✓</div>
-          <div class="sg-item-text">Copie en 1 clic + profil<small>Tes codes et ton activité</small></div>
-        </div>
+    <div class="sg-features" id="sgFeatures">
+      <div class="sg-item">
+        <div class="sg-ic c1">⌂</div>
+        <div class="sg-item-text">Feed communauté<small>Codes partagés en temps réel</small></div>
       </div>
-
-      <div class="sg-price-card">
-        <div class="label">Paiement unique</div>
-        <div class="amount">10 €</div>
+      <div class="sg-item">
+        <div class="sg-ic c2">✦</div>
+        <div class="sg-item-text">Discover + IA<small>Recherche de remises intelligente</small></div>
       </div>
-
-      <button class="sg-cta" type="button" onclick="startPayment()">Passer à Codia</button>
-      <div class="sg-links">
-        <span>Conditions d'utilisation</span>
-        <span>·</span>
-        <span>Politique de confidentialité</span>
+      <div class="sg-item">
+        <div class="sg-ic c3">✈</div>
+        <div class="sg-item-text">Voyages & hôtels<small>Booking, Airbnb, mobilité</small></div>
       </div>
-      <div class="sg-error" id="pw-error"></div>
+      <div class="sg-item">
+        <div class="sg-ic c4">▦</div>
+        <div class="sg-item-text">Mode & shopping<small>Zara, Nike et marques</small></div>
+      </div>
+      <div class="sg-item">
+        <div class="sg-ic c5">🔔</div>
+        <div class="sg-item-text">Alertes du jour<small>Nouveautés pertinentes</small></div>
+      </div>
+      <div class="sg-item">
+        <div class="sg-ic c6">✓</div>
+        <div class="sg-item-text">Copie en 1 clic + profil<small>Tes codes et ton activité</small></div>
+      </div>
+      <button class="sg-more" type="button" id="sgMoreBtn" onclick="toggleFeatures()">Voir plus ↓</button>
     </div>
+
+    <div class="sg-price-card">
+      <div class="label">Paiement unique</div>
+      <div class="amount">10 €</div>
+    </div>
+
+    <button class="sg-cta" type="button" onclick="startPayment()">Passer à Codia</button>
+    <div class="sg-links">
+      <span>Conditions d'utilisation</span>
+      <span>·</span>
+      <span>Politique de confidentialité</span>
+    </div>
+    <div class="sg-error" id="pw-error"></div>
   </div>
 
   <div class="pw-pay hidden" id="pw-pay">
@@ -388,6 +477,14 @@
 
   let allCodes = [], userCity = null, currentShareType = "promo";
   function getTgUser(){ return window.Telegram?.WebApp?.initDataUnsafe?.user || null; }
+
+  function toggleFeatures(){
+    const box = document.getElementById('sgFeatures');
+    const btn = document.getElementById('sgMoreBtn');
+    if(!box || !btn) return;
+    box.classList.toggle('open');
+    btn.textContent = box.classList.contains('open') ? 'Réduire ↑' : 'Voir plus ↓';
+  }
 
   async function boot(){
     const params = new URLSearchParams(location.search);
