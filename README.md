@@ -1,5 +1,5 @@
 # codeshare-bot
 
-railway retry
+railway retry 2
 
 
