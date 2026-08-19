@@ -6,6 +6,7 @@ import json
 from openai import OpenAI
 import psycopg2
 from psycopg2.extras import RealDictCursor
+from datetime import datetime
 
 app = Flask(__name__)
 
@@ -19,7 +20,6 @@ MINIAPP_URL = os.getenv("MINIAPP_URL", "https://codeshare-bot-production.up.rail
 DATABASE_URL = os.getenv("DATABASE_URL")
 
 client = OpenAI(api_key=os.getenv("XAI_API_KEY"), base_url="https://api.x.ai/v1")
-admin_mode = False
 
 def get_conn():
     if not DATABASE_URL:
@@ -29,6 +29,8 @@ def get_conn():
 def init_db():
     conn = get_conn()
     c = conn.cursor()
+
+    # Table codes
     c.execute('''
         CREATE TABLE IF NOT EXISTS codes (
             id SERIAL PRIMARY KEY,
@@ -44,21 +46,45 @@ def init_db():
             dislikes INTEGER DEFAULT 0,
             copies INTEGER DEFAULT 0,
             deleted BOOLEAN DEFAULT FALSE,
+            expiry DATE,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     ''')
-    # Ajoute la colonne deleted si elle n'existe pas encore (pour les anciennes DB)
+
+    # Ajout des colonnes manquantes (sécurisé)
     try:
         c.execute("ALTER TABLE codes ADD COLUMN IF NOT EXISTS deleted BOOLEAN DEFAULT FALSE")
+        c.execute("ALTER TABLE codes ADD COLUMN IF NOT EXISTS expiry DATE")
     except Exception as e:
-        print("Colonne deleted déjà présente ou erreur:", e)
+        print("Colonnes déjà présentes:", e)
 
+    # Table utilisateurs payants
     c.execute('''
         CREATE TABLE IF NOT EXISTS paid_users (
             telegram_id BIGINT PRIMARY KEY,
             paid_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     ''')
+
+    # Table pour empêcher les multi-copies du même user
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS code_copies (
+            code_id INTEGER,
+            user_id BIGINT,
+            PRIMARY KEY (code_id, user_id)
+        )
+    ''')
+
+    # Table abonnements
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS follows (
+            follower_id BIGINT,
+            following_id BIGINT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (follower_id, following_id)
+        )
+    ''')
+
     conn.commit()
     conn.close()
 
@@ -106,14 +132,14 @@ def set_menu_button(chat_id, text="Découvrir"):
     except Exception as e:
         print("set_menu_button error:", e)
 
-def save_code(code_type, site, code, description, link, added_by, user_id=None, photo_url=None):
+def save_code(code_type, site, code, description, link, added_by, user_id=None, photo_url=None, expiry=None):
     try:
         conn = get_conn()
         c = conn.cursor()
         c.execute('''
-            INSERT INTO codes (type, site, code, description, link, added_by, user_id, photo_url, likes, dislikes, copies, deleted)
-            VALUES (%s,%s,%s,%s,%s,%s,%s,%s,0,0,0,FALSE)
-        ''', (code_type, site, code, description, link, added_by, user_id, photo_url))
+            INSERT INTO codes (type, site, code, description, link, added_by, user_id, photo_url, likes, dislikes, copies, deleted, expiry)
+            VALUES (%s,%s,%s,%s,%s,%s,%s,%s,0,0,0,FALSE,%s)
+        ''', (code_type, site, code, description, link, added_by, user_id, photo_url, expiry))
         conn.commit()
         conn.close()
     except Exception as e:
@@ -121,10 +147,18 @@ def save_code(code_type, site, code, description, link, added_by, user_id=None, 
 
 def row_to_code(r):
     return {
-        "id": r["id"], "type": r["type"], "site": r["site"], "code": r["code"],
-        "description": r["description"], "added_by": r["added_by"] or "Membre Codia",
-        "user_id": r["user_id"], "photo_url": r["photo_url"],
-        "likes": r["likes"] or 0, "dislikes": r["dislikes"] or 0, "copies": r["copies"] or 0,
+        "id": r["id"],
+        "type": r["type"],
+        "site": r["site"],
+        "code": r["code"],
+        "description": r["description"],
+        "added_by": r["added_by"] or "Membre Codia",
+        "user_id": r["user_id"],
+        "photo_url": r["photo_url"],
+        "likes": r["likes"] or 0,
+        "dislikes": r["dislikes"] or 0,
+        "copies": r["copies"] or 0,
+        "expiry": r["expiry"].isoformat() if r.get("expiry") else None,
         "created_at": r["created_at"].isoformat() if r.get("created_at") else None
     }
 
@@ -184,7 +218,7 @@ def send_telegram_message(chat_id, text, reply_markup=None, parse_mode="HTML"):
 def send_daily_codes():
     prompt = """
 Trouve des REMISES / CODES PROMO utiles en France.
-Priorité: voyages/hôtels (Booking, Airbnb), vêtements (Zara, Nike, H&M...).
+Priorité: voyages/hôtels (Booking, Airbnb), vêtements (Zara, Nike, H&M...), banques (Boursorama, Fortuneo).
 Règles: n'invente pas. Si rien de crédible, renvoie [].
 JSON uniquement:
 [{"site":"Booking","code":"XXX","description":"-15%","type":"promo","confidence":0.8}]
@@ -233,7 +267,7 @@ Garde confidence >= 0.7 sinon [].
         if ADMIN_ID not in users:
             users.append(ADMIN_ID)
 
-        msg = "🆕 <b>Nouvelles remises — Codia</b>\n\nFocus voyages / hôtels / vêtements\n\n"
+        msg = "🆕 <b>Nouvelles remises — Codia</b>\n\nFocus voyages / hôtels / vêtements / banques\n\n"
         for s in selected:
             msg += f"• <b>{s['site']}</b> — <code>{s['code']}</code> {s['description']}\n"
         msg += "\nVérifie avant paiement."
@@ -245,6 +279,8 @@ Garde confidence >= 0.7 sinon [].
     except Exception as e:
         print("Daily error:", e)
         return 0
+
+# ====================== ROUTES ======================
 
 @app.route("/")
 def home():
@@ -382,14 +418,21 @@ def add_code_from_app():
     if not site or not code:
         return jsonify({"error": "site et code requis"}), 400
     description = (data.get("description") or "").strip() or ("Promo" if data.get("type") == "promo" else "Parrainage")
-    save_code(data.get("type", "promo"), site, code, description, None,
-              data.get("added_by") or "Membre Codia", data.get("user_id"), data.get("photo_url"))
+    expiry = data.get("expiry") or None
+    save_code(
+        data.get("type", "promo"),
+        site,
+        code,
+        description,
+        None,
+        data.get("added_by") or "Membre Codia",
+        data.get("user_id"),
+        data.get("photo_url"),
+        expiry
+    )
     return jsonify({"success": True})
 
-# ============================================
-# NOUVELLES ROUTES ADMIN / SUPPRESSION
-# ============================================
-
+# ========== SUPPRESSION / RESTORE ==========
 @app.route("/codes/delete", methods=["POST"])
 def delete_code():
     data = request.json or {}
@@ -402,16 +445,13 @@ def delete_code():
     try:
         conn = get_conn()
         c = conn.cursor(cursor_factory=RealDictCursor)
-
-        # Récupérer le code
-        c.execute("SELECT user_id, deleted FROM codes WHERE id = %s", (code_id,))
+        c.execute("SELECT user_id FROM codes WHERE id = %s", (code_id,))
         code = c.fetchone()
 
         if not code:
             conn.close()
             return jsonify({"success": False, "error": "Code introuvable"}), 404
 
-        # Vérification des droits
         is_owner = code["user_id"] and str(code["user_id"]) == str(user_id)
         is_admin = user_id and int(user_id) == ADMIN_ID
 
@@ -419,41 +459,31 @@ def delete_code():
             conn.close()
             return jsonify({"success": False, "error": "Tu ne peux supprimer que tes propres codes"}), 403
 
-        # Soft delete
         c.execute("UPDATE codes SET deleted = TRUE WHERE id = %s", (code_id,))
         conn.commit()
         conn.close()
-
         return jsonify({"success": True})
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
-
 
 @app.route("/codes/deleted", methods=["GET"])
 def get_deleted_codes():
     try:
         conn = get_conn()
         c = conn.cursor(cursor_factory=RealDictCursor)
-        c.execute('''
-            SELECT * FROM codes 
-            WHERE deleted = TRUE 
-            ORDER BY created_at DESC
-        ''')
+        c.execute("SELECT * FROM codes WHERE deleted = TRUE ORDER BY created_at DESC")
         rows = c.fetchall()
         conn.close()
         return jsonify({"codes": [row_to_code(r) for r in rows]})
     except Exception as e:
         return jsonify({"codes": [], "error": str(e)})
 
-
 @app.route("/codes/restore", methods=["POST"])
 def restore_code():
     data = request.json or {}
     code_id = data.get("id")
-
     if not code_id:
         return jsonify({"success": False, "error": "ID manquant"}), 400
-
     try:
         conn = get_conn()
         c = conn.cursor()
@@ -464,8 +494,100 @@ def restore_code():
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
-# ============================================
+# ========== COPIE UNIQUE ==========
+@app.route("/code/copy", methods=["POST"])
+def code_copy():
+    data = request.json or {}
+    code_id = data.get("id")
+    user_id = data.get("user_id")
 
+    if not code_id:
+        return jsonify({"error": "id manquant"}), 400
+
+    try:
+        conn = get_conn()
+        c = conn.cursor()
+
+        if user_id:
+            c.execute("SELECT 1 FROM code_copies WHERE code_id = %s AND user_id = %s", (code_id, user_id))
+            if c.fetchone():
+                # Déjà copié par cet utilisateur → on ne compte pas
+                c.execute("SELECT COALESCE(copies,0) FROM codes WHERE id = %s", (code_id,))
+                value = c.fetchone()[0]
+                conn.close()
+                return jsonify({"success": True, "copies": value, "already": True})
+
+            c.execute(
+                "INSERT INTO code_copies (code_id, user_id) VALUES (%s, %s) ON CONFLICT DO NOTHING",
+                (code_id, user_id)
+            )
+
+        c.execute("UPDATE codes SET copies = COALESCE(copies,0) + 1 WHERE id = %s", (code_id,))
+        conn.commit()
+        c.execute("SELECT COALESCE(copies,0) FROM codes WHERE id = %s", (code_id,))
+        value = c.fetchone()[0]
+        conn.close()
+        return jsonify({"success": True, "copies": value})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+# ========== ABONNEMENTS ==========
+@app.route("/follow", methods=["POST"])
+def follow():
+    data = request.json or {}
+    follower_id = data.get("follower_id")
+    following_id = data.get("following_id")
+    if not follower_id or not following_id or follower_id == following_id:
+        return jsonify({"error": "ids invalides"}), 400
+    try:
+        conn = get_conn()
+        c = conn.cursor()
+        c.execute(
+            "INSERT INTO follows (follower_id, following_id) VALUES (%s, %s) ON CONFLICT DO NOTHING",
+            (follower_id, following_id)
+        )
+        conn.commit()
+        conn.close()
+        return jsonify({"success": True})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/unfollow", methods=["POST"])
+def unfollow():
+    data = request.json or {}
+    follower_id = data.get("follower_id")
+    following_id = data.get("following_id")
+    try:
+        conn = get_conn()
+        c = conn.cursor()
+        c.execute(
+            "DELETE FROM follows WHERE follower_id = %s AND following_id = %s",
+            (follower_id, following_id)
+        )
+        conn.commit()
+        conn.close()
+        return jsonify({"success": True})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/follow/stats")
+def follow_stats():
+    user_id = request.args.get("user_id")
+    if not user_id:
+        return jsonify({"followers": 0, "following": 0})
+    try:
+        conn = get_conn()
+        c = conn.cursor()
+        c.execute("SELECT COUNT(*) FROM follows WHERE following_id = %s", (user_id,))
+        followers = c.fetchone()[0]
+        c.execute("SELECT COUNT(*) FROM follows WHERE follower_id = %s", (user_id,))
+        following = c.fetchone()[0]
+        conn.close()
+        return jsonify({"followers": followers, "following": following})
+    except Exception as e:
+        return jsonify({"followers": 0, "following": 0, "error": str(e)})
+
+# ========== REACT + AUTRES ==========
 @app.route("/code/react", methods=["POST"])
 def code_react():
     data = request.json or {}
@@ -483,23 +605,6 @@ def code_react():
         value = c.fetchone()[0]
         conn.close()
         return jsonify({"success": True, "value": value})
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-@app.route("/code/copy", methods=["POST"])
-def code_copy():
-    code_id = (request.json or {}).get("id")
-    if not code_id:
-        return jsonify({"error": "id manquant"}), 400
-    try:
-        conn = get_conn()
-        c = conn.cursor()
-        c.execute("UPDATE codes SET copies = COALESCE(copies,0)+1 WHERE id=%s", (code_id,))
-        conn.commit()
-        c.execute("SELECT COALESCE(copies,0) FROM codes WHERE id=%s", (code_id,))
-        value = c.fetchone()[0]
-        conn.close()
-        return jsonify({"success": True, "copies": value})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
@@ -544,7 +649,6 @@ def webhook():
 
 @app.route("/telegram", methods=["POST"])
 def telegram_webhook():
-    global admin_mode
     data = request.get_json()
 
     if "message" in data:
@@ -620,6 +724,7 @@ def telegram_webhook():
 
     return jsonify(success=True)
 
+# Démarrage
 try:
     init_db()
 except Exception as e:
