@@ -21,7 +21,7 @@
     .app{max-width:430px;height:100vh;margin:0 auto;display:flex;flex-direction:column;position:relative;background:var(--bg)}
     .hidden{display:none !important}
 
-    /* ===== PAYWALL style SuperGrok ===== */
+    /* ===== PAYWALL ===== */
     #paywall{
       position:fixed; inset:0; z-index:100;
       max-width:430px; margin:0 auto;
@@ -29,13 +29,48 @@
       display:flex; flex-direction:column;
       overflow:hidden;
     }
-    .sg-bg{
+    .sg-bg{ position:absolute; inset:0; overflow:hidden; }
+    .sg-home-preview{
       position:absolute; inset:0;
-      background:
-        radial-gradient(ellipse 90% 55% at 50% -5%, rgba(120,120,140,.35), transparent 60%),
-        radial-gradient(ellipse 70% 40% at 50% 0%, rgba(255,255,255,.06), transparent 55%),
-        #000;
+      background:#000;
+      filter:blur(14px);
+      transform:scale(1.08);
+      opacity:.55;
+      pointer-events:none;
     }
+    .sg-home-preview .hp-header{
+      display:flex; align-items:center; gap:10px;
+      padding:16px;
+      border-bottom:1px solid rgba(255,255,255,.06);
+    }
+    .sg-home-preview .hp-logo{
+      width:32px; height:32px; border-radius:10px;
+      background:linear-gradient(135deg,#8b5cf6,#06b6d4);
+    }
+    .sg-home-preview .hp-name{font-weight:700;font-size:16px}
+    .sg-home-preview .hp-sub{font-size:11px;color:#a1a1aa}
+    .sg-home-preview .hp-stories{
+      display:flex; gap:12px; padding:14px 16px;
+      border-bottom:1px solid rgba(255,255,255,.06);
+    }
+    .sg-home-preview .hp-story{
+      width:52px; text-align:center; font-size:10px; color:#a1a1aa;
+    }
+    .sg-home-preview .hp-ring{
+      width:48px; height:48px; border-radius:50%;
+      margin:0 auto 6px;
+      border:2px solid #8b5cf6;
+      background:#171717;
+    }
+    .sg-home-preview .hp-card{
+      margin:12px 16px; height:88px; border-radius:16px;
+      background:#141414; border:1px solid #222;
+    }
+    .sg-dim{
+      position:absolute; inset:0;
+      background:rgba(0,0,0,.45);
+    }
+
     .sg-wrap{
       position:relative; z-index:1;
       height:100%;
@@ -47,7 +82,7 @@
       color:#fff; font-size:22px; line-height:1; opacity:.85;
       align-self:flex-start; margin-bottom:8px;
     }
-    .sg-head{ text-align:center; padding:6px 0 14px; }
+    .sg-head{ text-align:center; padding:6px 0 18px; }
     .sg-title-row{
       display:flex; align-items:center; justify-content:center; gap:10px;
       margin-bottom:8px;
@@ -61,23 +96,6 @@
     .sg-sub{
       color:#c4c4c8; font-size:16px; line-height:1.35;
       max-width:300px; margin:0 auto;
-    }
-    .sg-tabs{
-      display:flex; justify-content:center;
-      margin:18px auto 16px;
-      background:rgba(255,255,255,.06);
-      border:1px solid rgba(255,255,255,.08);
-      border-radius:999px; padding:3px; width:fit-content;
-    }
-    .sg-tab{
-      border:none; background:transparent; color:#a1a1aa;
-      font-size:13px; font-weight:600;
-      padding:8px 14px; border-radius:999px;
-    }
-    .sg-tab.on{
-      background:rgba(255,255,255,.12);
-      color:#fff;
-      box-shadow:inset 0 0 0 1px rgba(255,255,255,.12);
     }
     .sg-scroll{ flex:1; overflow-y:auto; padding-bottom:8px; }
     .sg-features{
@@ -113,9 +131,6 @@
     .sg-price-card .label{ color:#c4c4c8; font-size:14px; margin-bottom:4px; }
     .sg-price-card .amount{
       font-size:28px; font-weight:700; letter-spacing:-.02em;
-    }
-    .sg-price-card .amount span{
-      font-size:15px; font-weight:500; color:#a1a1aa; margin-left:4px;
     }
     .sg-cta{
       width:100%; border:none; border-radius:999px;
@@ -197,9 +212,30 @@
 </head>
 <body>
 
-<!-- PAYWALL -->
 <div id="paywall" class="hidden">
-  <div class="sg-bg"></div>
+  <div class="sg-bg">
+    <div class="sg-home-preview">
+      <div class="hp-header">
+        <div class="hp-logo"></div>
+        <div>
+          <div class="hp-name">Codia</div>
+          <div class="hp-sub">16,254k members</div>
+        </div>
+      </div>
+      <div class="hp-stories">
+        <div class="hp-story"><div class="hp-ring"></div>Top</div>
+        <div class="hp-story"><div class="hp-ring"></div>Uber</div>
+        <div class="hp-story"><div class="hp-ring"></div>Booking</div>
+        <div class="hp-story"><div class="hp-ring"></div>Zara</div>
+        <div class="hp-story"><div class="hp-ring"></div>Airbnb</div>
+      </div>
+      <div class="hp-card"></div>
+      <div class="hp-card"></div>
+      <div class="hp-card"></div>
+    </div>
+    <div class="sg-dim"></div>
+  </div>
+
   <div class="sg-wrap">
     <button class="sg-close" type="button" onclick="Telegram.WebApp.close()">×</button>
 
@@ -209,11 +245,6 @@
         <div class="sg-badge">Premium</div>
       </div>
       <div class="sg-sub">La plateforme pour trouver et partager les meilleures remises</div>
-    </div>
-
-    <div class="sg-tabs">
-      <button class="sg-tab on" type="button">Codia</button>
-      <button class="sg-tab" type="button">À vie</button>
     </div>
 
     <div class="sg-scroll">
@@ -246,7 +277,7 @@
 
       <div class="sg-price-card">
         <div class="label">Paiement unique</div>
-        <div class="amount">10 € <span>à vie</span></div>
+        <div class="amount">10 €</div>
       </div>
 
       <button class="sg-cta" type="button" onclick="startPayment()">Passer à Codia</button>
@@ -263,14 +294,13 @@
     <div class="pw-pay-card">
       <button class="pw-back" type="button" onclick="backToOffer()">← Retour</button>
       <h2>Finaliser l’accès</h2>
-      <p class="pw-desc">10 € · accès à vie à Codia</p>
+      <p class="pw-desc">10 € · accès Codia</p>
       <div id="checkout">Chargement…</div>
       <div class="sg-error" id="pw-error-2"></div>
     </div>
   </div>
 </div>
 
-<!-- APP -->
 <div class="app hidden" id="main-app">
   <div class="header">
     <div class="brand">
