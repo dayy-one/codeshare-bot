@@ -43,9 +43,16 @@ def init_db():
             likes INTEGER DEFAULT 0,
             dislikes INTEGER DEFAULT 0,
             copies INTEGER DEFAULT 0,
+            deleted BOOLEAN DEFAULT FALSE,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     ''')
+    # Ajoute la colonne deleted si elle n'existe pas encore (pour les anciennes DB)
+    try:
+        c.execute("ALTER TABLE codes ADD COLUMN IF NOT EXISTS deleted BOOLEAN DEFAULT FALSE")
+    except Exception as e:
+        print("Colonne deleted déjà présente ou erreur:", e)
+
     c.execute('''
         CREATE TABLE IF NOT EXISTS paid_users (
             telegram_id BIGINT PRIMARY KEY,
@@ -104,8 +111,8 @@ def save_code(code_type, site, code, description, link, added_by, user_id=None, 
         conn = get_conn()
         c = conn.cursor()
         c.execute('''
-            INSERT INTO codes (type, site, code, description, link, added_by, user_id, photo_url, likes, dislikes, copies)
-            VALUES (%s,%s,%s,%s,%s,%s,%s,%s,0,0,0)
+            INSERT INTO codes (type, site, code, description, link, added_by, user_id, photo_url, likes, dislikes, copies, deleted)
+            VALUES (%s,%s,%s,%s,%s,%s,%s,%s,0,0,0,FALSE)
         ''', (code_type, site, code, description, link, added_by, user_id, photo_url))
         conn.commit()
         conn.close()
@@ -127,7 +134,8 @@ def get_best_codes_text():
         c = conn.cursor()
         c.execute('''
             SELECT type, site, code, description, likes, dislikes FROM codes
-            WHERE COALESCE(dislikes,0) < 8 OR COALESCE(likes,0) >= COALESCE(dislikes,0)
+            WHERE (deleted IS NULL OR deleted = FALSE)
+              AND (COALESCE(dislikes,0) < 8 OR COALESCE(likes,0) >= COALESCE(dislikes,0))
             ORDER BY (COALESCE(likes,0)-COALESCE(dislikes,0)) DESC, created_at DESC LIMIT 30
         ''')
         rows = c.fetchall()
@@ -310,7 +318,8 @@ def get_codes():
         c = conn.cursor(cursor_factory=RealDictCursor)
         c.execute('''
             SELECT * FROM codes
-            WHERE COALESCE(dislikes,0) < 8 OR COALESCE(likes,0) >= COALESCE(dislikes,0)
+            WHERE (deleted IS NULL OR deleted = FALSE)
+              AND (COALESCE(dislikes,0) < 8 OR COALESCE(likes,0) >= COALESCE(dislikes,0))
             ORDER BY (COALESCE(likes,0)-COALESCE(dislikes,0)) DESC, created_at DESC LIMIT 50
         ''')
         rows = c.fetchall()
@@ -328,14 +337,16 @@ def search_codes():
         if q:
             c.execute('''
                 SELECT * FROM codes
-                WHERE (COALESCE(dislikes,0) < 8 OR COALESCE(likes,0) >= COALESCE(dislikes,0))
+                WHERE (deleted IS NULL OR deleted = FALSE)
+                  AND (COALESCE(dislikes,0) < 8 OR COALESCE(likes,0) >= COALESCE(dislikes,0))
                   AND (LOWER(site) LIKE %s OR LOWER(code) LIKE %s OR LOWER(COALESCE(description,'')) LIKE %s)
                 ORDER BY (COALESCE(likes,0)-COALESCE(dislikes,0)) DESC LIMIT 30
             ''', (f'%{q}%', f'%{q}%', f'%{q}%'))
         else:
             c.execute('''
                 SELECT * FROM codes
-                WHERE COALESCE(dislikes,0) < 8 OR COALESCE(likes,0) >= COALESCE(dislikes,0)
+                WHERE (deleted IS NULL OR deleted = FALSE)
+                  AND (COALESCE(dislikes,0) < 8 OR COALESCE(likes,0) >= COALESCE(dislikes,0))
                 ORDER BY (COALESCE(likes,0)-COALESCE(dislikes,0)) DESC LIMIT 20
             ''')
         rows = c.fetchall()
@@ -352,7 +363,11 @@ def my_codes():
     try:
         conn = get_conn()
         c = conn.cursor(cursor_factory=RealDictCursor)
-        c.execute("SELECT * FROM codes WHERE user_id = %s ORDER BY created_at DESC LIMIT 50", (int(user_id),))
+        c.execute('''
+            SELECT * FROM codes 
+            WHERE user_id = %s AND (deleted IS NULL OR deleted = FALSE)
+            ORDER BY created_at DESC LIMIT 50
+        ''', (int(user_id),))
         rows = c.fetchall()
         conn.close()
         return jsonify({"codes": [row_to_code(r) for r in rows]})
@@ -370,6 +385,86 @@ def add_code_from_app():
     save_code(data.get("type", "promo"), site, code, description, None,
               data.get("added_by") or "Membre Codia", data.get("user_id"), data.get("photo_url"))
     return jsonify({"success": True})
+
+# ============================================
+# NOUVELLES ROUTES ADMIN / SUPPRESSION
+# ============================================
+
+@app.route("/codes/delete", methods=["POST"])
+def delete_code():
+    data = request.json or {}
+    code_id = data.get("id")
+    user_id = data.get("user_id")
+
+    if not code_id:
+        return jsonify({"success": False, "error": "ID manquant"}), 400
+
+    try:
+        conn = get_conn()
+        c = conn.cursor(cursor_factory=RealDictCursor)
+
+        # Récupérer le code
+        c.execute("SELECT user_id, deleted FROM codes WHERE id = %s", (code_id,))
+        code = c.fetchone()
+
+        if not code:
+            conn.close()
+            return jsonify({"success": False, "error": "Code introuvable"}), 404
+
+        # Vérification des droits
+        is_owner = code["user_id"] and str(code["user_id"]) == str(user_id)
+        is_admin = user_id and int(user_id) == ADMIN_ID
+
+        if not is_admin and not is_owner:
+            conn.close()
+            return jsonify({"success": False, "error": "Tu ne peux supprimer que tes propres codes"}), 403
+
+        # Soft delete
+        c.execute("UPDATE codes SET deleted = TRUE WHERE id = %s", (code_id,))
+        conn.commit()
+        conn.close()
+
+        return jsonify({"success": True})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@app.route("/codes/deleted", methods=["GET"])
+def get_deleted_codes():
+    try:
+        conn = get_conn()
+        c = conn.cursor(cursor_factory=RealDictCursor)
+        c.execute('''
+            SELECT * FROM codes 
+            WHERE deleted = TRUE 
+            ORDER BY created_at DESC
+        ''')
+        rows = c.fetchall()
+        conn.close()
+        return jsonify({"codes": [row_to_code(r) for r in rows]})
+    except Exception as e:
+        return jsonify({"codes": [], "error": str(e)})
+
+
+@app.route("/codes/restore", methods=["POST"])
+def restore_code():
+    data = request.json or {}
+    code_id = data.get("id")
+
+    if not code_id:
+        return jsonify({"success": False, "error": "ID manquant"}), 400
+
+    try:
+        conn = get_conn()
+        c = conn.cursor()
+        c.execute("UPDATE codes SET deleted = FALSE WHERE id = %s", (code_id,))
+        conn.commit()
+        conn.close()
+        return jsonify({"success": True})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+# ============================================
 
 @app.route("/code/react", methods=["POST"])
 def code_react():
