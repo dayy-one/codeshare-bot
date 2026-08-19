@@ -11,6 +11,9 @@
       --bg:#000; --card:#121212; --text:#fff; --text2:#a1a1aa;
       --border:#1f1f1f; --accent:#8b5cf6; --accent2:#06b6d4;
       --green:#22c55e; --pink:#ec4899; --orange:#f59e0b;
+      --glass:rgba(22,22,28,.58);
+      --glass-border:rgba(255,255,255,.14);
+      --glass-shine:inset 0 1px 0 rgba(255,255,255,.14);
     }
     body.light {
       --bg:#fafafa; --card:#fff; --text:#0a0a0a; --text2:#737373;
@@ -21,7 +24,7 @@
     .app{max-width:430px;height:100vh;margin:0 auto;display:flex;flex-direction:column;position:relative;background:var(--bg)}
     .hidden{display:none !important}
 
-    /* ===== PAYWALL PACK ===== */
+    /* ===== PAYWALL ===== */
     #paywall{
       position:fixed; inset:0; z-index:100;
       max-width:430px; margin:0 auto;
@@ -31,14 +34,14 @@
     }
     .sg-bg{ position:absolute; inset:0; overflow:hidden; }
 
-    /* vraie structure app floutée */
+    /* App live floutée */
     .sg-live-app{
       position:absolute; inset:0;
-      filter:blur(12px);
-      transform:scale(1.05);
-      opacity:.78;
+      filter:blur(13px) saturate(1.15);
+      transform:scale(1.06);
+      opacity:.82;
       pointer-events:none;
-      background:#000;
+      background:#050505;
     }
     .sg-live-app .la-header{
       display:flex; align-items:center; justify-content:space-between;
@@ -58,58 +61,45 @@
         linear-gradient(45deg,#8b5cf6,#ec4899,#06b6d4) border-box;
     }
     .sg-live-app .la-card{
-      margin:10px 16px; padding:12px; border-radius:16px;
+      margin:10px 16px; height:82px; border-radius:16px;
       background:rgba(255,255,255,.05);
       border:1px solid rgba(255,255,255,.07);
-      height:86px;
     }
     .sg-live-app .la-bottom{
       position:absolute; left:0; right:0; bottom:0; height:70px;
       border-top:1px solid rgba(255,255,255,.06);
-      background:rgba(0,0,0,.5);
+      background:rgba(0,0,0,.45);
     }
-
-    .sg-orbs{ position:absolute; inset:0; pointer-events:none; }
-    .orb{
-      position:absolute; border-radius:50%; opacity:.5;
-      animation: floatOrb 9s ease-in-out infinite;
-      filter:blur(1px);
-    }
-    .orb.o1{ width:110px; height:110px; left:-15px; top:16%; background:radial-gradient(circle at 30% 30%, #c4b5fd, #7c3aed 55%, transparent 70%); }
-    .orb.o2{ width:80px; height:80px; right:-8px; top:30%; background:radial-gradient(circle at 30% 30%, #67e8f9, #0891b2 55%, transparent 70%); animation-delay:-2s; }
-    .orb.o3{ width:70px; height:70px; left:22%; bottom:20%; background:radial-gradient(circle at 30% 30%, #f9a8d4, #db2777 55%, transparent 70%); animation-delay:-1s; }
-    .orb.o4{ width:95px; height:95px; right:16%; bottom:16%; background:radial-gradient(circle at 30% 30%, #fcd34d, #f59e0b 55%, transparent 70%); animation-delay:-3s; }
-    @keyframes floatOrb{
-      0%,100%{ transform:translate3d(0,0,0) scale(1); }
-      50%{ transform:translate3d(10px,-16px,0) scale(1.07); }
-    }
-
     .sg-dim{
       position:absolute; inset:0;
-      background:radial-gradient(circle at 50% 25%, rgba(0,0,0,.18), rgba(0,0,0,.62));
+      background:
+        radial-gradient(circle at 50% 20%, rgba(0,0,0,.15), rgba(0,0,0,.55) 55%, rgba(0,0,0,.72));
     }
 
     .sg-wrap{
       position:relative; z-index:2;
       height:100%;
       display:flex; flex-direction:column;
-      padding:10px 16px 14px;
-      animation: rise .45s ease-out;
+      padding:10px 16px 12px;
+      animation: rise .4s ease-out;
     }
     @keyframes rise{
-      from{opacity:0; transform:translateY(16px) scale(.98)}
-      to{opacity:1; transform:translateY(0) scale(1)}
+      from{opacity:0; transform:translateY(14px)}
+      to{opacity:1; transform:translateY(0)}
     }
 
     .sg-close{
-      width:30px; height:30px; border:none;
-      background:rgba(255,255,255,.08);
-      border:1px solid rgba(255,255,255,.12);
+      width:30px; height:30px;
+      border:1px solid var(--glass-border);
+      background:var(--glass);
+      backdrop-filter:blur(12px);
+      -webkit-backdrop-filter:blur(12px);
       border-radius:50%; color:#fff; font-size:18px;
       align-self:flex-start; margin-bottom:4px;
+      box-shadow:var(--glass-shine);
     }
 
-    .sg-head{ text-align:center; padding:2px 0 10px; }
+    .sg-head{ text-align:center; padding:2px 0 8px; }
     .sg-title-row{
       display:flex; align-items:center; justify-content:center; gap:10px;
       margin-bottom:6px;
@@ -117,46 +107,48 @@
     .sg-title{ font-size:32px; font-weight:800; letter-spacing:-.04em; }
     .sg-badge{
       font-size:11px; font-weight:700;
-      padding:5px 10px; border-radius:999px; color:#e9d5ff;
-      background:linear-gradient(135deg,rgba(139,92,246,.35),rgba(6,182,212,.2));
+      padding:5px 10px; border-radius:999px; color:#efe9ff;
+      background:rgba(139,92,246,.28);
       border:1px solid rgba(167,139,250,.35);
-      animation: pulseBadge 2.4s ease-in-out infinite;
-    }
-    @keyframes pulseBadge{
-      0%,100%{ box-shadow:0 0 12px rgba(139,92,246,.2); }
-      50%{ box-shadow:0 0 24px rgba(139,92,246,.45); }
+      backdrop-filter:blur(10px);
+      -webkit-backdrop-filter:blur(10px);
+      box-shadow:0 0 18px rgba(139,92,246,.22);
     }
     .sg-sub{
       color:#d4d4d8; font-size:14px; line-height:1.35;
       max-width:300px; margin:0 auto;
     }
 
-    .sg-features{
-      background:rgba(20,20,28,.55);
-      border:1px solid rgba(255,255,255,.14);
-      border-radius:22px;
-      padding:4px 10px 2px;
-      margin:4px 0 10px;
-      backdrop-filter:blur(18px);
-      -webkit-backdrop-filter:blur(18px);
-      box-shadow:0 16px 36px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.12);
-      max-height:180px;
-      overflow:hidden;
-      transition:max-height .35s ease;
+    /* Glass cards */
+    .glass{
+      background:var(--glass);
+      border:1px solid var(--glass-border);
+      backdrop-filter:blur(22px) saturate(1.2);
+      -webkit-backdrop-filter:blur(22px) saturate(1.2);
+      box-shadow:
+        0 16px 40px rgba(0,0,0,.38),
+        var(--glass-shine),
+        0 0 0 1px rgba(139,92,246,.04);
     }
-    .sg-features.open{ max-height:320px; overflow-y:auto; }
 
-    .sg-item{ display:flex; gap:12px; align-items:flex-start; padding:11px 4px; }
+    .sg-features{
+      border-radius:22px;
+      padding:2px 10px;
+      margin:6px 0 10px;
+      overflow:hidden;
+    }
+    .sg-item{
+      display:flex; gap:12px; align-items:flex-start;
+      padding:10px 4px;
+    }
     .sg-item + .sg-item{ border-top:1px solid rgba(255,255,255,.07); }
-    .sg-item.extra{ display:none; }
-    .sg-features.open .sg-item.extra{ display:flex; }
 
     .sg-ic{
       width:36px; height:36px; border-radius:12px;
       display:flex; align-items:center; justify-content:center;
       flex:0 0 36px; font-size:15px; color:#fff;
-      border:1px solid rgba(255,255,255,.16);
-      box-shadow:0 8px 16px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.22);
+      border:1px solid rgba(255,255,255,.18);
+      box-shadow:0 8px 16px rgba(0,0,0,.22), inset 0 1px 0 rgba(255,255,255,.22);
     }
     .sg-ic.c1{ background:linear-gradient(145deg,#a78bfa,#6d28d9); }
     .sg-ic.c2{ background:linear-gradient(145deg,#22d3ee,#0284c7); }
@@ -165,45 +157,35 @@
     .sg-ic.c5{ background:linear-gradient(145deg,#4ade80,#0d9488); }
     .sg-ic.c6{ background:linear-gradient(145deg,#fbbf24,#ea580c); }
 
-    .sg-item-text{ font-size:14px; line-height:1.3; font-weight:600; padding-top:4px; }
-    .sg-item-text small{ display:block; margin-top:2px; color:#b0b0b8; font-size:11.5px; font-weight:400; }
-
-    .sg-more{
-      width:100%; border:none; background:transparent;
-      color:#c4b5fd; font-size:12px; font-weight:700;
-      padding:6px 0 8px; cursor:pointer;
+    .sg-item-text{ font-size:13.5px; line-height:1.3; font-weight:600; padding-top:3px; }
+    .sg-item-text small{
+      display:block; margin-top:2px;
+      color:#b4b4bc; font-size:11px; font-weight:400;
     }
 
     .sg-price-card{
-      background:rgba(255,255,255,.07);
-      border:1px solid rgba(255,255,255,.14);
       border-radius:18px;
       padding:12px 14px;
       margin-bottom:8px;
-      backdrop-filter:blur(14px);
-      box-shadow:0 12px 28px rgba(0,0,0,.3), inset 0 1px 0 rgba(255,255,255,.12);
     }
     .sg-price-card .label{ color:#c4c4c8; font-size:13px; margin-bottom:2px; }
-    .sg-price-card .amount{ font-size:26px; font-weight:800; }
+    .sg-price-card .amount{ font-size:26px; font-weight:800; letter-spacing:-.02em; }
+
     .sg-social{
       text-align:center; font-size:12px; color:#a1a1aa;
       margin:0 0 10px;
     }
-    .sg-social b{ color:#e5e5e5; }
+    .sg-social b{ color:#e8e8ea; }
 
     .sg-cta{
       width:100%; border:none; border-radius:999px;
       padding:15px 18px; font-size:16px; font-weight:800;
       background:#fff; color:#000; cursor:pointer;
       margin-bottom:8px;
-      box-shadow:0 10px 30px rgba(255,255,255,.14);
-      animation: ctaPulse 2.2s ease-in-out infinite;
+      box-shadow:0 10px 28px rgba(255,255,255,.12);
+      transition: transform .15s ease, box-shadow .15s ease;
     }
-    @keyframes ctaPulse{
-      0%,100%{ transform:scale(1); box-shadow:0 10px 30px rgba(255,255,255,.12); }
-      50%{ transform:scale(1.015); box-shadow:0 12px 34px rgba(255,255,255,.2); }
-    }
-    .sg-cta:active{ transform:scale(.98) !important; animation:none; }
+    .sg-cta:active{ transform:scale(.98); }
     .sg-links{
       display:flex; justify-content:center; gap:8px; flex-wrap:wrap;
       font-size:10px; color:#737373;
@@ -212,27 +194,28 @@
 
     .pw-pay{
       position:absolute; inset:0; z-index:30;
-      background:rgba(0,0,0,.72);
+      background:rgba(0,0,0,.7);
       display:flex; align-items:flex-end;
     }
     .pw-pay-card{
-      width:100%; background:#0c0c0e;
+      width:100%;
       border-radius:18px 18px 0 0;
-      border-top:1px solid #2a2a2a;
+      border-top:1px solid var(--glass-border);
+      background:rgba(12,12,16,.92);
+      backdrop-filter:blur(20px);
+      -webkit-backdrop-filter:blur(20px);
       padding:16px 16px 24px; max-height:88vh; overflow:auto;
     }
     .pw-back{ background:none; border:none; color:#a1a1aa; margin-bottom:10px; font-size:14px; }
     .pw-pay-card h2{ font-size:18px; margin-bottom:4px; }
     .pw-pay-card .pw-desc{ color:#a1a1aa; font-size:13px; margin-bottom:12px; }
 
-    /* succès post-paiement */
     #success-screen{
       position:fixed; inset:0; z-index:200;
       max-width:430px; margin:0 auto;
       background:rgba(0,0,0,.92);
       display:flex; align-items:center; justify-content:center;
       flex-direction:column; gap:12px;
-      animation: rise .35s ease-out;
     }
     .success-check{
       width:72px; height:72px; border-radius:50%;
@@ -240,11 +223,6 @@
       display:flex; align-items:center; justify-content:center;
       font-size:34px; color:#fff;
       box-shadow:0 0 40px rgba(34,197,94,.35);
-      animation: pop .45s ease-out;
-    }
-    @keyframes pop{
-      from{ transform:scale(.6); opacity:0; }
-      to{ transform:scale(1); opacity:1; }
     }
     #success-screen h2{ font-size:22px; font-weight:800; }
     #success-screen p{ color:#a1a1aa; font-size:14px; }
@@ -301,14 +279,12 @@
 </head>
 <body>
 
-<!-- SUCCÈS -->
 <div id="success-screen" class="hidden">
   <div class="success-check">✓</div>
   <h2>Bienvenue sur Codia</h2>
   <p>Ton accès est activé</p>
 </div>
 
-<!-- PAYWALL -->
 <div id="paywall" class="hidden">
   <div class="sg-bg">
     <div class="sg-live-app">
@@ -333,12 +309,6 @@
       <div class="la-card"></div>
       <div class="la-bottom"></div>
     </div>
-    <div class="sg-orbs">
-      <div class="orb o1"></div>
-      <div class="orb o2"></div>
-      <div class="orb o3"></div>
-      <div class="orb o4"></div>
-    </div>
     <div class="sg-dim"></div>
   </div>
 
@@ -353,7 +323,7 @@
       <div class="sg-sub">Trouve et partage les meilleures remises</div>
     </div>
 
-    <div class="sg-features" id="sgFeatures">
+    <div class="sg-features glass">
       <div class="sg-item">
         <div class="sg-ic c1">⌂</div>
         <div class="sg-item-text">Feed communauté<small>Codes partagés en temps réel</small></div>
@@ -364,26 +334,23 @@
       </div>
       <div class="sg-item">
         <div class="sg-ic c3">✈</div>
-        <div class="sg-item-text">Voyages, mode & shopping<small>Booking, Airbnb, Zara, Nike…</small></div>
+        <div class="sg-item-text">Voyages & hôtels<small>Booking, Airbnb, mobilité</small></div>
       </div>
-
-      <div class="sg-item extra">
-        <div class="sg-ic c4">🔔</div>
+      <div class="sg-item">
+        <div class="sg-ic c4">▦</div>
+        <div class="sg-item-text">Mode & shopping<small>Zara, Nike et marques</small></div>
+      </div>
+      <div class="sg-item">
+        <div class="sg-ic c5">🔔</div>
         <div class="sg-item-text">Alertes du jour<small>Nouveautés pertinentes</small></div>
       </div>
-      <div class="sg-item extra">
-        <div class="sg-ic c5">✓</div>
-        <div class="sg-item-text">Copie en 1 clic<small>Codes prêts à utiliser</small></div>
+      <div class="sg-item">
+        <div class="sg-ic c6">✓</div>
+        <div class="sg-item-text">Copie en 1 clic + profil<small>Tes codes et ton activité</small></div>
       </div>
-      <div class="sg-item extra">
-        <div class="sg-ic c6">☺</div>
-        <div class="sg-item-text">Profil membre<small>Tes codes et ton activité</small></div>
-      </div>
-
-      <button class="sg-more" type="button" id="sgMoreBtn" onclick="toggleFeatures()">Voir plus ↓</button>
     </div>
 
-    <div class="sg-price-card">
+    <div class="sg-price-card glass">
       <div class="label">Paiement unique</div>
       <div class="amount">10 €</div>
     </div>
@@ -409,7 +376,6 @@
   </div>
 </div>
 
-<!-- APP -->
 <div class="app hidden" id="main-app">
   <div class="header">
     <div class="brand">
@@ -498,22 +464,11 @@
   let allCodes = [], userCity = null, currentShareType = "promo";
   function getTgUser(){ return window.Telegram?.WebApp?.initDataUnsafe?.user || null; }
 
-  function toggleFeatures(){
-    const box = document.getElementById('sgFeatures');
-    const btn = document.getElementById('sgMoreBtn');
-    if(!box || !btn) return;
-    box.classList.toggle('open');
-    btn.textContent = box.classList.contains('open') ? 'Réduire ↑' : 'Voir plus ↓';
-  }
-
   function showSuccessThenApp(){
     const s = document.getElementById('success-screen');
     s.classList.remove('hidden');
     try { Telegram.WebApp.HapticFeedback.notificationOccurred('success'); } catch(e){}
-    setTimeout(() => {
-      s.classList.add('hidden');
-      showApp();
-    }, 1600);
+    setTimeout(() => { s.classList.add('hidden'); showApp(); }, 1600);
   }
 
   async function boot(){
@@ -521,7 +476,6 @@
     const u = getTgUser();
     const userId = u?.id;
 
-    // retour Stripe après paiement
     if(params.get('paid') === '1' && userId){
       await new Promise(r => setTimeout(r, 800));
       try{
