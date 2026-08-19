@@ -21,120 +21,150 @@
     .app{max-width:430px;height:100vh;margin:0 auto;display:flex;flex-direction:column;position:relative;background:var(--bg)}
     .hidden{display:none !important}
 
-    /* ===== PAYWALL SUPERGROK STYLE ===== */
+    /* ========== PAYWALL type SuperGrok / plans ========== */
     #paywall{
-      position:fixed; inset:0; z-index:100; overflow:hidden;
-      display:flex; align-items:center; justify-content:center;
-      padding:18px 14px 28px;
+      position:fixed; inset:0; z-index:100;
+      display:flex; flex-direction:column;
+      background:#0a0a0b;
+      max-width:430px; margin:0 auto;
     }
-    .pw-bg{
+    .pw-backdrop{
       position:absolute; inset:0;
       background:
-        radial-gradient(circle at 15% 20%, rgba(139,92,246,.45), transparent 42%),
-        radial-gradient(circle at 85% 15%, rgba(6,182,212,.28), transparent 40%),
-        radial-gradient(circle at 50% 85%, rgba(236,72,153,.18), transparent 45%),
-        #07070a;
+        radial-gradient(ellipse 80% 50% at 50% -10%, rgba(139,92,246,.22), transparent 55%),
+        radial-gradient(ellipse 60% 40% at 80% 100%, rgba(6,182,212,.10), transparent 50%),
+        #0a0a0b;
     }
-    .pw-bg-grid{
-      position:absolute; inset:0; opacity:.35;
-      background-image:
-        linear-gradient(rgba(255,255,255,.04) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255,255,255,.04) 1px, transparent 1px);
-      background-size:28px 28px;
-    }
-    .pw-bg-app{
-      position:absolute; left:50%; top:8%; transform:translateX(-50%) scale(1.02);
-      width:min(420px,92vw); height:70vh; border-radius:28px;
-      border:1px solid rgba(255,255,255,.06);
-      background:rgba(18,18,18,.55);
-      filter:blur(8px); opacity:.55; overflow:hidden; pointer-events:none;
-    }
-    .pw-bg-app .fake-top{height:54px;border-bottom:1px solid rgba(255,255,255,.06);display:flex;align-items:center;gap:10px;padding:0 14px}
-    .pw-bg-app .fake-logo{width:28px;height:28px;border-radius:9px;background:linear-gradient(135deg,#8b5cf6,#06b6d4)}
-    .pw-bg-app .fake-stories{display:flex;gap:10px;padding:12px}
-    .pw-bg-app .fake-story{width:46px;height:46px;border-radius:50%;border:2px solid rgba(139,92,246,.7);background:#151515}
-    .pw-bg-app .fake-card{margin:10px 14px;height:74px;border-radius:16px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.05)}
-
-    .pw-float{
-      position:relative; width:min(400px,100%);
-      display:flex; flex-direction:column; gap:12px;
-      animation: floatIn .35s ease-out;
-    }
-    @keyframes floatIn{
-      from{opacity:0; transform:translateY(18px) scale(.98)}
-      to{opacity:1; transform:translateY(0) scale(1)}
+    .pw-backdrop::after{
+      content:""; position:absolute; inset:0;
+      backdrop-filter:blur(2px);
+      background:rgba(0,0,0,.15);
     }
 
-    .pw-card{
-      background:rgba(20,20,24,.82);
-      border:1px solid rgba(255,255,255,.10);
-      border-radius:24px;
-      box-shadow:0 20px 60px rgba(0,0,0,.55), 0 0 0 1px rgba(139,92,246,.08);
-      backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px);
-      padding:18px 16px 14px;
+    .pw-top{
+      position:relative; z-index:2;
+      padding:22px 20px 8px;
+      text-align:center;
     }
-    .pw-kicker{
-      display:inline-flex; align-items:center; gap:8px;
-      font-size:12px; color:#c4b5fd; margin-bottom:10px;
+    .pw-brand{
+      display:inline-flex; align-items:center; gap:10px;
+      margin-bottom:22px;
     }
-    .pw-kicker i{
-      width:8px; height:8px; border-radius:50%;
+    .pw-brand-mark{
+      width:34px; height:34px; border-radius:10px;
       background:linear-gradient(135deg,#8b5cf6,#06b6d4);
-      box-shadow:0 0 12px rgba(139,92,246,.8);
-    }
-    .pw-card h1{font-size:28px; line-height:1.1; margin:0 0 8px; font-weight:800}
-    .pw-card .lead{color:#a1a1aa; font-size:14px; line-height:1.45; margin-bottom:14px}
-
-    .pw-bubbles{display:flex; flex-direction:column; gap:8px; max-height:38vh; overflow-y:auto}
-    .pw-bubble{
-      display:flex; gap:12px; align-items:flex-start;
-      padding:12px; border-radius:16px;
-      background:rgba(255,255,255,.03);
-      border:1px solid rgba(255,255,255,.06);
-    }
-    .pw-bubble .ic{
-      width:34px; height:34px; border-radius:12px; flex:0 0 34px;
       display:flex; align-items:center; justify-content:center;
-      background:linear-gradient(135deg,rgba(139,92,246,.25),rgba(6,182,212,.18));
-      border:1px solid rgba(255,255,255,.06); font-size:15px;
+      font-weight:800; font-size:16px; color:#fff;
     }
-    .pw-bubble b{display:block; font-size:13.5px; margin-bottom:2px}
-    .pw-bubble small{color:#a1a1aa; font-size:12px; line-height:1.35}
+    .pw-brand-name{
+      font-size:22px; font-weight:700; letter-spacing:-.3px;
+    }
 
-    .pw-cta-card{
-      background:rgba(20,20,24,.88);
+    .pw-main{
+      position:relative; z-index:2;
+      flex:1; overflow-y:auto;
+      padding:0 20px 140px;
+    }
+    .pw-main h1{
+      font-size:28px; line-height:1.15; font-weight:700;
+      letter-spacing:-.4px; margin:0 0 10px; text-align:center;
+    }
+    .pw-main .subtitle{
+      text-align:center; color:#a1a1aa; font-size:15px;
+      line-height:1.45; margin-bottom:28px;
+    }
+
+    .pw-plan{
+      border:1px solid rgba(255,255,255,.08);
+      background:rgba(255,255,255,.03);
+      border-radius:18px;
+      padding:18px 16px;
+    }
+    .pw-plan-label{
+      font-size:12px; color:#c4b5fd; font-weight:600;
+      letter-spacing:.4px; text-transform:uppercase;
+      margin-bottom:6px;
+    }
+    .pw-plan-title{
+      font-size:20px; font-weight:700; margin-bottom:4px;
+    }
+    .pw-plan-desc{
+      color:#a1a1aa; font-size:13px; margin-bottom:16px;
+    }
+
+    .pw-features{list-style:none}
+    .pw-features li{
+      display:flex; gap:12px; align-items:flex-start;
+      padding:10px 0;
+      border-top:1px solid rgba(255,255,255,.06);
+      font-size:14px; line-height:1.35;
+    }
+    .pw-features li:first-child{border-top:none; padding-top:0}
+    .pw-check{
+      width:20px; height:20px; border-radius:50%; flex:0 0 20px;
+      margin-top:1px;
+      background:rgba(34,197,94,.15);
+      color:#4ade80;
+      display:flex; align-items:center; justify-content:center;
+      font-size:12px; font-weight:700;
+    }
+    .pw-features b{font-weight:600}
+    .pw-features span{color:#a1a1aa; font-weight:400}
+
+    .pw-bottom{
+      position:absolute; left:0; right:0; bottom:0; z-index:3;
+      padding:14px 16px 22px;
+      background:linear-gradient(to top, #0a0a0b 70%, rgba(10,10,11,0));
+    }
+    .pw-bottom-inner{
       border:1px solid rgba(255,255,255,.10);
-      border-radius:22px;
-      box-shadow:0 16px 40px rgba(0,0,0,.45);
-      backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px);
+      background:rgba(18,18,20,.92);
+      backdrop-filter:blur(16px);
+      -webkit-backdrop-filter:blur(16px);
+      border-radius:18px;
       padding:14px;
     }
-    .pw-price-row{display:flex; align-items:flex-end; justify-content:space-between; gap:10px; margin-bottom:12px}
-    .pw-price{font-size:30px; font-weight:800}
-    .pw-price span{display:block; font-size:12px; font-weight:500; color:#a1a1aa; margin-top:2px}
-    .pw-badge{
-      font-size:11px; color:#c4b5fd; background:rgba(139,92,246,.15);
-      border:1px solid rgba(139,92,246,.25); padding:6px 10px; border-radius:999px; white-space:nowrap;
+    .pw-price-line{
+      display:flex; align-items:baseline; justify-content:space-between;
+      margin-bottom:12px;
     }
+    .pw-price-line strong{
+      font-size:26px; font-weight:700; letter-spacing:-.3px;
+    }
+    .pw-price-line strong em{
+      font-style:normal; font-size:13px; font-weight:500; color:#a1a1aa; margin-left:6px;
+    }
+    .pw-price-line small{color:#a1a1aa; font-size:12px}
     .pw-cta{
-      width:100%; border:none; border-radius:15px; padding:15px 16px;
-      font-size:16px; font-weight:700; color:#fff; cursor:pointer;
-      background:linear-gradient(135deg,#8b5cf6 0%, #6d28d9 45%, #06b6d4 100%);
-      box-shadow:0 10px 30px rgba(109,40,217,.35);
+      width:100%; border:none; border-radius:14px;
+      padding:15px 16px; font-size:16px; font-weight:700;
+      color:#0a0a0b; background:#fff; cursor:pointer;
     }
-    .pw-note{text-align:center; font-size:11px; color:#737373; margin-top:10px}
+    .pw-cta:active{transform:scale(.98)}
+    .pw-legal{
+      text-align:center; margin-top:10px;
+      font-size:11px; color:#737373;
+    }
     .pw-error{color:#f87171; font-size:12px; margin-top:8px; text-align:center}
 
-    .pw-pay{position:absolute; inset:0; background:rgba(0,0,0,.55); display:flex; align-items:flex-end; justify-content:center; z-index:5}
+    .pw-pay{
+      position:absolute; inset:0; z-index:10;
+      background:rgba(0,0,0,.65);
+      display:flex; align-items:flex-end; justify-content:center;
+    }
     .pw-pay-card{
-      width:100%; max-width:430px; background:#121212; border-radius:22px 22px 0 0;
-      border:1px solid #2a2a2a; padding:16px 16px 24px; max-height:88vh; overflow:auto
+      width:100%; max-width:430px;
+      background:#121212;
+      border-radius:20px 20px 0 0;
+      border:1px solid #2a2a2a;
+      padding:16px 16px 24px;
+      max-height:88vh; overflow:auto;
     }
     .pw-back{background:none;border:none;color:#a1a1aa;margin-bottom:8px;font-size:14px}
     .pw-pay-card h2{font-size:20px;margin-bottom:4px}
     .pw-pay-card .pw-desc{color:#a1a1aa;font-size:14px;margin-bottom:12px}
 
-    /* ===== APP ===== */
+    /* ========== APP ========== */
     .header{padding:14px 16px 10px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)}
     .brand{display:flex;align-items:center;gap:10px}
     .logo-mark{width:32px;height:32px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff}
@@ -186,72 +216,45 @@
 </head>
 <body>
 
-<!-- PAYWALL -->
 <div id="paywall" class="hidden">
-  <div class="pw-bg"></div>
-  <div class="pw-bg-grid"></div>
+  <div class="pw-backdrop"></div>
 
-  <div class="pw-bg-app">
-    <div class="fake-top">
-      <div class="fake-logo"></div>
-      <div style="font-weight:700;font-size:14px">Codia</div>
+  <div class="pw-top">
+    <div class="pw-brand">
+      <div class="pw-brand-mark">C</div>
+      <div class="pw-brand-name">Codia</div>
     </div>
-    <div class="fake-stories">
-      <div class="fake-story"></div>
-      <div class="fake-story"></div>
-      <div class="fake-story"></div>
-      <div class="fake-story"></div>
-      <div class="fake-story"></div>
-    </div>
-    <div class="fake-card"></div>
-    <div class="fake-card"></div>
-    <div class="fake-card"></div>
   </div>
 
-  <div class="pw-float">
-    <div class="pw-card">
-      <div class="pw-kicker"><i></i> Accès premium</div>
-      <h1>Passe à Codia</h1>
-      <p class="lead">
-        La plateforme de codes promo & parrainage, avec IA et communauté.
-        Débloque tout instantanément.
-      </p>
+  <div class="pw-main">
+    <h1>Débloque toute la puissance de Codia</h1>
+    <p class="subtitle">Codes promo & parrainage, IA Discover, feed communauté — accès immédiat.</p>
 
-      <div class="pw-bubbles">
-        <div class="pw-bubble">
-          <div class="ic">🏠</div>
-          <div><b>Feed communauté</b><small>Codes partagés, likes, tendances en direct</small></div>
-        </div>
-        <div class="pw-bubble">
-          <div class="ic">✦</div>
-          <div><b>Discover + IA</b><small>Trouve une remise en quelques secondes</small></div>
-        </div>
-        <div class="pw-bubble">
-          <div class="ic">✈️</div>
-          <div><b>Voyages & hôtels</b><small>Booking, Airbnb et bons plans déplacement</small></div>
-        </div>
-        <div class="pw-bubble">
-          <div class="ic">👗</div>
-          <div><b>Mode & shopping</b><small>Zara, Nike et marques du quotidien</small></div>
-        </div>
-        <div class="pw-bubble">
-          <div class="ic">🔔</div>
-          <div><b>Alertes du jour</b><small>Nouveautés envoyées quand c’est pertinent</small></div>
-        </div>
-        <div class="pw-bubble">
-          <div class="ic">📋</div>
-          <div><b>Copie en 1 clic</b><small>Utilise le code immédiatement</small></div>
-        </div>
-      </div>
+    <div class="pw-plan">
+      <div class="pw-plan-label">Accès à vie</div>
+      <div class="pw-plan-title">Codia</div>
+      <div class="pw-plan-desc">Tout ce dont tu as besoin pour trouver et partager les meilleures remises.</div>
+
+      <ul class="pw-features">
+        <li><div class="pw-check">✓</div><div><b>Feed communauté</b> — codes partagés en temps réel</div></li>
+        <li><div class="pw-check">✓</div><div><b>Discover + IA</b> — recherche de remises intelligente</div></li>
+        <li><div class="pw-check">✓</div><div><b>Voyages & hôtels</b> — Booking, Airbnb, mobilité</div></li>
+        <li><div class="pw-check">✓</div><div><b>Mode & shopping</b> — Zara, Nike et marques du quotidien</div></li>
+        <li><div class="pw-check">✓</div><div><b>Alertes du jour</b> — nouveautés pertinentes</div></li>
+        <li><div class="pw-check">✓</div><div><b>Copie en 1 clic</b> — codes prêts à utiliser</div></li>
+        <li><div class="pw-check">✓</div><div><b>Profil</b> — tes codes et ton activité</div></li>
+      </ul>
     </div>
+  </div>
 
-    <div class="pw-cta-card">
-      <div class="pw-price-row">
-        <div class="pw-price">10 €<span>paiement unique · accès à vie</span></div>
-        <div class="pw-badge">Sans abonnement</div>
+  <div class="pw-bottom">
+    <div class="pw-bottom-inner">
+      <div class="pw-price-line">
+        <strong>10 €<em>à vie</em></strong>
+        <small>Sans abonnement</small>
       </div>
       <button class="pw-cta" onclick="startPayment()">Passer à Codia</button>
-      <div class="pw-note">Sécurisé par Stripe · Apple Pay & carte</div>
+      <div class="pw-legal">Paiement sécurisé · Apple Pay & carte</div>
       <div class="pw-error" id="pw-error"></div>
     </div>
   </div>
@@ -267,7 +270,6 @@
   </div>
 </div>
 
-<!-- APP -->
 <div class="app hidden" id="main-app">
   <div class="header">
     <div class="brand">
@@ -354,28 +356,18 @@
   Telegram.WebApp.expand();
 
   let allCodes = [], userCity = null, currentShareType = "promo";
-
   function getTgUser(){ return window.Telegram?.WebApp?.initDataUnsafe?.user || null; }
 
   async function boot(){
     const params = new URLSearchParams(location.search);
     const u = getTgUser();
     const userId = u?.id;
-
-    if(params.get('paid') === '1' && userId){
-      await new Promise(r => setTimeout(r, 1200));
-    }
-
-    if(!userId){
-      showPaywall();
-      return;
-    }
-
+    if(params.get('paid') === '1' && userId) await new Promise(r => setTimeout(r, 1200));
+    if(!userId){ showPaywall(); return; }
     try{
       const res = await fetch('/access?user_id=' + userId);
       const data = await res.json();
-      if(data.paid) showApp();
-      else showPaywall();
+      if(data.paid) showApp(); else showPaywall();
     }catch(e){
       showPaywall();
       document.getElementById('pw-error').textContent = 'Erreur accès. Réessaie.';
@@ -391,14 +383,10 @@
     document.getElementById('main-app').classList.remove('hidden');
     loadCodes();
   }
-
-  function backToOffer(){
-    document.getElementById('pw-pay').classList.add('hidden');
-  }
+  function backToOffer(){ document.getElementById('pw-pay').classList.add('hidden'); }
 
   async function startPayment(){
-    const u = getTgUser();
-    const userId = u?.id;
+    const userId = getTgUser()?.id;
     if(!userId){
       document.getElementById('pw-error').textContent = 'Ouvre Codia depuis Telegram';
       return;
@@ -414,23 +402,14 @@
     const box = document.getElementById('checkout');
     try{
       const cfg = await fetch('/config').then(r => r.json());
-      if(!cfg.stripe_pk){
-        err.textContent = 'Clé Stripe manquante';
-        box.textContent = '';
-        return;
-      }
+      if(!cfg.stripe_pk){ err.textContent = 'Clé Stripe manquante'; box.textContent=''; return; }
       const stripe = Stripe(cfg.stripe_pk);
       const res = await fetch('/create-embedded-checkout', {
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
+        method:'POST', headers:{'Content-Type':'application/json'},
         body: JSON.stringify({telegram_id: telegramId})
       });
       const data = await res.json();
-      if(!data.clientSecret){
-        err.textContent = data.error || 'Paiement indisponible';
-        box.textContent = '';
-        return;
-      }
+      if(!data.clientSecret){ err.textContent = data.error || 'Paiement indisponible'; box.textContent=''; return; }
       const checkout = await stripe.initEmbeddedCheckout({ clientSecret: data.clientSecret });
       box.innerHTML = '';
       checkout.mount('#checkout');
@@ -475,9 +454,7 @@
   function chooseShare(type){
     currentShareType=type; closeShare();
     document.getElementById('formTitle').textContent = type==='promo'?'Nouveau code promo':'Nouveau code parrainage';
-    document.getElementById('formSite').value='';
-    document.getElementById('formCode').value='';
-    document.getElementById('formDesc').value='';
+    document.getElementById('formSite').value=''; document.getElementById('formCode').value=''; document.getElementById('formDesc').value='';
     document.getElementById('formModal').classList.add('active');
   }
 
@@ -503,8 +480,8 @@
     return `<div class="avatar">${(c.added_by||'C')[0].toUpperCase()}</div>`;
   }
 
-  function renderPost(c, fallbackId){
-    const id=c.id||fallbackId;
+  function renderPost(c){
+    const id=c.id;
     const liked=localStorage.getItem('like_'+id)==='1';
     const disliked=localStorage.getItem('dislike_'+id)==='1';
     const score=(c.likes||0)-(c.dislikes||0);
@@ -519,7 +496,7 @@
         <button class="copy-btn" onclick="copyCode(${c.id||0}, '${String(c.code).replace(/'/g,"\\'")}', this)">Copier${copies?' · '+copies:''}</button></div>
       <div class="actions">${c.id?`
         <button onclick="toggleReact(${c.id},'like',this)">${liked?'❤️':'🤍'} <span>${c.likes||0}</span></button>
-        <button onclick="toggleReact(${c.id},'dislike',this)">${disliked?'💔':'👎'} <span>${c.dislikes||0}</span></button>`:'<span class="muted">Archive</span>'}</div></div>`;
+        <button onclick="toggleReact(${c.id},'dislike',this)">${disliked?'💔':'👎'} <span>${c.dislikes||0}</span></button>`:''}</div></div>`;
   }
 
   async function copyCode(id, code, btn){
@@ -599,8 +576,7 @@
     try{
       const res=await fetch('/codes/search?q='+encodeURIComponent(q));
       const data=await res.json();
-      const codes=data.codes||[];
-      results.innerHTML=codes.length?codes.map(c=>renderPost(c)).join(''):'<div class="empty">Aucun code exact en base</div>';
+      results.innerHTML=(data.codes||[]).length?(data.codes||[]).map(c=>renderPost(c)).join(''):'<div class="empty">Aucun code exact en base</div>';
     }catch(e){ results.innerHTML='<div class="empty">Erreur recherche</div>'; }
     try{
       const res=await fetch('/ask',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question:q,city:userCity})});
@@ -620,8 +596,7 @@
     try{
       const res=await fetch('/codes/mine?user_id='+u.id);
       const data=await res.json();
-      const codes=data.codes||[];
-      document.getElementById('my-codes').innerHTML=codes.length?codes.map(c=>renderPost(c)).join(''):'<div class="empty">Aucun code publié</div>';
+      document.getElementById('my-codes').innerHTML=(data.codes||[]).length?(data.codes||[]).map(c=>renderPost(c)).join(''):'<div class="empty">Aucun code publié</div>';
     }catch(e){ document.getElementById('my-codes').innerHTML='<div class="empty">Erreur</div>'; }
   }
 
