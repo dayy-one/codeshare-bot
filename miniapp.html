@@ -21,150 +21,131 @@
     .app{max-width:430px;height:100vh;margin:0 auto;display:flex;flex-direction:column;position:relative;background:var(--bg)}
     .hidden{display:none !important}
 
-    /* ========== PAYWALL type SuperGrok / plans ========== */
+    /* ===== PAYWALL style SuperGrok ===== */
     #paywall{
       position:fixed; inset:0; z-index:100;
-      display:flex; flex-direction:column;
-      background:#0a0a0b;
       max-width:430px; margin:0 auto;
+      background:#000; color:#fff;
+      display:flex; flex-direction:column;
+      overflow:hidden;
     }
-    .pw-backdrop{
+    .sg-bg{
       position:absolute; inset:0;
       background:
-        radial-gradient(ellipse 80% 50% at 50% -10%, rgba(139,92,246,.22), transparent 55%),
-        radial-gradient(ellipse 60% 40% at 80% 100%, rgba(6,182,212,.10), transparent 50%),
-        #0a0a0b;
+        radial-gradient(ellipse 90% 55% at 50% -5%, rgba(120,120,140,.35), transparent 60%),
+        radial-gradient(ellipse 70% 40% at 50% 0%, rgba(255,255,255,.06), transparent 55%),
+        #000;
     }
-    .pw-backdrop::after{
-      content:""; position:absolute; inset:0;
-      backdrop-filter:blur(2px);
-      background:rgba(0,0,0,.15);
+    .sg-wrap{
+      position:relative; z-index:1;
+      height:100%;
+      display:flex; flex-direction:column;
+      padding:14px 18px 18px;
     }
-
-    .pw-top{
-      position:relative; z-index:2;
-      padding:22px 20px 8px;
-      text-align:center;
+    .sg-close{
+      width:28px; height:28px; border:none; background:transparent;
+      color:#fff; font-size:22px; line-height:1; opacity:.85;
+      align-self:flex-start; margin-bottom:8px;
     }
-    .pw-brand{
-      display:inline-flex; align-items:center; gap:10px;
-      margin-bottom:22px;
+    .sg-head{ text-align:center; padding:6px 0 14px; }
+    .sg-title-row{
+      display:flex; align-items:center; justify-content:center; gap:10px;
+      margin-bottom:8px;
     }
-    .pw-brand-mark{
-      width:34px; height:34px; border-radius:10px;
-      background:linear-gradient(135deg,#8b5cf6,#06b6d4);
-      display:flex; align-items:center; justify-content:center;
-      font-weight:800; font-size:16px; color:#fff;
+    .sg-title{ font-size:34px; font-weight:700; letter-spacing:-.04em; }
+    .sg-badge{
+      font-size:12px; font-weight:600;
+      padding:4px 10px; border-radius:999px;
+      background:#1c1c22; border:1px solid #2e2e36; color:#d4d4d8;
     }
-    .pw-brand-name{
-      font-size:22px; font-weight:700; letter-spacing:-.3px;
+    .sg-sub{
+      color:#c4c4c8; font-size:16px; line-height:1.35;
+      max-width:300px; margin:0 auto;
     }
-
-    .pw-main{
-      position:relative; z-index:2;
-      flex:1; overflow-y:auto;
-      padding:0 20px 140px;
-    }
-    .pw-main h1{
-      font-size:28px; line-height:1.15; font-weight:700;
-      letter-spacing:-.4px; margin:0 0 10px; text-align:center;
-    }
-    .pw-main .subtitle{
-      text-align:center; color:#a1a1aa; font-size:15px;
-      line-height:1.45; margin-bottom:28px;
-    }
-
-    .pw-plan{
+    .sg-tabs{
+      display:flex; justify-content:center;
+      margin:18px auto 16px;
+      background:rgba(255,255,255,.06);
       border:1px solid rgba(255,255,255,.08);
-      background:rgba(255,255,255,.03);
-      border-radius:18px;
-      padding:18px 16px;
+      border-radius:999px; padding:3px; width:fit-content;
     }
-    .pw-plan-label{
-      font-size:12px; color:#c4b5fd; font-weight:600;
-      letter-spacing:.4px; text-transform:uppercase;
-      margin-bottom:6px;
+    .sg-tab{
+      border:none; background:transparent; color:#a1a1aa;
+      font-size:13px; font-weight:600;
+      padding:8px 14px; border-radius:999px;
     }
-    .pw-plan-title{
-      font-size:20px; font-weight:700; margin-bottom:4px;
+    .sg-tab.on{
+      background:rgba(255,255,255,.12);
+      color:#fff;
+      box-shadow:inset 0 0 0 1px rgba(255,255,255,.12);
     }
-    .pw-plan-desc{
-      color:#a1a1aa; font-size:13px; margin-bottom:16px;
-    }
-
-    .pw-features{list-style:none}
-    .pw-features li{
-      display:flex; gap:12px; align-items:flex-start;
-      padding:10px 0;
-      border-top:1px solid rgba(255,255,255,.06);
-      font-size:14px; line-height:1.35;
-    }
-    .pw-features li:first-child{border-top:none; padding-top:0}
-    .pw-check{
-      width:20px; height:20px; border-radius:50%; flex:0 0 20px;
-      margin-top:1px;
-      background:rgba(34,197,94,.15);
-      color:#4ade80;
-      display:flex; align-items:center; justify-content:center;
-      font-size:12px; font-weight:700;
-    }
-    .pw-features b{font-weight:600}
-    .pw-features span{color:#a1a1aa; font-weight:400}
-
-    .pw-bottom{
-      position:absolute; left:0; right:0; bottom:0; z-index:3;
-      padding:14px 16px 22px;
-      background:linear-gradient(to top, #0a0a0b 70%, rgba(10,10,11,0));
-    }
-    .pw-bottom-inner{
-      border:1px solid rgba(255,255,255,.10);
-      background:rgba(18,18,20,.92);
-      backdrop-filter:blur(16px);
-      -webkit-backdrop-filter:blur(16px);
-      border-radius:18px;
-      padding:14px;
-    }
-    .pw-price-line{
-      display:flex; align-items:baseline; justify-content:space-between;
+    .sg-scroll{ flex:1; overflow-y:auto; padding-bottom:8px; }
+    .sg-features{
+      background:rgba(28,28,32,.92);
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:22px;
+      padding:8px 14px;
       margin-bottom:12px;
     }
-    .pw-price-line strong{
-      font-size:26px; font-weight:700; letter-spacing:-.3px;
+    .sg-item{
+      display:flex; gap:14px; align-items:flex-start;
+      padding:14px 4px;
     }
-    .pw-price-line strong em{
-      font-style:normal; font-size:13px; font-weight:500; color:#a1a1aa; margin-left:6px;
+    .sg-item + .sg-item{ border-top:1px solid rgba(255,255,255,.06); }
+    .sg-ic{
+      width:36px; height:36px; border-radius:50%;
+      background:rgba(255,255,255,.08);
+      display:flex; align-items:center; justify-content:center;
+      flex:0 0 36px; font-size:15px; color:#fff;
     }
-    .pw-price-line small{color:#a1a1aa; font-size:12px}
-    .pw-cta{
-      width:100%; border:none; border-radius:14px;
-      padding:15px 16px; font-size:16px; font-weight:700;
-      color:#0a0a0b; background:#fff; cursor:pointer;
+    .sg-item-text{ font-size:15px; line-height:1.35; font-weight:500; padding-top:6px; }
+    .sg-item-text small{
+      display:block; margin-top:3px;
+      color:#a1a1aa; font-size:12px; font-weight:400;
     }
-    .pw-cta:active{transform:scale(.98)}
-    .pw-legal{
-      text-align:center; margin-top:10px;
-      font-size:11px; color:#737373;
+    .sg-price-card{
+      background:rgba(28,28,32,.92);
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:18px;
+      padding:14px 16px;
+      margin-bottom:12px;
     }
-    .pw-error{color:#f87171; font-size:12px; margin-top:8px; text-align:center}
+    .sg-price-card .label{ color:#c4c4c8; font-size:14px; margin-bottom:4px; }
+    .sg-price-card .amount{
+      font-size:28px; font-weight:700; letter-spacing:-.02em;
+    }
+    .sg-price-card .amount span{
+      font-size:15px; font-weight:500; color:#a1a1aa; margin-left:4px;
+    }
+    .sg-cta{
+      width:100%; border:none; border-radius:999px;
+      padding:16px 18px; font-size:17px; font-weight:700;
+      background:#fff; color:#000; cursor:pointer;
+      margin-bottom:12px;
+    }
+    .sg-cta:active{ transform:scale(.98); }
+    .sg-links{
+      display:flex; justify-content:center; gap:8px; flex-wrap:wrap;
+      font-size:11px; color:#737373; text-align:center;
+    }
+    .sg-error{ color:#f87171; font-size:12px; text-align:center; margin-top:8px; }
 
     .pw-pay{
-      position:absolute; inset:0; z-index:10;
-      background:rgba(0,0,0,.65);
-      display:flex; align-items:flex-end; justify-content:center;
+      position:absolute; inset:0; z-index:30;
+      background:rgba(0,0,0,.72);
+      display:flex; align-items:flex-end;
     }
     .pw-pay-card{
-      width:100%; max-width:430px;
-      background:#121212;
-      border-radius:20px 20px 0 0;
-      border:1px solid #2a2a2a;
-      padding:16px 16px 24px;
-      max-height:88vh; overflow:auto;
+      width:100%; background:#0c0c0e;
+      border-radius:18px 18px 0 0;
+      border-top:1px solid #2a2a2a;
+      padding:16px 16px 24px; max-height:88vh; overflow:auto;
     }
-    .pw-back{background:none;border:none;color:#a1a1aa;margin-bottom:8px;font-size:14px}
-    .pw-pay-card h2{font-size:20px;margin-bottom:4px}
-    .pw-pay-card .pw-desc{color:#a1a1aa;font-size:14px;margin-bottom:12px}
+    .pw-back{ background:none; border:none; color:#a1a1aa; margin-bottom:10px; font-size:14px; }
+    .pw-pay-card h2{ font-size:18px; margin-bottom:4px; }
+    .pw-pay-card .pw-desc{ color:#a1a1aa; font-size:13px; margin-bottom:12px; }
 
-    /* ========== APP ========== */
+    /* ===== APP ===== */
     .header{padding:14px 16px 10px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)}
     .brand{display:flex;align-items:center;gap:10px}
     .logo-mark{width:32px;height:32px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff}
@@ -216,60 +197,80 @@
 </head>
 <body>
 
+<!-- PAYWALL -->
 <div id="paywall" class="hidden">
-  <div class="pw-backdrop"></div>
+  <div class="sg-bg"></div>
+  <div class="sg-wrap">
+    <button class="sg-close" type="button" onclick="Telegram.WebApp.close()">×</button>
 
-  <div class="pw-top">
-    <div class="pw-brand">
-      <div class="pw-brand-mark">C</div>
-      <div class="pw-brand-name">Codia</div>
-    </div>
-  </div>
-
-  <div class="pw-main">
-    <h1>Débloque toute la puissance de Codia</h1>
-    <p class="subtitle">Codes promo & parrainage, IA Discover, feed communauté — accès immédiat.</p>
-
-    <div class="pw-plan">
-      <div class="pw-plan-label">Accès à vie</div>
-      <div class="pw-plan-title">Codia</div>
-      <div class="pw-plan-desc">Tout ce dont tu as besoin pour trouver et partager les meilleures remises.</div>
-
-      <ul class="pw-features">
-        <li><div class="pw-check">✓</div><div><b>Feed communauté</b> — codes partagés en temps réel</div></li>
-        <li><div class="pw-check">✓</div><div><b>Discover + IA</b> — recherche de remises intelligente</div></li>
-        <li><div class="pw-check">✓</div><div><b>Voyages & hôtels</b> — Booking, Airbnb, mobilité</div></li>
-        <li><div class="pw-check">✓</div><div><b>Mode & shopping</b> — Zara, Nike et marques du quotidien</div></li>
-        <li><div class="pw-check">✓</div><div><b>Alertes du jour</b> — nouveautés pertinentes</div></li>
-        <li><div class="pw-check">✓</div><div><b>Copie en 1 clic</b> — codes prêts à utiliser</div></li>
-        <li><div class="pw-check">✓</div><div><b>Profil</b> — tes codes et ton activité</div></li>
-      </ul>
-    </div>
-  </div>
-
-  <div class="pw-bottom">
-    <div class="pw-bottom-inner">
-      <div class="pw-price-line">
-        <strong>10 €<em>à vie</em></strong>
-        <small>Sans abonnement</small>
+    <div class="sg-head">
+      <div class="sg-title-row">
+        <div class="sg-title">Codia</div>
+        <div class="sg-badge">Premium</div>
       </div>
-      <button class="pw-cta" onclick="startPayment()">Passer à Codia</button>
-      <div class="pw-legal">Paiement sécurisé · Apple Pay & carte</div>
-      <div class="pw-error" id="pw-error"></div>
+      <div class="sg-sub">La plateforme pour trouver et partager les meilleures remises</div>
+    </div>
+
+    <div class="sg-tabs">
+      <button class="sg-tab on" type="button">Codia</button>
+      <button class="sg-tab" type="button">À vie</button>
+    </div>
+
+    <div class="sg-scroll">
+      <div class="sg-features">
+        <div class="sg-item">
+          <div class="sg-ic">⌂</div>
+          <div class="sg-item-text">Feed communauté<small>Codes partagés en temps réel</small></div>
+        </div>
+        <div class="sg-item">
+          <div class="sg-ic">✦</div>
+          <div class="sg-item-text">Discover + IA<small>Recherche de remises intelligente</small></div>
+        </div>
+        <div class="sg-item">
+          <div class="sg-ic">✈</div>
+          <div class="sg-item-text">Voyages & hôtels<small>Booking, Airbnb, mobilité</small></div>
+        </div>
+        <div class="sg-item">
+          <div class="sg-ic">▦</div>
+          <div class="sg-item-text">Mode & shopping<small>Zara, Nike et marques du quotidien</small></div>
+        </div>
+        <div class="sg-item">
+          <div class="sg-ic">🔔</div>
+          <div class="sg-item-text">Alertes du jour<small>Nouveautés quand c’est pertinent</small></div>
+        </div>
+        <div class="sg-item">
+          <div class="sg-ic">✓</div>
+          <div class="sg-item-text">Copie en 1 clic + profil<small>Tes codes et ton activité</small></div>
+        </div>
+      </div>
+
+      <div class="sg-price-card">
+        <div class="label">Paiement unique</div>
+        <div class="amount">10 € <span>à vie</span></div>
+      </div>
+
+      <button class="sg-cta" type="button" onclick="startPayment()">Passer à Codia</button>
+      <div class="sg-links">
+        <span>Conditions d'utilisation</span>
+        <span>·</span>
+        <span>Politique de confidentialité</span>
+      </div>
+      <div class="sg-error" id="pw-error"></div>
     </div>
   </div>
 
   <div class="pw-pay hidden" id="pw-pay">
     <div class="pw-pay-card">
-      <button class="pw-back" onclick="backToOffer()">← Retour</button>
+      <button class="pw-back" type="button" onclick="backToOffer()">← Retour</button>
       <h2>Finaliser l’accès</h2>
       <p class="pw-desc">10 € · accès à vie à Codia</p>
       <div id="checkout">Chargement…</div>
-      <div class="pw-error" id="pw-error-2"></div>
+      <div class="sg-error" id="pw-error-2"></div>
     </div>
   </div>
 </div>
 
+<!-- APP -->
 <div class="app hidden" id="main-app">
   <div class="header">
     <div class="brand">
