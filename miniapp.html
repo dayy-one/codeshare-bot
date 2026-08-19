@@ -21,7 +21,7 @@
     .app{max-width:430px;height:100vh;margin:0 auto;display:flex;flex-direction:column;position:relative;background:var(--bg)}
     .hidden{display:none !important}
 
-    /* ===== PAYWALL ===== */
+    /* ===== PAYWALL PACK ===== */
     #paywall{
       position:fixed; inset:0; z-index:100;
       max-width:430px; margin:0 auto;
@@ -31,64 +31,62 @@
     }
     .sg-bg{ position:absolute; inset:0; overflow:hidden; }
 
-    /* preview accueil floutée */
-    .sg-home-preview{
+    /* vraie structure app floutée */
+    .sg-live-app{
       position:absolute; inset:0;
-      background:#050505;
-      filter:blur(11px);
-      transform:scale(1.07);
-      opacity:.7;
+      filter:blur(12px);
+      transform:scale(1.05);
+      opacity:.78;
       pointer-events:none;
+      background:#000;
     }
-    .sg-home-preview .hp-header{
-      display:flex; align-items:center; gap:10px;
-      padding:16px;
-      border-bottom:1px solid rgba(255,255,255,.06);
+    .sg-live-app .la-header{
+      display:flex; align-items:center; justify-content:space-between;
+      padding:14px 16px; border-bottom:1px solid rgba(255,255,255,.06);
     }
-    .sg-home-preview .hp-logo{
-      width:32px; height:32px; border-radius:10px;
+    .sg-live-app .la-brand{display:flex; gap:10px; align-items:center}
+    .sg-live-app .la-logo{
+      width:30px; height:30px; border-radius:9px;
       background:linear-gradient(135deg,#8b5cf6,#06b6d4);
     }
-    .sg-home-preview .hp-name{font-weight:700;font-size:16px}
-    .sg-home-preview .hp-sub{font-size:11px;color:#a1a1aa}
-    .sg-home-preview .hp-stories{display:flex; gap:12px; padding:14px 16px}
-    .sg-home-preview .hp-story{ width:52px; text-align:center; font-size:10px; color:#a1a1aa; }
-    .sg-home-preview .hp-ring{
+    .sg-live-app .la-stories{display:flex; gap:12px; padding:12px 16px}
+    .sg-live-app .la-ring{
       width:48px; height:48px; border-radius:50%;
-      margin:0 auto 6px;
       border:2px solid transparent;
       background:
-        linear-gradient(#171717,#171717) padding-box,
+        linear-gradient(#111,#111) padding-box,
         linear-gradient(45deg,#8b5cf6,#ec4899,#06b6d4) border-box;
     }
-    .sg-home-preview .hp-card{
-      margin:10px 16px; height:78px; border-radius:16px;
+    .sg-live-app .la-card{
+      margin:10px 16px; padding:12px; border-radius:16px;
       background:rgba(255,255,255,.05);
       border:1px solid rgba(255,255,255,.07);
+      height:86px;
+    }
+    .sg-live-app .la-bottom{
+      position:absolute; left:0; right:0; bottom:0; height:70px;
+      border-top:1px solid rgba(255,255,255,.06);
+      background:rgba(0,0,0,.5);
     }
 
-    /* bulles animées 3D */
-    .sg-orbs{ position:absolute; inset:0; pointer-events:none; overflow:hidden; }
+    .sg-orbs{ position:absolute; inset:0; pointer-events:none; }
     .orb{
-      position:absolute; border-radius:50%;
-      filter:blur(2px);
-      opacity:.55;
+      position:absolute; border-radius:50%; opacity:.5;
       animation: floatOrb 9s ease-in-out infinite;
-      box-shadow:0 0 40px rgba(139,92,246,.25);
+      filter:blur(1px);
     }
-    .orb.o1{ width:120px; height:120px; left:-20px; top:18%; background:radial-gradient(circle at 30% 30%, #c4b5fd, #7c3aed 55%, transparent 70%); animation-duration:8s; }
-    .orb.o2{ width:90px; height:90px; right:-10px; top:28%; background:radial-gradient(circle at 30% 30%, #67e8f9, #0891b2 55%, transparent 70%); animation-duration:10s; animation-delay:-2s; }
-    .orb.o3{ width:70px; height:70px; left:20%; bottom:22%; background:radial-gradient(circle at 30% 30%, #f9a8d4, #db2777 55%, transparent 70%); animation-duration:7s; animation-delay:-1s; }
-    .orb.o4{ width:100px; height:100px; right:18%; bottom:18%; background:radial-gradient(circle at 30% 30%, #fcd34d, #f59e0b 55%, transparent 70%); animation-duration:11s; animation-delay:-3s; }
-    .orb.o5{ width:55px; height:55px; left:42%; top:12%; background:radial-gradient(circle at 30% 30%, #86efac, #22c55e 55%, transparent 70%); animation-duration:9s; animation-delay:-4s; }
+    .orb.o1{ width:110px; height:110px; left:-15px; top:16%; background:radial-gradient(circle at 30% 30%, #c4b5fd, #7c3aed 55%, transparent 70%); }
+    .orb.o2{ width:80px; height:80px; right:-8px; top:30%; background:radial-gradient(circle at 30% 30%, #67e8f9, #0891b2 55%, transparent 70%); animation-delay:-2s; }
+    .orb.o3{ width:70px; height:70px; left:22%; bottom:20%; background:radial-gradient(circle at 30% 30%, #f9a8d4, #db2777 55%, transparent 70%); animation-delay:-1s; }
+    .orb.o4{ width:95px; height:95px; right:16%; bottom:16%; background:radial-gradient(circle at 30% 30%, #fcd34d, #f59e0b 55%, transparent 70%); animation-delay:-3s; }
     @keyframes floatOrb{
       0%,100%{ transform:translate3d(0,0,0) scale(1); }
-      50%{ transform:translate3d(12px,-18px,0) scale(1.08); }
+      50%{ transform:translate3d(10px,-16px,0) scale(1.07); }
     }
 
     .sg-dim{
       position:absolute; inset:0;
-      background:radial-gradient(circle at 50% 28%, rgba(0,0,0,.2), rgba(0,0,0,.58));
+      background:radial-gradient(circle at 50% 25%, rgba(0,0,0,.18), rgba(0,0,0,.62));
     }
 
     .sg-wrap{
@@ -99,17 +97,16 @@
       animation: rise .45s ease-out;
     }
     @keyframes rise{
-      from{ opacity:0; transform:translateY(18px) scale(.98); }
-      to{ opacity:1; transform:translateY(0) scale(1); }
+      from{opacity:0; transform:translateY(16px) scale(.98)}
+      to{opacity:1; transform:translateY(0) scale(1)}
     }
 
     .sg-close{
       width:30px; height:30px; border:none;
       background:rgba(255,255,255,.08);
       border:1px solid rgba(255,255,255,.12);
-      border-radius:50%;
-      color:#fff; font-size:18px; line-height:1;
-      align-self:flex-start; margin-bottom:6px;
+      border-radius:50%; color:#fff; font-size:18px;
+      align-self:flex-start; margin-bottom:4px;
     }
 
     .sg-head{ text-align:center; padding:2px 0 10px; }
@@ -120,16 +117,14 @@
     .sg-title{ font-size:32px; font-weight:800; letter-spacing:-.04em; }
     .sg-badge{
       font-size:11px; font-weight:700;
-      padding:5px 10px; border-radius:999px;
-      color:#e9d5ff;
+      padding:5px 10px; border-radius:999px; color:#e9d5ff;
       background:linear-gradient(135deg,rgba(139,92,246,.35),rgba(6,182,212,.2));
       border:1px solid rgba(167,139,250,.35);
-      box-shadow:0 0 20px rgba(139,92,246,.25);
       animation: pulseBadge 2.4s ease-in-out infinite;
     }
     @keyframes pulseBadge{
-      0%,100%{ box-shadow:0 0 14px rgba(139,92,246,.2); }
-      50%{ box-shadow:0 0 26px rgba(139,92,246,.45); }
+      0%,100%{ box-shadow:0 0 12px rgba(139,92,246,.2); }
+      50%{ box-shadow:0 0 24px rgba(139,92,246,.45); }
     }
     .sg-sub{
       color:#d4d4d8; font-size:14px; line-height:1.35;
@@ -137,49 +132,31 @@
     }
 
     .sg-features{
-      flex:0 1 auto;
-      max-height:40vh;
-      overflow:hidden;
-      background:rgba(20,20,28,.52);
+      background:rgba(20,20,28,.55);
       border:1px solid rgba(255,255,255,.14);
-      border-radius:24px;
-      padding:6px 10px;
-      margin-bottom:10px;
+      border-radius:22px;
+      padding:4px 10px 2px;
+      margin:4px 0 10px;
       backdrop-filter:blur(18px);
       -webkit-backdrop-filter:blur(18px);
-      box-shadow:
-        0 18px 40px rgba(0,0,0,.45),
-        inset 0 1px 0 rgba(255,255,255,.12),
-        0 0 0 1px rgba(139,92,246,.05);
-      transform:perspective(800px) rotateX(2deg);
-      transition: max-height .35s ease, transform .25s ease;
+      box-shadow:0 16px 36px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.12);
+      max-height:180px;
+      overflow:hidden;
+      transition:max-height .35s ease;
     }
-    .sg-features.open{ max-height:52vh; overflow-y:auto; transform:perspective(800px) rotateX(0deg); }
+    .sg-features.open{ max-height:320px; overflow-y:auto; }
 
-    .sg-item{
-      display:flex; gap:12px; align-items:flex-start;
-      padding:11px 6px;
-      animation: itemIn .4s ease both;
-    }
-    .sg-item:nth-child(1){animation-delay:.05s}
-    .sg-item:nth-child(2){animation-delay:.1s}
-    .sg-item:nth-child(3){animation-delay:.15s}
-    .sg-item:nth-child(4){animation-delay:.2s}
-    .sg-item:nth-child(5){animation-delay:.25s}
-    .sg-item:nth-child(6){animation-delay:.3s}
-    @keyframes itemIn{
-      from{opacity:0; transform:translateY(10px)}
-      to{opacity:1; transform:translateY(0)}
-    }
+    .sg-item{ display:flex; gap:12px; align-items:flex-start; padding:11px 4px; }
     .sg-item + .sg-item{ border-top:1px solid rgba(255,255,255,.07); }
+    .sg-item.extra{ display:none; }
+    .sg-features.open .sg-item.extra{ display:flex; }
 
     .sg-ic{
-      width:38px; height:38px; border-radius:14px;
+      width:36px; height:36px; border-radius:12px;
       display:flex; align-items:center; justify-content:center;
-      flex:0 0 38px; font-size:16px; color:#fff;
+      flex:0 0 36px; font-size:15px; color:#fff;
       border:1px solid rgba(255,255,255,.16);
-      box-shadow:0 10px 20px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.25);
-      transform:translateZ(20px);
+      box-shadow:0 8px 16px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.22);
     }
     .sg-ic.c1{ background:linear-gradient(145deg,#a78bfa,#6d28d9); }
     .sg-ic.c2{ background:linear-gradient(145deg,#22d3ee,#0284c7); }
@@ -189,10 +166,7 @@
     .sg-ic.c6{ background:linear-gradient(145deg,#fbbf24,#ea580c); }
 
     .sg-item-text{ font-size:14px; line-height:1.3; font-weight:600; padding-top:4px; }
-    .sg-item-text small{
-      display:block; margin-top:2px;
-      color:#b0b0b8; font-size:11.5px; font-weight:400;
-    }
+    .sg-item-text small{ display:block; margin-top:2px; color:#b0b0b8; font-size:11.5px; font-weight:400; }
 
     .sg-more{
       width:100%; border:none; background:transparent;
@@ -205,13 +179,17 @@
       border:1px solid rgba(255,255,255,.14);
       border-radius:18px;
       padding:12px 14px;
-      margin-bottom:10px;
+      margin-bottom:8px;
       backdrop-filter:blur(14px);
-      -webkit-backdrop-filter:blur(14px);
-      box-shadow:0 12px 30px rgba(0,0,0,.32), inset 0 1px 0 rgba(255,255,255,.12);
+      box-shadow:0 12px 28px rgba(0,0,0,.3), inset 0 1px 0 rgba(255,255,255,.12);
     }
     .sg-price-card .label{ color:#c4c4c8; font-size:13px; margin-bottom:2px; }
-    .sg-price-card .amount{ font-size:26px; font-weight:800; letter-spacing:-.02em; }
+    .sg-price-card .amount{ font-size:26px; font-weight:800; }
+    .sg-social{
+      text-align:center; font-size:12px; color:#a1a1aa;
+      margin:0 0 10px;
+    }
+    .sg-social b{ color:#e5e5e5; }
 
     .sg-cta{
       width:100%; border:none; border-radius:999px;
@@ -219,12 +197,16 @@
       background:#fff; color:#000; cursor:pointer;
       margin-bottom:8px;
       box-shadow:0 10px 30px rgba(255,255,255,.14);
-      transition: transform .15s ease;
+      animation: ctaPulse 2.2s ease-in-out infinite;
     }
-    .sg-cta:active{ transform:scale(.98); }
+    @keyframes ctaPulse{
+      0%,100%{ transform:scale(1); box-shadow:0 10px 30px rgba(255,255,255,.12); }
+      50%{ transform:scale(1.015); box-shadow:0 12px 34px rgba(255,255,255,.2); }
+    }
+    .sg-cta:active{ transform:scale(.98) !important; animation:none; }
     .sg-links{
       display:flex; justify-content:center; gap:8px; flex-wrap:wrap;
-      font-size:10px; color:#737373; text-align:center;
+      font-size:10px; color:#737373;
     }
     .sg-error{ color:#f87171; font-size:12px; text-align:center; margin-top:6px; }
 
@@ -242,6 +224,30 @@
     .pw-back{ background:none; border:none; color:#a1a1aa; margin-bottom:10px; font-size:14px; }
     .pw-pay-card h2{ font-size:18px; margin-bottom:4px; }
     .pw-pay-card .pw-desc{ color:#a1a1aa; font-size:13px; margin-bottom:12px; }
+
+    /* succès post-paiement */
+    #success-screen{
+      position:fixed; inset:0; z-index:200;
+      max-width:430px; margin:0 auto;
+      background:rgba(0,0,0,.92);
+      display:flex; align-items:center; justify-content:center;
+      flex-direction:column; gap:12px;
+      animation: rise .35s ease-out;
+    }
+    .success-check{
+      width:72px; height:72px; border-radius:50%;
+      background:linear-gradient(135deg,#22c55e,#16a34a);
+      display:flex; align-items:center; justify-content:center;
+      font-size:34px; color:#fff;
+      box-shadow:0 0 40px rgba(34,197,94,.35);
+      animation: pop .45s ease-out;
+    }
+    @keyframes pop{
+      from{ transform:scale(.6); opacity:0; }
+      to{ transform:scale(1); opacity:1; }
+    }
+    #success-screen h2{ font-size:22px; font-weight:800; }
+    #success-screen p{ color:#a1a1aa; font-size:14px; }
 
     /* ===== APP ===== */
     .header{padding:14px 16px 10px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)}
@@ -295,33 +301,43 @@
 </head>
 <body>
 
+<!-- SUCCÈS -->
+<div id="success-screen" class="hidden">
+  <div class="success-check">✓</div>
+  <h2>Bienvenue sur Codia</h2>
+  <p>Ton accès est activé</p>
+</div>
+
+<!-- PAYWALL -->
 <div id="paywall" class="hidden">
   <div class="sg-bg">
-    <div class="sg-home-preview">
-      <div class="hp-header">
-        <div class="hp-logo"></div>
-        <div>
-          <div class="hp-name">Codia</div>
-          <div class="hp-sub">16,254k members</div>
+    <div class="sg-live-app">
+      <div class="la-header">
+        <div class="la-brand">
+          <div class="la-logo"></div>
+          <div>
+            <div style="font-weight:700;font-size:15px">Codia</div>
+            <div style="font-size:10px;color:#a1a1aa">16,254k members</div>
+          </div>
         </div>
       </div>
-      <div class="hp-stories">
-        <div class="hp-story"><div class="hp-ring"></div>Top</div>
-        <div class="hp-story"><div class="hp-ring"></div>Uber</div>
-        <div class="hp-story"><div class="hp-ring"></div>Booking</div>
-        <div class="hp-story"><div class="hp-ring"></div>Zara</div>
-        <div class="hp-story"><div class="hp-ring"></div>Airbnb</div>
+      <div class="la-stories">
+        <div class="la-ring"></div>
+        <div class="la-ring"></div>
+        <div class="la-ring"></div>
+        <div class="la-ring"></div>
+        <div class="la-ring"></div>
       </div>
-      <div class="hp-card"></div>
-      <div class="hp-card"></div>
-      <div class="hp-card"></div>
+      <div class="la-card"></div>
+      <div class="la-card"></div>
+      <div class="la-card"></div>
+      <div class="la-bottom"></div>
     </div>
     <div class="sg-orbs">
       <div class="orb o1"></div>
       <div class="orb o2"></div>
       <div class="orb o3"></div>
       <div class="orb o4"></div>
-      <div class="orb o5"></div>
     </div>
     <div class="sg-dim"></div>
   </div>
@@ -348,20 +364,22 @@
       </div>
       <div class="sg-item">
         <div class="sg-ic c3">✈</div>
-        <div class="sg-item-text">Voyages & hôtels<small>Booking, Airbnb, mobilité</small></div>
+        <div class="sg-item-text">Voyages, mode & shopping<small>Booking, Airbnb, Zara, Nike…</small></div>
       </div>
-      <div class="sg-item">
-        <div class="sg-ic c4">▦</div>
-        <div class="sg-item-text">Mode & shopping<small>Zara, Nike et marques</small></div>
-      </div>
-      <div class="sg-item">
-        <div class="sg-ic c5">🔔</div>
+
+      <div class="sg-item extra">
+        <div class="sg-ic c4">🔔</div>
         <div class="sg-item-text">Alertes du jour<small>Nouveautés pertinentes</small></div>
       </div>
-      <div class="sg-item">
-        <div class="sg-ic c6">✓</div>
-        <div class="sg-item-text">Copie en 1 clic + profil<small>Tes codes et ton activité</small></div>
+      <div class="sg-item extra">
+        <div class="sg-ic c5">✓</div>
+        <div class="sg-item-text">Copie en 1 clic<small>Codes prêts à utiliser</small></div>
       </div>
+      <div class="sg-item extra">
+        <div class="sg-ic c6">☺</div>
+        <div class="sg-item-text">Profil membre<small>Tes codes et ton activité</small></div>
+      </div>
+
       <button class="sg-more" type="button" id="sgMoreBtn" onclick="toggleFeatures()">Voir plus ↓</button>
     </div>
 
@@ -369,6 +387,7 @@
       <div class="label">Paiement unique</div>
       <div class="amount">10 €</div>
     </div>
+    <div class="sg-social"><b>16,254k</b> members · +2,4k cette semaine</div>
 
     <button class="sg-cta" type="button" onclick="startPayment()">Passer à Codia</button>
     <div class="sg-links">
@@ -390,6 +409,7 @@
   </div>
 </div>
 
+<!-- APP -->
 <div class="app hidden" id="main-app">
   <div class="header">
     <div class="brand">
@@ -486,11 +506,31 @@
     btn.textContent = box.classList.contains('open') ? 'Réduire ↑' : 'Voir plus ↓';
   }
 
+  function showSuccessThenApp(){
+    const s = document.getElementById('success-screen');
+    s.classList.remove('hidden');
+    try { Telegram.WebApp.HapticFeedback.notificationOccurred('success'); } catch(e){}
+    setTimeout(() => {
+      s.classList.add('hidden');
+      showApp();
+    }, 1600);
+  }
+
   async function boot(){
     const params = new URLSearchParams(location.search);
     const u = getTgUser();
     const userId = u?.id;
-    if(params.get('paid') === '1' && userId) await new Promise(r => setTimeout(r, 1200));
+
+    // retour Stripe après paiement
+    if(params.get('paid') === '1' && userId){
+      await new Promise(r => setTimeout(r, 800));
+      try{
+        const res = await fetch('/access?user_id=' + userId);
+        const data = await res.json();
+        if(data.paid){ showSuccessThenApp(); return; }
+      }catch(e){}
+    }
+
     if(!userId){ showPaywall(); return; }
     try{
       const res = await fetch('/access?user_id=' + userId);
@@ -519,6 +559,7 @@
       document.getElementById('pw-error').textContent = 'Ouvre Codia depuis Telegram';
       return;
     }
+    try { Telegram.WebApp.HapticFeedback.impactOccurred('medium'); } catch(e){}
     document.getElementById('pw-pay').classList.remove('hidden');
     document.getElementById('checkout').textContent = 'Chargement du paiement…';
     document.getElementById('pw-error-2').textContent = '';
