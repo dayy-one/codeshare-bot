@@ -7,256 +7,209 @@
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script src="https://js.stripe.com/v3/"></script>
   <style>
-    :root {
-      --bg:#000; --card:#121212; --text:#fff; --text2:#a1a1aa;
-      --border:#1f1f1f; --accent:#8b5cf6; --accent2:#06b6d4;
-      --green:#22c55e; --pink:#ec4899; --orange:#f59e0b;
-    }
-    body.light {
-      --bg:#fafafa; --card:#fff; --text:#0a0a0a; --text2:#737373;
-      --border:#e5e5e5; --accent:#7c3aed; --accent2:#0891b2;
-    }
     *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-    body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",Inter,Roboto,sans-serif;background:var(--bg);color:var(--text);height:100vh;overflow:hidden}
-    .app{max-width:430px;height:100vh;margin:0 auto;display:flex;flex-direction:column;position:relative;background:var(--bg)}
+    body{
+      font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",Inter,Roboto,sans-serif;
+      background:#fff; color:#111;
+      height:100vh; overflow:hidden;
+    }
     .hidden{display:none !important}
+    .app{
+      max-width:430px; height:100vh; margin:0 auto;
+      display:flex; flex-direction:column; background:#f7f7f8;
+      position:relative;
+    }
 
-    /* ===== PAYWALL ===== */
+    /* ===== PAYWALL 3D léger ===== */
     #paywall{
-      position:fixed; inset:0; z-index:100;
-      max-width:430px; margin:0 auto;
-      background:#000; color:#fff;
-      display:flex; flex-direction:column;
-      overflow:hidden;
+      position:fixed; inset:0; z-index:100; max-width:430px; margin:0 auto;
+      color:#fff; display:flex; flex-direction:column; overflow:hidden; background:#05050a;
     }
-    .sg-bg{ position:absolute; inset:0; overflow:hidden; }
+    .sg-bg{position:absolute;inset:0;overflow:hidden;background:#05050a}
+    .sg-scene{position:absolute;inset:0;filter:blur(2px);transform:scale(1.02);pointer-events:none}
+    .sg-grid{
+      position:absolute;inset:-20%;
+      background-image:linear-gradient(rgba(255,255,255,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.04) 1px,transparent 1px);
+      background-size:42px 42px;
+      transform:perspective(700px) rotateX(58deg) translateY(-8%);
+      transform-origin:center top; opacity:.35;
+      animation:gridDrift 14s linear infinite;
+    }
+    @keyframes gridDrift{from{background-position:0 0}to{background-position:0 42px}}
+    .blob{position:absolute;border-radius:50%;filter:blur(18px);opacity:.55;animation:float3d 10s ease-in-out infinite}
+    .blob.b1{width:180px;height:180px;left:-40px;top:12%;background:radial-gradient(circle at 30% 30%,#c4b5fd,#7c3aed 45%,transparent 70%)}
+    .blob.b2{width:150px;height:150px;right:-30px;top:28%;background:radial-gradient(circle at 30% 30%,#67e8f9,#0891b2 45%,transparent 70%);animation-delay:-2.5s;animation-duration:12s}
+    .blob.b3{width:120px;height:120px;left:20%;bottom:18%;background:radial-gradient(circle at 30% 30%,#f9a8d4,#db2777 45%,transparent 70%);animation-delay:-1.2s}
+    .blob.b4{width:140px;height:140px;right:16%;bottom:12%;background:radial-gradient(circle at 30% 30%,#fde68a,#f59e0b 45%,transparent 70%);animation-delay:-4s}
+    @keyframes float3d{0%,100%{transform:translate3d(0,0,0) scale(1)}50%{transform:translate3d(10px,-16px,0) scale(1.06)}}
+    .sg-dim{position:absolute;inset:0;background:radial-gradient(circle at 50% 20%,rgba(0,0,0,.15),rgba(0,0,0,.55) 70%);pointer-events:none}
+    .sg-wrap{position:relative;z-index:2;height:100%;display:flex;flex-direction:column;padding:10px 16px 12px}
+    .sg-close{width:30px;height:30px;border:1px solid rgba(255,255,255,.14);background:rgba(18,18,24,.88);border-radius:50%;color:#fff;font-size:18px;align-self:flex-start;margin-bottom:4px}
+    .sg-head{text-align:center;padding:2px 0 8px}
+    .sg-title-row{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:6px}
+    .sg-title{font-size:32px;font-weight:800;letter-spacing:-.04em}
+    .sg-badge{font-size:11px;font-weight:700;padding:5px 10px;border-radius:999px;color:#efe9ff;background:rgba(139,92,246,.4);border:1px solid rgba(167,139,250,.45)}
+    .sg-sub{color:#e4e4e7;font-size:14px;max-width:300px;margin:0 auto}
+    .glass{background:rgba(18,18,24,.9);border:1px solid rgba(255,255,255,.14);box-shadow:0 12px 30px rgba(0,0,0,.35)}
+    .sg-features{border-radius:22px;padding:2px 10px;margin:6px 0 10px}
+    .sg-item{display:flex;gap:12px;align-items:flex-start;padding:10px 4px}
+    .sg-item+.sg-item{border-top:1px solid rgba(255,255,255,.07)}
+    .sg-ic{width:36px;height:36px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex:0 0 36px;font-size:15px;color:#fff}
+    .sg-ic.c1{background:#7c3aed}.sg-ic.c2{background:#0891b2}.sg-ic.c3{background:#ea580c}
+    .sg-ic.c4{background:#db2777}.sg-ic.c5{background:#16a34a}.sg-ic.c6{background:#ca8a04}
+    .sg-item-text{font-size:13.5px;line-height:1.3;font-weight:600;padding-top:3px}
+    .sg-item-text small{display:block;margin-top:2px;color:#b4b4bc;font-size:11px;font-weight:400}
+    .sg-price-card{border-radius:18px;padding:12px 14px;margin-bottom:8px}
+    .sg-price-card .label{color:#c4c4c8;font-size:13px;margin-bottom:2px}
+    .sg-price-card .amount{font-size:26px;font-weight:800}
+    .sg-social{text-align:center;font-size:12px;color:#d4d4d8;margin:0 0 10px}
+    .sg-social b{color:#fff}
+    .sg-cta{width:100%;border:none;border-radius:999px;padding:15px 18px;font-size:16px;font-weight:800;background:#fff;color:#000;margin-bottom:8px}
+    .sg-links{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;font-size:10px;color:#a1a1aa}
+    .sg-error{color:#f87171;font-size:12px;text-align:center;margin-top:6px}
+    .pw-pay{position:absolute;inset:0;z-index:30;background:rgba(0,0,0,.55);display:flex;align-items:flex-end}
+    .pw-pay-card{width:100%;border-radius:18px 18px 0 0;border-top:1px solid #2a2a2a;background:#0c0c0e;padding:16px 16px 24px;max-height:88vh;overflow:auto}
+    .pw-back{background:none;border:none;color:#a1a1aa;margin-bottom:10px;font-size:14px}
+    .pw-pay-card h2{font-size:18px;margin-bottom:4px}
+    .pw-pay-card .pw-desc{color:#a1a1aa;font-size:13px;margin-bottom:12px}
+    #success-screen{position:fixed;inset:0;z-index:200;max-width:430px;margin:0 auto;background:rgba(0,0,0,.92);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px}
+    .success-check{width:72px;height:72px;border-radius:50%;background:#16a34a;display:flex;align-items:center;justify-content:center;font-size:34px;color:#fff}
+    #success-screen h2{font-size:22px;font-weight:800;color:#fff}
+    #success-screen p{color:#a1a1aa;font-size:14px}
 
-    /* App live CLAIRE */
-    .sg-live-app{
-      position:absolute; inset:0;
-      background:#f4f4f5;
-      filter:blur(2.5px);
-      transform:scale(1.02);
-      opacity:1;
-      pointer-events:none;
+    /* ===== APP style capture ===== */
+    .header{
+      background:#fff; padding:14px 16px 12px;
+      display:flex; align-items:center; gap:12px;
+      border-bottom:1px solid #eee;
     }
-    .sg-live-app .la-header{
-      display:flex; align-items:center;
-      padding:14px 16px;
-      border-bottom:1px solid rgba(0,0,0,.06);
-      background:#fff;
-    }
-    .sg-live-app .la-brand{display:flex; gap:10px; align-items:center}
-    .sg-live-app .la-logo{
-      width:30px; height:30px; border-radius:9px;
-      background:linear-gradient(135deg,#8b5cf6,#06b6d4);
-    }
-    .sg-live-app .la-name{font-weight:700;font-size:15px;color:#111}
-    .sg-live-app .la-sub{font-size:10px;color:#71717a}
-    .sg-live-app .la-stories{
-      display:flex; gap:12px; padding:12px 16px;
-      background:#fafafa;
-    }
-    .sg-live-app .la-ring{
+    .logo-c{
       width:48px; height:48px; border-radius:50%;
-      border:2px solid #a78bfa;
-      background:#fff;
-    }
-    .sg-live-app .la-card{
-      margin:10px 16px; height:82px; border-radius:16px;
-      background:#fff;
-      border:1px solid rgba(0,0,0,.06);
-      box-shadow:0 1px 2px rgba(0,0,0,.04);
-    }
-    .sg-live-app .la-bottom{
-      position:absolute; left:0; right:0; bottom:0; height:70px;
-      border-top:1px solid rgba(0,0,0,.06);
-      background:#fff;
-    }
-
-    .sg-dim{
-      position:absolute; inset:0;
-      background:rgba(0,0,0,.28);
-      pointer-events:none;
-    }
-
-    .sg-wrap{
-      position:relative; z-index:2;
-      height:100%;
-      display:flex; flex-direction:column;
-      padding:10px 16px 12px;
-    }
-
-    .sg-close{
-      width:30px; height:30px;
-      border:1px solid rgba(255,255,255,.14);
-      background:rgba(18,18,24,.88);
-      border-radius:50%; color:#fff; font-size:18px;
-      align-self:flex-start; margin-bottom:4px;
-    }
-
-    .sg-head{ text-align:center; padding:2px 0 8px; }
-    .sg-title-row{
-      display:flex; align-items:center; justify-content:center; gap:10px;
-      margin-bottom:6px;
-    }
-    .sg-title{ font-size:32px; font-weight:800; letter-spacing:-.04em; }
-    .sg-badge{
-      font-size:11px; font-weight:700;
-      padding:5px 10px; border-radius:999px; color:#efe9ff;
-      background:rgba(139,92,246,.4);
-      border:1px solid rgba(167,139,250,.45);
-    }
-    .sg-sub{
-      color:#e4e4e7; font-size:14px; line-height:1.35;
-      max-width:300px; margin:0 auto;
-      text-shadow:0 1px 8px rgba(0,0,0,.35);
-    }
-
-    .glass{
-      background:rgba(18,18,24,.9);
-      border:1px solid rgba(255,255,255,.14);
-      box-shadow:0 12px 30px rgba(0,0,0,.35);
-    }
-
-    .sg-features{
-      border-radius:22px;
-      padding:2px 10px;
-      margin:6px 0 10px;
-    }
-    .sg-item{
-      display:flex; gap:12px; align-items:flex-start;
-      padding:10px 4px;
-    }
-    .sg-item + .sg-item{ border-top:1px solid rgba(255,255,255,.07); }
-
-    .sg-ic{
-      width:36px; height:36px; border-radius:12px;
+      background:#8b5cf6; color:#fff;
       display:flex; align-items:center; justify-content:center;
-      flex:0 0 36px; font-size:15px; color:#fff;
+      font-weight:800; font-size:22px; flex:0 0 48px;
     }
-    .sg-ic.c1{ background:#7c3aed; }
-    .sg-ic.c2{ background:#0891b2; }
-    .sg-ic.c3{ background:#ea580c; }
-    .sg-ic.c4{ background:#db2777; }
-    .sg-ic.c5{ background:#16a34a; }
-    .sg-ic.c6{ background:#ca8a04; }
+    .header .name{font-size:20px; font-weight:700; color:#111}
+    .header .sub{font-size:13px; color:#8e8e93; margin-top:1px}
 
-    .sg-item-text{ font-size:13.5px; line-height:1.3; font-weight:600; padding-top:3px; }
-    .sg-item-text small{
-      display:block; margin-top:2px;
-      color:#b4b4bc; font-size:11px; font-weight:400;
+    .stories{
+      background:#fff; display:flex; gap:14px;
+      overflow-x:auto; padding:14px 16px 12px;
+      border-bottom:1px solid #f0f0f0;
     }
-
-    .sg-price-card{
-      border-radius:18px;
-      padding:12px 14px;
-      margin-bottom:8px;
-    }
-    .sg-price-card .label{ color:#c4c4c8; font-size:13px; margin-bottom:2px; }
-    .sg-price-card .amount{ font-size:26px; font-weight:800; }
-
-    .sg-social{
-      text-align:center; font-size:12px; color:#d4d4d8;
-      margin:0 0 10px;
-      text-shadow:0 1px 6px rgba(0,0,0,.3);
-    }
-    .sg-social b{ color:#fff; }
-
-    .sg-cta{
-      width:100%; border:none; border-radius:999px;
-      padding:15px 18px; font-size:16px; font-weight:800;
-      background:#fff; color:#000; cursor:pointer;
-      margin-bottom:8px;
-    }
-    .sg-cta:active{ opacity:.92; }
-
-    .sg-links{
-      display:flex; justify-content:center; gap:8px; flex-wrap:wrap;
-      font-size:10px; color:#a1a1aa;
-    }
-    .sg-error{ color:#f87171; font-size:12px; text-align:center; margin-top:6px; }
-
-    .pw-pay{
-      position:absolute; inset:0; z-index:30;
-      background:rgba(0,0,0,.55);
-      display:flex; align-items:flex-end;
-    }
-    .pw-pay-card{
-      width:100%;
-      border-radius:18px 18px 0 0;
-      border-top:1px solid #2a2a2a;
-      background:#0c0c0e;
-      padding:16px 16px 24px;
-      max-height:88vh; overflow:auto;
-    }
-    .pw-back{ background:none; border:none; color:#a1a1aa; margin-bottom:10px; font-size:14px; }
-    .pw-pay-card h2{ font-size:18px; margin-bottom:4px; }
-    .pw-pay-card .pw-desc{ color:#a1a1aa; font-size:13px; margin-bottom:12px; }
-
-    #success-screen{
-      position:fixed; inset:0; z-index:200;
-      max-width:430px; margin:0 auto;
-      background:rgba(0,0,0,.92);
+    .story{min-width:64px; text-align:center; font-size:11px; color:#555}
+    .story-bubble{
+      width:56px; height:56px; border-radius:50%;
+      margin:0 auto 6px;
       display:flex; align-items:center; justify-content:center;
-      flex-direction:column; gap:12px;
+      font-size:20px; font-weight:700; background:#f3f0ff; color:#7c3aed;
+      border:2px solid #e9e4ff;
     }
-    .success-check{
-      width:72px; height:72px; border-radius:50%;
-      background:#16a34a;
-      display:flex; align-items:center; justify-content:center;
-      font-size:34px; color:#fff;
-    }
-    #success-screen h2{ font-size:22px; font-weight:800; }
-    #success-screen p{ color:#a1a1aa; font-size:14px; }
+    .story-bubble.top{background:linear-gradient(#fff,#fff) padding-box, linear-gradient(135deg,#fbbf24,#22c55e,#06b6d4) border-box; border:2.5px solid transparent}
+    .story-bubble.uber{background:linear-gradient(135deg,#06b6d4,#ec4899,#f59e0b); color:#fff; border:none; font-size:9px; font-weight:800; line-height:1.1; text-align:center; padding:4px}
+    .story-bubble.book{background:#fff; border:2px solid #38bdf8; color:#0ea5e9; font-size:18px; font-weight:900}
+    .story-bubble.air{background:#fff; border:2px solid #f472b6; color:#ec4899; font-size:22px; font-weight:300}
+    .story-bubble.plus{background:#f3f0ff; border:none; color:#7c3aed; font-size:26px}
 
-    /* ===== APP ===== */
-    .header{padding:14px 16px 10px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)}
-    .brand{display:flex;align-items:center;gap:10px}
-    .logo-mark{width:32px;height:32px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff}
-    .name{font-size:18px;font-weight:700}
-    .sub{font-size:11px;color:var(--text2)}
-    .header-actions{display:flex;gap:8px}
-    .icon-btn{width:36px;height:36px;border-radius:12px;border:1px solid var(--border);background:var(--card);color:var(--text)}
-    .stories{display:flex;gap:12px;overflow-x:auto;padding:12px 16px;border-bottom:1px solid var(--border)}
-    .story{min-width:66px;text-align:center;font-size:11px;color:var(--text2)}
-    .story-ring{width:56px;height:56px;border-radius:50%;padding:2px;margin:0 auto 6px;background:linear-gradient(45deg,var(--accent),var(--pink),var(--accent2))}
-    .story-ring div{width:100%;height:100%;border-radius:50%;background:var(--bg);display:flex;align-items:center;justify-content:center;font-weight:700}
-    .page{display:none;flex:1;overflow-y:auto;padding-bottom:110px}
+    .page{display:none; flex:1; overflow-y:auto; padding:12px 12px 120px; background:#f7f7f8}
     .page.active{display:block}
-    .search-wrap{padding:14px 16px 8px}
-    .search{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:12px 14px}
-    .search input{width:100%;border:none;outline:none;background:transparent;color:var(--text);font-size:15px}
-    .ai-box{margin:8px 16px 16px;padding:14px 16px;border-radius:16px;background:rgba(139,92,246,.1);border:1px solid var(--border);display:none;font-size:14px;line-height:1.5}
-    .chips{display:flex;gap:8px;overflow-x:auto;padding:0 16px 10px}
-    .chip{white-space:nowrap;border:1px solid var(--border);background:var(--card);color:var(--text);border-radius:999px;padding:8px 12px;font-size:12px}
-    .section{padding:8px 16px;font-size:12px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:.4px}
-    .card,.post{margin:0 16px 12px;background:var(--card);border:1px solid var(--border);border-radius:18px;padding:14px}
-    .row{display:flex;justify-content:space-between;align-items:center;gap:12px}
-    .muted{color:var(--text2);font-size:12px}
-    .pill{background:rgba(34,197,94,.15);color:var(--green);padding:6px 10px;border-radius:999px;font-size:12px;font-weight:700}
-    .badge-pop{background:rgba(245,158,11,.15);color:var(--orange);padding:3px 8px;border-radius:999px;font-size:11px;font-weight:700;margin-left:6px}
-    .post-top{display:flex;align-items:center;gap:10px;margin-bottom:8px}
-    .avatar,.avatar-img{width:40px;height:40px;border-radius:50%;object-fit:cover}
-    .avatar{background:linear-gradient(135deg,var(--accent),var(--pink));display:flex;align-items:center;justify-content:center;font-weight:700}
-    .code{margin:10px 0;padding:12px;border-radius:14px;background:var(--bg);border:1px dashed var(--border);display:flex;justify-content:space-between;align-items:center;gap:10px;font-family:ui-monospace,Menlo,monospace;font-size:15px}
-    .copy-btn{border:1px solid var(--border);background:var(--card);color:var(--text);border-radius:10px;padding:6px 10px;font-size:12px}
-    .actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
-    .actions button{border:1px solid var(--border);background:var(--bg);color:var(--text);border-radius:999px;padding:7px 12px;font-size:13px}
-    .bottom{position:absolute;left:0;right:0;bottom:0;height:88px;border-top:1px solid var(--border);background:rgba(0,0,0,.85);display:flex;justify-content:space-around;align-items:center;padding-bottom:14px}
-    .nav{background:none;border:none;color:var(--text2);display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11px}
-    .nav.active{color:var(--text)}
-    .nav .ic{width:26px;height:26px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:700}
-    .nav.active .ic{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff}
-    .fab{position:fixed;left:50%;transform:translateX(-50%);bottom:100px;background:linear-gradient(135deg,var(--accent),var(--pink));color:#fff;border:none;border-radius:999px;padding:12px 22px;font-weight:700;display:none;z-index:20}
-    .page-home.active ~ .fab{display:block}
-    .modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:50;align-items:flex-end;justify-content:center}
+
+    .post{
+      background:#fff; border-radius:18px;
+      padding:14px; margin-bottom:12px;
+      border:1px solid #eee;
+      box-shadow:0 1px 2px rgba(0,0,0,.03);
+    }
+    .post-top{display:flex; align-items:center; gap:10px; margin-bottom:10px}
+    .post-avatar{
+      width:40px; height:40px; border-radius:50%;
+      background:#8b5cf6; color:#fff;
+      display:flex; align-items:center; justify-content:center;
+      font-weight:800; font-size:16px; overflow:hidden; flex:0 0 40px;
+    }
+    .post-avatar img{width:100%;height:100%;object-fit:cover}
+    .post-who{font-weight:700; font-size:14px; color:#111}
+    .post-meta{font-size:12px; color:#8e8e93; margin-top:1px}
+    .post-desc{font-size:14px; color:#111; margin-bottom:10px; line-height:1.35}
+
+    .code-box{
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+      background:#f0fdf4; border:1px solid #bbf7d0;
+      border-radius:14px; padding:12px 12px;
+    }
+    .code-left{display:flex; gap:10px; align-items:center; min-width:0}
+    .code-check{
+      width:28px; height:28px; border-radius:50%;
+      background:#22c55e; color:#fff;
+      display:flex; align-items:center; justify-content:center;
+      font-size:14px; font-weight:800; flex:0 0 28px;
+    }
+    .code-main{font-weight:800; font-size:16px; color:#15803d}
+    .code-sub{font-size:12px; color:#16a34a; margin-top:1px}
+    .copy-btn{
+      border:1px solid #e5e5e5; background:#fff; color:#7c3aed;
+      border-radius:12px; padding:8px 14px; font-size:13px; font-weight:700;
+      white-space:nowrap;
+    }
+
+    .actions{display:flex; gap:8px; margin-top:10px}
+    .actions button{
+      border:1px solid #eee; background:#fafafa; color:#444;
+      border-radius:999px; padding:6px 12px; font-size:13px;
+    }
+
+    .fab{
+      position:fixed; left:50%; transform:translateX(-50%);
+      bottom:92px; z-index:20;
+      border:none; color:#fff; font-weight:800; font-size:15px;
+      padding:14px 28px; border-radius:999px;
+      background:linear-gradient(90deg,#7c3aed,#ec4899);
+      box-shadow:0 8px 24px rgba(124,58,237,.35);
+    }
+
+    .bottom{
+      position:absolute; left:0; right:0; bottom:0;
+      height:78px; background:#fff;
+      border-top:1px solid #eee;
+      display:flex; justify-content:space-around; align-items:center;
+      padding-bottom:10px;
+    }
+    .nav{
+      background:none; border:none; color:#b0b0b5;
+      display:flex; flex-direction:column; align-items:center; gap:3px;
+      font-size:11px; font-weight:600; min-width:64px;
+    }
+    .nav .ic{font-size:20px; line-height:1}
+    .nav.active{color:#7c3aed}
+
+    /* Discover / Profile light */
+    .search-wrap{padding:4px 0 10px}
+    .search{
+      display:flex; align-items:center; gap:10px;
+      background:#fff; border:1px solid #e8e8e8; border-radius:16px;
+      padding:12px 14px;
+    }
+    .search input{width:100%; border:none; outline:none; background:transparent; font-size:15px; color:#111}
+    .chips{display:flex; gap:8px; overflow-x:auto; padding:0 0 10px}
+    .chip{white-space:nowrap; border:1px solid #e8e8e8; background:#fff; color:#444; border-radius:999px; padding:8px 12px; font-size:12px}
+    .section{font-size:12px; color:#8e8e93; font-weight:700; text-transform:uppercase; letter-spacing:.3px; margin:8px 0}
+    .ai-box{display:none; background:#fff; border:1px solid #eee; border-radius:16px; padding:14px; font-size:14px; line-height:1.45; color:#333; margin-bottom:12px}
+    .card{background:#fff; border:1px solid #eee; border-radius:16px; padding:14px; margin-bottom:10px}
+    .empty{text-align:center; color:#8e8e93; padding:28px 12px; font-size:14px}
+    .muted{color:#8e8e93; font-size:12px}
+    .row{display:flex; justify-content:space-between; align-items:center; gap:10px}
+    .pill{background:#f3e8ff; color:#7c3aed; padding:6px 10px; border-radius:999px; font-size:12px; font-weight:700}
+
+    .modal{display:none; position:fixed; inset:0; background:rgba(0,0,0,.35); z-index:50; align-items:flex-end; justify-content:center}
     .modal.active{display:flex}
-    .sheet{width:100%;max-width:430px;background:var(--card);border-radius:22px 22px 0 0;padding:22px 18px 34px}
-    .sheet button,.sheet input{width:100%;margin-bottom:10px;padding:14px;border-radius:14px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:15px}
-    .quick{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
-    .quick button{width:auto;padding:8px 12px;margin:0;font-size:12px;border-radius:999px}
-    .empty{text-align:center;color:var(--text2);padding:30px 16px;font-size:14px}
+    .sheet{width:100%; max-width:430px; background:#fff; border-radius:22px 22px 0 0; padding:22px 18px 34px}
+    .sheet button,.sheet input{
+      width:100%; margin-bottom:10px; padding:14px; border-radius:14px;
+      border:1px solid #e8e8e8; background:#fafafa; color:#111; font-size:15px;
+    }
+    .sheet .primary{background:linear-gradient(90deg,#7c3aed,#ec4899); color:#fff; border:none; font-weight:700}
+    .quick{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:12px}
+    .quick button{width:auto; padding:8px 12px; margin:0; font-size:12px; border-radius:999px}
     .clickable{cursor:pointer}
   </style>
 </head>
@@ -268,36 +221,20 @@
   <p>Ton accès est activé</p>
 </div>
 
+<!-- PAYWALL -->
 <div id="paywall" class="hidden">
   <div class="sg-bg">
-    <div class="sg-live-app">
-      <div class="la-header">
-        <div class="la-brand">
-          <div class="la-logo"></div>
-          <div>
-            <div class="la-name">Codia</div>
-            <div class="la-sub">16,254k members</div>
-          </div>
-        </div>
-      </div>
-      <div class="la-stories">
-        <div class="la-ring"></div>
-        <div class="la-ring"></div>
-        <div class="la-ring"></div>
-        <div class="la-ring"></div>
-        <div class="la-ring"></div>
-      </div>
-      <div class="la-card"></div>
-      <div class="la-card"></div>
-      <div class="la-card"></div>
-      <div class="la-bottom"></div>
+    <div class="sg-scene">
+      <div class="sg-grid"></div>
+      <div class="blob b1"></div>
+      <div class="blob b2"></div>
+      <div class="blob b3"></div>
+      <div class="blob b4"></div>
     </div>
     <div class="sg-dim"></div>
   </div>
-
   <div class="sg-wrap">
     <button class="sg-close" type="button" onclick="Telegram.WebApp.close()">×</button>
-
     <div class="sg-head">
       <div class="sg-title-row">
         <div class="sg-title">Codia</div>
@@ -305,49 +242,23 @@
       </div>
       <div class="sg-sub">Trouve et partage les meilleures remises</div>
     </div>
-
     <div class="sg-features glass">
-      <div class="sg-item">
-        <div class="sg-ic c1">⌂</div>
-        <div class="sg-item-text">Feed communauté<small>Codes partagés en temps réel</small></div>
-      </div>
-      <div class="sg-item">
-        <div class="sg-ic c2">✦</div>
-        <div class="sg-item-text">Discover + IA<small>Recherche de remises intelligente</small></div>
-      </div>
-      <div class="sg-item">
-        <div class="sg-ic c3">✈</div>
-        <div class="sg-item-text">Voyages & hôtels<small>Booking, Airbnb, mobilité</small></div>
-      </div>
-      <div class="sg-item">
-        <div class="sg-ic c4">▦</div>
-        <div class="sg-item-text">Mode & shopping<small>Zara, Nike et marques</small></div>
-      </div>
-      <div class="sg-item">
-        <div class="sg-ic c5">🔔</div>
-        <div class="sg-item-text">Alertes du jour<small>Nouveautés pertinentes</small></div>
-      </div>
-      <div class="sg-item">
-        <div class="sg-ic c6">✓</div>
-        <div class="sg-item-text">Copie en 1 clic + profil<small>Tes codes et ton activité</small></div>
-      </div>
+      <div class="sg-item"><div class="sg-ic c1">⌂</div><div class="sg-item-text">Feed communauté<small>Codes partagés en temps réel</small></div></div>
+      <div class="sg-item"><div class="sg-ic c2">✦</div><div class="sg-item-text">Discover + IA<small>Recherche de remises intelligente</small></div></div>
+      <div class="sg-item"><div class="sg-ic c3">✈</div><div class="sg-item-text">Voyages & hôtels<small>Booking, Airbnb, mobilité</small></div></div>
+      <div class="sg-item"><div class="sg-ic c4">▦</div><div class="sg-item-text">Mode & shopping<small>Zara, Nike et marques</small></div></div>
+      <div class="sg-item"><div class="sg-ic c5">🔔</div><div class="sg-item-text">Alertes du jour<small>Nouveautés pertinentes</small></div></div>
+      <div class="sg-item"><div class="sg-ic c6">✓</div><div class="sg-item-text">Copie en 1 clic + profil<small>Tes codes et ton activité</small></div></div>
     </div>
-
     <div class="sg-price-card glass">
       <div class="label">Paiement unique</div>
       <div class="amount">10 €</div>
     </div>
     <div class="sg-social"><b>16,254k</b> members · +2,4k cette semaine</div>
-
     <button class="sg-cta" type="button" onclick="startPayment()">Passer à Codia</button>
-    <div class="sg-links">
-      <span>Conditions d'utilisation</span>
-      <span>·</span>
-      <span>Politique de confidentialité</span>
-    </div>
+    <div class="sg-links"><span>Conditions d'utilisation</span><span>·</span><span>Politique de confidentialité</span></div>
     <div class="sg-error" id="pw-error"></div>
   </div>
-
   <div class="pw-pay hidden" id="pw-pay">
     <div class="pw-pay-card">
       <button class="pw-back" type="button" onclick="backToOffer()">← Retour</button>
@@ -359,39 +270,31 @@
   </div>
 </div>
 
+<!-- APP -->
 <div class="app hidden" id="main-app">
   <div class="header">
-    <div class="brand">
-      <div class="logo-mark">C</div>
-      <div>
-        <div class="name">Codia</div>
-        <div class="sub">16,254k members</div>
-      </div>
-    </div>
-    <div class="header-actions">
-      <button class="icon-btn" id="notifBtn" onclick="toggleNotif()">🔔</button>
-      <button class="icon-btn" onclick="toggleTheme()">◐</button>
+    <div class="logo-c">C</div>
+    <div>
+      <div class="name">Codia</div>
+      <div class="sub">16,254k members</div>
     </div>
   </div>
 
   <div class="stories" id="stories"></div>
 
   <div class="page page-home active" id="page-home">
-    <div class="section">À la une</div>
-    <div id="daily-codes"></div>
-    <div class="section" id="feed-title">Communauté</div>
     <div id="codes-list"><div class="empty">Chargement...</div></div>
   </div>
 
   <div class="page page-ia" id="page-ia">
     <div class="search-wrap">
       <div class="search">
-        <span style="opacity:.7">⌕</span>
+        <span style="opacity:.5">⌕</span>
         <input id="ai-input" placeholder="Ex: Uber Eats, Booking..." onkeypress="if(event.key==='Enter') askAI()">
       </div>
     </div>
     <div class="chips" id="history"></div>
-    <div class="section">Résultats codes</div>
+    <div class="section">Résultats</div>
     <div id="search-results"><div class="empty">Lance une recherche</div></div>
     <div class="section">Assistant Codia</div>
     <div class="ai-box" id="ai-response"></div>
@@ -405,26 +308,27 @@
     <div id="my-codes"><div class="empty">Aucun code</div></div>
   </div>
 
-  <button class="fab" onclick="openShare()">＋ Partager</button>
+  <button class="fab" id="fabShare" onclick="openShare()">＋ Partager</button>
+
   <div class="bottom">
     <button class="nav active" onclick="showPage('home')"><div class="ic">⌂</div>Feed</button>
-    <button class="nav" onclick="showPage('ia')"><div class="ic">✦</div>Discover</button>
+    <button class="nav" onclick="showPage('ia')"><div class="ic">◇</div>Discover</button>
     <button class="nav" onclick="showPage('profile')"><div class="ic">☺</div>Profil</button>
   </div>
 </div>
 
 <div class="modal" id="shareModal">
   <div class="sheet">
-    <div style="text-align:center;font-weight:700;margin-bottom:14px">Partager un code</div>
-    <button onclick="chooseShare('promo')">Code promo</button>
-    <button onclick="chooseShare('parrainage')">Code parrainage</button>
+    <div style="text-align:center;font-weight:700;margin-bottom:14px;color:#111">Partager un code</div>
+    <button class="primary" onclick="chooseShare('promo')">Code promo</button>
+    <button class="primary" onclick="chooseShare('parrainage')">Code parrainage</button>
     <button onclick="closeShare()">Annuler</button>
   </div>
 </div>
 
 <div class="modal" id="formModal">
   <div class="sheet">
-    <div style="text-align:center;font-weight:700;margin-bottom:14px" id="formTitle">Nouveau code</div>
+    <div style="text-align:center;font-weight:700;margin-bottom:14px;color:#111" id="formTitle">Nouveau code</div>
     <div class="quick">
       <button type="button" onclick="fillSite('Uber Eats')">Uber Eats</button>
       <button type="button" onclick="fillSite('Booking')">Booking</button>
@@ -434,8 +338,8 @@
     </div>
     <input id="formSite" placeholder="Site">
     <input id="formCode" placeholder="Code">
-    <input id="formDesc" placeholder="Ex: -20% ou +80€">
-    <button onclick="submitCode()">Publier</button>
+    <input id="formDesc" placeholder="Ex: -20€ ou +80€">
+    <button class="primary" onclick="submitCode()">Publier</button>
     <button onclick="closeForm()">Annuler</button>
   </div>
 </div>
@@ -443,6 +347,7 @@
 <script>
   Telegram.WebApp.ready();
   Telegram.WebApp.expand();
+  try { Telegram.WebApp.setHeaderColor('#ffffff'); Telegram.WebApp.setBackgroundColor('#f7f7f8'); } catch(e){}
 
   let allCodes = [], userCity = null, currentShareType = "promo";
   function getTgUser(){ return window.Telegram?.WebApp?.initDataUnsafe?.user || null; }
@@ -458,7 +363,6 @@
     const params = new URLSearchParams(location.search);
     const u = getTgUser();
     const userId = u?.id;
-
     if(params.get('paid') === '1' && userId){
       await new Promise(r => setTimeout(r, 800));
       try{
@@ -467,7 +371,6 @@
         if(data.paid){ showSuccessThenApp(); return; }
       }catch(e){}
     }
-
     if(!userId){ showPaywall(); return; }
     try{
       const res = await fetch('/access?user_id=' + userId);
@@ -492,10 +395,7 @@
 
   async function startPayment(){
     const userId = getTgUser()?.id;
-    if(!userId){
-      document.getElementById('pw-error').textContent = 'Ouvre Codia depuis Telegram';
-      return;
-    }
+    if(!userId){ document.getElementById('pw-error').textContent = 'Ouvre Codia depuis Telegram'; return; }
     try { Telegram.WebApp.HapticFeedback.impactOccurred('medium'); } catch(e){}
     document.getElementById('pw-pay').classList.remove('hidden');
     document.getElementById('checkout').textContent = 'Chargement du paiement…';
@@ -525,17 +425,6 @@
     }
   }
 
-  if (localStorage.getItem('theme') === 'light') document.body.classList.add('light');
-  if (localStorage.getItem('notif') === 'off') {
-    const b = document.getElementById('notifBtn'); if(b) b.textContent = '🔕';
-  }
-  function toggleTheme(){ document.body.classList.toggle('light'); localStorage.setItem('theme', document.body.classList.contains('light')?'light':'dark'); }
-  function toggleNotif(){
-    const off = localStorage.getItem('notif')==='off';
-    localStorage.setItem('notif', off?'on':'off');
-    document.getElementById('notifBtn').textContent = off?'🔔':'🔕';
-  }
-
   function timeAgo(dateStr){
     if(!dateStr) return 'à l’instant';
     const diff = Math.max(0,(Date.now()-new Date(dateStr).getTime())/1000);
@@ -548,9 +437,22 @@
   function showPage(page){
     document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
     document.querySelectorAll('.nav').forEach(n=>n.classList.remove('active'));
-    if(page==='home'){ document.getElementById('page-home').classList.add('active'); document.querySelectorAll('.nav')[0].classList.add('active'); }
-    else if(page==='ia'){ document.getElementById('page-ia').classList.add('active'); document.querySelectorAll('.nav')[1].classList.add('active'); renderHistory(); renderSuggestions(); }
-    else { document.getElementById('page-profile').classList.add('active'); document.querySelectorAll('.nav')[2].classList.add('active'); loadProfile(); }
+    const fab = document.getElementById('fabShare');
+    if(page==='home'){
+      document.getElementById('page-home').classList.add('active');
+      document.querySelectorAll('.nav')[0].classList.add('active');
+      fab.style.display = 'block';
+    } else if(page==='ia'){
+      document.getElementById('page-ia').classList.add('active');
+      document.querySelectorAll('.nav')[1].classList.add('active');
+      fab.style.display = 'none';
+      renderHistory(); renderSuggestions();
+    } else {
+      document.getElementById('page-profile').classList.add('active');
+      document.querySelectorAll('.nav')[2].classList.add('active');
+      fab.style.display = 'none';
+      loadProfile();
+    }
   }
 
   function openShare(){ document.getElementById('shareModal').classList.add('active'); }
@@ -560,7 +462,9 @@
   function chooseShare(type){
     currentShareType=type; closeShare();
     document.getElementById('formTitle').textContent = type==='promo'?'Nouveau code promo':'Nouveau code parrainage';
-    document.getElementById('formSite').value=''; document.getElementById('formCode').value=''; document.getElementById('formDesc').value='';
+    document.getElementById('formSite').value='';
+    document.getElementById('formCode').value='';
+    document.getElementById('formDesc').value='';
     document.getElementById('formModal').classList.add('active');
   }
 
@@ -576,33 +480,49 @@
         type:currentShareType,site,code,description,added_by,user_id:u?.id||null,photo_url:u?.photo_url||null
       })});
       const data=await res.json();
-      if(data.success){ closeForm(); alert('Code en ligne ✅'); await loadCodes(); showPage('home'); }
+      if(data.success){ closeForm(); await loadCodes(); showPage('home'); }
       else alert('Erreur publication');
     }catch(e){ alert('Erreur publication'); }
   }
 
   function avatarHTML(c){
-    if(c.photo_url) return `<img class="avatar-img" src="${c.photo_url}">`;
-    return `<div class="avatar">${(c.added_by||'C')[0].toUpperCase()}</div>`;
+    if(c.photo_url) return `<div class="post-avatar"><img src="${c.photo_url}"></div>`;
+    const letter = (c.added_by||'C').replace('@','')[0].toUpperCase();
+    return `<div class="post-avatar">${letter}</div>`;
   }
 
   function renderPost(c){
     const id=c.id;
     const liked=localStorage.getItem('like_'+id)==='1';
     const disliked=localStorage.getItem('dislike_'+id)==='1';
-    const score=(c.likes||0)-(c.dislikes||0);
-    const popular=score>=5?'<span class="badge-pop">Populaire</span>':'';
-    const who=c.added_by||'Membre Codia';
-    const actionText=c.type==='parrainage'?'a partagé un code parrainage':'a partagé un code promo';
+    const who=c.added_by||'Codia IA';
+    const kind = c.type==='parrainage' ? 'shared a referral code' : 'shared a promo code';
+    const desc = `${c.code} ${c.description||''}${c.site?(' for '+c.site):''}`.trim();
     const copies=c.copies||0;
     return `<div class="post">
-      <div class="post-top">${avatarHTML(c)}<div style="flex:1"><div style="font-weight:600">${who} ${popular}</div><div class="muted">${actionText} • ${timeAgo(c.created_at)}</div></div></div>
-      <div class="muted">${c.site}</div>
-      <div class="code"><span>${c.code} <span style="color:var(--green)">${c.description||''}</span></span>
-        <button class="copy-btn" onclick="copyCode(${c.id||0}, '${String(c.code).replace(/'/g,"\\'")}', this)">Copier${copies?' · '+copies:''}</button></div>
-      <div class="actions">${c.id?`
-        <button onclick="toggleReact(${c.id},'like',this)">${liked?'❤️':'🤍'} <span>${c.likes||0}</span></button>
-        <button onclick="toggleReact(${c.id},'dislike',this)">${disliked?'💔':'👎'} <span>${c.dislikes||0}</span></button>`:''}</div></div>`;
+      <div class="post-top">
+        ${avatarHTML(c)}
+        <div style="flex:1">
+          <div class="post-who">${who}</div>
+          <div class="post-meta">${kind} · ${timeAgo(c.created_at)}</div>
+        </div>
+      </div>
+      <div class="post-desc">${desc}</div>
+      <div class="code-box">
+        <div class="code-left">
+          <div class="code-check">✓</div>
+          <div>
+            <div class="code-main">${c.code}</div>
+            <div class="code-sub">${c.description||''}</div>
+          </div>
+        </div>
+        <button class="copy-btn" onclick="copyCode(${c.id||0}, '${String(c.code).replace(/'/g,"\\'")}', this)">Copier${copies?' · '+copies:''}</button>
+      </div>
+      ${c.id?`<div class="actions">
+        <button onclick="toggleReact(${c.id},'like',this)">${liked?'❤️':'🤍'} ${c.likes||0}</button>
+        <button onclick="toggleReact(${c.id},'dislike',this)">${disliked?'💔':'👎'} ${c.dislikes||0}</button>
+      </div>`:''}
+    </div>`;
   }
 
   async function copyCode(id, code, btn){
@@ -634,30 +554,39 @@
       const res=await fetch('/code/react',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,reaction,action})});
       const data=await res.json();
       const value=data.value??0;
-      btn.innerHTML = reaction==='like' ? `${action==='add'?'❤️':'🤍'} <span>${value}</span>` : `${action==='add'?'💔':'👎'} <span>${value}</span>`;
+      btn.innerHTML = reaction==='like' ? `${action==='add'?'❤️':'🤍'} ${value}` : `${action==='add'?'💔':'👎'} ${value}`;
     }catch(e){}
   }
 
   function renderStories(){
-    const base=["Top","Uber Eats","Booking","Airbnb","Zara","Banques"];
-    const dynamic=[...new Set(allCodes.map(c=>c.site).filter(Boolean))];
-    const names=["+ Partager",...base,...dynamic.filter(s=>!base.includes(s)).slice(0,4)];
-    document.getElementById('stories').innerHTML=names.map(n=>{
-      const label=n==="+ Partager"?"+":n.slice(0,1).toUpperCase();
-      return `<div class="story clickable" onclick="onStoryClick('${n.replace(/'/g,"\\'")}')"><div class="story-ring"><div>${label}</div></div>${n.length>10?n.slice(0,9)+'…':n}</div>`;
-    }).join('');
+    const items = [
+      {name:'+ Partager', cls:'plus', label:'+', action:'share'},
+      {name:'Top', cls:'top', label:'🏆', action:'Top'},
+      {name:'Uber Eats', cls:'uber', label:'Uber<br>Eats', action:'Uber Eats'},
+      {name:'Booking', cls:'book', label:'B', action:'Booking'},
+      {name:'Airbnb', cls:'air', label:'A', action:'Airbnb'}
+    ];
+    document.getElementById('stories').innerHTML = items.map(i =>
+      `<div class="story clickable" onclick="onStoryClick('${i.action}')">
+        <div class="story-bubble ${i.cls}">${i.label}</div>${i.name}
+      </div>`
+    ).join('');
   }
+
   function onStoryClick(name){
-    if(name==="+ Partager"){ openShare(); return; }
+    if(name==='share'){ openShare(); return; }
     showPage('home');
-    const fromDb=allCodes.filter(c=>(c.site||'').toLowerCase().includes(name.toLowerCase())||name==='Top');
-    document.getElementById('feed-title').textContent=`Archive • ${name}`;
-    document.getElementById('codes-list').innerHTML=fromDb.length?fromDb.map(c=>renderPost(c)).join(''):`<div class="empty">Pas de code pour ${name}</div>`;
+    const fromDb = name==='Top' ? allCodes : allCodes.filter(c => (c.site||'').toLowerCase().includes(name.toLowerCase()));
+    document.getElementById('codes-list').innerHTML = fromDb.length ? fromDb.map(c=>renderPost(c)).join('') : `<div class="empty">Pas de code pour ${name}</div>`;
   }
 
   function renderSuggestions(){
     const items=[{site:"Uber Eats",q:"Uber Eats"},{site:"Booking",q:"Booking"},{site:"Airbnb",q:"Airbnb"},{site:"Zara",q:"Zara"}];
-    document.getElementById('suggestions').innerHTML=items.map(i=>`<div class="card row clickable" onclick="quickSearch('${i.q}')"><div><strong>${i.site}</strong><div class="muted">Chercher</div></div><div class="pill">Go</div></div>`).join('');
+    document.getElementById('suggestions').innerHTML=items.map(i=>`
+      <div class="card row clickable" onclick="quickSearch('${i.q}')">
+        <div><strong>${i.site}</strong><div class="muted">Chercher</div></div>
+        <div class="pill">Go</div>
+      </div>`).join('');
   }
   function quickSearch(q){ document.getElementById('ai-input').value=q; showPage('ia'); askAI(); }
   function renderHistory(){
@@ -696,8 +625,8 @@
     const card=document.getElementById('profile-card');
     if(!u){ card.innerHTML='Ouvre Codia depuis Telegram'; return; }
     const name=u.username?('@'+u.username):(u.first_name||'Membre');
-    const photo=u.photo_url?`<img class="avatar-img" src="${u.photo_url}">`:`<div class="avatar">${name[0]}</div>`;
-    card.innerHTML=`<div class="post-top">${photo}<div><div style="font-weight:700">${name}</div><div class="muted">Membre Codia</div></div></div>`;
+    const photo=u.photo_url?`<img src="${u.photo_url}" style="width:48px;height:48px;border-radius:50%;object-fit:cover">`:`<div class="post-avatar" style="width:48px;height:48px">${name[0]}</div>`;
+    card.innerHTML=`<div class="post-top">${photo}<div><div class="post-who">${name}</div><div class="post-meta">Membre Codia</div></div></div>`;
     if(!u.id) return;
     try{
       const res=await fetch('/codes/mine?user_id='+u.id);
@@ -713,11 +642,8 @@
       allCodes=data.codes||[];
     }catch(e){ allCodes=[]; }
     renderStories();
-    const top=allCodes.slice(0,3);
-    document.getElementById('daily-codes').innerHTML=top.map(c=>`
-      <div class="card row"><div><strong>${c.site}</strong><div class="muted">${c.type||'promo'} • ${c.code}</div></div>
-      <div class="pill">${c.description||'Promo'}</div></div>`).join('') || '<div class="empty">Pas encore de code</div>';
-    document.getElementById('codes-list').innerHTML=allCodes.length?allCodes.map(c=>renderPost(c)).join(''):'<div class="empty">Feed vide — sois le premier</div>';
+    document.getElementById('codes-list').innerHTML =
+      allCodes.length ? allCodes.map(c=>renderPost(c)).join('') : '<div class="empty">Feed vide — sois le premier</div>';
   }
 
   boot();
