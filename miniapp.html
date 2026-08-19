@@ -21,7 +21,7 @@
     .app{max-width:430px;height:100vh;margin:0 auto;display:flex;flex-direction:column;position:relative;background:var(--bg)}
     .hidden{display:none !important}
 
-    /* ===== PAYWALL (perf) ===== */
+    /* ===== PAYWALL ===== */
     #paywall{
       position:fixed; inset:0; z-index:100;
       max-width:430px; margin:0 auto;
@@ -31,11 +31,11 @@
     }
     .sg-bg{ position:absolute; inset:0; overflow:hidden; }
 
-    /* App live : nette + flou très léger */
+    /* App live CLAIRE */
     .sg-live-app{
       position:absolute; inset:0;
-      background:#050505;
-      filter:blur(3px);
+      background:#f4f4f5;
+      filter:blur(2.5px);
       transform:scale(1.02);
       opacity:1;
       pointer-events:none;
@@ -43,34 +43,40 @@
     .sg-live-app .la-header{
       display:flex; align-items:center;
       padding:14px 16px;
-      border-bottom:1px solid rgba(255,255,255,.08);
+      border-bottom:1px solid rgba(0,0,0,.06);
+      background:#fff;
     }
     .sg-live-app .la-brand{display:flex; gap:10px; align-items:center}
     .sg-live-app .la-logo{
       width:30px; height:30px; border-radius:9px;
       background:linear-gradient(135deg,#8b5cf6,#06b6d4);
     }
-    .sg-live-app .la-stories{display:flex; gap:12px; padding:12px 16px}
+    .sg-live-app .la-name{font-weight:700;font-size:15px;color:#111}
+    .sg-live-app .la-sub{font-size:10px;color:#71717a}
+    .sg-live-app .la-stories{
+      display:flex; gap:12px; padding:12px 16px;
+      background:#fafafa;
+    }
     .sg-live-app .la-ring{
       width:48px; height:48px; border-radius:50%;
-      border:2px solid #8b5cf6;
-      background:#171717;
+      border:2px solid #a78bfa;
+      background:#fff;
     }
     .sg-live-app .la-card{
       margin:10px 16px; height:82px; border-radius:16px;
-      background:#141414;
-      border:1px solid #242424;
+      background:#fff;
+      border:1px solid rgba(0,0,0,.06);
+      box-shadow:0 1px 2px rgba(0,0,0,.04);
     }
     .sg-live-app .la-bottom{
       position:absolute; left:0; right:0; bottom:0; height:70px;
-      border-top:1px solid rgba(255,255,255,.08);
-      background:#0a0a0a;
+      border-top:1px solid rgba(0,0,0,.06);
+      background:#fff;
     }
 
-    /* Plus noir que flou = on lit le paywall, on devine l'app */
     .sg-dim{
       position:absolute; inset:0;
-      background:rgba(0,0,0,.62);
+      background:rgba(0,0,0,.28);
       pointer-events:none;
     }
 
@@ -84,7 +90,7 @@
     .sg-close{
       width:30px; height:30px;
       border:1px solid rgba(255,255,255,.14);
-      background:rgba(20,20,24,.75);
+      background:rgba(18,18,24,.88);
       border-radius:50%; color:#fff; font-size:18px;
       align-self:flex-start; margin-bottom:4px;
     }
@@ -98,19 +104,19 @@
     .sg-badge{
       font-size:11px; font-weight:700;
       padding:5px 10px; border-radius:999px; color:#efe9ff;
-      background:rgba(139,92,246,.35);
-      border:1px solid rgba(167,139,250,.4);
+      background:rgba(139,92,246,.4);
+      border:1px solid rgba(167,139,250,.45);
     }
     .sg-sub{
-      color:#d4d4d8; font-size:14px; line-height:1.35;
+      color:#e4e4e7; font-size:14px; line-height:1.35;
       max-width:300px; margin:0 auto;
+      text-shadow:0 1px 8px rgba(0,0,0,.35);
     }
 
-    /* Glass léger (peu de blur GPU) */
     .glass{
-      background:rgba(18,18,24,.82);
-      border:1px solid rgba(255,255,255,.12);
-      box-shadow:0 10px 28px rgba(0,0,0,.4);
+      background:rgba(18,18,24,.9);
+      border:1px solid rgba(255,255,255,.14);
+      box-shadow:0 12px 30px rgba(0,0,0,.35);
     }
 
     .sg-features{
@@ -151,10 +157,11 @@
     .sg-price-card .amount{ font-size:26px; font-weight:800; }
 
     .sg-social{
-      text-align:center; font-size:12px; color:#a1a1aa;
+      text-align:center; font-size:12px; color:#d4d4d8;
       margin:0 0 10px;
+      text-shadow:0 1px 6px rgba(0,0,0,.3);
     }
-    .sg-social b{ color:#e8e8ea; }
+    .sg-social b{ color:#fff; }
 
     .sg-cta{
       width:100%; border:none; border-radius:999px;
@@ -166,13 +173,13 @@
 
     .sg-links{
       display:flex; justify-content:center; gap:8px; flex-wrap:wrap;
-      font-size:10px; color:#737373;
+      font-size:10px; color:#a1a1aa;
     }
     .sg-error{ color:#f87171; font-size:12px; text-align:center; margin-top:6px; }
 
     .pw-pay{
       position:absolute; inset:0; z-index:30;
-      background:rgba(0,0,0,.7);
+      background:rgba(0,0,0,.55);
       display:flex; align-items:flex-end;
     }
     .pw-pay-card{
@@ -268,8 +275,8 @@
         <div class="la-brand">
           <div class="la-logo"></div>
           <div>
-            <div style="font-weight:700;font-size:15px">Codia</div>
-            <div style="font-size:10px;color:#a1a1aa">16,254k members</div>
+            <div class="la-name">Codia</div>
+            <div class="la-sub">16,254k members</div>
           </div>
         </div>
       </div>
