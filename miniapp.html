@@ -21,51 +21,118 @@
     .app{max-width:430px;height:100vh;margin:0 auto;display:flex;flex-direction:column;position:relative;background:var(--bg)}
     .hidden{display:none !important}
 
-    /* ===== PAYWALL ===== */
-    #paywall{position:fixed;inset:0;z-index:100;overflow:hidden}
-    .pw-preview{position:absolute;inset:0;background:#0a0a0a;padding:16px;opacity:.95}
-    .pv-header{display:flex;gap:10px;align-items:center;margin-bottom:14px}
-    .pv-logo{width:32px;height:32px;border-radius:10px;background:linear-gradient(135deg,#8b5cf6,#06b6d4);display:flex;align-items:center;justify-content:center;font-weight:800}
-    .pv-name{font-weight:700}.pv-sub{font-size:11px;color:#a1a1aa}
-    .pv-stories{display:flex;gap:12px;overflow:hidden;margin-bottom:14px}
-    .pv-story{width:58px;text-align:center;font-size:10px;color:#a1a1aa}
-    .pv-story div{width:52px;height:52px;border-radius:50%;margin:0 auto 6px;border:2px solid #8b5cf6;background:#171717}
-    .pv-cards{display:flex;flex-direction:column;gap:10px}
-    .pv-card{height:84px;border-radius:16px;background:#141414;border:1px solid #222}
-
-    .pw-blur{position:absolute;inset:0;backdrop-filter:blur(11px);-webkit-backdrop-filter:blur(11px);background:rgba(0,0,0,.38)}
-    .pw-sheet{
-      position:absolute;left:0;right:0;bottom:0;max-width:430px;margin:0 auto;
-      background:rgba(18,18,18,.97);border:1px solid #2a2a2a;border-radius:22px 22px 0 0;
-      padding:10px 16px 18px;max-height:78vh;display:flex;flex-direction:column;
+    /* ===== PAYWALL SUPERGROK STYLE ===== */
+    #paywall{
+      position:fixed; inset:0; z-index:100; overflow:hidden;
+      display:flex; align-items:center; justify-content:center;
+      padding:18px 14px 28px;
     }
-    .pw-handle{width:42px;height:4px;border-radius:99px;background:#333;margin:6px auto 12px}
-    .pw-brand{font-size:12px;color:#a1a1aa}
-    .pw-sheet h1{font-size:26px;margin:4px 0 6px}
-    .pw-desc{color:#a1a1aa;font-size:14px;line-height:1.4;margin-bottom:10px}
-    .pw-scroll{overflow-y:auto;flex:1;margin-bottom:10px}
-    .pw-item{display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-bottom:1px solid #242424}
-    .pw-item:last-child{border-bottom:none}
-    .pw-item span{font-size:18px;width:24px}
-    .pw-item b{display:block;font-size:14px}
-    .pw-item small{color:#a1a1aa;font-size:12px}
-    .pw-footer{padding-top:8px;border-top:1px solid #242424}
-    .pw-price{font-size:28px;font-weight:800;margin-bottom:10px}
-    .pw-price span{font-size:13px;font-weight:500;color:#a1a1aa}
+    .pw-bg{
+      position:absolute; inset:0;
+      background:
+        radial-gradient(circle at 15% 20%, rgba(139,92,246,.45), transparent 42%),
+        radial-gradient(circle at 85% 15%, rgba(6,182,212,.28), transparent 40%),
+        radial-gradient(circle at 50% 85%, rgba(236,72,153,.18), transparent 45%),
+        #07070a;
+    }
+    .pw-bg-grid{
+      position:absolute; inset:0; opacity:.35;
+      background-image:
+        linear-gradient(rgba(255,255,255,.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.04) 1px, transparent 1px);
+      background-size:28px 28px;
+    }
+    .pw-bg-app{
+      position:absolute; left:50%; top:8%; transform:translateX(-50%) scale(1.02);
+      width:min(420px,92vw); height:70vh; border-radius:28px;
+      border:1px solid rgba(255,255,255,.06);
+      background:rgba(18,18,18,.55);
+      filter:blur(8px); opacity:.55; overflow:hidden; pointer-events:none;
+    }
+    .pw-bg-app .fake-top{height:54px;border-bottom:1px solid rgba(255,255,255,.06);display:flex;align-items:center;gap:10px;padding:0 14px}
+    .pw-bg-app .fake-logo{width:28px;height:28px;border-radius:9px;background:linear-gradient(135deg,#8b5cf6,#06b6d4)}
+    .pw-bg-app .fake-stories{display:flex;gap:10px;padding:12px}
+    .pw-bg-app .fake-story{width:46px;height:46px;border-radius:50%;border:2px solid rgba(139,92,246,.7);background:#151515}
+    .pw-bg-app .fake-card{margin:10px 14px;height:74px;border-radius:16px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.05)}
+
+    .pw-float{
+      position:relative; width:min(400px,100%);
+      display:flex; flex-direction:column; gap:12px;
+      animation: floatIn .35s ease-out;
+    }
+    @keyframes floatIn{
+      from{opacity:0; transform:translateY(18px) scale(.98)}
+      to{opacity:1; transform:translateY(0) scale(1)}
+    }
+
+    .pw-card{
+      background:rgba(20,20,24,.82);
+      border:1px solid rgba(255,255,255,.10);
+      border-radius:24px;
+      box-shadow:0 20px 60px rgba(0,0,0,.55), 0 0 0 1px rgba(139,92,246,.08);
+      backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px);
+      padding:18px 16px 14px;
+    }
+    .pw-kicker{
+      display:inline-flex; align-items:center; gap:8px;
+      font-size:12px; color:#c4b5fd; margin-bottom:10px;
+    }
+    .pw-kicker i{
+      width:8px; height:8px; border-radius:50%;
+      background:linear-gradient(135deg,#8b5cf6,#06b6d4);
+      box-shadow:0 0 12px rgba(139,92,246,.8);
+    }
+    .pw-card h1{font-size:28px; line-height:1.1; margin:0 0 8px; font-weight:800}
+    .pw-card .lead{color:#a1a1aa; font-size:14px; line-height:1.45; margin-bottom:14px}
+
+    .pw-bubbles{display:flex; flex-direction:column; gap:8px; max-height:38vh; overflow-y:auto}
+    .pw-bubble{
+      display:flex; gap:12px; align-items:flex-start;
+      padding:12px; border-radius:16px;
+      background:rgba(255,255,255,.03);
+      border:1px solid rgba(255,255,255,.06);
+    }
+    .pw-bubble .ic{
+      width:34px; height:34px; border-radius:12px; flex:0 0 34px;
+      display:flex; align-items:center; justify-content:center;
+      background:linear-gradient(135deg,rgba(139,92,246,.25),rgba(6,182,212,.18));
+      border:1px solid rgba(255,255,255,.06); font-size:15px;
+    }
+    .pw-bubble b{display:block; font-size:13.5px; margin-bottom:2px}
+    .pw-bubble small{color:#a1a1aa; font-size:12px; line-height:1.35}
+
+    .pw-cta-card{
+      background:rgba(20,20,24,.88);
+      border:1px solid rgba(255,255,255,.10);
+      border-radius:22px;
+      box-shadow:0 16px 40px rgba(0,0,0,.45);
+      backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px);
+      padding:14px;
+    }
+    .pw-price-row{display:flex; align-items:flex-end; justify-content:space-between; gap:10px; margin-bottom:12px}
+    .pw-price{font-size:30px; font-weight:800}
+    .pw-price span{display:block; font-size:12px; font-weight:500; color:#a1a1aa; margin-top:2px}
+    .pw-badge{
+      font-size:11px; color:#c4b5fd; background:rgba(139,92,246,.15);
+      border:1px solid rgba(139,92,246,.25); padding:6px 10px; border-radius:999px; white-space:nowrap;
+    }
     .pw-cta{
-      width:100%;border:none;border-radius:14px;padding:14px 16px;font-size:16px;font-weight:700;
-      color:#fff;background:linear-gradient(135deg,#8b5cf6,#06b6d4)
+      width:100%; border:none; border-radius:15px; padding:15px 16px;
+      font-size:16px; font-weight:700; color:#fff; cursor:pointer;
+      background:linear-gradient(135deg,#8b5cf6 0%, #6d28d9 45%, #06b6d4 100%);
+      box-shadow:0 10px 30px rgba(109,40,217,.35);
     }
-    .pw-note{text-align:center;font-size:11px;color:#737373;margin-top:8px}
-    .pw-error{color:#f87171;font-size:12px;margin-top:8px;text-align:center}
+    .pw-note{text-align:center; font-size:11px; color:#737373; margin-top:10px}
+    .pw-error{color:#f87171; font-size:12px; margin-top:8px; text-align:center}
 
-    .pw-pay{position:absolute;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:flex-end;justify-content:center}
+    .pw-pay{position:absolute; inset:0; background:rgba(0,0,0,.55); display:flex; align-items:flex-end; justify-content:center; z-index:5}
     .pw-pay-card{
-      width:100%;max-width:430px;background:#121212;border-radius:22px 22px 0 0;
-      border:1px solid #2a2a2a;padding:16px 16px 24px;max-height:88vh;overflow:auto
+      width:100%; max-width:430px; background:#121212; border-radius:22px 22px 0 0;
+      border:1px solid #2a2a2a; padding:16px 16px 24px; max-height:88vh; overflow:auto
     }
     .pw-back{background:none;border:none;color:#a1a1aa;margin-bottom:8px;font-size:14px}
     .pw-pay-card h2{font-size:20px;margin-bottom:4px}
+    .pw-pay-card .pw-desc{color:#a1a1aa;font-size:14px;margin-bottom:12px}
 
     /* ===== APP ===== */
     .header{padding:14px 16px 10px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)}
@@ -121,47 +188,70 @@
 
 <!-- PAYWALL -->
 <div id="paywall" class="hidden">
-  <div class="pw-preview">
-    <div class="pv-header">
-      <div class="pv-logo">C</div>
-      <div>
-        <div class="pv-name">Codia</div>
-        <div class="pv-sub">16,254k members</div>
+  <div class="pw-bg"></div>
+  <div class="pw-bg-grid"></div>
+
+  <div class="pw-bg-app">
+    <div class="fake-top">
+      <div class="fake-logo"></div>
+      <div style="font-weight:700;font-size:14px">Codia</div>
+    </div>
+    <div class="fake-stories">
+      <div class="fake-story"></div>
+      <div class="fake-story"></div>
+      <div class="fake-story"></div>
+      <div class="fake-story"></div>
+      <div class="fake-story"></div>
+    </div>
+    <div class="fake-card"></div>
+    <div class="fake-card"></div>
+    <div class="fake-card"></div>
+  </div>
+
+  <div class="pw-float">
+    <div class="pw-card">
+      <div class="pw-kicker"><i></i> Accès premium</div>
+      <h1>Passe à Codia</h1>
+      <p class="lead">
+        La plateforme de codes promo & parrainage, avec IA et communauté.
+        Débloque tout instantanément.
+      </p>
+
+      <div class="pw-bubbles">
+        <div class="pw-bubble">
+          <div class="ic">🏠</div>
+          <div><b>Feed communauté</b><small>Codes partagés, likes, tendances en direct</small></div>
+        </div>
+        <div class="pw-bubble">
+          <div class="ic">✦</div>
+          <div><b>Discover + IA</b><small>Trouve une remise en quelques secondes</small></div>
+        </div>
+        <div class="pw-bubble">
+          <div class="ic">✈️</div>
+          <div><b>Voyages & hôtels</b><small>Booking, Airbnb et bons plans déplacement</small></div>
+        </div>
+        <div class="pw-bubble">
+          <div class="ic">👗</div>
+          <div><b>Mode & shopping</b><small>Zara, Nike et marques du quotidien</small></div>
+        </div>
+        <div class="pw-bubble">
+          <div class="ic">🔔</div>
+          <div><b>Alertes du jour</b><small>Nouveautés envoyées quand c’est pertinent</small></div>
+        </div>
+        <div class="pw-bubble">
+          <div class="ic">📋</div>
+          <div><b>Copie en 1 clic</b><small>Utilise le code immédiatement</small></div>
+        </div>
       </div>
     </div>
-    <div class="pv-stories">
-      <div class="pv-story"><div></div>Top</div>
-      <div class="pv-story"><div></div>Uber</div>
-      <div class="pv-story"><div></div>Booking</div>
-      <div class="pv-story"><div></div>Zara</div>
-      <div class="pv-story"><div></div>Airbnb</div>
-    </div>
-    <div class="pv-cards">
-      <div class="pv-card"></div>
-      <div class="pv-card"></div>
-      <div class="pv-card"></div>
-    </div>
-  </div>
-  <div class="pw-blur"></div>
 
-  <div class="pw-sheet">
-    <div class="pw-handle"></div>
-    <div class="pw-brand">Codia</div>
-    <h1>Passe à Codia</h1>
-    <p class="pw-desc">Débloque l’app complète : codes, IA, communauté.</p>
-
-    <div class="pw-scroll">
-      <div class="pw-item"><span>🏠</span><div><b>Feed communauté</b><small>Codes partagés en temps réel</small></div></div>
-      <div class="pw-item"><span>✦</span><div><b>Discover + IA</b><small>Recherche de remises intelligente</small></div></div>
-      <div class="pw-item"><span>☺</span><div><b>Profil</b><small>Tes codes et ton activité</small></div></div>
-      <div class="pw-item"><span>🔔</span><div><b>Alertes du jour</b><small>Voyages, hôtels, mode</small></div></div>
-      <div class="pw-item"><span>📋</span><div><b>Copie en 1 clic</b><small>Codes prêts à utiliser</small></div></div>
-    </div>
-
-    <div class="pw-footer">
-      <div class="pw-price">10 € <span>accès à vie</span></div>
+    <div class="pw-cta-card">
+      <div class="pw-price-row">
+        <div class="pw-price">10 €<span>paiement unique · accès à vie</span></div>
+        <div class="pw-badge">Sans abonnement</div>
+      </div>
       <button class="pw-cta" onclick="startPayment()">Passer à Codia</button>
-      <div class="pw-note">Paiement sécurisé · Apple Pay & carte</div>
+      <div class="pw-note">Sécurisé par Stripe · Apple Pay & carte</div>
       <div class="pw-error" id="pw-error"></div>
     </div>
   </div>
@@ -170,7 +260,7 @@
     <div class="pw-pay-card">
       <button class="pw-back" onclick="backToOffer()">← Retour</button>
       <h2>Finaliser l’accès</h2>
-      <p class="pw-desc">10 € · accès à vie</p>
+      <p class="pw-desc">10 € · accès à vie à Codia</p>
       <div id="checkout">Chargement…</div>
       <div class="pw-error" id="pw-error-2"></div>
     </div>
