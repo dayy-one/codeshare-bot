@@ -5,74 +5,273 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Codia</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script src="https://js.stripe.com/v3/"></script>
   <style>
     *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-    body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",Inter,Roboto,sans-serif;background:#fff;color:#111;height:100vh;overflow:hidden}
+    body{
+      font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",Inter,Roboto,sans-serif;
+      background:#fff; color:#111;
+      height:100vh; overflow:hidden;
+    }
     .hidden{display:none !important}
-    .app{max-width:430px;height:100vh;margin:0 auto;display:flex;flex-direction:column;background:#f7f7f8;position:relative}
+    .app{
+      max-width:430px; height:100vh; margin:0 auto;
+      display:flex; flex-direction:column; background:#f7f7f8;
+      position:relative;
+    }
 
-    .header{background:#fff;padding:14px 16px 12px;display:flex;align-items:center;gap:12px;border-bottom:1px solid #eee}
-    .logo-c{width:48px;height:48px;border-radius:50%;background:#8b5cf6;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:22px;flex:0 0 48px}
-    .header .name{font-size:20px;font-weight:700;color:#111}
-    .header .sub{font-size:13px;color:#8e8e93;margin-top:1px}
+    /* ===== PAYWALL 3D léger ===== */
+    #paywall{
+      position:fixed; inset:0; z-index:100; max-width:430px; margin:0 auto;
+      color:#fff; display:flex; flex-direction:column; overflow:hidden; background:#05050a;
+    }
+    .sg-bg{position:absolute;inset:0;overflow:hidden;background:#05050a}
+    .sg-scene{position:absolute;inset:0;filter:blur(2px);transform:scale(1.02);pointer-events:none}
+    .sg-grid{
+      position:absolute;inset:-20%;
+      background-image:linear-gradient(rgba(255,255,255,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.04) 1px,transparent 1px);
+      background-size:42px 42px;
+      transform:perspective(700px) rotateX(58deg) translateY(-8%);
+      transform-origin:center top; opacity:.35;
+      animation:gridDrift 14s linear infinite;
+    }
+    @keyframes gridDrift{from{background-position:0 0}to{background-position:0 42px}}
+    .blob{position:absolute;border-radius:50%;filter:blur(18px);opacity:.55;animation:float3d 10s ease-in-out infinite}
+    .blob.b1{width:180px;height:180px;left:-40px;top:12%;background:radial-gradient(circle at 30% 30%,#c4b5fd,#7c3aed 45%,transparent 70%)}
+    .blob.b2{width:150px;height:150px;right:-30px;top:28%;background:radial-gradient(circle at 30% 30%,#67e8f9,#0891b2 45%,transparent 70%);animation-delay:-2.5s;animation-duration:12s}
+    .blob.b3{width:120px;height:120px;left:20%;bottom:18%;background:radial-gradient(circle at 30% 30%,#f9a8d4,#db2777 45%,transparent 70%);animation-delay:-1.2s}
+    .blob.b4{width:140px;height:140px;right:16%;bottom:12%;background:radial-gradient(circle at 30% 30%,#fde68a,#f59e0b 45%,transparent 70%);animation-delay:-4s}
+    @keyframes float3d{0%,100%{transform:translate3d(0,0,0) scale(1)}50%{transform:translate3d(10px,-16px,0) scale(1.06)}}
+    .sg-dim{position:absolute;inset:0;background:radial-gradient(circle at 50% 20%,rgba(0,0,0,.15),rgba(0,0,0,.55) 70%);pointer-events:none}
+    .sg-wrap{position:relative;z-index:2;height:100%;display:flex;flex-direction:column;padding:10px 16px 12px}
+    .sg-close{width:30px;height:30px;border:1px solid rgba(255,255,255,.14);background:rgba(18,18,24,.88);border-radius:50%;color:#fff;font-size:18px;align-self:flex-start;margin-bottom:4px}
+    .sg-head{text-align:center;padding:2px 0 8px}
+    .sg-title-row{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:6px}
+    .sg-title{font-size:32px;font-weight:800;letter-spacing:-.04em}
+    .sg-badge{font-size:11px;font-weight:700;padding:5px 10px;border-radius:999px;color:#efe9ff;background:rgba(139,92,246,.4);border:1px solid rgba(167,139,250,.45)}
+    .sg-sub{color:#e4e4e7;font-size:14px;max-width:300px;margin:0 auto}
+    .glass{background:rgba(18,18,24,.9);border:1px solid rgba(255,255,255,.14);box-shadow:0 12px 30px rgba(0,0,0,.35)}
+    .sg-features{border-radius:22px;padding:2px 10px;margin:6px 0 10px}
+    .sg-item{display:flex;gap:12px;align-items:flex-start;padding:10px 4px}
+    .sg-item+.sg-item{border-top:1px solid rgba(255,255,255,.07)}
+    .sg-ic{width:36px;height:36px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex:0 0 36px;font-size:15px;color:#fff}
+    .sg-ic.c1{background:#7c3aed}.sg-ic.c2{background:#0891b2}.sg-ic.c3{background:#ea580c}
+    .sg-ic.c4{background:#db2777}.sg-ic.c5{background:#16a34a}.sg-ic.c6{background:#ca8a04}
+    .sg-item-text{font-size:13.5px;line-height:1.3;font-weight:600;padding-top:3px}
+    .sg-item-text small{display:block;margin-top:2px;color:#b4b4bc;font-size:11px;font-weight:400}
+    .sg-price-card{border-radius:18px;padding:12px 14px;margin-bottom:8px}
+    .sg-price-card .label{color:#c4c4c8;font-size:13px;margin-bottom:2px}
+    .sg-price-card .amount{font-size:26px;font-weight:800}
+    .sg-social{text-align:center;font-size:12px;color:#d4d4d8;margin:0 0 10px}
+    .sg-social b{color:#fff}
+    .sg-cta{width:100%;border:none;border-radius:999px;padding:15px 18px;font-size:16px;font-weight:800;background:#fff;color:#000;margin-bottom:8px}
+    .sg-links{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;font-size:10px;color:#a1a1aa}
+    .sg-error{color:#f87171;font-size:12px;text-align:center;margin-top:6px}
+    .pw-pay{position:absolute;inset:0;z-index:30;background:rgba(0,0,0,.55);display:flex;align-items:flex-end}
+    .pw-pay-card{width:100%;border-radius:18px 18px 0 0;border-top:1px solid #2a2a2a;background:#0c0c0e;padding:16px 16px 24px;max-height:88vh;overflow:auto}
+    .pw-back{background:none;border:none;color:#a1a1aa;margin-bottom:10px;font-size:14px}
+    .pw-pay-card h2{font-size:18px;margin-bottom:4px}
+    .pw-pay-card .pw-desc{color:#a1a1aa;font-size:13px;margin-bottom:12px}
+    #success-screen{position:fixed;inset:0;z-index:200;max-width:430px;margin:0 auto;background:rgba(0,0,0,.92);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px}
+    .success-check{width:72px;height:72px;border-radius:50%;background:#16a34a;display:flex;align-items:center;justify-content:center;font-size:34px;color:#fff}
+    #success-screen h2{font-size:22px;font-weight:800;color:#fff}
+    #success-screen p{color:#a1a1aa;font-size:14px}
 
-    .stories{background:#fff;display:flex;gap:14px;overflow-x:auto;padding:14px 16px 12px;border-bottom:1px solid #f0f0f0}
-    .story{min-width:64px;text-align:center;font-size:11px;color:#555}
-    .story-bubble{width:56px;height:56px;border-radius:50%;margin:0 auto 6px;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;background:#f3f0ff;color:#7c3aed;border:2px solid #e9e4ff}
-    .story-bubble.top{background:linear-gradient(#fff,#fff) padding-box,linear-gradient(135deg,#fbbf24,#22c55e,#06b6d4) border-box;border:2.5px solid transparent}
-    .story-bubble.uber{background:linear-gradient(135deg,#06b6d4,#ec4899,#f59e0b);color:#fff;border:none;font-size:9px;font-weight:800;line-height:1.1;text-align:center;padding:4px}
-    .story-bubble.book{background:#fff;border:2px solid #38bdf8;color:#0ea5e9;font-size:18px;font-weight:900}
-    .story-bubble.air{background:#fff;border:2px solid #f472b6;color:#ec4899;font-size:22px;font-weight:300}
-    .story-bubble.plus{background:#f3f0ff;border:none;color:#7c3aed;font-size:26px}
+    /* ===== APP style capture ===== */
+    .header{
+      background:#fff; padding:14px 16px 12px;
+      display:flex; align-items:center; gap:12px;
+      border-bottom:1px solid #eee;
+    }
+    .logo-c{
+      width:48px; height:48px; border-radius:50%;
+      background:#8b5cf6; color:#fff;
+      display:flex; align-items:center; justify-content:center;
+      font-weight:800; font-size:22px; flex:0 0 48px;
+    }
+    .header .name{font-size:20px; font-weight:700; color:#111}
+    .header .sub{font-size:13px; color:#8e8e93; margin-top:1px}
 
-    .page{display:none;flex:1;overflow-y:auto;padding:12px 12px 120px;background:#f7f7f8}
+    .stories{
+      background:#fff; display:flex; gap:14px;
+      overflow-x:auto; padding:14px 16px 12px;
+      border-bottom:1px solid #f0f0f0;
+    }
+    .story{min-width:64px; text-align:center; font-size:11px; color:#555}
+    .story-bubble{
+      width:56px; height:56px; border-radius:50%;
+      margin:0 auto 6px;
+      display:flex; align-items:center; justify-content:center;
+      font-size:20px; font-weight:700; background:#f3f0ff; color:#7c3aed;
+      border:2px solid #e9e4ff;
+    }
+    .story-bubble.top{background:linear-gradient(#fff,#fff) padding-box, linear-gradient(135deg,#fbbf24,#22c55e,#06b6d4) border-box; border:2.5px solid transparent}
+    .story-bubble.uber{background:linear-gradient(135deg,#06b6d4,#ec4899,#f59e0b); color:#fff; border:none; font-size:9px; font-weight:800; line-height:1.1; text-align:center; padding:4px}
+    .story-bubble.book{background:#fff; border:2px solid #38bdf8; color:#0ea5e9; font-size:18px; font-weight:900}
+    .story-bubble.air{background:#fff; border:2px solid #f472b6; color:#ec4899; font-size:22px; font-weight:300}
+    .story-bubble.plus{background:#f3f0ff; border:none; color:#7c3aed; font-size:26px}
+
+    .page{display:none; flex:1; overflow-y:auto; padding:12px 12px 120px; background:#f7f7f8}
     .page.active{display:block}
 
-    .post{background:#fff;border-radius:18px;padding:14px;margin-bottom:12px;border:1px solid #eee;box-shadow:0 1px 2px rgba(0,0,0,.03)}
-    .post-top{display:flex;align-items:center;gap:10px;margin-bottom:10px}
-    .post-avatar{width:40px;height:40px;border-radius:50%;background:#8b5cf6;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;overflow:hidden;flex:0 0 40px}
+    .post{
+      background:#fff; border-radius:18px;
+      padding:14px; margin-bottom:12px;
+      border:1px solid #eee;
+      box-shadow:0 1px 2px rgba(0,0,0,.03);
+    }
+    .post-top{display:flex; align-items:center; gap:10px; margin-bottom:10px}
+    .post-avatar{
+      width:40px; height:40px; border-radius:50%;
+      background:#8b5cf6; color:#fff;
+      display:flex; align-items:center; justify-content:center;
+      font-weight:800; font-size:16px; overflow:hidden; flex:0 0 40px;
+    }
     .post-avatar img{width:100%;height:100%;object-fit:cover}
-    .post-who{font-weight:700;font-size:14px;color:#111}
-    .post-meta{font-size:12px;color:#8e8e93;margin-top:1px}
-    .post-desc{font-size:14px;color:#111;margin-bottom:10px;line-height:1.35}
+    .post-who{font-weight:700; font-size:14px; color:#111}
+    .post-meta{font-size:12px; color:#8e8e93; margin-top:1px}
+    .post-desc{font-size:14px; color:#111; margin-bottom:10px; line-height:1.35}
 
-    .code-box{display:flex;align-items:center;justify-content:space-between;gap:10px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:14px;padding:12px}
-    .code-left{display:flex;gap:10px;align-items:center;min-width:0}
-    .code-check{width:28px;height:28px;border-radius:50%;background:#22c55e;color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;flex:0 0 28px}
-    .code-main{font-weight:800;font-size:16px;color:#15803d}
-    .code-sub{font-size:12px;color:#16a34a;margin-top:1px}
-    .copy-btn{border:1px solid #e5e5e5;background:#fff;color:#7c3aed;border-radius:12px;padding:8px 14px;font-size:13px;font-weight:700;white-space:nowrap}
+    .code-box{
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+      background:#f0fdf4; border:1px solid #bbf7d0;
+      border-radius:14px; padding:12px 12px;
+    }
+    .code-left{display:flex; gap:10px; align-items:center; min-width:0}
+    .code-check{
+      width:28px; height:28px; border-radius:50%;
+      background:#22c55e; color:#fff;
+      display:flex; align-items:center; justify-content:center;
+      font-size:14px; font-weight:800; flex:0 0 28px;
+    }
+    .code-main{font-weight:800; font-size:16px; color:#15803d}
+    .code-sub{font-size:12px; color:#16a34a; margin-top:1px}
+    .copy-btn{
+      border:1px solid #e5e5e5; background:#fff; color:#7c3aed;
+      border-radius:12px; padding:8px 14px; font-size:13px; font-weight:700;
+      white-space:nowrap;
+    }
 
-    .actions{display:flex;gap:8px;margin-top:10px}
-    .actions button{border:1px solid #eee;background:#fafafa;color:#444;border-radius:999px;padding:6px 12px;font-size:13px}
+    .actions{display:flex; gap:8px; margin-top:10px}
+    .actions button{
+      border:1px solid #eee; background:#fafafa; color:#444;
+      border-radius:999px; padding:6px 12px; font-size:13px;
+    }
 
-    .fab{position:fixed;left:50%;transform:translateX(-50%);bottom:92px;z-index:20;border:none;color:#fff;font-weight:800;font-size:15px;padding:14px 28px;border-radius:999px;background:linear-gradient(90deg,#7c3aed,#ec4899);box-shadow:0 8px 24px rgba(124,58,237,.35)}
-    .bottom{position:absolute;left:0;right:0;bottom:0;height:78px;background:#fff;border-top:1px solid #eee;display:flex;justify-content:space-around;align-items:center;padding-bottom:10px}
-    .nav{background:none;border:none;color:#b0b0b5;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px;font-weight:600;min-width:64px}
-    .nav .ic{font-size:20px;line-height:1}
+    .fab{
+      position:fixed; left:50%; transform:translateX(-50%);
+      bottom:92px; z-index:20;
+      border:none; color:#fff; font-weight:800; font-size:15px;
+      padding:14px 28px; border-radius:999px;
+      background:linear-gradient(90deg,#7c3aed,#ec4899);
+      box-shadow:0 8px 24px rgba(124,58,237,.35);
+    }
+
+    .bottom{
+      position:absolute; left:0; right:0; bottom:0;
+      height:78px; background:#fff;
+      border-top:1px solid #eee;
+      display:flex; justify-content:space-around; align-items:center;
+      padding-bottom:10px;
+    }
+    .nav{
+      background:none; border:none; color:#b0b0b5;
+      display:flex; flex-direction:column; align-items:center; gap:3px;
+      font-size:11px; font-weight:600; min-width:64px;
+    }
+    .nav .ic{font-size:20px; line-height:1}
     .nav.active{color:#7c3aed}
 
+    /* Discover / Profile light */
     .search-wrap{padding:4px 0 10px}
-    .search{display:flex;align-items:center;gap:10px;background:#fff;border:1px solid #e8e8e8;border-radius:16px;padding:12px 14px}
-    .search input{width:100%;border:none;outline:none;background:transparent;font-size:15px;color:#111}
-    .section{font-size:12px;color:#8e8e93;font-weight:700;text-transform:uppercase;letter-spacing:.3px;margin:8px 0}
-    .card{background:#fff;border:1px solid #eee;border-radius:16px;padding:14px;margin-bottom:10px}
-    .empty{text-align:center;color:#8e8e93;padding:28px 12px;font-size:14px}
-    .follow-stats{display:flex;gap:30px;justify-content:center;margin:16px 0}
-    .follow-stats div{text-align:center}
-    .follow-stats strong{display:block;font-size:18px}
+    .search{
+      display:flex; align-items:center; gap:10px;
+      background:#fff; border:1px solid #e8e8e8; border-radius:16px;
+      padding:12px 14px;
+    }
+    .search input{width:100%; border:none; outline:none; background:transparent; font-size:15px; color:#111}
+    .chips{display:flex; gap:8px; overflow-x:auto; padding:0 0 10px}
+    .chip{white-space:nowrap; border:1px solid #e8e8e8; background:#fff; color:#444; border-radius:999px; padding:8px 12px; font-size:12px}
+    .section{font-size:12px; color:#8e8e93; font-weight:700; text-transform:uppercase; letter-spacing:.3px; margin:8px 0}
+    .ai-box{display:none; background:#fff; border:1px solid #eee; border-radius:16px; padding:14px; font-size:14px; line-height:1.45; color:#333; margin-bottom:12px}
+    .card{background:#fff; border:1px solid #eee; border-radius:16px; padding:14px; margin-bottom:10px}
+    .empty{text-align:center; color:#8e8e93; padding:28px 12px; font-size:14px}
+    .muted{color:#8e8e93; font-size:12px}
+    .row{display:flex; justify-content:space-between; align-items:center; gap:10px}
+    .pill{background:#f3e8ff; color:#7c3aed; padding:6px 10px; border-radius:999px; font-size:12px; font-weight:700}
 
-    .modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:50;align-items:flex-end;justify-content:center}
+    .modal{display:none; position:fixed; inset:0; background:rgba(0,0,0,.35); z-index:50; align-items:flex-end; justify-content:center}
     .modal.active{display:flex}
-    .sheet{width:100%;max-width:430px;background:#fff;border-radius:22px 22px 0 0;padding:22px 18px 34px}
-    .sheet button,.sheet input{width:100%;margin-bottom:10px;padding:14px;border-radius:14px;border:1px solid #e8e8e8;background:#fafafa;color:#111;font-size:15px}
-    .sheet .primary{background:linear-gradient(90deg,#7c3aed,#ec4899);color:#fff;border:none;font-weight:700}
-    .quick{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
-    .quick button{width:auto;padding:8px 12px;margin:0;font-size:12px;border-radius:999px}
+    .sheet{width:100%; max-width:430px; background:#fff; border-radius:22px 22px 0 0; padding:22px 18px 34px}
+    .sheet button,.sheet input{
+      width:100%; margin-bottom:10px; padding:14px; border-radius:14px;
+      border:1px solid #e8e8e8; background:#fafafa; color:#111; font-size:15px;
+    }
+    .sheet .primary{background:linear-gradient(90deg,#7c3aed,#ec4899); color:#fff; border:none; font-weight:700}
+    .quick{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:12px}
+    .quick button{width:auto; padding:8px 12px; margin:0; font-size:12px; border-radius:999px}
+    .clickable{cursor:pointer}
   </style>
 </head>
 <body>
-<div class="app" id="main-app">
+
+<div id="success-screen" class="hidden">
+  <div class="success-check">✓</div>
+  <h2>Bienvenue sur Codia</h2>
+  <p>Ton accès est activé</p>
+</div>
+
+<!-- PAYWALL -->
+<div id="paywall" class="hidden">
+  <div class="sg-bg">
+    <div class="sg-scene">
+      <div class="sg-grid"></div>
+      <div class="blob b1"></div>
+      <div class="blob b2"></div>
+      <div class="blob b3"></div>
+      <div class="blob b4"></div>
+    </div>
+    <div class="sg-dim"></div>
+  </div>
+  <div class="sg-wrap">
+    <button class="sg-close" type="button" onclick="Telegram.WebApp.close()">×</button>
+    <div class="sg-head">
+      <div class="sg-title-row">
+        <div class="sg-title">Codia</div>
+        <div class="sg-badge">Premium</div>
+      </div>
+      <div class="sg-sub">Trouve et partage les meilleures remises</div>
+    </div>
+    <div class="sg-features glass">
+      <div class="sg-item"><div class="sg-ic c1">⌂</div><div class="sg-item-text">Feed communauté<small>Codes partagés en temps réel</small></div></div>
+      <div class="sg-item"><div class="sg-ic c2">✦</div><div class="sg-item-text">Discover + IA<small>Recherche de remises intelligente</small></div></div>
+      <div class="sg-item"><div class="sg-ic c3">✈</div><div class="sg-item-text">Voyages & hôtels<small>Booking, Airbnb, mobilité</small></div></div>
+      <div class="sg-item"><div class="sg-ic c4">▦</div><div class="sg-item-text">Mode & shopping<small>Zara, Nike et marques</small></div></div>
+      <div class="sg-item"><div class="sg-ic c5">🔔</div><div class="sg-item-text">Alertes du jour<small>Nouveautés pertinentes</small></div></div>
+      <div class="sg-item"><div class="sg-ic c6">✓</div><div class="sg-item-text">Copie en 1 clic + profil<small>Tes codes et ton activité</small></div></div>
+    </div>
+    <div class="sg-price-card glass">
+      <div class="label">Paiement unique</div>
+      <div class="amount">10 €</div>
+    </div>
+    <div class="sg-social"><b>16,254k</b> members · +2,4k cette semaine</div>
+    <button class="sg-cta" type="button" onclick="startPayment()">Passer à Codia</button>
+    <div class="sg-links"><span>Conditions d'utilisation</span><span>·</span><span>Politique de confidentialité</span></div>
+    <div class="sg-error" id="pw-error"></div>
+  </div>
+  <div class="pw-pay hidden" id="pw-pay">
+    <div class="pw-pay-card">
+      <button class="pw-back" type="button" onclick="backToOffer()">← Retour</button>
+      <h2>Finaliser l’accès</h2>
+      <p class="pw-desc">10 € · accès Codia</p>
+      <div id="checkout">Chargement…</div>
+      <div class="sg-error" id="pw-error-2"></div>
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div class="app hidden" id="main-app">
   <div class="header">
     <div class="logo-c">C</div>
     <div>
@@ -87,25 +286,24 @@
     <div id="codes-list"><div class="empty">Chargement...</div></div>
   </div>
 
-  <div class="page" id="page-ia">
+  <div class="page page-ia" id="page-ia">
     <div class="search-wrap">
       <div class="search">
         <span style="opacity:.5">⌕</span>
         <input id="ai-input" placeholder="Ex: Uber Eats, Booking..." onkeypress="if(event.key==='Enter') askAI()">
       </div>
     </div>
+    <div class="chips" id="history"></div>
     <div class="section">Résultats</div>
     <div id="search-results"><div class="empty">Lance une recherche</div></div>
+    <div class="section">Assistant Codia</div>
+    <div class="ai-box" id="ai-response"></div>
+    <div class="section">Suggestions</div>
+    <div id="suggestions"></div>
   </div>
 
-  <div class="page" id="page-profile">
+  <div class="page page-profile" id="page-profile">
     <div class="card" id="profile-card">Chargement profil...</div>
-    
-    <div class="follow-stats">
-      <div><strong id="followers-count">0</strong>Abonnés</div>
-      <div><strong id="following-count">0</strong>Abonnements</div>
-    </div>
-
     <div class="section">Mes codes</div>
     <div id="my-codes"><div class="empty">Aucun code</div></div>
   </div>
@@ -121,7 +319,7 @@
 
 <div class="modal" id="shareModal">
   <div class="sheet">
-    <div style="text-align:center;font-weight:700;margin-bottom:14px">Partager un code</div>
+    <div style="text-align:center;font-weight:700;margin-bottom:14px;color:#111">Partager un code</div>
     <button class="primary" onclick="chooseShare('promo')">Code promo</button>
     <button class="primary" onclick="chooseShare('parrainage')">Code parrainage</button>
     <button onclick="closeShare()">Annuler</button>
@@ -130,7 +328,7 @@
 
 <div class="modal" id="formModal">
   <div class="sheet">
-    <div style="text-align:center;font-weight:700;margin-bottom:14px" id="formTitle">Nouveau code</div>
+    <div style="text-align:center;font-weight:700;margin-bottom:14px;color:#111" id="formTitle">Nouveau code</div>
     <div class="quick">
       <button type="button" onclick="fillSite('Uber Eats')">Uber Eats</button>
       <button type="button" onclick="fillSite('Booking')">Booking</button>
@@ -151,12 +349,81 @@
   Telegram.WebApp.expand();
   try { Telegram.WebApp.setHeaderColor('#ffffff'); Telegram.WebApp.setBackgroundColor('#f7f7f8'); } catch(e){}
 
-  const ADMIN_ID = 8091031583;
-  let allCodes = [];
-  let currentShareType = "promo";
+  let allCodes = [], userCity = null, currentShareType = "promo";
+  function getTgUser(){ return window.Telegram?.WebApp?.initDataUnsafe?.user || null; }
 
-  function getUser(){ return window.Telegram?.WebApp?.initDataUnsafe?.user || null; }
-  function isAdmin(){ const u = getUser(); return u && Number(u.id) === ADMIN_ID; }
+  function showSuccessThenApp(){
+    const s = document.getElementById('success-screen');
+    s.classList.remove('hidden');
+    try { Telegram.WebApp.HapticFeedback.notificationOccurred('success'); } catch(e){}
+    setTimeout(() => { s.classList.add('hidden'); showApp(); }, 1600);
+  }
+
+  async function boot(){
+    const params = new URLSearchParams(location.search);
+    const u = getTgUser();
+    const userId = u?.id;
+    if(params.get('paid') === '1' && userId){
+      await new Promise(r => setTimeout(r, 800));
+      try{
+        const res = await fetch('/access?user_id=' + userId);
+        const data = await res.json();
+        if(data.paid){ showSuccessThenApp(); return; }
+      }catch(e){}
+    }
+    if(!userId){ showPaywall(); return; }
+    try{
+      const res = await fetch('/access?user_id=' + userId);
+      const data = await res.json();
+      if(data.paid) showApp(); else showPaywall();
+    }catch(e){
+      showPaywall();
+      document.getElementById('pw-error').textContent = 'Erreur accès. Réessaie.';
+    }
+  }
+
+  function showPaywall(){
+    document.getElementById('paywall').classList.remove('hidden');
+    document.getElementById('main-app').classList.add('hidden');
+  }
+  function showApp(){
+    document.getElementById('paywall').classList.add('hidden');
+    document.getElementById('main-app').classList.remove('hidden');
+    loadCodes();
+  }
+  function backToOffer(){ document.getElementById('pw-pay').classList.add('hidden'); }
+
+  async function startPayment(){
+    const userId = getTgUser()?.id;
+    if(!userId){ document.getElementById('pw-error').textContent = 'Ouvre Codia depuis Telegram'; return; }
+    try { Telegram.WebApp.HapticFeedback.impactOccurred('medium'); } catch(e){}
+    document.getElementById('pw-pay').classList.remove('hidden');
+    document.getElementById('checkout').textContent = 'Chargement du paiement…';
+    document.getElementById('pw-error-2').textContent = '';
+    await initEmbeddedCheckout(userId);
+  }
+
+  async function initEmbeddedCheckout(telegramId){
+    const err = document.getElementById('pw-error-2');
+    const box = document.getElementById('checkout');
+    try{
+      const cfg = await fetch('/config').then(r => r.json());
+      if(!cfg.stripe_pk){ err.textContent = 'Clé Stripe manquante'; box.textContent=''; return; }
+      const stripe = Stripe(cfg.stripe_pk);
+      const res = await fetch('/create-embedded-checkout', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({telegram_id: telegramId})
+      });
+      const data = await res.json();
+      if(!data.clientSecret){ err.textContent = data.error || 'Paiement indisponible'; box.textContent=''; return; }
+      const checkout = await stripe.initEmbeddedCheckout({ clientSecret: data.clientSecret });
+      box.innerHTML = '';
+      checkout.mount('#checkout');
+    }catch(e){
+      err.textContent = 'Paiement indisponible pour le moment.';
+      box.textContent = '';
+    }
+  }
 
   function timeAgo(dateStr){
     if(!dateStr) return 'à l’instant';
@@ -179,6 +446,7 @@
       document.getElementById('page-ia').classList.add('active');
       document.querySelectorAll('.nav')[1].classList.add('active');
       fab.style.display = 'none';
+      renderHistory(); renderSuggestions();
     } else {
       document.getElementById('page-profile').classList.add('active');
       document.querySelectorAll('.nav')[2].classList.add('active');
@@ -191,7 +459,6 @@
   function closeShare(){ document.getElementById('shareModal').classList.remove('active'); }
   function closeForm(){ document.getElementById('formModal').classList.remove('active'); }
   function fillSite(v){ document.getElementById('formSite').value=v; }
-
   function chooseShare(type){
     currentShareType=type; closeShare();
     document.getElementById('formTitle').textContent = type==='promo'?'Nouveau code promo':'Nouveau code parrainage';
@@ -206,7 +473,7 @@
     const code=document.getElementById('formCode').value.trim();
     const description=document.getElementById('formDesc').value.trim();
     if(!site||!code){ alert('Site et code obligatoires'); return; }
-    const u=getUser();
+    const u=getTgUser();
     const added_by=u?.username?('@'+u.username):(u?.first_name||'Membre Codia');
     try{
       const res=await fetch('/codes/add',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
@@ -232,7 +499,6 @@
     const kind = c.type==='parrainage' ? 'shared a referral code' : 'shared a promo code';
     const desc = `${c.code} ${c.description||''}${c.site?(' for '+c.site):''}`.trim();
     const copies=c.copies||0;
-
     return `<div class="post">
       <div class="post-top">
         ${avatarHTML(c)}
@@ -252,10 +518,10 @@
         </div>
         <button class="copy-btn" onclick="copyCode(${c.id||0}, '${String(c.code).replace(/'/g,"\\'")}', this)">Copier${copies?' · '+copies:''}</button>
       </div>
-      <div class="actions">
+      ${c.id?`<div class="actions">
         <button onclick="toggleReact(${c.id},'like',this)">${liked?'❤️':'🤍'} ${c.likes||0}</button>
         <button onclick="toggleReact(${c.id},'dislike',this)">${disliked?'💔':'👎'} ${c.dislikes||0}</button>
-      </div>
+      </div>`:''}
     </div>`;
   }
 
@@ -263,9 +529,8 @@
     try{ await navigator.clipboard.writeText(code); }catch(e){ alert(code); }
     btn.textContent='Copié';
     if(id){
-      const u = getUser();
       try{
-        const res=await fetch('/code/copy',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id, user_id: u?.id})});
+        const res=await fetch('/code/copy',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id})});
         const data=await res.json();
         if(data.copies!==undefined){ setTimeout(()=>btn.textContent=`Copier · ${data.copies}`,800); return; }
       }catch(e){}
@@ -302,7 +567,7 @@
       {name:'Airbnb', cls:'air', label:'A', action:'Airbnb'}
     ];
     document.getElementById('stories').innerHTML = items.map(i =>
-      `<div class="story" onclick="onStoryClick('${i.action}')">
+      `<div class="story clickable" onclick="onStoryClick('${i.action}')">
         <div class="story-bubble ${i.cls}">${i.label}</div>${i.name}
       </div>`
     ).join('');
@@ -311,43 +576,58 @@
   function onStoryClick(name){
     if(name==='share'){ openShare(); return; }
     showPage('home');
-    const fromDb = name==='Top' 
-      ? [...allCodes].sort((a,b) => ((b.likes||0)*2 + (b.copies||0)) - ((a.likes||0)*2 + (a.copies||0)))
-      : allCodes.filter(c => (c.site||'').toLowerCase().includes(name.toLowerCase()));
-    document.getElementById('codes-list').innerHTML = fromDb.length 
-      ? fromDb.map(c=>renderPost(c)).join('') 
-      : `<div class="empty">Pas de code pour ${name}</div>`;
+    const fromDb = name==='Top' ? allCodes : allCodes.filter(c => (c.site||'').toLowerCase().includes(name.toLowerCase()));
+    document.getElementById('codes-list').innerHTML = fromDb.length ? fromDb.map(c=>renderPost(c)).join('') : `<div class="empty">Pas de code pour ${name}</div>`;
+  }
+
+  function renderSuggestions(){
+    const items=[{site:"Uber Eats",q:"Uber Eats"},{site:"Booking",q:"Booking"},{site:"Airbnb",q:"Airbnb"},{site:"Zara",q:"Zara"}];
+    document.getElementById('suggestions').innerHTML=items.map(i=>`
+      <div class="card row clickable" onclick="quickSearch('${i.q}')">
+        <div><strong>${i.site}</strong><div class="muted">Chercher</div></div>
+        <div class="pill">Go</div>
+      </div>`).join('');
+  }
+  function quickSearch(q){ document.getElementById('ai-input').value=q; showPage('ia'); askAI(); }
+  function renderHistory(){
+    const hist=JSON.parse(localStorage.getItem('search_history')||'[]');
+    document.getElementById('history').innerHTML=hist.slice(0,8).map(h=>`<button class="chip" onclick="quickSearch('${h.replace(/'/g,"\\'")}')">${h}</button>`).join('');
+  }
+  function saveHistory(q){
+    let hist=JSON.parse(localStorage.getItem('search_history')||'[]');
+    hist=[q,...hist.filter(x=>x!==q)].slice(0,8);
+    localStorage.setItem('search_history',JSON.stringify(hist));
+    renderHistory();
   }
 
   async function askAI(){
     const q=document.getElementById('ai-input').value.trim();
     if(!q) return;
+    saveHistory(q);
     const results=document.getElementById('search-results');
+    const box=document.getElementById('ai-response');
     results.innerHTML='<div class="empty">Recherche...</div>';
+    box.style.display='block'; box.innerHTML='Analyse IA...';
     try{
       const res=await fetch('/codes/search?q='+encodeURIComponent(q));
       const data=await res.json();
-      results.innerHTML=(data.codes||[]).length?(data.codes||[]).map(c=>renderPost(c)).join(''):'<div class="empty">Aucun code trouvé</div>';
+      results.innerHTML=(data.codes||[]).length?(data.codes||[]).map(c=>renderPost(c)).join(''):'<div class="empty">Aucun code exact en base</div>';
     }catch(e){ results.innerHTML='<div class="empty">Erreur recherche</div>'; }
+    try{
+      const res=await fetch('/ask',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question:q,city:userCity})});
+      const data=await res.json();
+      box.innerHTML=data.answer||'Voici une alternative utile.';
+    }catch(e){ box.innerHTML='Alternative: Booking, Uber Eats, Zara.'; }
   }
 
   async function loadProfile(){
-    const u=getUser();
+    const u=getTgUser();
     const card=document.getElementById('profile-card');
     if(!u){ card.innerHTML='Ouvre Codia depuis Telegram'; return; }
     const name=u.username?('@'+u.username):(u.first_name||'Membre');
     const photo=u.photo_url?`<img src="${u.photo_url}" style="width:48px;height:48px;border-radius:50%;object-fit:cover">`:`<div class="post-avatar" style="width:48px;height:48px">${name[0]}</div>`;
     card.innerHTML=`<div class="post-top">${photo}<div><div class="post-who">${name}</div><div class="post-meta">Membre Codia</div></div></div>`;
-
-    // Abonnés / Abonnements
-    try{
-      const res = await fetch('/follow/stats?user_id='+u.id);
-      const data = await res.json();
-      document.getElementById('followers-count').textContent = data.followers || 0;
-      document.getElementById('following-count').textContent = data.following || 0;
-    }catch(e){}
-
-    // Mes codes
+    if(!u.id) return;
     try{
       const res=await fetch('/codes/mine?user_id='+u.id);
       const data=await res.json();
@@ -366,7 +646,7 @@
       allCodes.length ? allCodes.map(c=>renderPost(c)).join('') : '<div class="empty">Feed vide — sois le premier</div>';
   }
 
-  loadCodes();
+  boot();
 </script>
 </body>
-</html>
+</html> 
