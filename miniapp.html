@@ -1,526 +1,372 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
- <meta charset="UTF-8">
- <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
- <title>Codia</title>
- <script src="https://telegram.org/js/telegram-web-app.js"></script>
- <style>
- *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
- body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",Inter,Roboto,sans-serif;background:#f7f7f8;color:#111;height:100vh;overflow:hidden;transition:background .3s}
- body.dark{background:#0c0c0e;color:#f4f4f5}
- .app{max-width:430px;height:100vh;margin:0 auto;display:flex;flex-direction:column;background:#f7f7f8;position:relative}
- body.dark .app{background:#0c0c0e}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Codia</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+    body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",Inter,Roboto,sans-serif;background:#fff;color:#111;height:100vh;overflow:hidden}
+    .hidden{display:none !important}
+    .app{max-width:430px;height:100vh;margin:0 auto;display:flex;flex-direction:column;background:#f7f7f8;position:relative}
 
- .header{background:#fff;padding:12px 16px;display:flex;align-items:center;gap:12px;border-bottom:1px solid #eee;position:relative}
- body.dark .header{background:#161618;border-color:#2a2a2e}
- .logo-img{width:42px;height:42px;border-radius:12px;object-fit:cover}
- .logo-fallback{width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,#7c3aed,#ec4899);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:18px}
- .header .name{font-size:19px;font-weight:700}
- .header .sub{font-size:12px;color:#8e8e93}
- .theme-btn{position:absolute;right:14px;top:50%;transform:translateY(-50%);width:34px;height:34px;border-radius:50%;border:1px solid #e5e5e5;background:#f5f5f5;font-size:16px}
- body.dark .theme-btn{background:#27272a;border-color:#3f3f46}
+    .header{background:#fff;padding:14px 16px 12px;display:flex;align-items:center;gap:12px;border-bottom:1px solid #eee}
+    .logo-c{width:48px;height:48px;border-radius:50%;background:#8b5cf6;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:22px;flex:0 0 48px}
+    .header .name{font-size:20px;font-weight:700;color:#111}
+    .header .sub{font-size:13px;color:#8e8e93;margin-top:1px}
 
- .stories{background:#fff;display:flex;gap:14px;overflow-x:auto;padding:14px 16px;border-bottom:1px solid #f0f0f0}
- body.dark .stories{background:#161618;border-color:#2a2a2e}
- .story{min-width:64px;text-align:center;font-size:11px;color:#555}
- body.dark .story{color:#a1a1aa}
- .story-bubble{width:56px;height:56px;border-radius:50%;margin:0 auto 6px;display:flex;align-items:center;justify-content:center;overflow:hidden;background:#fff;border:2.5px solid #e9e4ff}
- .story-bubble img{width:100%;height:100%;object-fit:contain}
- .story-bubble.plus{background:#f3f0ff;border:none;color:#7c3aed;font-size:26px}
- .story-bubble.top{background:linear-gradient(#fff,#fff) padding-box,linear-gradient(135deg,#fbbf24,#22c55e,#06b6d4) border-box;border:2.5px solid transparent}
+    .stories{background:#fff;display:flex;gap:14px;overflow-x:auto;padding:14px 16px 12px;border-bottom:1px solid #f0f0f0}
+    .story{min-width:64px;text-align:center;font-size:11px;color:#555}
+    .story-bubble{width:56px;height:56px;border-radius:50%;margin:0 auto 6px;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;background:#f3f0ff;color:#7c3aed;border:2px solid #e9e4ff}
+    .story-bubble.top{background:linear-gradient(#fff,#fff) padding-box,linear-gradient(135deg,#fbbf24,#22c55e,#06b6d4) border-box;border:2.5px solid transparent}
+    .story-bubble.uber{background:linear-gradient(135deg,#06b6d4,#ec4899,#f59e0b);color:#fff;border:none;font-size:9px;font-weight:800;line-height:1.1;text-align:center;padding:4px}
+    .story-bubble.book{background:#fff;border:2px solid #38bdf8;color:#0ea5e9;font-size:18px;font-weight:900}
+    .story-bubble.air{background:#fff;border:2px solid #f472b6;color:#ec4899;font-size:22px;font-weight:300}
+    .story-bubble.plus{background:#f3f0ff;border:none;color:#7c3aed;font-size:26px}
 
- .page{display:none;flex:1;overflow-y:auto;padding:12px 12px 110px}
- .page.active{display:block}
+    .page{display:none;flex:1;overflow-y:auto;padding:12px 12px 120px;background:#f7f7f8}
+    .page.active{display:block}
 
- .post{background:#fff;border-radius:16px;padding:14px;margin-bottom:12px;border:1px solid #eee}
- body.dark .post{background:#161618;border-color:#2a2a2e}
- .post-top{display:flex;align-items:center;gap:10px;margin-bottom:8px}
- .post-avatar{width:40px;height:40px;border-radius:50%;overflow:hidden;background:#8b5cf6;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0}
- .post-avatar img{width:100%;height:100%;object-fit:contain;background:#fff}
- .post-who{font-weight:700;font-size:14px}
- .post-meta{font-size:12px;color:#8e8e93}
- .post-desc{font-size:14px;margin:6px 0}
- .expiry{font-size:12px;color:#dc2626;margin-bottom:6px}
+    .post{background:#fff;border-radius:18px;padding:14px;margin-bottom:12px;border:1px solid #eee;box-shadow:0 1px 2px rgba(0,0,0,.03)}
+    .post-top{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+    .post-avatar{width:40px;height:40px;border-radius:50%;background:#8b5cf6;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;overflow:hidden;flex:0 0 40px}
+    .post-avatar img{width:100%;height:100%;object-fit:cover}
+    .post-who{font-weight:700;font-size:14px;color:#111}
+    .post-meta{font-size:12px;color:#8e8e93;margin-top:1px}
+    .post-desc{font-size:14px;color:#111;margin-bottom:10px;line-height:1.35}
 
- .code-box{display:flex;align-items:center;justify-content:space-between;gap:10px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:11px 12px}
- body.dark .code-box{background:#052e16;border-color:#166534}
- .code-main{font-weight:800;font-size:15px;color:#15803d}
- body.dark .code-main{color:#4ade80}
- .code-sub{font-size:12px;color:#16a34a}
- .copy-btn{border:1px solid #e5e5e5;background:#fff;color:#7c3aed;border-radius:10px;padding:7px 12px;font-size:13px;font-weight:700}
- body.dark .copy-btn{background:#27272a;border-color:#3f3f46;color:#c4b5fd}
+    .code-box{display:flex;align-items:center;justify-content:space-between;gap:10px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:14px;padding:12px}
+    .code-left{display:flex;gap:10px;align-items:center;min-width:0}
+    .code-check{width:28px;height:28px;border-radius:50%;background:#22c55e;color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;flex:0 0 28px}
+    .code-main{font-weight:800;font-size:16px;color:#15803d}
+    .code-sub{font-size:12px;color:#16a34a;margin-top:1px}
+    .copy-btn{border:1px solid #e5e5e5;background:#fff;color:#7c3aed;border-radius:12px;padding:8px 14px;font-size:13px;font-weight:700;white-space:nowrap}
 
- .actions{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
- .actions button{border:1px solid #eee;background:#fafafa;border-radius:999px;padding:5px 11px;font-size:12px}
- body.dark .actions button{background:#27272a;border-color:#3f3f46;color:#d4d4d8}
- .delete-btn{background:#fef2f2!important;color:#dc2626!important;border-color:#fecaca!important}
+    .actions{display:flex;gap:8px;margin-top:10px}
+    .actions button{border:1px solid #eee;background:#fafafa;color:#444;border-radius:999px;padding:6px 12px;font-size:13px}
 
- .fab{position:fixed;left:50%;transform:translateX(-50%);bottom:85px;z-index:20;border:none;color:#fff;font-weight:800;font-size:15px;padding:13px 26px;border-radius:999px;background:linear-gradient(90deg,#7c3aed,#ec4899)}
- .bottom{position:absolute;left:0;right:0;bottom:0;height:72px;background:#fff;border-top:1px solid #eee;display:flex;justify-content:space-around;align-items:center}
- body.dark .bottom{background:#161618;border-color:#2a2a2e}
- .nav{background:none;border:none;color:#b0b0b5;font-size:11px;display:flex;flex-direction:column;align-items:center;gap:2px}
- .nav.active{color:#7c3aed}
+    .fab{position:fixed;left:50%;transform:translateX(-50%);bottom:92px;z-index:20;border:none;color:#fff;font-weight:800;font-size:15px;padding:14px 28px;border-radius:999px;background:linear-gradient(90deg,#7c3aed,#ec4899);box-shadow:0 8px 24px rgba(124,58,237,.35)}
+    .bottom{position:absolute;left:0;right:0;bottom:0;height:78px;background:#fff;border-top:1px solid #eee;display:flex;justify-content:space-around;align-items:center;padding-bottom:10px}
+    .nav{background:none;border:none;color:#b0b0b5;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px;font-weight:600;min-width:64px}
+    .nav .ic{font-size:20px;line-height:1}
+    .nav.active{color:#7c3aed}
 
- .card{background:#fff;border:1px solid #eee;border-radius:14px;padding:14px;margin-bottom:10px}
- body.dark .card{background:#161618;border-color:#2a2a2e}
- .empty{text-align:center;color:#8e8e93;padding:40px 12px}
- .section{font-size:12px;color:#8e8e93;font-weight:700;text-transform:uppercase;margin:14px 0 6px}
- .follow-stats{display:flex;gap:30px;margin:14px 0;justify-content:center}
- .follow-stats div{text-align:center}
- .follow-stats strong{display:block;font-size:18px}
+    .search-wrap{padding:4px 0 10px}
+    .search{display:flex;align-items:center;gap:10px;background:#fff;border:1px solid #e8e8e8;border-radius:16px;padding:12px 14px}
+    .search input{width:100%;border:none;outline:none;background:transparent;font-size:15px;color:#111}
+    .section{font-size:12px;color:#8e8e93;font-weight:700;text-transform:uppercase;letter-spacing:.3px;margin:8px 0}
+    .card{background:#fff;border:1px solid #eee;border-radius:16px;padding:14px;margin-bottom:10px}
+    .empty{text-align:center;color:#8e8e93;padding:28px 12px;font-size:14px}
+    .follow-stats{display:flex;gap:30px;justify-content:center;margin:16px 0}
+    .follow-stats div{text-align:center}
+    .follow-stats strong{display:block;font-size:18px}
 
- .site-chip{display:inline-block;background:#f3e8ff;color:#7c3aed;padding:8px 14px;border-radius:999px;font-size:13px;font-weight:600;margin:4px;cursor:pointer}
- body.dark .site-chip{background:#3b0764;color:#c4b5fd}
-
- .modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:50;align-items:flex-end;justify-content:center}
- .modal.active{display:flex}
- .sheet{width:100%;max-width:430px;background:#fff;border-radius:20px 20px 0 0;padding:20px 16px 30px}
- body.dark .sheet{background:#161618}
- .sheet input,.sheet button{width:100%;margin-bottom:10px;padding:13px;border-radius:12px;border:1px solid #e8e8e8;background:#fafafa;font-size:15px}
- body.dark .sheet input,body.dark .sheet button{background:#27272a;border-color:#3f3f46;color:#f4f4f5}
- .sheet .primary{background:linear-gradient(90deg,#7c3aed,#ec4899);color:#fff;border:none;font-weight:700}
- .quick{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
- .quick button{width:auto;padding:7px 12px;margin:0;font-size:12px;border-radius:999px}
- </style>
+    .modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:50;align-items:flex-end;justify-content:center}
+    .modal.active{display:flex}
+    .sheet{width:100%;max-width:430px;background:#fff;border-radius:22px 22px 0 0;padding:22px 18px 34px}
+    .sheet button,.sheet input{width:100%;margin-bottom:10px;padding:14px;border-radius:14px;border:1px solid #e8e8e8;background:#fafafa;color:#111;font-size:15px}
+    .sheet .primary{background:linear-gradient(90deg,#7c3aed,#ec4899);color:#fff;border:none;font-weight:700}
+    .quick{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+    .quick button{width:auto;padding:8px 12px;margin:0;font-size:12px;border-radius:999px}
+  </style>
 </head>
 <body>
-<div class="app">
- <div class="header">
- <img src="codia-logo.png" class="logo-img" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
- <div class="logo-fallback" style="display:none">C</div>
- <div>
- <div class="name">Codia</div>
- <div class="sub">16,254k members</div>
- </div>
- <button class="theme-btn" id="themeBtn" onclick="toggleTheme()">🌙</button>
- </div>
+<div class="app" id="main-app">
+  <div class="header">
+    <div class="logo-c">C</div>
+    <div>
+      <div class="name">Codia</div>
+      <div class="sub">16,254k members</div>
+    </div>
+  </div>
 
- <div class="stories" id="stories"></div>
+  <div class="stories" id="stories"></div>
 
- <div class="page page-home active" id="page-home">
- <div id="codes-list"><div class="empty">Chargement...</div></div>
- </div>
+  <div class="page page-home active" id="page-home">
+    <div id="codes-list"><div class="empty">Chargement...</div></div>
+  </div>
 
- <div class="page" id="page-ia">
- <div style="padding:4px 0 12px">
- <input id="ai-input" placeholder="Rechercher un code..." 
- style="width:100%;padding:12px 14px;border-radius:14px;border:1px solid #e8e8e8;background:#fff;font-size:15px"
- onkeypress="if(event.key==='Enter')askAI()">
- </div>
- 
- <div class="section">Sites populaires</div>
- <div id="sites-list" style="margin-bottom:16px"></div>
- 
- <div class="section">Résultats</div>
- <div id="search-results"><div class="empty">Lance une recherche ou clique sur un site</div></div>
- </div>
+  <div class="page" id="page-ia">
+    <div class="search-wrap">
+      <div class="search">
+        <span style="opacity:.5">⌕</span>
+        <input id="ai-input" placeholder="Ex: Uber Eats, Booking..." onkeypress="if(event.key==='Enter') askAI()">
+      </div>
+    </div>
+    <div class="section">Résultats</div>
+    <div id="search-results"><div class="empty">Lance une recherche</div></div>
+  </div>
 
- <div class="page" id="page-profile">
- <div class="card" id="profile-card">Chargement...</div>
- 
- <div class="follow-stats" id="follow-stats">
- <div><strong id="followers-count">0</strong>Abonnés</div>
- <div><strong id="following-count">0</strong>Abonnements</div>
- </div>
+  <div class="page" id="page-profile">
+    <div class="card" id="profile-card">Chargement profil...</div>
+    
+    <div class="follow-stats">
+      <div><strong id="followers-count">0</strong>Abonnés</div>
+      <div><strong id="following-count">0</strong>Abonnements</div>
+    </div>
 
- <div class="section">Mes codes</div>
- <div id="my-codes"><div class="empty">Aucun code</div></div>
+    <div class="section">Mes codes</div>
+    <div id="my-codes"><div class="empty">Aucun code</div></div>
+  </div>
 
- <div id="admin-zone" style="display:none">
- <div class="section" style="color:#7c3aed">Zone Admin – Codes supprimés</div>
- <div id="deleted-codes"></div>
- </div>
- </div>
+  <button class="fab" id="fabShare" onclick="openShare()">＋ Partager</button>
 
- <button class="fab" onclick="openShare()">＋ Partager</button>
-
- <div class="bottom">
- <button class="nav active" onclick="showPage('home')">⌂ Feed</button>
- <button class="nav" onclick="showPage('ia')">◇ Discover</button>
- <button class="nav" onclick="showPage('profile')">☺ Profil</button>
- </div>
+  <div class="bottom">
+    <button class="nav active" onclick="showPage('home')"><div class="ic">⌂</div>Feed</button>
+    <button class="nav" onclick="showPage('ia')"><div class="ic">◇</div>Discover</button>
+    <button class="nav" onclick="showPage('profile')"><div class="ic">☺</div>Profil</button>
+  </div>
 </div>
 
-<!-- Modals -->
 <div class="modal" id="shareModal">
- <div class="sheet">
- <div style="text-align:center;font-weight:700;margin-bottom:16px">Partager un code</div>
- <button class="primary" onclick="chooseShare('promo')">Code promo</button>
- <button class="primary" onclick="chooseShare('parrainage')">Code parrainage</button>
- <button onclick="closeShare()">Annuler</button>
- </div>
+  <div class="sheet">
+    <div style="text-align:center;font-weight:700;margin-bottom:14px">Partager un code</div>
+    <button class="primary" onclick="chooseShare('promo')">Code promo</button>
+    <button class="primary" onclick="chooseShare('parrainage')">Code parrainage</button>
+    <button onclick="closeShare()">Annuler</button>
+  </div>
 </div>
 
 <div class="modal" id="formModal">
- <div class="sheet">
- <div style="text-align:center;font-weight:700;margin-bottom:14px" id="formTitle">Nouveau code</div>
- <div class="quick">
- <button onclick="fillSite('Uber Eats')">Uber Eats</button>
- <button onclick="fillSite('Booking')">Booking</button>
- <button onclick="fillSite('Airbnb')">Airbnb</button>
- <button onclick="fillSite('Boursorama')">Boursorama</button>
- </div>
- <input id="formSite" placeholder="Site">
- <input id="formCode" placeholder="Code">
- <input id="formDesc" placeholder="Description (ex: -20€ ou +80€)">
- <input id="formExpiry" type="date">
- <button class="primary" onclick="submitCode()">Publier</button>
- <button onclick="closeForm()">Annuler</button>
- </div>
+  <div class="sheet">
+    <div style="text-align:center;font-weight:700;margin-bottom:14px" id="formTitle">Nouveau code</div>
+    <div class="quick">
+      <button type="button" onclick="fillSite('Uber Eats')">Uber Eats</button>
+      <button type="button" onclick="fillSite('Booking')">Booking</button>
+      <button type="button" onclick="fillSite('Airbnb')">Airbnb</button>
+      <button type="button" onclick="fillSite('Zara')">Zara</button>
+      <button type="button" onclick="fillSite('Fortuneo')">Fortuneo</button>
+    </div>
+    <input id="formSite" placeholder="Site">
+    <input id="formCode" placeholder="Code">
+    <input id="formDesc" placeholder="Ex: -20€ ou +80€">
+    <button class="primary" onclick="submitCode()">Publier</button>
+    <button onclick="closeForm()">Annuler</button>
+  </div>
 </div>
 
 <script>
- Telegram.WebApp.ready();
- Telegram.WebApp.expand();
+  Telegram.WebApp.ready();
+  Telegram.WebApp.expand();
+  try { Telegram.WebApp.setHeaderColor('#ffffff'); Telegram.WebApp.setBackgroundColor('#f7f7f8'); } catch(e){}
 
- const ADMIN_ID = 8091031583;
+  const ADMIN_ID = 8091031583;
+  let allCodes = [];
+  let currentShareType = "promo";
 
- // Logos qui fonctionnent vraiment
- const SITE_LOGOS = {
- "uber eats": "https://logo.clearbit.com/ubereats.com",
- "booking": "https://logo.clearbit.com/booking.com",
- "airbnb": "https://logo.clearbit.com/airbnb.com",
- "boursorama": "https://logo.clearbit.com/boursorama.com",
- "fortuneo": "https://logo.clearbit.com/fortuneo.fr",
- "zara": "https://logo.clearbit.com/zara.com"
- };
+  function getUser(){ return window.Telegram?.WebApp?.initDataUnsafe?.user || null; }
+  function isAdmin(){ const u = getUser(); return u && Number(u.id) === ADMIN_ID; }
 
- let allCodes = [];
- let currentShareType = "promo";
+  function timeAgo(dateStr){
+    if(!dateStr) return 'à l’instant';
+    const diff = Math.max(0,(Date.now()-new Date(dateStr).getTime())/1000);
+    if(diff<60) return 'à l’instant';
+    if(diff<3600) return `il y a ${Math.floor(diff/60)} min`;
+    if(diff<86400) return `il y a ${Math.floor(diff/3600)} h`;
+    return `il y a ${Math.floor(diff/86400)} j`;
+  }
 
- function getUser() {
- return window.Telegram?.WebApp?.initDataUnsafe?.user || null;
- }
- function isAdmin() {
- const u = getUser();
- return u && Number(u.id) === ADMIN_ID;
- }
+  function showPage(page){
+    document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+    document.querySelectorAll('.nav').forEach(n=>n.classList.remove('active'));
+    const fab = document.getElementById('fabShare');
+    if(page==='home'){
+      document.getElementById('page-home').classList.add('active');
+      document.querySelectorAll('.nav')[0].classList.add('active');
+      fab.style.display = 'block';
+    } else if(page==='ia'){
+      document.getElementById('page-ia').classList.add('active');
+      document.querySelectorAll('.nav')[1].classList.add('active');
+      fab.style.display = 'none';
+    } else {
+      document.getElementById('page-profile').classList.add('active');
+      document.querySelectorAll('.nav')[2].classList.add('active');
+      fab.style.display = 'none';
+      loadProfile();
+    }
+  }
 
- function toggleTheme() {
- document.body.classList.toggle('dark');
- const dark = document.body.classList.contains('dark');
- localStorage.setItem('theme', dark ? 'dark' : 'light');
- document.getElementById('themeBtn').textContent = dark ? '☀️' : '🌙';
- }
- if (localStorage.getItem('theme') === 'dark') {
- document.body.classList.add('dark');
- document.getElementById('themeBtn').textContent = '☀️';
- }
+  function openShare(){ document.getElementById('shareModal').classList.add('active'); }
+  function closeShare(){ document.getElementById('shareModal').classList.remove('active'); }
+  function closeForm(){ document.getElementById('formModal').classList.remove('active'); }
+  function fillSite(v){ document.getElementById('formSite').value=v; }
 
- function getLogo(site) {
- if (!site) return null;
- const key = site.toLowerCase();
- for (let k in SITE_LOGOS) {
- if (key.includes(k)) return SITE_LOGOS[k];
- }
- // fallback générique
- return `https://logo.clearbit.com/${key.replace(/\s+/g,'')}.com`;
- }
+  function chooseShare(type){
+    currentShareType=type; closeShare();
+    document.getElementById('formTitle').textContent = type==='promo'?'Nouveau code promo':'Nouveau code parrainage';
+    document.getElementById('formSite').value='';
+    document.getElementById('formCode').value='';
+    document.getElementById('formDesc').value='';
+    document.getElementById('formModal').classList.add('active');
+  }
 
- function showPage(page) {
- document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
- document.querySelectorAll('.nav').forEach(n => n.classList.remove('active'));
- 
- if (page === 'home') {
- document.getElementById('page-home').classList.add('active');
- document.querySelectorAll('.nav')[0].classList.add('active');
- } else if (page === 'ia') {
- document.getElementById('page-ia').classList.add('active');
- document.querySelectorAll('.nav')[1].classList.add('active');
- renderSitesList();
- } else {
- document.getElementById('page-profile').classList.add('active');
- document.querySelectorAll('.nav')[2].classList.add('active');
- loadProfile();
- }
- }
+  async function submitCode(){
+    const site=document.getElementById('formSite').value.trim();
+    const code=document.getElementById('formCode').value.trim();
+    const description=document.getElementById('formDesc').value.trim();
+    if(!site||!code){ alert('Site et code obligatoires'); return; }
+    const u=getUser();
+    const added_by=u?.username?('@'+u.username):(u?.first_name||'Membre Codia');
+    try{
+      const res=await fetch('/codes/add',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+        type:currentShareType,site,code,description,added_by,user_id:u?.id||null,photo_url:u?.photo_url||null
+      })});
+      const data=await res.json();
+      if(data.success){ closeForm(); await loadCodes(); showPage('home'); }
+      else alert('Erreur publication');
+    }catch(e){ alert('Erreur publication'); }
+  }
 
- function openShare() { document.getElementById('shareModal').classList.add('active'); }
- function closeShare() { document.getElementById('shareModal').classList.remove('active'); }
- function closeForm() { document.getElementById('formModal').classList.remove('active'); }
- function fillSite(v) { document.getElementById('formSite').value = v; }
+  function avatarHTML(c){
+    if(c.photo_url) return `<div class="post-avatar"><img src="${c.photo_url}"></div>`;
+    const letter = (c.added_by||'C').replace('@','')[0].toUpperCase();
+    return `<div class="post-avatar">${letter}</div>`;
+  }
 
- function chooseShare(type) {
- currentShareType = type;
- closeShare();
- document.getElementById('formTitle').textContent = type === 'promo' ? 'Nouveau code promo' : 'Nouveau code parrainage';
- document.getElementById('formSite').value = '';
- document.getElementById('formCode').value = '';
- document.getElementById('formDesc').value = '';
- document.getElementById('formExpiry').value = '';
- document.getElementById('formModal').classList.add('active');
- }
+  function renderPost(c){
+    const id=c.id;
+    const liked=localStorage.getItem('like_'+id)==='1';
+    const disliked=localStorage.getItem('dislike_'+id)==='1';
+    const who=c.added_by||'Codia IA';
+    const kind = c.type==='parrainage' ? 'shared a referral code' : 'shared a promo code';
+    const desc = `${c.code} ${c.description||''}${c.site?(' for '+c.site):''}`.trim();
+    const copies=c.copies||0;
 
- async function submitCode() {
- const site = document.getElementById('formSite').value.trim();
- const code = document.getElementById('formCode').value.trim();
- const description = document.getElementById('formDesc').value.trim();
- const expiry = document.getElementById('formExpiry').value || null;
- if (!site || !code) return alert('Site et code obligatoires');
+    return `<div class="post">
+      <div class="post-top">
+        ${avatarHTML(c)}
+        <div style="flex:1">
+          <div class="post-who">${who}</div>
+          <div class="post-meta">${kind} · ${timeAgo(c.created_at)}</div>
+        </div>
+      </div>
+      <div class="post-desc">${desc}</div>
+      <div class="code-box">
+        <div class="code-left">
+          <div class="code-check">✓</div>
+          <div>
+            <div class="code-main">${c.code}</div>
+            <div class="code-sub">${c.description||''}</div>
+          </div>
+        </div>
+        <button class="copy-btn" onclick="copyCode(${c.id||0}, '${String(c.code).replace(/'/g,"\\'")}', this)">Copier${copies?' · '+copies:''}</button>
+      </div>
+      <div class="actions">
+        <button onclick="toggleReact(${c.id},'like',this)">${liked?'❤️':'🤍'} ${c.likes||0}</button>
+        <button onclick="toggleReact(${c.id},'dislike',this)">${disliked?'💔':'👎'} ${c.dislikes||0}</button>
+      </div>
+    </div>`;
+  }
 
- const u = getUser();
- try {
- const res = await fetch('/codes/add', {
- method: 'POST',
- headers: {'Content-Type': 'application/json'},
- body: JSON.stringify({
- type: currentShareType, site, code, description, expiry,
- added_by: u?.username ? '@' + u.username : (u?.first_name || 'Membre'),
- user_id: u?.id,
- photo_url: u?.photo_url
- })
- });
- const data = await res.json();
- if (data.success) {
- closeForm();
- loadCodes();
- showPage('home');
- }
- } catch(e) { alert('Erreur'); }
- }
+  async function copyCode(id, code, btn){
+    try{ await navigator.clipboard.writeText(code); }catch(e){ alert(code); }
+    btn.textContent='Copié';
+    if(id){
+      const u = getUser();
+      try{
+        const res=await fetch('/code/copy',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id, user_id: u?.id})});
+        const data=await res.json();
+        if(data.copies!==undefined){ setTimeout(()=>btn.textContent=`Copier · ${data.copies}`,800); return; }
+      }catch(e){}
+    }
+    setTimeout(()=>btn.textContent='Copier',1000);
+  }
 
- function renderPost(c) {
- const logo = getLogo(c.site);
- const avatar = logo 
- ? `<div class="post-avatar"><img src="${logo}" onerror="this.parentElement.textContent='${(c.added_by||'C')[0]}'"></div>`
- : `<div class="post-avatar">${(c.added_by||'C')[0].toUpperCase()}</div>`;
+  async function toggleReact(id, reaction, btn){
+    const key=reaction+'_'+id;
+    const isActive=localStorage.getItem(key)==='1';
+    const action=isActive?'remove':'add';
+    if(action==='add'){
+      const other=reaction==='like'?'dislike':'like';
+      if(localStorage.getItem(other+'_'+id)==='1'){
+        localStorage.setItem(other+'_'+id,'0');
+        fetch('/code/react',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,reaction:other,action:'remove'})});
+      }
+    }
+    localStorage.setItem(key, action==='add'?'1':'0');
+    try{
+      const res=await fetch('/code/react',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,reaction,action})});
+      const data=await res.json();
+      const value=data.value??0;
+      btn.innerHTML = reaction==='like' ? `${action==='add'?'❤️':'🤍'} ${value}` : `${action==='add'?'💔':'👎'} ${value}`;
+    }catch(e){}
+  }
 
- const expiry = c.expiry ? `<div class="expiry">⏰ Expire le ${c.expiry}</div>` : '';
- const canDel = isAdmin() || (getUser() && Number(c.user_id) === Number(getUser().id));
+  function renderStories(){
+    const items = [
+      {name:'+ Partager', cls:'plus', label:'+', action:'share'},
+      {name:'Top', cls:'top', label:'🏆', action:'Top'},
+      {name:'Uber Eats', cls:'uber', label:'Uber<br>Eats', action:'Uber Eats'},
+      {name:'Booking', cls:'book', label:'B', action:'Booking'},
+      {name:'Airbnb', cls:'air', label:'A', action:'Airbnb'}
+    ];
+    document.getElementById('stories').innerHTML = items.map(i =>
+      `<div class="story" onclick="onStoryClick('${i.action}')">
+        <div class="story-bubble ${i.cls}">${i.label}</div>${i.name}
+      </div>`
+    ).join('');
+  }
 
- const liked = localStorage.getItem('like_'+c.id) === '1';
- const disliked = localStorage.getItem('dislike_'+c.id) === '1';
+  function onStoryClick(name){
+    if(name==='share'){ openShare(); return; }
+    showPage('home');
+    const fromDb = name==='Top' 
+      ? [...allCodes].sort((a,b) => ((b.likes||0)*2 + (b.copies||0)) - ((a.likes||0)*2 + (a.copies||0)))
+      : allCodes.filter(c => (c.site||'').toLowerCase().includes(name.toLowerCase()));
+    document.getElementById('codes-list').innerHTML = fromDb.length 
+      ? fromDb.map(c=>renderPost(c)).join('') 
+      : `<div class="empty">Pas de code pour ${name}</div>`;
+  }
 
- return `
- <div class="post">
- <div class="post-top">
- ${avatar}
- <div>
- <div class="post-who">${c.added_by || 'Codia'}</div>
- <div class="post-meta">${c.type === 'parrainage' ? 'parrainage' : 'promo'} · ${c.site || ''}</div>
- </div>
- </div>
- <div class="post-desc">${c.description || ''}</div>
- ${expiry}
- <div class="code-box">
- <div>
- <div class="code-main">${c.code}</div>
- <div class="code-sub">${c.site || ''}</div>
- </div>
- <button class="copy-btn" onclick="copyCode(${c.id},'${c.code}',this)">Copier · ${c.copies||0}</button>
- </div>
- <div class="actions">
- <button onclick="toggleReact(${c.id},'like',this)">${liked ? '❤️' : '🤍'} ${c.likes||0}</button>
- <button onclick="toggleReact(${c.id},'dislike',this)">${disliked ? '💔' : '👎'} ${c.dislikes||0}</button>
- ${canDel ? `<button class="delete-btn" onclick="deleteCode(${c.id})">Supprimer</button>` : ''}
- </div>
- </div>`;
- }
+  async function askAI(){
+    const q=document.getElementById('ai-input').value.trim();
+    if(!q) return;
+    const results=document.getElementById('search-results');
+    results.innerHTML='<div class="empty">Recherche...</div>';
+    try{
+      const res=await fetch('/codes/search?q='+encodeURIComponent(q));
+      const data=await res.json();
+      results.innerHTML=(data.codes||[]).length?(data.codes||[]).map(c=>renderPost(c)).join(''):'<div class="empty">Aucun code trouvé</div>';
+    }catch(e){ results.innerHTML='<div class="empty">Erreur recherche</div>'; }
+  }
 
- async function toggleReact(id, reaction, btn) {
- const key = reaction + '_' + id;
- const isActive = localStorage.getItem(key) === '1';
- const action = isActive ? 'remove' : 'add';
- 
- if (action === 'add') {
- const other = reaction === 'like' ? 'dislike' : 'like';
- if (localStorage.getItem(other + '_' + id) === '1') {
- localStorage.setItem(other + '_' + id, '0');
- }
- }
- localStorage.setItem(key, action === 'add' ? '1' : '0');
+  async function loadProfile(){
+    const u=getUser();
+    const card=document.getElementById('profile-card');
+    if(!u){ card.innerHTML='Ouvre Codia depuis Telegram'; return; }
+    const name=u.username?('@'+u.username):(u.first_name||'Membre');
+    const photo=u.photo_url?`<img src="${u.photo_url}" style="width:48px;height:48px;border-radius:50%;object-fit:cover">`:`<div class="post-avatar" style="width:48px;height:48px">${name[0]}</div>`;
+    card.innerHTML=`<div class="post-top">${photo}<div><div class="post-who">${name}</div><div class="post-meta">Membre Codia</div></div></div>`;
 
- try {
- const res = await fetch('/code/react', {
- method: 'POST',
- headers: {'Content-Type': 'application/json'},
- body: JSON.stringify({id, reaction, action})
- });
- const data = await res.json();
- const value = data.value ?? 0;
- btn.innerHTML = reaction === 'like' 
- ? `${action === 'add' ? '❤️' : '🤍'} ${value}` 
- : `${action === 'add' ? '💔' : '👎'} ${value}`;
- } catch(e) {}
- }
+    // Abonnés / Abonnements
+    try{
+      const res = await fetch('/follow/stats?user_id='+u.id);
+      const data = await res.json();
+      document.getElementById('followers-count').textContent = data.followers || 0;
+      document.getElementById('following-count').textContent = data.following || 0;
+    }catch(e){}
 
- async function copyCode(id, code, btn) {
- try { await navigator.clipboard.writeText(code); } catch(e) {}
- btn.textContent = 'Copié ✓';
- const u = getUser();
- try {
- const res = await fetch('/code/copy', {
- method: 'POST',
- headers: {'Content-Type': 'application/json'},
- body: JSON.stringify({id, user_id: u?.id})
- });
- const data = await res.json();
- setTimeout(() => btn.textContent = `Copier · ${data.copies || 0}`, 900);
- } catch(e) {
- setTimeout(() => btn.textContent = 'Copier', 900);
- }
- }
+    // Mes codes
+    try{
+      const res=await fetch('/codes/mine?user_id='+u.id);
+      const data=await res.json();
+      document.getElementById('my-codes').innerHTML=(data.codes||[]).length?(data.codes||[]).map(c=>renderPost(c)).join(''):'<div class="empty">Aucun code publié</div>';
+    }catch(e){ document.getElementById('my-codes').innerHTML='<div class="empty">Erreur</div>'; }
+  }
 
- async function deleteCode(id) {
- if (!confirm('Supprimer ce code ?')) return;
- const u = getUser();
- await fetch('/codes/delete', {
- method: 'POST',
- headers: {'Content-Type': 'application/json'},
- body: JSON.stringify({id, user_id: u?.id})
- });
- loadCodes();
- if (document.getElementById('page-profile').classList.contains('active')) loadProfile();
- }
+  async function loadCodes(){
+    try{
+      const res=await fetch('/codes');
+      const data=await res.json();
+      allCodes=data.codes||[];
+    }catch(e){ allCodes=[]; }
+    renderStories();
+    document.getElementById('codes-list').innerHTML =
+      allCodes.length ? allCodes.map(c=>renderPost(c)).join('') : '<div class="empty">Feed vide — sois le premier</div>';
+  }
 
- function renderStories() {
- // Sites uniques présents dans la base
- const sites = [...new Set(allCodes.map(c => c.site).filter(Boolean))];
- 
- let html = `
- <div class="story" onclick="openShare()">
- <div class="story-bubble plus">+</div>+ Partager
- </div>
- <div class="story" onclick="showTop()">
- <div class="story-bubble top">🏆</div>Top
- </div>
- `;
-
- // Logos fixes prioritaires
- const fixed = [
- {name: 'Uber Eats', key: 'uber eats'},
- {name: 'Booking', key: 'booking'},
- {name: 'Airbnb', key: 'airbnb'},
- {name: 'Boursorama', key: 'boursorama'}
- ];
-
- fixed.forEach(s => {
- html += `
- <div class="story" onclick="filterSite('${s.name}')">
- <div class="story-bubble"><img src="${SITE_LOGOS[s.key]}" onerror="this.parentElement.textContent='${s.name[0]}'"></div>
- ${s.name}
- </div>`;
- });
-
- document.getElementById('stories').innerHTML = html;
- }
-
- function renderSitesList() {
- const sites = [...new Set(allCodes.map(c => c.site).filter(Boolean))];
- document.getElementById('sites-list').innerHTML = sites.length
- ? sites.map(s => `<span class="site-chip" onclick="filterSite('${s}')">${s}</span>`).join('')
- : '<div class="empty" style="padding:10px">Aucun site pour le moment</div>';
- }
-
- function showTop() {
- showPage('home');
- const top = [...allCodes].sort((a, b) => {
- const scoreA = (a.likes || 0) * 3 + (a.copies || 0);
- const scoreB = (b.likes || 0) * 3 + (b.copies || 0);
- return scoreB - scoreA;
- });
- document.getElementById('codes-list').innerHTML = top.length
- ? top.map(renderPost).join('')
- : '<div class="empty">Aucun code populaire</div>';
- }
-
- function filterSite(name) {
- showPage('home');
- const filtered = allCodes.filter(c => (c.site || '').toLowerCase().includes(name.toLowerCase()));
- document.getElementById('codes-list').innerHTML = filtered.length
- ? filtered.map(renderPost).join('')
- : `<div class="empty">Aucun code pour ${name}</div>`;
- }
-
- async function loadCodes() {
- try {
- const res = await fetch('/codes');
- const data = await res.json();
- allCodes = data.codes || [];
- renderStories();
- document.getElementById('codes-list').innerHTML = allCodes.length
- ? allCodes.map(renderPost).join('')
- : '<div class="empty">Aucun code pour le moment</div>';
- } catch(e) {
- document.getElementById('codes-list').innerHTML = '<div class="empty">Erreur de chargement</div>';
- }
- }
-
- async function loadProfile() {
- const u = getUser();
- if (!u) {
- document.getElementById('profile-card').innerHTML = 'Ouvre Codia depuis Telegram';
- return;
- }
-
- document.getElementById('profile-card').innerHTML = `
- <div style="display:flex;align-items:center;gap:12px">
- <div class="post-avatar">${(u.first_name || 'U')[0]}</div>
- <div>
- <div class="post-who">${u.username ? '@' + u.username : u.first_name}</div>
- <div class="post-meta">Membre Codia</div>
- </div>
- </div>
- `;
-
- // Abonnés / Abonnements
- try {
- const res = await fetch('/follow/stats?user_id=' + u.id);
- const data = await res.json();
- document.getElementById('followers-count').textContent = data.followers || 0;
- document.getElementById('following-count').textContent = data.following || 0;
- } catch(e) {}
-
- // Mes codes
- try {
- const res = await fetch('/codes/mine?user_id=' + u.id);
- const data = await res.json();
- document.getElementById('my-codes').innerHTML = (data.codes || []).length
- ? data.codes.map(renderPost).join('')
- : '<div class="empty">Aucun code publié</div>';
- } catch(e) {}
-
- // Zone Admin
- if (isAdmin()) {
- document.getElementById('admin-zone').style.display = 'block';
- try {
- const res = await fetch('/codes/deleted');
- const data = await res.json();
- document.getElementById('deleted-codes').innerHTML = (data.codes || []).length
- ? data.codes.map(c => renderPost(c) + `<button onclick="restoreCode(${c.id})" style="margin-top:8px;padding:8px 14px;background:#16a34a;color:white;border:none;border-radius:8px;width:100%">Restaurer</button>`).join('')
- : '<div class="empty">Aucun code supprimé</div>';
- } catch(e) {}
- }
- }
-
- async function restoreCode(id) {
- await fetch('/codes/restore', {
- method: 'POST',
- headers: {'Content-Type': 'application/json'},
- body: JSON.stringify({id})
- });
- loadProfile();
- loadCodes();
- }
-
- async function askAI() {
- const q = document.getElementById('ai-input').value.trim();
- if (!q) return;
- document.getElementById('search-results').innerHTML = '<div class="empty">Recherche...</div>';
- try {
- const res = await fetch('/codes/search?q=' + encodeURIComponent(q));
- const data = await res.json();
- document.getElementById('search-results').innerHTML = (data.codes || []).length
- ? data.codes.map(renderPost).join('')
- : '<div class="empty">Aucun résultat</div>';
- } catch(e) {
- document.getElementById('search-results').innerHTML = '<div class="empty">Erreur</div>';
- }
- }
-
- // Démarrage
- loadCodes();
+  loadCodes();
 </script>
 </body>
 </html>
