@@ -98,9 +98,10 @@
     .copy-btn{border:1px solid var(--border);background:var(--card);color:var(--text);border-radius:12px;padding:8px 13px;font-size:12.5px;font-weight:600;transition:var(--transition)}
     .copy-btn:active{background:var(--accent);color:white;border-color:var(--accent);transform:scale(0.95)}
 
-    .actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+    .actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;align-items:center}
     .actions button{border:1px solid var(--border);background:var(--bg);color:var(--text);border-radius:999px;padding:8px 14px;font-size:13px;font-weight:500;transition:var(--transition)}
     .actions button:active{transform:scale(0.94)}
+    .actions .save-btn{border:none;background:transparent;padding:6px 10px;font-size:18px;line-height:1}
 
     .bottom{position:absolute;left:0;right:0;bottom:0;height:94px;border-top:1px solid var(--border);background:rgba(7,7,11,0.9);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);display:flex;justify-content:space-around;align-items:center;padding-bottom:20px;z-index:30}
     body.light .bottom{background:rgba(248,250,252,0.92)}
@@ -131,10 +132,9 @@
     .clickable{cursor:pointer}
 
     .profile-tabs{display:flex;margin-top:18px;border-top:1px solid var(--border);padding-top:4px}
-    .profile-tab{flex:1;background:none;border:none;color:var(--text2);padding:12px 8px;font-size:13px;font-weight:600;border-bottom:2px solid transparent;transition:var(--transition)}
+    .profile-tab{flex:1;background:none;border:none;color:var(--text2);padding:14px 8px;font-size:20px;border-bottom:2px solid transparent;transition:var(--transition)}
     .profile-tab.active{color:var(--text);border-bottom-color:var(--accent)}
 
-    /* Paywall */
     #paywall{position:fixed;inset:0;z-index:100;max-width:430px;margin:0 auto;background:#000;color:#fff;display:flex;flex-direction:column;overflow:hidden}
     .sg-bg{position:absolute;inset:0;overflow:hidden}
     .sg-live-app{position:absolute;inset:0;background:#f4f4f5;filter:blur(2.5px);transform:scale(1.02);opacity:1;pointer-events:none}
@@ -252,7 +252,6 @@
 
   <div class="stories" id="stories"></div>
 
-  <!-- FEED -->
   <div class="page page-home active" id="page-home">
     <div class="section">Top Codes</div>
     <div id="daily-codes"></div>
@@ -260,7 +259,6 @@
     <div id="codes-list"><div class="empty">Chargement...</div></div>
   </div>
 
-  <!-- RECHERCHE -->
   <div class="page page-search" id="page-search">
     <div class="search-wrap">
       <div class="search">
@@ -278,7 +276,6 @@
     <div id="search-results"><div class="empty">Tape un mot-clé pour trouver un code</div></div>
   </div>
 
-  <!-- CODIA -->
   <div class="page page-codia" id="page-codia">
     <div class="welcome-box">
       <div class="welcome-title">Codia</div>
@@ -306,7 +303,6 @@
     <div class="ai-box" id="ai-response" style="display:none"></div>
   </div>
 
-  <!-- PROFIL -->
   <div class="page page-profile" id="page-profile">
     <div class="card" id="profile-card">Chargement profil...</div>
     <div id="my-codes"><div class="empty">Aucun code</div></div>
@@ -322,7 +318,6 @@
   </div>
 </div>
 
-<!-- Modals -->
 <div class="modal" id="shareModal">
   <div class="sheet">
     <div style="text-align:center;font-weight:700;margin-bottom:14px">Partager un code</div>
@@ -534,7 +529,7 @@
     if(page==='home'){ 
       document.getElementById('page-home').classList.add('active'); 
       document.querySelectorAll('.nav')[0].classList.add('active');
-      loadCodes(); // refresh à chaque clic Feed
+      loadCodes();
     }
     else if(page==='search'){ 
       document.getElementById('page-search').classList.add('active'); 
@@ -623,7 +618,7 @@
       <div class="actions">${c.id?`
         <button onclick="toggleReact(${c.id},'like',this)">${liked?'❤️':'🤍'} <span>${c.likes||0}</span></button>
         <button onclick="toggleReact(${c.id},'dislike',this)">${disliked?'💔':'👎'} <span>${c.dislikes||0}</span></button>
-        <button onclick="toggleSave(${c.id}, this)">${saved?'🔖':'📑'} <span>${saved?'Sauvé':'Sauver'}</span></button>
+        <button class="save-btn" onclick="toggleSave(${c.id}, this)">${saved?'🔖':'📑'}</button>
         ${manageBtns}`:''}</div></div>`;
   }
 
@@ -676,7 +671,7 @@
         body: JSON.stringify({id, user_id: currentUserId})
       });
       localStorage.setItem('saved_'+id, isSaved ? '0' : '1');
-      btn.innerHTML = isSaved ? '📑 <span>Sauver</span>' : '🔖 <span>Sauvé</span>';
+      btn.textContent = isSaved ? '📑' : '🔖';
     }catch(e){}
   }
 
@@ -827,8 +822,8 @@
       </div>
       ${followBtn}
       <div class="profile-tabs">
-        <button class="profile-tab active" id="tab-posts" onclick="showProfileTab('posts', ${targetId})">🎬 Codes postés</button>
-        <button class="profile-tab" id="tab-saved" onclick="showProfileTab('saved', ${targetId})">🔖 Sauvegardés</button>
+        <button class="profile-tab active" id="tab-posts" onclick="showProfileTab('posts', ${targetId})">🎬</button>
+        <button class="profile-tab" id="tab-saved" onclick="showProfileTab('saved', ${targetId})">🔖</button>
       </div>
     `;
 
@@ -917,13 +912,21 @@
     }catch(e){ allCodes=[]; }
     renderStories();
 
-    // Top Codes (même format que les posts)
+    // Top Codes → format compact
     try{
       const topRes = await fetch('/codes/top');
       const topData = await topRes.json();
       const top = topData.codes || [];
       document.getElementById('daily-codes').innerHTML = top.length
-        ? top.map(c => renderPost(c)).join('')
+        ? top.map(c => `
+            <div class="card row">
+              <div>
+                <strong>${c.site}</strong>
+                <div class="muted">${c.type || 'promo'} • ${c.code}</div>
+              </div>
+              <div class="pill">${c.description || 'Promo'}</div>
+            </div>
+          `).join('')
         : '<div class="empty">Pas encore de top code</div>';
     }catch(e){
       document.getElementById('daily-codes').innerHTML = '<div class="empty">Erreur</div>';
