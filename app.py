@@ -67,6 +67,49 @@ def init_db():
             likes INT DEFAULT 0,
             dislikes INT DEFAULT 0,
             copies INT DEFAULT 0,
+            deleted BOOLEAN DEFAULT FALSE,
+            created_at TIMESTAMP DEFAULT NOW()
+        );
+        """
+    )
+    # Soft-delete column (si table déjà existante)
+    try:
+        cur.execute("ALTER TABLE codes ADD COLUMN IF NOT EXISTS deleted BOOLEAN DEFAULT FALSE;")
+    except Exception:
+        pass
+
+    cur.execute(
+        """
+        CREATE TABLE IF NOT EXISTS follows (
+            id SERIAL PRIMARY KEY,
+            follower_id BIGINT NOT NULL,
+            followed_id BIGINT NOT NULL,
+            created_at TIMESTAMP DEFAULT NOW(),
+            UNIQUE(follower_id, followed_id)
+        );
+        """
+    )
+    cur.execute(
+        """
+        CREATE TABLE IF NOT EXISTS code_copies (
+            code_id INT NOT NULL,
+            user_id BIGINT NOT NULL,
+            created_at TIMESTAMP DEFAULT NOW(),
+            PRIMARY KEY (code_id, user_id)
+        );
+        """
+    )
+    cur.execute(
+        """
+        CREATE TABLE IF NOT EXISTS notifications (
+            id SERIAL PRIMARY KEY,
+            user_id BIGINT NOT NULL,
+            type VARCHAR(20),
+            actor_id BIGINT,
+            actor_name VARCHAR(120),
+            code_id INT,
+            message TEXT,
+            is_read BOOLEAN DEFAULT FALSE,
             created_at TIMESTAMP DEFAULT NOW()
         );
         """
@@ -114,6 +157,28 @@ def mark_paid(telegram_id: int):
     conn.commit()
     cur.close()
     conn.close()
+
+
+def create_notification(user_id, notif_type, actor_id, actor_name, code_id, message):
+    if not user_id or int(user_id) == int(actor_id or 0):
+        return
+    try:
+        conn = get_conn()
+        cur = conn.cursor()
+        cur.execute(
+            """
+            INSERT INTO notifications (user_id, type, actor_id, actor_name, code_id, message)
+            VALUES (%s, %s, %s, %s, %s, %s)
+            """,
+            (int(user_id), notif_type, actor_id, actor_name, code_id, message),
+        )
+        conn.commit()
+        cur.close()
+        conn.close()
+        # Notification Telegram
+        send_telegram_message(int(user_id), message)
+    except Exception as e:
+        logging.error(f"create_notification: {e}")
 
 
 # ================== TELEGRAM HELPERS ==================
@@ -171,7 +236,7 @@ def access():
         uid = int(user_id)
     except Exception:
         return jsonify({"paid": False})
-    return jsonify({"paid": is_paid(uid)})
+    return jsonify({"paid": is_paid(uid), "is_admin": uid == ADMIN_ID})
 
 
 # ================== STRIPE ==================
@@ -262,7 +327,7 @@ def list_codes():
     try:
         conn = get_conn()
         cur = conn.cursor()
-        cur.execute("SELECT * FROM codes ORDER BY created_at DESC LIMIT 100")
+        cur.execute("SELECT * FROM codes WHERE deleted = FALSE ORDER BY created_at DESC LIMIT 100")
         rows = cur.fetchall()
         cur.close()
         conn.close()
@@ -281,7 +346,7 @@ def search_codes():
         cur.execute(
             """
             SELECT * FROM codes
-            WHERE site ILIKE %s OR code ILIKE %s OR description ILIKE %s
+            WHERE deleted = FALSE AND (site ILIKE %s OR code ILIKE %s OR description ILIKE %s)
             ORDER BY created_at DESC LIMIT 50
             """,
             (f"%{q}%", f"%{q}%", f"%{q}%"),
@@ -301,8 +366,28 @@ def my_codes():
     try:
         conn = get_conn()
         cur = conn.cursor()
+        # Inclut les codes supprimés pour pouvoir les restaurer
         cur.execute(
             "SELECT * FROM codes WHERE user_id = %s ORDER BY created_at DESC LIMIT 50",
+            (int(user_id),),
+        )
+        rows = cur.fetchall()
+        cur.close()
+        conn.close()
+        return jsonify({"codes": rows})
+    except Exception as e:
+        logging.error(e)
+        return jsonify({"codes": []})
+
+
+@app.route("/codes/user")
+def user_codes():
+    user_id = request.args.get("user_id")
+    try:
+        conn = get_conn()
+        cur = conn.cursor()
+        cur.execute(
+            "SELECT * FROM codes WHERE user_id = %s AND deleted = FALSE ORDER BY created_at DESC LIMIT 50",
             (int(user_id),),
         )
         rows = cur.fetchall()
@@ -354,18 +439,56 @@ def add_code():
 def code_copy():
     data = request.json or {}
     code_id = data.get("id")
+    user_id = data.get("user_id")
+    actor_name = data.get("actor_name") or "Quelqu’un"
+
+    if not code_id or not user_id:
+        return jsonify({"copies": 0, "already": True})
+
     try:
         conn = get_conn()
         cur = conn.cursor()
-        cur.execute("UPDATE codes SET copies = copies + 1 WHERE id = %s RETURNING copies", (code_id,))
+
+        # Vérifie si déjà copié par cet utilisateur
+        cur.execute(
+            "SELECT 1 FROM code_copies WHERE code_id = %s AND user_id = %s",
+            (code_id, int(user_id)),
+        )
+        already = cur.fetchone()
+        if already:
+            cur.execute("SELECT copies FROM codes WHERE id = %s", (code_id,))
+            row = cur.fetchone()
+            cur.close()
+            conn.close()
+            return jsonify({"copies": row["copies"] if row else 0, "already": True})
+
+        # Première copie de cet utilisateur
+        cur.execute(
+            "INSERT INTO code_copies (code_id, user_id) VALUES (%s, %s)",
+            (code_id, int(user_id)),
+        )
+        cur.execute(
+            "UPDATE codes SET copies = copies + 1 WHERE id = %s RETURNING copies, user_id, site, code",
+            (code_id,),
+        )
         row = cur.fetchone()
         conn.commit()
         cur.close()
         conn.close()
-        return jsonify({"copies": row["copies"] if row else 0})
+
+        copies = row["copies"] if row else 0
+        owner_id = row["user_id"] if row else None
+        site = row["site"] if row else ""
+        code_val = row["code"] if row else ""
+
+        if owner_id and int(owner_id) != int(user_id):
+            msg = f"📋 <b>{actor_name}</b> a copié ton code <code>{code_val}</code> sur <b>{site}</b>"
+            create_notification(owner_id, "copy", user_id, actor_name, code_id, msg)
+
+        return jsonify({"copies": copies, "already": False})
     except Exception as e:
         logging.error(e)
-        return jsonify({"copies": 0})
+        return jsonify({"copies": 0, "already": False})
 
 
 @app.route("/code/react", methods=["POST"])
@@ -374,23 +497,324 @@ def code_react():
     code_id = data.get("id")
     reaction = data.get("reaction")  # like | dislike
     action = data.get("action")  # add | remove
+    user_id = data.get("user_id")
+    actor_name = data.get("actor_name") or "Quelqu’un"
+
     col = "likes" if reaction == "like" else "dislikes"
     delta = 1 if action == "add" else -1
     try:
         conn = get_conn()
         cur = conn.cursor()
         cur.execute(
-            f"UPDATE codes SET {col} = GREATEST({col} + %s, 0) WHERE id = %s RETURNING {col} AS value",
+            f"UPDATE codes SET {col} = GREATEST({col} + %s, 0) WHERE id = %s RETURNING {col} AS value, user_id, site, code",
             (delta, code_id),
         )
         row = cur.fetchone()
         conn.commit()
         cur.close()
         conn.close()
-        return jsonify({"value": row["value"] if row else 0})
+
+        value = row["value"] if row else 0
+        owner_id = row["user_id"] if row else None
+        site = row["site"] if row else ""
+        code_val = row["code"] if row else ""
+
+        if action == "add" and owner_id and user_id and int(owner_id) != int(user_id):
+            if reaction == "like":
+                msg = f"❤️ <b>{actor_name}</b> a aimé ton code <code>{code_val}</code> sur <b>{site}</b>"
+                create_notification(owner_id, "like", user_id, actor_name, code_id, msg)
+            else:
+                msg = f"👎 <b>{actor_name}</b> n’a pas aimé ton code <code>{code_val}</code> sur <b>{site}</b>"
+                create_notification(owner_id, "dislike", user_id, actor_name, code_id, msg)
+
+        return jsonify({"value": value})
     except Exception as e:
         logging.error(e)
         return jsonify({"value": 0})
+
+
+@app.route("/code/delete", methods=["POST"])
+def code_delete():
+    data = request.json or {}
+    code_id = data.get("id")
+    user_id = data.get("user_id")
+    if not code_id or not user_id:
+        return jsonify({"success": False}), 400
+
+    try:
+        conn = get_conn()
+        cur = conn.cursor()
+        cur.execute("SELECT user_id FROM codes WHERE id = %s", (code_id,))
+        row = cur.fetchone()
+        if not row:
+            cur.close()
+            conn.close()
+            return jsonify({"success": False, "error": "not_found"}), 404
+
+        owner_id = row["user_id"]
+        is_admin = int(user_id) == ADMIN_ID
+        is_owner = owner_id and int(owner_id) == int(user_id)
+
+        if not (is_admin or is_owner):
+            cur.close()
+            conn.close()
+            return jsonify({"success": False, "error": "forbidden"}), 403
+
+        cur.execute("UPDATE codes SET deleted = TRUE WHERE id = %s", (code_id,))
+        conn.commit()
+        cur.close()
+        conn.close()
+        return jsonify({"success": True})
+    except Exception as e:
+        logging.error(e)
+        return jsonify({"success": False}), 500
+
+
+@app.route("/code/restore", methods=["POST"])
+def code_restore():
+    data = request.json or {}
+    code_id = data.get("id")
+    user_id = data.get("user_id")
+    if not code_id or not user_id:
+        return jsonify({"success": False}), 400
+
+    try:
+        conn = get_conn()
+        cur = conn.cursor()
+        cur.execute("SELECT user_id FROM codes WHERE id = %s", (code_id,))
+        row = cur.fetchone()
+        if not row:
+            cur.close()
+            conn.close()
+            return jsonify({"success": False, "error": "not_found"}), 404
+
+        owner_id = row["user_id"]
+        is_admin = int(user_id) == ADMIN_ID
+        is_owner = owner_id and int(owner_id) == int(user_id)
+
+        # Admin peut tout restaurer, owner peut restaurer les siens
+        if not (is_admin or is_owner):
+            cur.close()
+            conn.close()
+            return jsonify({"success": False, "error": "forbidden"}), 403
+
+        cur.execute("UPDATE codes SET deleted = FALSE WHERE id = %s", (code_id,))
+        conn.commit()
+        cur.close()
+        conn.close()
+        return jsonify({"success": True})
+    except Exception as e:
+        logging.error(e)
+        return jsonify({"success": False}), 500
+
+
+# ================== FOLLOWS ==================
+@app.route("/follow", methods=["POST"])
+def follow():
+    data = request.json or {}
+    follower_id = data.get("follower_id")
+    followed_id = data.get("followed_id")
+    actor_name = data.get("actor_name") or "Quelqu’un"
+
+    if not follower_id or not followed_id or int(follower_id) == int(followed_id):
+        return jsonify({"success": False}), 400
+
+    try:
+        conn = get_conn()
+        cur = conn.cursor()
+        cur.execute(
+            """
+            INSERT INTO follows (follower_id, followed_id)
+            VALUES (%s, %s)
+            ON CONFLICT (follower_id, followed_id) DO NOTHING
+            RETURNING id
+            """,
+            (int(follower_id), int(followed_id)),
+        )
+        row = cur.fetchone()
+        conn.commit()
+        cur.close()
+        conn.close()
+
+        if row:  # nouvel abonnement
+            msg = f"👤 <b>{actor_name}</b> s’est abonné à ton profil Codia"
+            create_notification(followed_id, "follow", follower_id, actor_name, None, msg)
+
+        return jsonify({"success": True, "following": True})
+    except Exception as e:
+        logging.error(e)
+        return jsonify({"success": False}), 500
+
+
+@app.route("/unfollow", methods=["POST"])
+def unfollow():
+    data = request.json or {}
+    follower_id = data.get("follower_id")
+    followed_id = data.get("followed_id")
+    if not follower_id or not followed_id:
+        return jsonify({"success": False}), 400
+    try:
+        conn = get_conn()
+        cur = conn.cursor()
+        cur.execute(
+            "DELETE FROM follows WHERE follower_id = %s AND followed_id = %s",
+            (int(follower_id), int(followed_id)),
+        )
+        conn.commit()
+        cur.close()
+        conn.close()
+        return jsonify({"success": True, "following": False})
+    except Exception as e:
+        logging.error(e)
+        return jsonify({"success": False}), 500
+
+
+@app.route("/is_following")
+def is_following():
+    follower = request.args.get("follower")
+    followed = request.args.get("followed")
+    try:
+        conn = get_conn()
+        cur = conn.cursor()
+        cur.execute(
+            "SELECT 1 FROM follows WHERE follower_id = %s AND followed_id = %s",
+            (int(follower), int(followed)),
+        )
+        row = cur.fetchone()
+        cur.close()
+        conn.close()
+        return jsonify({"following": bool(row)})
+    except Exception:
+        return jsonify({"following": False})
+
+
+@app.route("/followers")
+def followers():
+    user_id = request.args.get("user_id")
+    try:
+        conn = get_conn()
+        cur = conn.cursor()
+        cur.execute(
+            """
+            SELECT f.follower_id AS user_id,
+                   COALESCE(
+                       (SELECT added_by FROM codes WHERE user_id = f.follower_id ORDER BY created_at DESC LIMIT 1),
+                       'Membre Codia'
+                   ) AS name,
+                   (SELECT photo_url FROM codes WHERE user_id = f.follower_id AND photo_url IS NOT NULL ORDER BY created_at DESC LIMIT 1) AS photo_url
+            FROM follows f
+            WHERE f.followed_id = %s
+            ORDER BY f.created_at DESC
+            LIMIT 100
+            """,
+            (int(user_id),),
+        )
+        rows = cur.fetchall()
+        cur.close()
+        conn.close()
+        return jsonify({"users": rows})
+    except Exception as e:
+        logging.error(e)
+        return jsonify({"users": []})
+
+
+@app.route("/following")
+def following():
+    user_id = request.args.get("user_id")
+    try:
+        conn = get_conn()
+        cur = conn.cursor()
+        cur.execute(
+            """
+            SELECT f.followed_id AS user_id,
+                   COALESCE(
+                       (SELECT added_by FROM codes WHERE user_id = f.followed_id ORDER BY created_at DESC LIMIT 1),
+                       'Membre Codia'
+                   ) AS name,
+                   (SELECT photo_url FROM codes WHERE user_id = f.followed_id AND photo_url IS NOT NULL ORDER BY created_at DESC LIMIT 1) AS photo_url
+            FROM follows f
+            WHERE f.follower_id = %s
+            ORDER BY f.created_at DESC
+            LIMIT 100
+            """,
+            (int(user_id),),
+        )
+        rows = cur.fetchall()
+        cur.close()
+        conn.close()
+        return jsonify({"users": rows})
+    except Exception as e:
+        logging.error(e)
+        return jsonify({"users": []})
+
+
+@app.route("/profile_stats")
+def profile_stats():
+    user_id = request.args.get("user_id")
+    try:
+        conn = get_conn()
+        cur = conn.cursor()
+        cur.execute("SELECT COUNT(*) AS c FROM follows WHERE followed_id = %s", (int(user_id),))
+        followers_count = cur.fetchone()["c"]
+        cur.execute("SELECT COUNT(*) AS c FROM follows WHERE follower_id = %s", (int(user_id),))
+        following_count = cur.fetchone()["c"]
+        cur.close()
+        conn.close()
+        return jsonify({"followers": followers_count, "following": following_count})
+    except Exception:
+        return jsonify({"followers": 0, "following": 0})
+
+
+# ================== NOTIFICATIONS ==================
+@app.route("/notifications")
+def get_notifications():
+    user_id = request.args.get("user_id")
+    try:
+        conn = get_conn()
+        cur = conn.cursor()
+        cur.execute(
+            """
+            SELECT * FROM notifications
+            WHERE user_id = %s
+            ORDER BY created_at DESC
+            LIMIT 50
+            """,
+            (int(user_id),),
+        )
+        rows = cur.fetchall()
+        cur.execute(
+            "SELECT COUNT(*) AS c FROM notifications WHERE user_id = %s AND is_read = FALSE",
+            (int(user_id),),
+        )
+        unread = cur.fetchone()["c"]
+        cur.close()
+        conn.close()
+        return jsonify({"notifications": rows, "unread": unread})
+    except Exception as e:
+        logging.error(e)
+        return jsonify({"notifications": [], "unread": 0})
+
+
+@app.route("/notifications/read", methods=["POST"])
+def mark_notifications_read():
+    data = request.json or {}
+    user_id = data.get("user_id")
+    if not user_id:
+        return jsonify({"success": False}), 400
+    try:
+        conn = get_conn()
+        cur = conn.cursor()
+        cur.execute(
+            "UPDATE notifications SET is_read = TRUE WHERE user_id = %s AND is_read = FALSE",
+            (int(user_id),),
+        )
+        conn.commit()
+        cur.close()
+        conn.close()
+        return jsonify({"success": True})
+    except Exception as e:
+        logging.error(e)
+        return jsonify({"success": False}), 500
 
 
 # ================== IA ==================
@@ -445,7 +869,6 @@ def telegram_webhook():
     if not chat_id:
         return jsonify(success=True)
 
-    # /start
     if text.startswith("/start"):
         paid = is_paid(user_id)
         if paid:
@@ -466,7 +889,6 @@ def telegram_webhook():
             )
         return jsonify(success=True)
 
-    # Admin bypass
     if text.strip().lower() == "/payadmin":
         if int(user_id) != ADMIN_ID:
             send_telegram_message(chat_id, "Commande réservée à l’admin.")
@@ -475,7 +897,6 @@ def telegram_webhook():
         grant_access_message(chat_id)
         return jsonify(success=True)
 
-    # Must be paid for the rest
     if not is_paid(user_id):
         send_telegram_message(
             chat_id,
@@ -488,7 +909,6 @@ def telegram_webhook():
         send_telegram_message(chat_id, f"Lien canal :\n{CHANNEL_LINK}")
         return jsonify(success=True)
 
-    # /promo Site 30 CODE [date]
     if text.startswith("/promo"):
         parts = text.split()
         if len(parts) >= 4:
@@ -529,7 +949,6 @@ def telegram_webhook():
             send_telegram_message(chat_id, "Format : /promo Site 30 CODE")
         return jsonify(success=True)
 
-    # /parrainage Site 20 CODE [date]
     if text.startswith("/parrainage"):
         parts = text.split()
         if len(parts) >= 4:
@@ -573,15 +992,11 @@ def telegram_webhook():
     return jsonify(success=True)
 
 
-# ================== DAILY (optionnel cron) ==================
 @app.route("/notify/daily", methods=["POST"])
 def notify_daily():
     data = request.json or {}
     if int(data.get("admin_id") or 0) != ADMIN_ID:
         return jsonify({"error": "unauthorized"}), 403
-
-    # Ici tu peux brancher une vraie recherche de remises.
-    # Pour l’instant: message admin uniquement si rien de fiable.
     send_telegram_message(ADMIN_ID, "Cron daily reçu ✅ (aucune fausse remise envoyée).")
     return jsonify({"ok": True})
 
