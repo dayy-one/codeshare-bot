@@ -31,7 +31,6 @@
     }
     .sg-bg{ position:absolute; inset:0; overflow:hidden; }
 
-    /* App live CLAIRE */
     .sg-live-app{
       position:absolute; inset:0;
       background:#f4f4f5;
@@ -217,7 +216,7 @@
     .name{font-size:18px;font-weight:700}
     .sub{font-size:11px;color:var(--text2)}
     .header-actions{display:flex;gap:8px}
-    .icon-btn{width:36px;height:36px;border-radius:12px;border:1px solid var(--border);background:var(--card);color:var(--text)}
+    .icon-btn{width:36px;height:36px;border-radius:12px;border:1px solid var(--border);background:var(--card);color:var(--text);position:relative;display:flex;align-items:center;justify-content:center}
     .stories{display:flex;gap:12px;overflow-x:auto;padding:12px 16px;border-bottom:1px solid var(--border)}
     .story{min-width:66px;text-align:center;font-size:11px;color:var(--text2)}
     .story-ring{width:56px;height:56px;border-radius:50%;padding:2px;margin:0 auto 6px;background:linear-gradient(45deg,var(--accent),var(--pink),var(--accent2))}
@@ -369,7 +368,10 @@
       </div>
     </div>
     <div class="header-actions">
-      <button class="icon-btn" id="notifBtn" onclick="toggleNotif()">🔔</button>
+      <button class="icon-btn" id="notifBtn" onclick="toggleNotifModal()">
+        🔔
+        <span id="notif-badge" class="hidden" style="position:absolute;top:2px;right:2px;background:#ef4444;color:#fff;font-size:10px;width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center;">0</span>
+      </button>
       <button class="icon-btn" onclick="toggleTheme()">◐</button>
     </div>
   </div>
@@ -440,11 +442,32 @@
   </div>
 </div>
 
+<!-- Modal Notifications -->
+<div class="modal" id="notifModal">
+  <div class="sheet">
+    <div style="text-align:center;font-weight:700;margin-bottom:14px">Notifications</div>
+    <div id="notif-list"><div class="empty">Aucune notification</div></div>
+    <button onclick="closeNotifModal()">Fermer</button>
+  </div>
+</div>
+
+<!-- Modal Followers / Following -->
+<div class="modal" id="followListModal">
+  <div class="sheet">
+    <div style="text-align:center;font-weight:700;margin-bottom:14px" id="followListTitle">Abonnés</div>
+    <div id="follow-list"><div class="empty">Aucun</div></div>
+    <button onclick="closeFollowList()">Fermer</button>
+  </div>
+</div>
+
 <script>
   Telegram.WebApp.ready();
   Telegram.WebApp.expand();
 
   let allCodes = [], userCity = null, currentShareType = "promo";
+  let currentUserId = null, currentUserName = null, isAdmin = false;
+  let viewingUserId = null;
+
   function getTgUser(){ return window.Telegram?.WebApp?.initDataUnsafe?.user || null; }
 
   function showSuccessThenApp(){
@@ -458,13 +481,15 @@
     const params = new URLSearchParams(location.search);
     const u = getTgUser();
     const userId = u?.id;
+    currentUserId = userId || null;
+    currentUserName = u?.username ? ('@'+u.username) : (u?.first_name || 'Membre Codia');
 
     if(params.get('paid') === '1' && userId){
       await new Promise(r => setTimeout(r, 800));
       try{
         const res = await fetch('/access?user_id=' + userId);
         const data = await res.json();
-        if(data.paid){ showSuccessThenApp(); return; }
+        if(data.paid){ isAdmin = !!data.is_admin; showSuccessThenApp(); return; }
       }catch(e){}
     }
 
@@ -472,7 +497,8 @@
     try{
       const res = await fetch('/access?user_id=' + userId);
       const data = await res.json();
-      if(data.paid) showApp(); else showPaywall();
+      if(data.paid){ isAdmin = !!data.is_admin; showApp(); }
+      else showPaywall();
     }catch(e){
       showPaywall();
       document.getElementById('pw-error').textContent = 'Erreur accès. Réessaie.';
@@ -487,6 +513,7 @@
     document.getElementById('paywall').classList.add('hidden');
     document.getElementById('main-app').classList.remove('hidden');
     loadCodes();
+    loadNotifications();
   }
   function backToOffer(){ document.getElementById('pw-pay').classList.add('hidden'); }
 
@@ -526,15 +553,49 @@
   }
 
   if (localStorage.getItem('theme') === 'light') document.body.classList.add('light');
-  if (localStorage.getItem('notif') === 'off') {
-    const b = document.getElementById('notifBtn'); if(b) b.textContent = '🔕';
-  }
   function toggleTheme(){ document.body.classList.toggle('light'); localStorage.setItem('theme', document.body.classList.contains('light')?'light':'dark'); }
-  function toggleNotif(){
-    const off = localStorage.getItem('notif')==='off';
-    localStorage.setItem('notif', off?'on':'off');
-    document.getElementById('notifBtn').textContent = off?'🔔':'🔕';
+
+  // ===== NOTIFICATIONS =====
+  async function loadNotifications(){
+    if(!currentUserId) return;
+    try{
+      const res = await fetch('/notifications?user_id=' + currentUserId);
+      const data = await res.json();
+      const badge = document.getElementById('notif-badge');
+      if(data.unread > 0){
+        badge.textContent = data.unread > 9 ? '9+' : data.unread;
+        badge.classList.remove('hidden');
+        badge.style.display = 'flex';
+      } else {
+        badge.classList.add('hidden');
+        badge.style.display = 'none';
+      }
+      window._lastNotifs = data.notifications || [];
+    }catch(e){}
   }
+
+  function toggleNotifModal(){
+    const list = document.getElementById('notif-list');
+    const notifs = window._lastNotifs || [];
+    if(!notifs.length){
+      list.innerHTML = '<div class="empty">Aucune notification</div>';
+    } else {
+      list.innerHTML = notifs.map(n => `
+        <div class="card" style="margin-bottom:8px;opacity:${n.is_read?0.7:1}">
+          <div style="font-size:13px">${(n.message||'').replace(/<[^>]+>/g,'')}</div>
+          <div class="muted" style="margin-top:4px">${timeAgo(n.created_at)}</div>
+        </div>
+      `).join('');
+    }
+    document.getElementById('notifModal').classList.add('active');
+    if(currentUserId){
+      fetch('/notifications/read', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({user_id: currentUserId})
+      }).then(() => loadNotifications());
+    }
+  }
+  function closeNotifModal(){ document.getElementById('notifModal').classList.remove('active'); }
 
   function timeAgo(dateStr){
     if(!dateStr) return 'à l’instant';
@@ -550,7 +611,7 @@
     document.querySelectorAll('.nav').forEach(n=>n.classList.remove('active'));
     if(page==='home'){ document.getElementById('page-home').classList.add('active'); document.querySelectorAll('.nav')[0].classList.add('active'); }
     else if(page==='ia'){ document.getElementById('page-ia').classList.add('active'); document.querySelectorAll('.nav')[1].classList.add('active'); renderHistory(); renderSuggestions(); }
-    else { document.getElementById('page-profile').classList.add('active'); document.querySelectorAll('.nav')[2].classList.add('active'); loadProfile(); }
+    else { document.getElementById('page-profile').classList.add('active'); document.querySelectorAll('.nav')[2].classList.add('active'); viewingUserId = null; loadProfile(); }
   }
 
   function openShare(){ document.getElementById('shareModal').classList.add('active'); }
@@ -595,22 +656,46 @@
     const who=c.added_by||'Membre Codia';
     const actionText=c.type==='parrainage'?'a partagé un code parrainage':'a partagé un code promo';
     const copies=c.copies||0;
-    return `<div class="post">
-      <div class="post-top">${avatarHTML(c)}<div style="flex:1"><div style="font-weight:600">${who} ${popular}</div><div class="muted">${actionText} • ${timeAgo(c.created_at)}</div></div></div>
-      <div class="muted">${c.site}</div>
+    const canManage = isAdmin || (c.user_id && currentUserId && Number(c.user_id) === Number(currentUserId));
+    const isDeleted = c.deleted === true;
+
+    let manageBtns = '';
+    if(canManage){
+      if(isDeleted){
+        manageBtns = `<button onclick="restoreCode(${id})" style="color:var(--green)">Remettre</button>`;
+      } else {
+        manageBtns = `<button onclick="deleteCode(${id})" style="color:#f87171">Supprimer</button>`;
+      }
+    }
+
+    const clickProfile = c.user_id ? `onclick="viewProfile(${c.user_id}, '${String(who).replace(/'/g,"\\'")}')"` : '';
+
+    return `<div class="post" style="${isDeleted?'opacity:0.55':''}">
+      <div class="post-top">
+        <div ${clickProfile} style="cursor:pointer">${avatarHTML(c)}</div>
+        <div style="flex:1" ${clickProfile} class="clickable">
+          <div style="font-weight:600">${who} ${popular}</div>
+          <div class="muted">${actionText} • ${timeAgo(c.created_at)}</div>
+        </div>
+      </div>
+      <div class="muted">${c.site}${isDeleted?' · <span style="color:#f87171">Supprimé</span>':''}</div>
       <div class="code"><span>${c.code} <span style="color:var(--green)">${c.description||''}</span></span>
         <button class="copy-btn" onclick="copyCode(${c.id||0}, '${String(c.code).replace(/'/g,"\\'")}', this)">Copier${copies?' · '+copies:''}</button></div>
       <div class="actions">${c.id?`
         <button onclick="toggleReact(${c.id},'like',this)">${liked?'❤️':'🤍'} <span>${c.likes||0}</span></button>
-        <button onclick="toggleReact(${c.id},'dislike',this)">${disliked?'💔':'👎'} <span>${c.dislikes||0}</span></button>`:''}</div></div>`;
+        <button onclick="toggleReact(${c.id},'dislike',this)">${disliked?'💔':'👎'} <span>${c.dislikes||0}</span></button>
+        ${manageBtns}`:''}</div></div>`;
   }
 
   async function copyCode(id, code, btn){
     try{ await navigator.clipboard.writeText(code); }catch(e){ alert(code); }
     btn.textContent='Copié';
-    if(id){
+    if(id && currentUserId){
       try{
-        const res=await fetch('/code/copy',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id})});
+        const res=await fetch('/code/copy',{
+          method:'POST',headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({id, user_id: currentUserId, actor_name: currentUserName})
+        });
         const data=await res.json();
         if(data.copies!==undefined){ setTimeout(()=>btn.textContent=`Copier · ${data.copies}`,800); return; }
       }catch(e){}
@@ -626,16 +711,43 @@
       const other=reaction==='like'?'dislike':'like';
       if(localStorage.getItem(other+'_'+id)==='1'){
         localStorage.setItem(other+'_'+id,'0');
-        fetch('/code/react',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,reaction:other,action:'remove'})});
+        fetch('/code/react',{method:'POST',headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({id,reaction:other,action:'remove',user_id:currentUserId,actor_name:currentUserName})});
       }
     }
     localStorage.setItem(key, action==='add'?'1':'0');
     try{
-      const res=await fetch('/code/react',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,reaction,action})});
+      const res=await fetch('/code/react',{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({id,reaction,action,user_id:currentUserId,actor_name:currentUserName})});
       const data=await res.json();
       const value=data.value??0;
       btn.innerHTML = reaction==='like' ? `${action==='add'?'❤️':'🤍'} <span>${value}</span>` : `${action==='add'?'💔':'👎'} <span>${value}</span>`;
     }catch(e){}
+  }
+
+  async function deleteCode(id){
+    if(!confirm('Supprimer ce code ?')) return;
+    try{
+      const res = await fetch('/code/delete', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({id, user_id: currentUserId})
+      });
+      const data = await res.json();
+      if(data.success){ await loadCodes(); if(viewingUserId===null) loadProfile(); else viewProfile(viewingUserId); }
+      else alert('Impossible de supprimer');
+    }catch(e){ alert('Erreur'); }
+  }
+
+  async function restoreCode(id){
+    try{
+      const res = await fetch('/code/restore', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({id, user_id: currentUserId})
+      });
+      const data = await res.json();
+      if(data.success){ await loadCodes(); if(viewingUserId===null) loadProfile(); else viewProfile(viewingUserId); }
+      else alert('Impossible de restaurer');
+    }catch(e){ alert('Erreur'); }
   }
 
   function renderStories(){
@@ -691,20 +803,110 @@
     }catch(e){ box.innerHTML='Alternative: Booking, Uber Eats, Zara.'; }
   }
 
-  async function loadProfile(){
-    const u=getTgUser();
-    const card=document.getElementById('profile-card');
-    if(!u){ card.innerHTML='Ouvre Codia depuis Telegram'; return; }
-    const name=u.username?('@'+u.username):(u.first_name||'Membre');
-    const photo=u.photo_url?`<img class="avatar-img" src="${u.photo_url}">`:`<div class="avatar">${name[0]}</div>`;
-    card.innerHTML=`<div class="post-top">${photo}<div><div style="font-weight:700">${name}</div><div class="muted">Membre Codia</div></div></div>`;
-    if(!u.id) return;
-    try{
-      const res=await fetch('/codes/mine?user_id='+u.id);
-      const data=await res.json();
-      document.getElementById('my-codes').innerHTML=(data.codes||[]).length?(data.codes||[]).map(c=>renderPost(c)).join(''):'<div class="empty">Aucun code publié</div>';
-    }catch(e){ document.getElementById('my-codes').innerHTML='<div class="empty">Erreur</div>'; }
+  // ===== PROFIL + FOLLOW =====
+  async function viewProfile(userId, name){
+    viewingUserId = userId;
+    document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+    document.querySelectorAll('.nav').forEach(n=>n.classList.remove('active'));
+    document.getElementById('page-profile').classList.add('active');
+    document.querySelectorAll('.nav')[2].classList.add('active');
+    await loadProfile(userId, name);
   }
+
+  async function loadProfile(forceUserId = null, forceName = null){
+    const u = getTgUser();
+    const card = document.getElementById('profile-card');
+    const targetId = forceUserId || currentUserId;
+    const isOwn = !forceUserId || Number(forceUserId) === Number(currentUserId);
+
+    if(!targetId){ card.innerHTML='Ouvre Codia depuis Telegram'; return; }
+
+    let name = forceName || (isOwn ? (u?.username ? '@'+u.username : (u?.first_name||'Membre')) : 'Membre Codia');
+    let photo = '';
+    if(isOwn && u?.photo_url) photo = `<img class="avatar-img" src="${u.photo_url}">`;
+    else photo = `<div class="avatar">${name[0].toUpperCase()}</div>`;
+
+    let followers = 0, following = 0;
+    try{
+      const st = await fetch('/profile_stats?user_id=' + targetId).then(r=>r.json());
+      followers = st.followers || 0;
+      following = st.following || 0;
+    }catch(e){}
+
+    let followBtn = '';
+    if(!isOwn && currentUserId){
+      let isF = false;
+      try{
+        const fr = await fetch(`/is_following?follower=${currentUserId}&followed=${targetId}`).then(r=>r.json());
+        isF = fr.following;
+      }catch(e){}
+      followBtn = isF
+        ? `<button class="pill" style="margin-top:10px;background:rgba(255,255,255,.1);color:var(--text)" onclick="toggleFollow(${targetId}, false)">Abonné ✓</button>`
+        : `<button class="pill" style="margin-top:10px" onclick="toggleFollow(${targetId}, true)">S’abonner</button>`;
+    }
+
+    card.innerHTML = `
+      <div class="post-top">${photo}<div>
+        <div style="font-weight:700">${name}</div>
+        <div class="muted">${isOwn ? 'Mon profil' : 'Profil Codia'}</div>
+      </div></div>
+      <div style="display:flex;gap:18px;margin:14px 0 6px;font-size:14px">
+        <div class="clickable" onclick="showFollowList(${targetId}, 'followers')"><b>${followers}</b> abonnés</div>
+        <div class="clickable" onclick="showFollowList(${targetId}, 'following')"><b>${following}</b> abonnements</div>
+      </div>
+      ${followBtn}
+    `;
+
+    const endpoint = isOwn ? '/codes/mine?user_id=' + targetId : '/codes/user?user_id=' + targetId;
+    try{
+      const res = await fetch(endpoint);
+      const data = await res.json();
+      document.getElementById('my-codes').innerHTML = (data.codes||[]).length
+        ? (data.codes||[]).map(c => renderPost(c)).join('')
+        : '<div class="empty">Aucun code publié</div>';
+    }catch(e){
+      document.getElementById('my-codes').innerHTML = '<div class="empty">Erreur</div>';
+    }
+  }
+
+  async function toggleFollow(followedId, wantFollow){
+    if(!currentUserId) return;
+    const url = wantFollow ? '/follow' : '/unfollow';
+    try{
+      await fetch(url, {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({
+          follower_id: currentUserId,
+          followed_id: followedId,
+          actor_name: currentUserName
+        })
+      });
+      loadProfile(followedId);
+      loadNotifications();
+    }catch(e){}
+  }
+
+  async function showFollowList(userId, type){
+    document.getElementById('followListTitle').textContent = type === 'followers' ? 'Abonnés' : 'Abonnements';
+    const list = document.getElementById('follow-list');
+    list.innerHTML = '<div class="empty">Chargement...</div>';
+    document.getElementById('followListModal').classList.add('active');
+    try{
+      const res = await fetch(`/${type}?user_id=` + userId);
+      const data = await res.json();
+      const users = data.users || [];
+      if(!users.length){ list.innerHTML = '<div class="empty">Aucun</div>'; return; }
+      list.innerHTML = users.map(u => `
+        <div class="card row clickable" style="margin-bottom:8px" onclick="closeFollowList(); viewProfile(${u.user_id}, '${String(u.name||'Membre').replace(/'/g,"\\'")}')">
+          <div style="display:flex;align-items:center;gap:10px">
+            ${u.photo_url ? `<img class="avatar-img" src="${u.photo_url}">` : `<div class="avatar">${(u.name||'M')[0]}</div>`}
+            <div style="font-weight:600">${u.name || 'Membre Codia'}</div>
+          </div>
+        </div>
+      `).join('');
+    }catch(e){ list.innerHTML = '<div class="empty">Erreur</div>'; }
+  }
+  function closeFollowList(){ document.getElementById('followListModal').classList.remove('active'); }
 
   async function loadCodes(){
     try{
@@ -719,6 +921,8 @@
       <div class="pill">${c.description||'Promo'}</div></div>`).join('') || '<div class="empty">Pas encore de code</div>';
     document.getElementById('codes-list').innerHTML=allCodes.length?allCodes.map(c=>renderPost(c)).join(''):'<div class="empty">Feed vide — sois le premier</div>';
   }
+
+  setInterval(loadNotifications, 45000);
 
   boot();
 </script>
