@@ -2,6 +2,7 @@ import os
 import re
 import json
 import logging
+import random
 from datetime import datetime
 
 from flask import Flask, request, jsonify, send_from_directory
@@ -45,6 +46,7 @@ def init_db():
         return
     conn = get_conn()
     cur = conn.cursor()
+
     cur.execute(
         """
         CREATE TABLE IF NOT EXISTS paid_users (
@@ -53,6 +55,7 @@ def init_db():
         );
         """
     )
+
     cur.execute(
         """
         CREATE TABLE IF NOT EXISTS codes (
@@ -72,6 +75,7 @@ def init_db():
         );
         """
     )
+
     # Soft-delete column (si table déjà existante)
     try:
         cur.execute("ALTER TABLE codes ADD COLUMN IF NOT EXISTS deleted BOOLEAN DEFAULT FALSE;")
@@ -89,6 +93,7 @@ def init_db():
         );
         """
     )
+
     cur.execute(
         """
         CREATE TABLE IF NOT EXISTS code_copies (
@@ -99,6 +104,7 @@ def init_db():
         );
         """
     )
+
     cur.execute(
         """
         CREATE TABLE IF NOT EXISTS notifications (
@@ -114,6 +120,18 @@ def init_db():
         );
         """
     )
+
+    # Nouvelle table pour les recherches (suggestions)
+    cur.execute(
+        """
+        CREATE TABLE IF NOT EXISTS search_logs (
+            id SERIAL PRIMARY KEY,
+            query VARCHAR(200) NOT NULL,
+            created_at TIMESTAMP DEFAULT NOW()
+        );
+        """
+    )
+
     conn.commit()
     cur.close()
     conn.close()
@@ -366,7 +384,6 @@ def my_codes():
     try:
         conn = get_conn()
         cur = conn.cursor()
-        # Inclut les codes supprimés pour pouvoir les restaurer
         cur.execute(
             "SELECT * FROM codes WHERE user_id = %s ORDER BY created_at DESC LIMIT 50",
             (int(user_id),),
@@ -592,7 +609,6 @@ def code_restore():
         is_admin = int(user_id) == ADMIN_ID
         is_owner = owner_id and int(owner_id) == int(user_id)
 
-        # Admin peut tout restaurer, owner peut restaurer les siens
         if not (is_admin or is_owner):
             cur.close()
             conn.close()
@@ -817,6 +833,51 @@ def mark_notifications_read():
         return jsonify({"success": False}), 500
 
 
+# ================== SEARCH LOGS (suggestions) ==================
+@app.route("/search/log", methods=["POST"])
+def log_search():
+    data = request.json or {}
+    q = (data.get("q") or "").strip()
+    if len(q) < 2:
+        return jsonify({"ok": True})
+    try:
+        conn = get_conn()
+        cur = conn.cursor()
+        cur.execute("INSERT INTO search_logs (query) VALUES (%s)", (q[:200],))
+        conn.commit()
+        cur.close()
+        conn.close()
+    except Exception as e:
+        logging.error(e)
+    return jsonify({"ok": True})
+
+
+@app.route("/search/recent")
+def recent_searches():
+    try:
+        conn = get_conn()
+        cur = conn.cursor()
+        cur.execute(
+            """
+            SELECT query, COUNT(*) as cnt
+            FROM search_logs
+            WHERE created_at > NOW() - INTERVAL '30 days'
+            GROUP BY query
+            ORDER BY MAX(created_at) DESC
+            LIMIT 40
+            """
+        )
+        rows = cur.fetchall()
+        cur.close()
+        conn.close()
+        queries = [r["query"] for r in rows]
+        random.shuffle(queries)
+        return jsonify({"queries": queries[:12]})
+    except Exception as e:
+        logging.error(e)
+        return jsonify({"queries": []})
+
+
 # ================== IA ==================
 @app.route("/ask", methods=["POST"])
 def ask():
@@ -835,6 +896,7 @@ def ask():
         "Si tu n'as pas de code exact, propose des alternatives concrètes (sites, types d'offres). "
         "Interdit: répondre vide, inutile, ou purement négatif. "
         "Réponds en français, court et actionnable."
+        "Tu peux aussi aider les utilisateurs qui ont un problème technique sur l'application."
     )
     if city:
         system += f" Localisation utilisateur: {city}."
