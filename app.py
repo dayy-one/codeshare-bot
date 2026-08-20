@@ -76,7 +76,6 @@ def init_db():
         """
     )
 
-    # Soft-delete column (si table déjà existante)
     try:
         cur.execute("ALTER TABLE codes ADD COLUMN IF NOT EXISTS deleted BOOLEAN DEFAULT FALSE;")
     except Exception:
@@ -121,13 +120,23 @@ def init_db():
         """
     )
 
-    # Nouvelle table pour les recherches (suggestions)
     cur.execute(
         """
         CREATE TABLE IF NOT EXISTS search_logs (
             id SERIAL PRIMARY KEY,
             query VARCHAR(200) NOT NULL,
             created_at TIMESTAMP DEFAULT NOW()
+        );
+        """
+    )
+
+    cur.execute(
+        """
+        CREATE TABLE IF NOT EXISTS saved_codes (
+            user_id BIGINT NOT NULL,
+            code_id INT NOT NULL,
+            created_at TIMESTAMP DEFAULT NOW(),
+            PRIMARY KEY (user_id, code_id)
         );
         """
     )
@@ -193,7 +202,6 @@ def create_notification(user_id, notif_type, actor_id, actor_name, code_id, mess
         conn.commit()
         cur.close()
         conn.close()
-        # Notification Telegram
         send_telegram_message(int(user_id), message)
     except Exception as e:
         logging.error(f"create_notification: {e}")
@@ -255,6 +263,25 @@ def access():
     except Exception:
         return jsonify({"paid": False})
     return jsonify({"paid": is_paid(uid), "is_admin": uid == ADMIN_ID})
+
+
+@app.route("/stats")
+def stats():
+    try:
+        conn = get_conn()
+        cur = conn.cursor()
+        cur.execute("SELECT COUNT(*) AS c FROM paid_users")
+        count = cur.fetchone()["c"]
+        cur.close()
+        conn.close()
+        if count >= 1000:
+            display = f"{count / 1000:.1f}k".replace(".0k", "k")
+        else:
+            display = str(count)
+        return jsonify({"members": count, "members_display": display})
+    except Exception as e:
+        logging.error(e)
+        return jsonify({"members": 0, "members_display": "0"})
 
 
 # ================== STRIPE ==================
@@ -346,6 +373,28 @@ def list_codes():
         conn = get_conn()
         cur = conn.cursor()
         cur.execute("SELECT * FROM codes WHERE deleted = FALSE ORDER BY created_at DESC LIMIT 100")
+        rows = cur.fetchall()
+        cur.close()
+        conn.close()
+        return jsonify({"codes": rows})
+    except Exception as e:
+        logging.error(e)
+        return jsonify({"codes": []})
+
+
+@app.route("/codes/top")
+def top_codes():
+    try:
+        conn = get_conn()
+        cur = conn.cursor()
+        cur.execute(
+            """
+            SELECT * FROM codes
+            WHERE deleted = FALSE
+            ORDER BY (likes + copies) DESC, created_at DESC
+            LIMIT 5
+            """
+        )
         rows = cur.fetchall()
         cur.close()
         conn.close()
@@ -466,7 +515,6 @@ def code_copy():
         conn = get_conn()
         cur = conn.cursor()
 
-        # Vérifie si déjà copié par cet utilisateur
         cur.execute(
             "SELECT 1 FROM code_copies WHERE code_id = %s AND user_id = %s",
             (code_id, int(user_id)),
@@ -479,7 +527,6 @@ def code_copy():
             conn.close()
             return jsonify({"copies": row["copies"] if row else 0, "already": True})
 
-        # Première copie de cet utilisateur
         cur.execute(
             "INSERT INTO code_copies (code_id, user_id) VALUES (%s, %s)",
             (code_id, int(user_id)),
@@ -512,8 +559,8 @@ def code_copy():
 def code_react():
     data = request.json or {}
     code_id = data.get("id")
-    reaction = data.get("reaction")  # like | dislike
-    action = data.get("action")  # add | remove
+    reaction = data.get("reaction")
+    action = data.get("action")
     user_id = data.get("user_id")
     actor_name = data.get("actor_name") or "Quelqu’un"
 
@@ -624,6 +671,82 @@ def code_restore():
         return jsonify({"success": False}), 500
 
 
+# ================== SAUVEGARDES ==================
+@app.route("/code/save", methods=["POST"])
+def save_code():
+    data = request.json or {}
+    user_id = data.get("user_id")
+    code_id = data.get("id")
+    if not user_id or not code_id:
+        return jsonify({"success": False}), 400
+    try:
+        conn = get_conn()
+        cur = conn.cursor()
+        cur.execute(
+            """
+            INSERT INTO saved_codes (user_id, code_id)
+            VALUES (%s, %s)
+            ON CONFLICT (user_id, code_id) DO NOTHING
+            """,
+            (int(user_id), int(code_id)),
+        )
+        conn.commit()
+        cur.close()
+        conn.close()
+        return jsonify({"success": True, "saved": True})
+    except Exception as e:
+        logging.error(e)
+        return jsonify({"success": False}), 500
+
+
+@app.route("/code/unsave", methods=["POST"])
+def unsave_code():
+    data = request.json or {}
+    user_id = data.get("user_id")
+    code_id = data.get("id")
+    if not user_id or not code_id:
+        return jsonify({"success": False}), 400
+    try:
+        conn = get_conn()
+        cur = conn.cursor()
+        cur.execute(
+            "DELETE FROM saved_codes WHERE user_id = %s AND code_id = %s",
+            (int(user_id), int(code_id)),
+        )
+        conn.commit()
+        cur.close()
+        conn.close()
+        return jsonify({"success": True, "saved": False})
+    except Exception as e:
+        logging.error(e)
+        return jsonify({"success": False}), 500
+
+
+@app.route("/codes/saved")
+def saved_codes():
+    user_id = request.args.get("user_id")
+    try:
+        conn = get_conn()
+        cur = conn.cursor()
+        cur.execute(
+            """
+            SELECT c.* FROM codes c
+            INNER JOIN saved_codes s ON s.code_id = c.id
+            WHERE s.user_id = %s AND c.deleted = FALSE
+            ORDER BY s.created_at DESC
+            LIMIT 50
+            """,
+            (int(user_id),),
+        )
+        rows = cur.fetchall()
+        cur.close()
+        conn.close()
+        return jsonify({"codes": rows})
+    except Exception as e:
+        logging.error(e)
+        return jsonify({"codes": []})
+
+
 # ================== FOLLOWS ==================
 @app.route("/follow", methods=["POST"])
 def follow():
@@ -652,7 +775,7 @@ def follow():
         cur.close()
         conn.close()
 
-        if row:  # nouvel abonnement
+        if row:
             msg = f"👤 <b>{actor_name}</b> s’est abonné à ton profil Codia"
             create_notification(followed_id, "follow", follower_id, actor_name, None, msg)
 
@@ -833,7 +956,7 @@ def mark_notifications_read():
         return jsonify({"success": False}), 500
 
 
-# ================== SEARCH LOGS (suggestions) ==================
+# ================== SEARCH LOGS ==================
 @app.route("/search/log", methods=["POST"])
 def log_search():
     data = request.json or {}
@@ -895,7 +1018,7 @@ def ask():
         "en France. Réponds toujours de façon utile et positive. "
         "Si tu n'as pas de code exact, propose des alternatives concrètes (sites, types d'offres). "
         "Interdit: répondre vide, inutile, ou purement négatif. "
-        "Réponds en français, court et actionnable."
+        "Réponds en français, court et actionnable. "
         "Tu peux aussi aider les utilisateurs qui ont un problème technique sur l'application."
     )
     if city:
