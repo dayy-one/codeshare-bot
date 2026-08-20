@@ -24,10 +24,8 @@
       --shadow: 0 10px 40px rgba(0,0,0,0.45);
       --shadow-accent: 0 8px 32px rgba(139,92,246,0.22);
       --radius: 22px;
-      --radius-sm: 16px;
       --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     }
-
     body.light {
       --bg: #f8fafc;
       --card: #ffffff;
@@ -43,14 +41,11 @@
       --shadow: 0 12px 40px rgba(0,0,0,0.08);
       --shadow-accent: 0 8px 28px rgba(124,58,237,0.15);
     }
-
     *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
     body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Inter","Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--text);height:100vh;overflow:hidden;line-height:1.5;-webkit-font-smoothing:antialiased}
     .app{max-width:430px;height:100vh;margin:0 auto;display:flex;flex-direction:column;position:relative;background:var(--bg)}
     .hidden{display:none !important}
-
     @keyframes fadeInUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
-    @keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
     @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
 
     .header{padding:16px 18px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);background:rgba(7,7,11,0.82);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);position:sticky;top:0;z-index:20}
@@ -109,7 +104,7 @@
 
     .bottom{position:absolute;left:0;right:0;bottom:0;height:94px;border-top:1px solid var(--border);background:rgba(7,7,11,0.9);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);display:flex;justify-content:space-around;align-items:center;padding-bottom:20px;z-index:30}
     body.light .bottom{background:rgba(248,250,252,0.92)}
-    .nav{background:none;border:none;color:var(--text2);display:flex;flex-direction:column;align-items:center;gap:5px;font-size:11px;font-weight:600;transition:var(--transition);position:relative}
+    .nav{background:none;border:none;color:var(--text2);display:flex;flex-direction:column;align-items:center;gap:5px;font-size:11px;font-weight:600;transition:var(--transition)}
     .nav.active{color:var(--text)}
     .nav .ic{width:30px;height:30px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;transition:all 0.3s cubic-bezier(0.34,1.56,0.64,1)}
     .nav.active .ic{background:var(--gradient);color:#fff;box-shadow:0 6px 18px rgba(139,92,246,0.5);transform:translateY(-3px) scale(1.05)}
@@ -131,23 +126,15 @@
     .welcome-box::before{content:"";position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:radial-gradient(circle,rgba(139,92,246,0.12) 0%,transparent 60%);pointer-events:none}
     .welcome-title{font-size:34px;font-weight:800;margin-bottom:14px;letter-spacing:-0.045em;background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
     .welcome-text{font-size:14.5px;line-height:1.65;color:var(--text2);position:relative}
-
     .ai-box{margin:10px 18px 22px;padding:18px 20px;border-radius:20px;background:var(--gradient-soft);border:1px solid rgba(139,92,246,0.3);font-size:14.5px;line-height:1.6;animation:fadeInUp 0.35s ease}
     .empty{text-align:center;color:var(--text2);padding:48px 24px;font-size:14.5px;line-height:1.55}
     .clickable{cursor:pointer}
 
-    /* Long press menu */
-    #longpress-menu{
-      position:fixed;z-index:60;background:var(--card);border:1px solid var(--border);
-      border-radius:16px;padding:8px;box-shadow:var(--shadow);min-width:180px;display:none;
-    }
-    #longpress-menu button{
-      width:100%;padding:12px 16px;border:none;background:transparent;color:var(--text);
-      text-align:left;font-size:14px;font-weight:500;border-radius:10px;
-    }
-    #longpress-menu button:active{background:var(--card-hover)}
+    .profile-tabs{display:flex;margin-top:18px;border-top:1px solid var(--border);padding-top:4px}
+    .profile-tab{flex:1;background:none;border:none;color:var(--text2);padding:12px 8px;font-size:13px;font-weight:600;border-bottom:2px solid transparent;transition:var(--transition)}
+    .profile-tab.active{color:var(--text);border-bottom-color:var(--accent)}
 
-    /* Paywall (identique) */
+    /* Paywall */
     #paywall{position:fixed;inset:0;z-index:100;max-width:430px;margin:0 auto;background:#000;color:#fff;display:flex;flex-direction:column;overflow:hidden}
     .sg-bg{position:absolute;inset:0;overflow:hidden}
     .sg-live-app{position:absolute;inset:0;background:#f4f4f5;filter:blur(2.5px);transform:scale(1.02);opacity:1;pointer-events:none}
@@ -205,10 +192,9 @@
 </div>
 
 <div id="paywall" class="hidden">
-  <!-- (paywall identique, je le garde pour la longueur) -->
   <div class="sg-bg">
     <div class="sg-live-app">
-      <div class="la-header"><div class="la-brand"><div class="la-logo"></div><div><div class="la-name">Codia</div><div class="la-sub">16,254k members</div></div></div></div>
+      <div class="la-header"><div class="la-brand"><div class="la-logo"></div><div><div class="la-name">Codia</div><div class="la-sub">members</div></div></div></div>
       <div class="la-stories"><div class="la-ring"></div><div class="la-ring"></div><div class="la-ring"></div><div class="la-ring"></div><div class="la-ring"></div></div>
       <div class="la-card"></div><div class="la-card"></div><div class="la-card"></div>
       <div class="la-bottom"></div>
@@ -230,7 +216,7 @@
       <div class="sg-item"><div class="sg-ic c6">✓</div><div class="sg-item-text">Copie en 1 clic + profil<small>Tes codes et ton activité</small></div></div>
     </div>
     <div class="sg-price-card glass"><div class="label">Paiement unique</div><div class="amount">10 €</div></div>
-    <div class="sg-social"><b>16,254k</b> members · +2,4k cette semaine</div>
+    <div class="sg-social"><b id="pw-members">…</b> members</div>
     <button class="sg-cta" type="button" onclick="startPayment()">Passer à Codia</button>
     <div class="sg-links"><span>Conditions d'utilisation</span><span>·</span><span>Politique de confidentialité</span></div>
     <div class="sg-error" id="pw-error"></div>
@@ -252,7 +238,7 @@
       <div class="logo-mark">C</div>
       <div>
         <div class="name">Codia</div>
-        <div class="sub">16,254k members</div>
+        <div class="sub" id="members-count">… members</div>
       </div>
     </div>
     <div class="header-actions">
@@ -266,18 +252,20 @@
 
   <div class="stories" id="stories"></div>
 
+  <!-- FEED -->
   <div class="page page-home active" id="page-home">
-    <div class="section">À la une</div>
+    <div class="section">Top Codes</div>
     <div id="daily-codes"></div>
-    <div class="section" id="feed-title">Codes disponibles</div>
+    <div class="section" id="feed-title">À la une</div>
     <div id="codes-list"><div class="empty">Chargement...</div></div>
   </div>
 
+  <!-- RECHERCHE -->
   <div class="page page-search" id="page-search">
     <div class="search-wrap">
       <div class="search">
         <span style="opacity:.7">⌕</span>
-        <input id="search-input" placeholder="Ex: Uber Eats, Booking, Zara..." 
+        <input id="search-input" placeholder="Ex: Uber Eats, Booking, Zara..."
                onfocus="showRecentSuggestions()"
                onkeypress="if(event.key==='Enter') doSearch()">
       </div>
@@ -290,40 +278,41 @@
     <div id="search-results"><div class="empty">Tape un mot-clé pour trouver un code</div></div>
   </div>
 
+  <!-- CODIA -->
   <div class="page page-codia" id="page-codia">
     <div class="welcome-box">
       <div class="welcome-title">Codia</div>
       <div class="welcome-text">
         Bienvenue sur l’application !<br><br>
-        Ici tu peux publier et trouver les meilleurs codes promo et parrainages.<br><br>
-        <b>Comment ça fonctionne ?</b><br>
-        • Publie tes offres avec le bouton ＋<br>
-        • Like et copie celles des autres<br>
-        • Suis les profils qui publient de bons plans<br><br>
-        La page <b>Recherche</b> te permet de trouver les codes beaucoup plus rapidement.
+        Ici tu peux partager et trouver les meilleurs codes promo et parrainages de la communauté.<br><br>
+        <b>Comment ça marche ?</b><br>
+        • Publie tes codes depuis le bouton ＋<br>
+        • Like, copie et sauvegarde ceux des autres<br>
+        • Abonne-toi aux profils qui partagent de bons plans<br><br>
+        La page <b>Recherche</b> te permet de trouver les codes promo beaucoup plus rapidement pour éviter de tout scroller.
       </div>
     </div>
     <div class="section">Assistant Codia</div>
     <div style="padding:0 18px 8px;font-size:13.5px;color:var(--text2)">
-      Tu rencontres un problème ? Pose ta question ici, l’assistant t’aide.
+      Tu rencontres un problème sur l’application ? Pose ta question ici, l’IA t’aide comme un support.
     </div>
     <div class="search-wrap">
       <div class="search">
         <span style="opacity:.7">✦</span>
-        <input id="ai-input" placeholder="Ex: mon code n’apparaît pas..." 
+        <input id="ai-input" placeholder="Ex: mon code n’apparaît pas, problème de paiement..."
                onkeypress="if(event.key==='Enter') askAI()">
       </div>
     </div>
     <div class="ai-box" id="ai-response" style="display:none"></div>
   </div>
 
+  <!-- PROFIL -->
   <div class="page page-profile" id="page-profile">
     <div class="card" id="profile-card">Chargement profil...</div>
-    <div class="section">Mes Publications</div>
-    <div id="my-codes"><div class="empty">Aucune publication</div></div>
+    <div id="my-codes"><div class="empty">Aucun code</div></div>
   </div>
 
-  <button class="fab" onclick="openShare()">＋ Publier</button>
+  <button class="fab" onclick="openShare()">＋ Partager</button>
 
   <div class="bottom">
     <button class="nav active" onclick="showPage('home')"><div class="ic">⌂</div>Feed</button>
@@ -333,15 +322,10 @@
   </div>
 </div>
 
-<!-- Long press menu -->
-<div id="longpress-menu">
-  <button onclick="goToPublisherProfile()">Visiter le profil</button>
-</div>
-
 <!-- Modals -->
 <div class="modal" id="shareModal">
   <div class="sheet">
-    <div style="text-align:center;font-weight:700;margin-bottom:14px">Publier une offre</div>
+    <div style="text-align:center;font-weight:700;margin-bottom:14px">Partager un code</div>
     <button onclick="chooseShare('promo')">Code promo</button>
     <button onclick="chooseShare('parrainage')">Code parrainage</button>
     <button onclick="closeShare()">Annuler</button>
@@ -350,7 +334,7 @@
 
 <div class="modal" id="formModal">
   <div class="sheet">
-    <div style="text-align:center;font-weight:700;margin-bottom:14px" id="formTitle">Nouvelle offre</div>
+    <div style="text-align:center;font-weight:700;margin-bottom:14px" id="formTitle">Nouveau code</div>
     <div class="quick">
       <button type="button" onclick="fillSite('Uber Eats')">Uber Eats</button>
       <button type="button" onclick="fillSite('Booking')">Booking</button>
@@ -389,9 +373,6 @@
   let allCodes = [], userCity = null, currentShareType = "promo";
   let currentUserId = null, currentUserName = null, isAdmin = false;
   let viewingUserId = null;
-  let longPressTimer = null;
-  let currentLongPressUserId = null;
-  let currentLongPressName = null;
 
   function getTgUser(){ return window.Telegram?.WebApp?.initDataUnsafe?.user || null; }
 
@@ -402,12 +383,26 @@
     setTimeout(() => { s.classList.add('hidden'); showApp(); }, 1600);
   }
 
+  async function loadStats(){
+    try{
+      const res = await fetch('/stats');
+      const data = await res.json();
+      const display = (data.members_display || data.members || '0') + ' members';
+      const el = document.getElementById('members-count');
+      if(el) el.textContent = display;
+      const pw = document.getElementById('pw-members');
+      if(pw) pw.textContent = data.members_display || data.members || '0';
+    }catch(e){}
+  }
+
   async function boot(){
     const params = new URLSearchParams(location.search);
     const u = getTgUser();
     const userId = u?.id;
     currentUserId = userId || null;
     currentUserName = u?.username ? ('@'+u.username) : (u?.first_name || 'Membre Codia');
+
+    loadStats();
 
     if(params.get('paid') === '1' && userId){
       await new Promise(r => setTimeout(r, 800));
@@ -433,10 +428,12 @@
   function showPaywall(){
     document.getElementById('paywall').classList.remove('hidden');
     document.getElementById('main-app').classList.add('hidden');
+    loadStats();
   }
   function showApp(){
     document.getElementById('paywall').classList.add('hidden');
     document.getElementById('main-app').classList.remove('hidden');
+    loadStats();
     loadCodes();
     loadNotifications();
   }
@@ -536,7 +533,8 @@
     
     if(page==='home'){ 
       document.getElementById('page-home').classList.add('active'); 
-      document.querySelectorAll('.nav')[0].classList.add('active'); 
+      document.querySelectorAll('.nav')[0].classList.add('active');
+      loadCodes(); // refresh à chaque clic Feed
     }
     else if(page==='search'){ 
       document.getElementById('page-search').classList.add('active'); 
@@ -577,7 +575,7 @@
         type:currentShareType,site,code,description,added_by,user_id:u?.id||null,photo_url:u?.photo_url||null
       })});
       const data=await res.json();
-      if(data.success){ closeForm(); alert('Offre publiée ✅'); await loadCodes(); showPage('home'); }
+      if(data.success){ closeForm(); alert('Code en ligne ✅'); await loadCodes(); showPage('home'); }
       else alert('Erreur publication');
     }catch(e){ alert('Erreur publication'); }
   }
@@ -587,52 +585,15 @@
     return `<div class="avatar">${(c.added_by||'C')[0].toUpperCase()}</div>`;
   }
 
-  // ===== LONG PRESS =====
-  function startLongPress(e, userId, name){
-    if(!userId) return;
-    currentLongPressUserId = userId;
-    currentLongPressName = name;
-    longPressTimer = setTimeout(() => {
-      const menu = document.getElementById('longpress-menu');
-      const touch = e.touches ? e.touches[0] : e;
-      menu.style.display = 'block';
-      menu.style.left = Math.min(touch.clientX, window.innerWidth - 200) + 'px';
-      menu.style.top = (touch.clientY - 60) + 'px';
-      try { Telegram.WebApp.HapticFeedback.impactOccurred('medium'); } catch(err){}
-    }, 550);
-  }
-
-  function cancelLongPress(){
-    clearTimeout(longPressTimer);
-  }
-
-  function hideLongPressMenu(){
-    document.getElementById('longpress-menu').style.display = 'none';
-  }
-
-  function goToPublisherProfile(){
-    hideLongPressMenu();
-    if(currentLongPressUserId){
-      viewProfile(currentLongPressUserId, currentLongPressName);
-    }
-  }
-
-  // Hide menu on click elsewhere
-  document.addEventListener('click', hideLongPressMenu);
-  document.addEventListener('touchstart', function(e){
-    if(!e.target.closest('#longpress-menu') && !e.target.closest('.post')){
-      hideLongPressMenu();
-    }
-  });
-
   function renderPost(c){
     const id=c.id;
     const liked=localStorage.getItem('like_'+id)==='1';
     const disliked=localStorage.getItem('dislike_'+id)==='1';
+    const saved=localStorage.getItem('saved_'+id)==='1';
     const score=(c.likes||0)-(c.dislikes||0);
     const popular=score>=5?'<span class="badge-pop">Populaire</span>':'';
     const who=c.added_by||'Membre Codia';
-    const typeText = c.type==='parrainage' ? 'Code parrainage publié par' : 'Code promo publié par';
+    const actionText=c.type==='parrainage'?'a partagé un code parrainage':'a partagé un code promo';
     const copies=c.copies||0;
     const canManage = isAdmin || (c.user_id && currentUserId && Number(c.user_id) === Number(currentUserId));
     const isDeleted = c.deleted === true;
@@ -646,29 +607,23 @@
       }
     }
 
-    const userIdAttr = c.user_id || '';
-    const safeName = String(who).replace(/'/g,"\\'");
+    const clickProfile = c.user_id ? `onclick="viewProfile(${c.user_id}, '${String(who).replace(/'/g,"\\'")}')"` : '';
 
-    return `<div class="post" style="${isDeleted?'opacity:0.55':''}"
-      ontouchstart="startLongPress(event, ${userIdAttr || 'null'}, '${safeName}')"
-      ontouchend="cancelLongPress()"
-      ontouchmove="cancelLongPress()"
-      onmousedown="startLongPress(event, ${userIdAttr || 'null'}, '${safeName}')"
-      onmouseup="cancelLongPress()"
-      onmouseleave="cancelLongPress()">
+    return `<div class="post" style="${isDeleted?'opacity:0.55':''}">
       <div class="post-top">
-        <div>${avatarHTML(c)}</div>
-        <div style="flex:1">
-          <div style="font-weight:600">${typeText} ${who} ${popular}</div>
-          <div class="muted">${timeAgo(c.created_at)}</div>
+        <div ${clickProfile} style="cursor:pointer">${avatarHTML(c)}</div>
+        <div style="flex:1" ${clickProfile} class="clickable">
+          <div style="font-weight:600">${who} ${popular}</div>
+          <div class="muted">${actionText} • ${timeAgo(c.created_at)}</div>
         </div>
       </div>
       <div class="muted">${c.site}${isDeleted?' · <span style="color:#f87171">Supprimé</span>':''}</div>
       <div class="code"><span>${c.code} <span style="color:var(--green)">${c.description||''}</span></span>
-        <button class="copy-btn" onclick="event.stopPropagation(); copyCode(${c.id||0}, '${String(c.code).replace(/'/g,"\\'")}', this)">Copier${copies?' · '+copies:''}</button></div>
+        <button class="copy-btn" onclick="copyCode(${c.id||0}, '${String(c.code).replace(/'/g,"\\'")}', this)">Copier${copies?' · '+copies:''}</button></div>
       <div class="actions">${c.id?`
-        <button onclick="event.stopPropagation(); toggleReact(${c.id},'like',this)">${liked?'❤️':'🤍'} <span>${c.likes||0}</span></button>
-        <button onclick="event.stopPropagation(); toggleReact(${c.id},'dislike',this)">${disliked?'💔':'👎'} <span>${c.dislikes||0}</span></button>
+        <button onclick="toggleReact(${c.id},'like',this)">${liked?'❤️':'🤍'} <span>${c.likes||0}</span></button>
+        <button onclick="toggleReact(${c.id},'dislike',this)">${disliked?'💔':'👎'} <span>${c.dislikes||0}</span></button>
+        <button onclick="toggleSave(${c.id}, this)">${saved?'🔖':'📑'} <span>${saved?'Sauvé':'Sauver'}</span></button>
         ${manageBtns}`:''}</div></div>`;
   }
 
@@ -710,8 +665,23 @@
     }catch(e){}
   }
 
+  async function toggleSave(id, btn){
+    if(!currentUserId || !id) return;
+    const isSaved = localStorage.getItem('saved_'+id) === '1';
+    const url = isSaved ? '/code/unsave' : '/code/save';
+    try{
+      await fetch(url, {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({id, user_id: currentUserId})
+      });
+      localStorage.setItem('saved_'+id, isSaved ? '0' : '1');
+      btn.innerHTML = isSaved ? '📑 <span>Sauver</span>' : '🔖 <span>Sauvé</span>';
+    }catch(e){}
+  }
+
   async function deleteCode(id){
-    if(!confirm('Supprimer cette publication ?')) return;
+    if(!confirm('Supprimer ce code ?')) return;
     try{
       const res = await fetch('/code/delete', {
         method:'POST', headers:{'Content-Type':'application/json'},
@@ -738,18 +708,18 @@
   function renderStories(){
     const base=["Top","Uber Eats","Booking","Airbnb","Zara","Banques"];
     const dynamic=[...new Set(allCodes.map(c=>c.site).filter(Boolean))];
-    const names=["+ Publier",...base,...dynamic.filter(s=>!base.includes(s)).slice(0,4)];
+    const names=["+ Partager",...base,...dynamic.filter(s=>!base.includes(s)).slice(0,4)];
     document.getElementById('stories').innerHTML=names.map(n=>{
-      const label=n==="+ Publier"?"+":n.slice(0,1).toUpperCase();
+      const label=n==="+ Partager"?"+":n.slice(0,1).toUpperCase();
       return `<div class="story clickable" onclick="onStoryClick('${n.replace(/'/g,"\\'")}')"><div class="story-ring"><div>${label}</div></div>${n.length>10?n.slice(0,9)+'…':n}</div>`;
     }).join('');
   }
   function onStoryClick(name){
-    if(name==="+ Publier"){ openShare(); return; }
+    if(name==="+ Partager"){ openShare(); return; }
     showPage('home');
     const fromDb=allCodes.filter(c=>(c.site||'').toLowerCase().includes(name.toLowerCase())||name==='Top');
-    document.getElementById('feed-title').textContent=`${name}`;
-    document.getElementById('codes-list').innerHTML=fromDb.length?fromDb.map(c=>renderPost(c)).join(''):`<div class="empty">Aucun code pour ${name}</div>`;
+    document.getElementById('feed-title').textContent = name === 'Top' ? 'À la une' : name;
+    document.getElementById('codes-list').innerHTML=fromDb.length?fromDb.map(c=>renderPost(c)).join(''):`<div class="empty">Pas de code pour ${name}</div>`;
   }
 
   async function showRecentSuggestions(){
@@ -842,31 +812,61 @@
         isF = fr.following;
       }catch(e){}
       followBtn = isF
-        ? `<button class="pill" style="margin-top:10px;background:rgba(255,255,255,.1);color:var(--text)" onclick="toggleFollow(${targetId}, false)">Suivi ✓</button>`
-        : `<button class="pill" style="margin-top:10px" onclick="toggleFollow(${targetId}, true)">Suivre</button>`;
+        ? `<button class="pill" style="margin-top:10px;background:rgba(255,255,255,.1);color:var(--text)" onclick="toggleFollow(${targetId}, false)">Abonné ✓</button>`
+        : `<button class="pill" style="margin-top:10px" onclick="toggleFollow(${targetId}, true)">S’abonner</button>`;
     }
 
     card.innerHTML = `
       <div class="post-top">${photo}<div>
         <div style="font-weight:700">${name}</div>
-        <div class="muted">${isOwn ? 'Mon profil' : 'Profil'}</div>
+        <div class="muted">${isOwn ? 'Mon profil' : 'Profil Codia'}</div>
       </div></div>
       <div style="display:flex;gap:18px;margin:14px 0 6px;font-size:14px">
         <div class="clickable" onclick="showFollowList(${targetId}, 'followers')"><b>${followers}</b> abonnés</div>
-        <div class="clickable" onclick="showFollowList(${targetId}, 'following')"><b>${following}</b> suivis</div>
+        <div class="clickable" onclick="showFollowList(${targetId}, 'following')"><b>${following}</b> abonnements</div>
       </div>
       ${followBtn}
+      <div class="profile-tabs">
+        <button class="profile-tab active" id="tab-posts" onclick="showProfileTab('posts', ${targetId})">🎬 Codes postés</button>
+        <button class="profile-tab" id="tab-saved" onclick="showProfileTab('saved', ${targetId})">🔖 Sauvegardés</button>
+      </div>
     `;
 
-    const endpoint = isOwn ? '/codes/mine?user_id=' + targetId : '/codes/user?user_id=' + targetId;
-    try{
-      const res = await fetch(endpoint);
-      const data = await res.json();
-      document.getElementById('my-codes').innerHTML = (data.codes||[]).length
-        ? (data.codes||[]).map(c => renderPost(c)).join('')
-        : '<div class="empty">Aucune publication</div>';
-    }catch(e){
-      document.getElementById('my-codes').innerHTML = '<div class="empty">Erreur</div>';
+    showProfileTab('posts', targetId);
+  }
+
+  async function showProfileTab(tab, userId){
+    const tabPosts = document.getElementById('tab-posts');
+    const tabSaved = document.getElementById('tab-saved');
+    const container = document.getElementById('my-codes');
+    if(!container) return;
+
+    if(tab === 'posts'){
+      if(tabPosts){ tabPosts.classList.add('active'); }
+      if(tabSaved){ tabSaved.classList.remove('active'); }
+      const isOwn = Number(userId) === Number(currentUserId);
+      const endpoint = isOwn ? '/codes/mine?user_id='+userId : '/codes/user?user_id='+userId;
+      try{
+        const res = await fetch(endpoint);
+        const data = await res.json();
+        container.innerHTML = (data.codes||[]).length
+          ? (data.codes||[]).map(c => renderPost(c)).join('')
+          : '<div class="empty">Aucun code publié</div>';
+      }catch(e){ container.innerHTML = '<div class="empty">Erreur</div>'; }
+    } else {
+      if(tabSaved){ tabSaved.classList.add('active'); }
+      if(tabPosts){ tabPosts.classList.remove('active'); }
+      if(Number(userId) !== Number(currentUserId)){
+        container.innerHTML = '<div class="empty">Sauvegardés privés</div>';
+        return;
+      }
+      try{
+        const res = await fetch('/codes/saved?user_id=' + userId);
+        const data = await res.json();
+        container.innerHTML = (data.codes||[]).length
+          ? (data.codes||[]).map(c => renderPost(c)).join('')
+          : '<div class="empty">Aucun code sauvegardé</div>';
+      }catch(e){ container.innerHTML = '<div class="empty">Erreur</div>'; }
     }
   }
 
@@ -888,7 +888,7 @@
   }
 
   async function showFollowList(userId, type){
-    document.getElementById('followListTitle').textContent = type === 'followers' ? 'Abonnés' : 'Suivis';
+    document.getElementById('followListTitle').textContent = type === 'followers' ? 'Abonnés' : 'Abonnements';
     const list = document.getElementById('follow-list');
     list.innerHTML = '<div class="empty">Chargement...</div>';
     document.getElementById('followListModal').classList.add('active');
@@ -916,14 +916,26 @@
       allCodes=data.codes||[];
     }catch(e){ allCodes=[]; }
     renderStories();
-    const top=allCodes.slice(0,3);
-    document.getElementById('daily-codes').innerHTML=top.map(c=>`
-      <div class="card row"><div><strong>${c.site}</strong><div class="muted">${c.type||'promo'} • ${c.code}</div></div>
-      <div class="pill">${c.description||'Promo'}</div></div>`).join('') || '<div class="empty">Pas encore de code</div>';
-    document.getElementById('codes-list').innerHTML=allCodes.length?allCodes.map(c=>renderPost(c)).join(''):'<div class="empty">Aucune publication pour le moment</div>';
+
+    // Top Codes (même format que les posts)
+    try{
+      const topRes = await fetch('/codes/top');
+      const topData = await topRes.json();
+      const top = topData.codes || [];
+      document.getElementById('daily-codes').innerHTML = top.length
+        ? top.map(c => renderPost(c)).join('')
+        : '<div class="empty">Pas encore de top code</div>';
+    }catch(e){
+      document.getElementById('daily-codes').innerHTML = '<div class="empty">Erreur</div>';
+    }
+
+    document.getElementById('feed-title').textContent = 'À la une';
+    document.getElementById('codes-list').innerHTML=allCodes.length?allCodes.map(c=>renderPost(c)).join(''):'<div class="empty">Feed vide — sois le premier</div>';
   }
 
   setInterval(loadNotifications, 45000);
+  setInterval(loadStats, 60000);
+
   boot();
 </script>
 </body>
