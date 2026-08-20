@@ -30,7 +30,6 @@
       overflow:hidden;
     }
     .sg-bg{ position:absolute; inset:0; overflow:hidden; }
-
     .sg-live-app{
       position:absolute; inset:0;
       background:#f4f4f5;
@@ -72,20 +71,17 @@
       border-top:1px solid rgba(0,0,0,.06);
       background:#fff;
     }
-
     .sg-dim{
       position:absolute; inset:0;
       background:rgba(0,0,0,.28);
       pointer-events:none;
     }
-
     .sg-wrap{
       position:relative; z-index:2;
       height:100%;
       display:flex; flex-direction:column;
       padding:10px 16px 12px;
     }
-
     .sg-close{
       width:30px; height:30px;
       border:1px solid rgba(255,255,255,.14);
@@ -93,7 +89,6 @@
       border-radius:50%; color:#fff; font-size:18px;
       align-self:flex-start; margin-bottom:4px;
     }
-
     .sg-head{ text-align:center; padding:2px 0 8px; }
     .sg-title-row{
       display:flex; align-items:center; justify-content:center; gap:10px;
@@ -111,13 +106,11 @@
       max-width:300px; margin:0 auto;
       text-shadow:0 1px 8px rgba(0,0,0,.35);
     }
-
     .glass{
       background:rgba(18,18,24,.9);
       border:1px solid rgba(255,255,255,.14);
       box-shadow:0 12px 30px rgba(0,0,0,.35);
     }
-
     .sg-features{
       border-radius:22px;
       padding:2px 10px;
@@ -128,7 +121,6 @@
       padding:10px 4px;
     }
     .sg-item + .sg-item{ border-top:1px solid rgba(255,255,255,.07); }
-
     .sg-ic{
       width:36px; height:36px; border-radius:12px;
       display:flex; align-items:center; justify-content:center;
@@ -140,13 +132,11 @@
     .sg-ic.c4{ background:#db2777; }
     .sg-ic.c5{ background:#16a34a; }
     .sg-ic.c6{ background:#ca8a04; }
-
     .sg-item-text{ font-size:13.5px; line-height:1.3; font-weight:600; padding-top:3px; }
     .sg-item-text small{
       display:block; margin-top:2px;
       color:#b4b4bc; font-size:11px; font-weight:400;
     }
-
     .sg-price-card{
       border-radius:18px;
       padding:12px 14px;
@@ -154,14 +144,12 @@
     }
     .sg-price-card .label{ color:#c4c4c8; font-size:13px; margin-bottom:2px; }
     .sg-price-card .amount{ font-size:26px; font-weight:800; }
-
     .sg-social{
       text-align:center; font-size:12px; color:#d4d4d8;
       margin:0 0 10px;
       text-shadow:0 1px 6px rgba(0,0,0,.3);
     }
     .sg-social b{ color:#fff; }
-
     .sg-cta{
       width:100%; border:none; border-radius:999px;
       padding:15px 18px; font-size:16px; font-weight:800;
@@ -169,13 +157,11 @@
       margin-bottom:8px;
     }
     .sg-cta:active{ opacity:.92; }
-
     .sg-links{
       display:flex; justify-content:center; gap:8px; flex-wrap:wrap;
       font-size:10px; color:#a1a1aa;
     }
     .sg-error{ color:#f87171; font-size:12px; text-align:center; margin-top:6px; }
-
     .pw-pay{
       position:absolute; inset:0; z-index:30;
       background:rgba(0,0,0,.55);
@@ -192,7 +178,6 @@
     .pw-back{ background:none; border:none; color:#a1a1aa; margin-bottom:10px; font-size:14px; }
     .pw-pay-card h2{ font-size:18px; margin-bottom:4px; }
     .pw-pay-card .pw-desc{ color:#a1a1aa; font-size:13px; margin-bottom:12px; }
-
     #success-screen{
       position:fixed; inset:0; z-index:200;
       max-width:430px; margin:0 auto;
@@ -227,7 +212,7 @@
     .search{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:12px 14px}
     .search input{width:100%;border:none;outline:none;background:transparent;color:var(--text);font-size:15px}
     .ai-box{margin:8px 16px 16px;padding:14px 16px;border-radius:16px;background:rgba(139,92,246,.1);border:1px solid var(--border);display:none;font-size:14px;line-height:1.5}
-    .chips{display:flex;gap:8px;overflow-x:auto;padding:0 16px 10px}
+    .chips{display:flex;gap:8px;overflow-x:auto;padding:0 16px 10px;flex-wrap:wrap}
     .chip{white-space:nowrap;border:1px solid var(--border);background:var(--card);color:var(--text);border-radius:999px;padding:8px 12px;font-size:12px}
     .section{padding:8px 16px;font-size:12px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:.4px}
     .card,.post{margin:0 16px 12px;background:var(--card);border:1px solid var(--border);border-radius:18px;padding:14px}
@@ -257,6 +242,9 @@
     .quick button{width:auto;padding:8px 12px;margin:0;font-size:12px;border-radius:999px}
     .empty{text-align:center;color:var(--text2);padding:30px 16px;font-size:14px}
     .clickable{cursor:pointer}
+    .welcome-box{margin:20px 16px;padding:24px 20px;border-radius:20px;background:var(--card);border:1px solid var(--border);text-align:center}
+    .welcome-title{font-size:28px;font-weight:800;margin-bottom:8px;letter-spacing:-.03em}
+    .welcome-text{font-size:14px;line-height:1.5;color:var(--text2);margin-bottom:12px}
   </style>
 </head>
 <body>
@@ -296,7 +284,6 @@
 
   <div class="sg-wrap">
     <button class="sg-close" type="button" onclick="Telegram.WebApp.close()">×</button>
-
     <div class="sg-head">
       <div class="sg-title-row">
         <div class="sg-title">Codia</div>
@@ -304,7 +291,6 @@
       </div>
       <div class="sg-sub">Trouve et partage les meilleures remises</div>
     </div>
-
     <div class="sg-features glass">
       <div class="sg-item">
         <div class="sg-ic c1">⌂</div>
@@ -331,13 +317,11 @@
         <div class="sg-item-text">Copie en 1 clic + profil<small>Tes codes et ton activité</small></div>
       </div>
     </div>
-
     <div class="sg-price-card glass">
       <div class="label">Paiement unique</div>
       <div class="amount">10 €</div>
     </div>
     <div class="sg-social"><b>16,254k</b> members · +2,4k cette semaine</div>
-
     <button class="sg-cta" type="button" onclick="startPayment()">Passer à Codia</button>
     <div class="sg-links">
       <span>Conditions d'utilisation</span>
@@ -346,7 +330,6 @@
     </div>
     <div class="sg-error" id="pw-error"></div>
   </div>
-
   <div class="pw-pay hidden" id="pw-pay">
     <div class="pw-pay-card">
       <button class="pw-back" type="button" onclick="backToOffer()">← Retour</button>
@@ -378,6 +361,7 @@
 
   <div class="stories" id="stories"></div>
 
+  <!-- PAGE 1 : FEED -->
   <div class="page page-home active" id="page-home">
     <div class="section">À la une</div>
     <div id="daily-codes"></div>
@@ -385,22 +369,54 @@
     <div id="codes-list"><div class="empty">Chargement...</div></div>
   </div>
 
-  <div class="page page-ia" id="page-ia">
+  <!-- PAGE 2 : RECHERCHE -->
+  <div class="page page-search" id="page-search">
     <div class="search-wrap">
       <div class="search">
         <span style="opacity:.7">⌕</span>
-        <input id="ai-input" placeholder="Ex: Uber Eats, Booking..." onkeypress="if(event.key==='Enter') askAI()">
+        <input id="search-input" placeholder="Ex: Uber Eats, Booking, Zara..." 
+               onfocus="showRecentSuggestions()"
+               onkeypress="if(event.key==='Enter') doSearch()">
       </div>
     </div>
-    <div class="chips" id="history"></div>
-    <div class="section">Résultats codes</div>
-    <div id="search-results"><div class="empty">Lance une recherche</div></div>
-    <div class="section">Assistant Codia</div>
-    <div class="ai-box" id="ai-response"></div>
-    <div class="section">Suggestions</div>
-    <div id="suggestions"></div>
+    <div style="padding:0 16px 8px;font-size:13px;color:var(--text2);line-height:1.4">
+      Recherche plus rapidement ton code promo en écrivant ici ce que tu recherches.
+    </div>
+    <div class="chips" id="recent-suggestions"></div>
+    <div class="section">Résultats</div>
+    <div id="search-results"><div class="empty">Tape un mot-clé pour trouver un code</div></div>
   </div>
 
+  <!-- PAGE 3 : CODIA (Bienvenue + IA) -->
+  <div class="page page-codia" id="page-codia">
+    <div class="welcome-box">
+      <div class="welcome-title">Codia</div>
+      <div class="welcome-text">
+        Bienvenue sur l’application !<br><br>
+        Ici tu peux partager et trouver les meilleurs codes promo et parrainages de la communauté.<br><br>
+        <b>Comment ça marche ?</b><br>
+        • Publie tes codes depuis le bouton ＋<br>
+        • Like et copie ceux des autres<br>
+        • Abonne-toi aux profils qui partagent de bons plans<br><br>
+        La page <b>Recherche</b> te permet de trouver les codes promo beaucoup plus rapidement pour éviter de tout scroller.
+      </div>
+    </div>
+
+    <div class="section">Assistant Codia</div>
+    <div style="padding:0 16px 8px;font-size:13px;color:var(--text2)">
+      Tu rencontres un problème sur l’application ? Pose ta question ici, l’IA t’aide comme un support.
+    </div>
+    <div class="search-wrap">
+      <div class="search">
+        <span style="opacity:.7">✦</span>
+        <input id="ai-input" placeholder="Ex: mon code n’apparaît pas, problème de paiement..." 
+               onkeypress="if(event.key==='Enter') askAI()">
+      </div>
+    </div>
+    <div class="ai-box" id="ai-response" style="display:none"></div>
+  </div>
+
+  <!-- PAGE 4 : PROFIL -->
   <div class="page page-profile" id="page-profile">
     <div class="card" id="profile-card">Chargement profil...</div>
     <div class="section">Mes codes</div>
@@ -408,13 +424,16 @@
   </div>
 
   <button class="fab" onclick="openShare()">＋ Partager</button>
+
   <div class="bottom">
     <button class="nav active" onclick="showPage('home')"><div class="ic">⌂</div>Feed</button>
-    <button class="nav" onclick="showPage('ia')"><div class="ic">✦</div>Discover</button>
+    <button class="nav" onclick="showPage('search')"><div class="ic">⌕</div>Recherche</button>
+    <button class="nav" onclick="showPage('codia')"><div class="ic">✦</div>Codia</button>
     <button class="nav" onclick="showPage('profile')"><div class="ic">☺</div>Profil</button>
   </div>
 </div>
 
+<!-- Modals (share, form, notif, follow) -->
 <div class="modal" id="shareModal">
   <div class="sheet">
     <div style="text-align:center;font-weight:700;margin-bottom:14px">Partager un code</div>
@@ -442,7 +461,6 @@
   </div>
 </div>
 
-<!-- Modal Notifications -->
 <div class="modal" id="notifModal">
   <div class="sheet">
     <div style="text-align:center;font-weight:700;margin-bottom:14px">Notifications</div>
@@ -451,7 +469,6 @@
   </div>
 </div>
 
-<!-- Modal Followers / Following -->
 <div class="modal" id="followListModal">
   <div class="sheet">
     <div style="text-align:center;font-weight:700;margin-bottom:14px" id="followListTitle">Abonnés</div>
@@ -609,9 +626,25 @@
   function showPage(page){
     document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
     document.querySelectorAll('.nav').forEach(n=>n.classList.remove('active'));
-    if(page==='home'){ document.getElementById('page-home').classList.add('active'); document.querySelectorAll('.nav')[0].classList.add('active'); }
-    else if(page==='ia'){ document.getElementById('page-ia').classList.add('active'); document.querySelectorAll('.nav')[1].classList.add('active'); renderHistory(); renderSuggestions(); }
-    else { document.getElementById('page-profile').classList.add('active'); document.querySelectorAll('.nav')[2].classList.add('active'); viewingUserId = null; loadProfile(); }
+    
+    if(page==='home'){ 
+      document.getElementById('page-home').classList.add('active'); 
+      document.querySelectorAll('.nav')[0].classList.add('active'); 
+    }
+    else if(page==='search'){ 
+      document.getElementById('page-search').classList.add('active'); 
+      document.querySelectorAll('.nav')[1].classList.add('active'); 
+    }
+    else if(page==='codia'){ 
+      document.getElementById('page-codia').classList.add('active'); 
+      document.querySelectorAll('.nav')[2].classList.add('active'); 
+    }
+    else { 
+      document.getElementById('page-profile').classList.add('active'); 
+      document.querySelectorAll('.nav')[3].classList.add('active'); 
+      viewingUserId = null; 
+      loadProfile(); 
+    }
   }
 
   function openShare(){ document.getElementById('shareModal').classList.add('active'); }
@@ -767,40 +800,72 @@
     document.getElementById('codes-list').innerHTML=fromDb.length?fromDb.map(c=>renderPost(c)).join(''):`<div class="empty">Pas de code pour ${name}</div>`;
   }
 
-  function renderSuggestions(){
-    const items=[{site:"Uber Eats",q:"Uber Eats"},{site:"Booking",q:"Booking"},{site:"Airbnb",q:"Airbnb"},{site:"Zara",q:"Zara"}];
-    document.getElementById('suggestions').innerHTML=items.map(i=>`<div class="card row clickable" onclick="quickSearch('${i.q}')"><div><strong>${i.site}</strong><div class="muted">Chercher</div></div><div class="pill">Go</div></div>`).join('');
-  }
-  function quickSearch(q){ document.getElementById('ai-input').value=q; showPage('ia'); askAI(); }
-  function renderHistory(){
-    const hist=JSON.parse(localStorage.getItem('search_history')||'[]');
-    document.getElementById('history').innerHTML=hist.slice(0,8).map(h=>`<button class="chip" onclick="quickSearch('${h.replace(/'/g,"\\'")}')">${h}</button>`).join('');
-  }
-  function saveHistory(q){
-    let hist=JSON.parse(localStorage.getItem('search_history')||'[]');
-    hist=[q,...hist.filter(x=>x!==q)].slice(0,8);
-    localStorage.setItem('search_history',JSON.stringify(hist));
-    renderHistory();
+  // ===== RECHERCHE =====
+  async function showRecentSuggestions(){
+    const box = document.getElementById('recent-suggestions');
+    try{
+      const res = await fetch('/search/recent');
+      const data = await res.json();
+      const queries = data.queries || [];
+      if(!queries.length){
+        box.innerHTML = '';
+        return;
+      }
+      box.innerHTML = queries.map(q => 
+        `<button class="chip" onclick="quickSearch('${q.replace(/'/g,"\\'")}')">${q}</button>`
+      ).join('');
+    }catch(e){
+      box.innerHTML = '';
+    }
   }
 
-  async function askAI(){
-    const q=document.getElementById('ai-input').value.trim();
+  function quickSearch(q){
+    document.getElementById('search-input').value = q;
+    doSearch();
+  }
+
+  async function doSearch(){
+    const q = document.getElementById('search-input').value.trim();
     if(!q) return;
-    saveHistory(q);
-    const results=document.getElementById('search-results');
-    const box=document.getElementById('ai-response');
-    results.innerHTML='<div class="empty">Recherche...</div>';
-    box.style.display='block'; box.innerHTML='Analyse IA...';
+
+    // Log la recherche pour les suggestions des autres
+    fetch('/search/log', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({q})
+    });
+
+    const results = document.getElementById('search-results');
+    results.innerHTML = '<div class="empty">Recherche...</div>';
+
     try{
-      const res=await fetch('/codes/search?q='+encodeURIComponent(q));
-      const data=await res.json();
-      results.innerHTML=(data.codes||[]).length?(data.codes||[]).map(c=>renderPost(c)).join(''):'<div class="empty">Aucun code exact en base</div>';
-    }catch(e){ results.innerHTML='<div class="empty">Erreur recherche</div>'; }
+      const res = await fetch('/codes/search?q=' + encodeURIComponent(q));
+      const data = await res.json();
+      results.innerHTML = (data.codes||[]).length 
+        ? (data.codes||[]).map(c => renderPost(c)).join('') 
+        : '<div class="empty">Aucun code trouvé pour « '+q+' »</div>';
+    }catch(e){
+      results.innerHTML = '<div class="empty">Erreur de recherche</div>';
+    }
+  }
+
+  // ===== IA (page Codia) =====
+  async function askAI(){
+    const q = document.getElementById('ai-input').value.trim();
+    if(!q) return;
+    const box = document.getElementById('ai-response');
+    box.style.display = 'block';
+    box.innerHTML = 'Analyse en cours...';
+
     try{
-      const res=await fetch('/ask',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question:q,city:userCity})});
-      const data=await res.json();
-      box.innerHTML=data.answer||'Voici une alternative utile.';
-    }catch(e){ box.innerHTML='Alternative: Booking, Uber Eats, Zara.'; }
+      const res = await fetch('/ask', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({question: q, city: userCity})
+      });
+      const data = await res.json();
+      box.innerHTML = data.answer || 'Je n’ai pas trouvé de réponse pour le moment.';
+    }catch(e){
+      box.innerHTML = 'Erreur de connexion avec l’assistant.';
+    }
   }
 
   // ===== PROFIL + FOLLOW =====
@@ -809,7 +874,7 @@
     document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
     document.querySelectorAll('.nav').forEach(n=>n.classList.remove('active'));
     document.getElementById('page-profile').classList.add('active');
-    document.querySelectorAll('.nav')[2].classList.add('active');
+    document.querySelectorAll('.nav')[3].classList.add('active');
     await loadProfile(userId, name);
   }
 
