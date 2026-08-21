@@ -24,10 +24,10 @@ CHANNEL_ID = os.getenv("CHANNEL_ID", "-1004414166682")
 DATABASE_URL = os.getenv("DATABASE_URL")
 XAI_API_KEY = os.getenv("XAI_API_KEY")
 SERVER_URL = os.getenv("SERVER_URL", "https://codeshare-bot-production.up.railway.app")
-MINIAPP_URL = os.getenv("MINIAPP_URL", f"{SERVER_URL}/miniapp?v=5")
+MINIAPP_URL = os.getenv("MINIAPP_URL", f"{SERVER_URL}/miniapp?v=6")
 PRICE_CENTS = int(os.getenv("PRICE_CENTS", "1000"))
 
-BASE_MEMBERS = 2345  # affichage de départ : 2.345k
+BASE_MEMBERS = 2345  # affichage départ : 2.345k
 
 client = None
 if XAI_API_KEY:
@@ -259,6 +259,7 @@ def create_checkout():
     telegram_id = data.get("telegram_id")
     if not telegram_id:
         return jsonify({"error": "telegram_id manquant"}), 400
+    success = f"{MINIAPP_URL}&paid=1" if "?" in MINIAPP_URL else f"{MINIAPP_URL}?paid=1"
     try:
         session = stripe.checkout.Session.create(
             mode="payment",
@@ -271,7 +272,7 @@ def create_checkout():
                 },
                 "quantity": 1,
             }],
-            success_url=f"{MINIAPP_URL}&paid=1" if "?" in MINIAPP_URL else f"{MINIAPP_URL}?paid=1",
+            success_url=success,
             cancel_url=MINIAPP_URL,
             metadata={"telegram_id": str(telegram_id)},
         )
@@ -287,8 +288,8 @@ def create_embedded_checkout():
     telegram_id = data.get("telegram_id")
     if not telegram_id:
         return jsonify({"error": "telegram_id manquant"}), 400
+    return_url = f"{MINIAPP_URL}&paid=1" if "?" in MINIAPP_URL else f"{MINIAPP_URL}?paid=1"
     try:
-        return_url = f"{MINIAPP_URL}&paid=1" if "?" in MINIAPP_URL else f"{MINIAPP_URL}?paid=1"
         session = stripe.checkout.Session.create(
             ui_mode="embedded_page",
             mode="payment",
@@ -610,7 +611,6 @@ def code_restore():
         return jsonify({"success": False}), 500
 
 
-# ===== FAVORIS (swipe) =====
 @app.route("/code/save", methods=["POST"])
 def save_code():
     data = request.json or {}
