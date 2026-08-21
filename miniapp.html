@@ -21,16 +21,15 @@
       --accent:#0284c7; --accent2:#7c3aed;
       --gradient:linear-gradient(135deg,#0284c7,#7c3aed,#db2777);
       --gradient-soft:linear-gradient(135deg,rgba(2,132,199,0.1),rgba(124,58,237,0.08));
-      --shadow:0 12px 40px rgba(0,0,0,0.08); --shadow-accent:0 8px 28px rgba(2,132,199,0.15);
+      --shadow:0 12px 40px rgba(0,0,0,0.08);
     }
     *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-    body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Inter",sans-serif;background:var(--bg);color:var(--text);height:100vh;overflow:hidden;line-height:1.5;-webkit-font-smoothing:antialiased}
+    body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Inter",sans-serif;background:var(--bg);color:var(--text);height:100vh;overflow:hidden;line-height:1.5}
     .app{max-width:430px;height:100vh;margin:0 auto;display:flex;flex-direction:column;position:relative;background:var(--bg)}
     .hidden{display:none!important}
     @keyframes fadeInUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
-    @keyframes orbFloat{from{transform:translate(0,0) scale(1)}to{transform:translate(-3%,4%) scale(1.05)}}
+    @keyframes orbFloat{from{transform:translate(0,0)}to{transform:translate(-3%,4%)}}
     @keyframes badgePulse{0%,100%{box-shadow:0 0 16px rgba(42,171,238,0.25)}50%{box-shadow:0 0 28px rgba(42,171,238,0.45)}}
-    @keyframes shineSweep{0%,100%{transform:translateX(-20%) rotate(15deg);opacity:0}40%,60%{opacity:1}100%{transform:translateX(120%) rotate(15deg)}}
     @keyframes ctaShine{0%{left:-100%}50%,100%{left:130%}}
 
     .codia-logo{display:inline-flex;flex-direction:column;align-items:flex-start;line-height:1}
@@ -39,7 +38,7 @@
     body:not(.light) .codia-logo-text,#paywall .codia-logo-text{color:#fff}
     .codia-logo-underline{position:absolute;left:0;bottom:2px;width:52%;height:5px;background:linear-gradient(90deg,#1e90ff,#2AABEE 60%,transparent);border-radius:4px;z-index:0}
     .codia-logo-plane{width:22px;height:22px;border-radius:50%;background:#2AABEE;display:flex;align-items:center;justify-content:center;margin-left:4px;box-shadow:0 2px 10px rgba(42,171,238,0.55)}
-    .codia-logo-plane svg{width:12px;height:12px;fill:#fff;transform:translate(1px,-0.5px)}
+    .codia-logo-plane svg{width:12px;height:12px;fill:#fff}
     .codia-logo-tagline{font-family:Georgia,cursive;font-style:italic;font-size:11px;color:#555;margin-top:4px}
     #paywall .codia-logo-tagline{color:rgba(255,255,255,0.75)}
     .codia-logo.compact .codia-logo-text{font-size:18px}
@@ -51,193 +50,128 @@
     .header{padding:14px 18px 12px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);background:rgba(7,7,11,0.82);backdrop-filter:blur(20px);position:sticky;top:0;z-index:20}
     body.light .header{background:rgba(248,250,252,0.85)}
     .brand{display:flex;align-items:center;gap:12px}
-    .sub{font-size:12px;color:var(--text2);font-weight:500}
+    .sub{font-size:12px;color:var(--text2)}
     .header-actions{display:flex;gap:8px}
     .icon-btn{width:42px;height:42px;border-radius:15px;border:1px solid var(--border);background:var(--card);color:var(--text);position:relative;display:flex;align-items:center;justify-content:center;font-size:17px}
-    .icon-btn:active{transform:scale(0.9)}
 
-    .stories{display:flex;gap:14px;overflow-x:auto;padding:18px 18px 16px;border-bottom:1px solid var(--border);scrollbar-width:none}
+    .stories{display:flex;gap:14px;overflow-x:auto;padding:18px;border-bottom:1px solid var(--border);scrollbar-width:none}
     .stories::-webkit-scrollbar{display:none}
-    .story{min-width:70px;text-align:center;font-size:11.5px;color:var(--text2);font-weight:500}
-    .story-ring{width:64px;height:64px;border-radius:50%;padding:2.5px;margin:0 auto 8px;background:var(--gradient);box-shadow:0 4px 14px rgba(42,171,238,0.3)}
-    .story-ring div{width:100%;height:100%;border-radius:50%;background:var(--bg);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:17px;color:var(--text)}
+    .story{min-width:70px;text-align:center;font-size:11.5px;color:var(--text2)}
+    .story-ring{width:64px;height:64px;border-radius:50%;padding:2.5px;margin:0 auto 8px;background:var(--gradient)}
+    .story-ring div{width:100%;height:100%;border-radius:50%;background:var(--bg);display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--text)}
 
-    .page{display:none;flex:1;overflow-y:auto;padding-bottom:115px;scrollbar-width:none;animation:fadeInUp 0.35s ease}
-    .page::-webkit-scrollbar{display:none}
+    .page{display:none;flex:1;overflow-y:auto;padding-bottom:115px;animation:fadeInUp 0.35s ease}
     .page.active{display:block}
-
-    .search-wrap{padding:18px 18px 12px}
-    .search{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--border);border-radius:20px;padding:15px 18px;box-shadow:var(--shadow)}
-    .search:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px rgba(42,171,238,0.18),var(--shadow)}
-    .search input{width:100%;border:none;outline:none;background:transparent;color:var(--text);font-size:15.5px;font-weight:500}
-    .chips{display:flex;gap:8px;overflow-x:auto;padding:6px 18px 16px;flex-wrap:wrap}
-    .chip{white-space:nowrap;border:1px solid var(--border);background:var(--card);color:var(--text);border-radius:999px;padding:9px 15px;font-size:13px}
-    .chip:active{background:var(--accent);color:#fff}
+    .search-wrap{padding:18px}
+    .search{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--border);border-radius:20px;padding:15px 18px}
+    .search input{width:100%;border:none;outline:none;background:transparent;color:var(--text);font-size:15.5px}
+    .chips{display:flex;gap:8px;flex-wrap:wrap;padding:0 18px 16px}
+    .chip{border:1px solid var(--border);background:var(--card);color:var(--text);border-radius:999px;padding:9px 15px;font-size:13px}
     .section{padding:16px 18px 10px;font-size:12px;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:0.7px}
 
-    /* ===== SWIPE FAVORIS ===== */
-    .post-wrap{
-      position:relative;
-      margin:0 16px 16px;
-      overflow:hidden;
-      border-radius:var(--radius);
-      background:linear-gradient(90deg, rgba(245,158,11,0.28) 0%, rgba(245,158,11,0.08) 50%, transparent 100%);
-    }
-    .fav-reveal{
-      position:absolute;
-      left:0; top:0; bottom:0;
-      width:72px;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      font-size:28px;
-      z-index:0;
-      opacity:0;
-      pointer-events:none;
-    }
-    .card{
-      margin:0 16px 12px;
-      background:var(--card);
-      border:1px solid var(--border);
-      border-radius:var(--radius);
-      padding:18px;
-      box-shadow:var(--shadow);
-    }
-    .post{
-      position:relative;
-      z-index:1;
-      margin:0;
-      background:var(--card);
-      border:1px solid var(--border);
-      border-radius:var(--radius);
-      padding:18px;
-      box-shadow:var(--shadow);
-      touch-action:pan-y;
-      transition:transform 0.28s cubic-bezier(0.2,0.9,0.3,1);
-      will-change:transform;
-      animation:fadeInUp 0.4s ease both;
-    }
-    .post.swiping{transition:none}
-    .post::before{
-      content:"";position:absolute;inset:0;border-radius:inherit;padding:1px;
-      background:linear-gradient(135deg,rgba(42,171,238,0.3),transparent 60%);
-      -webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);
-      -webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none;opacity:0.55;
-    }
-
+    .card,.post{margin:0 16px 16px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow);position:relative;animation:fadeInUp 0.4s ease both}
     .row{display:flex;justify-content:space-between;align-items:center;gap:12px}
     .muted{color:var(--text2);font-size:12.5px}
     .pill{background:rgba(34,197,94,0.15);color:var(--green);padding:6px 12px;border-radius:999px;font-size:12px;font-weight:700}
-    .badge-pop{background:linear-gradient(135deg,rgba(245,158,11,0.22),rgba(249,115,22,0.15));color:var(--orange);padding:3px 10px;border-radius:999px;font-size:11px;font-weight:700;margin-left:6px}
+    .badge-pop{background:rgba(245,158,11,0.2);color:var(--orange);padding:3px 10px;border-radius:999px;font-size:11px;font-weight:700;margin-left:6px}
     .post-top{display:flex;align-items:center;gap:12px;margin-bottom:12px}
     .avatar,.avatar-img{width:46px;height:46px;border-radius:50%;object-fit:cover}
     .avatar{background:var(--gradient);display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;font-size:17px}
     .code{margin:14px 0;padding:15px;border-radius:16px;background:rgba(42,171,238,0.07);border:1.5px dashed rgba(42,171,238,0.4);display:flex;justify-content:space-between;align-items:center;gap:12px;font-family:ui-monospace,Menlo,monospace;font-size:15.5px;font-weight:600}
     .copy-btn{border:1px solid var(--border);background:var(--card);color:var(--text);border-radius:12px;padding:8px 13px;font-size:12.5px;font-weight:600}
-    .copy-btn:active{background:var(--accent);color:#fff}
-    .actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+    .actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;align-items:center}
     .actions button{border:1px solid var(--border);background:var(--bg);color:var(--text);border-radius:999px;padding:8px 14px;font-size:13px}
-    .actions button:active{transform:scale(0.94)}
+    .save-btn{border:none!important;background:transparent!important;padding:6px 8px!important;line-height:0;display:inline-flex;align-items:center;color:var(--text)}
+    .save-btn svg{width:24px;height:24px;display:block}
 
     .bottom{position:absolute;left:0;right:0;bottom:0;height:94px;border-top:1px solid var(--border);background:rgba(7,7,11,0.9);backdrop-filter:blur(20px);display:flex;justify-content:space-around;align-items:center;padding-bottom:20px;z-index:30}
     body.light .bottom{background:rgba(248,250,252,0.92)}
     .nav{background:none;border:none;color:var(--text2);display:flex;flex-direction:column;align-items:center;gap:5px;font-size:11px;font-weight:600}
     .nav.active{color:var(--text)}
-    .nav .ic{width:30px;height:30px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:15px;transition:all 0.3s cubic-bezier(0.34,1.56,0.64,1)}
-    .nav.active .ic{background:var(--gradient);color:#fff;box-shadow:0 6px 18px rgba(42,171,238,0.45);transform:translateY(-3px) scale(1.05)}
-    .fab{position:fixed;left:50%;transform:translateX(-50%);bottom:112px;background:var(--gradient);color:#fff;border:none;border-radius:999px;padding:15px 28px;font-weight:700;font-size:15px;display:none;z-index:25;box-shadow:0 10px 30px rgba(42,171,238,0.45)}
+    .nav .ic{width:30px;height:30px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:15px}
+    .nav.active .ic{background:var(--gradient);color:#fff;transform:translateY(-3px)}
+    .fab{position:fixed;left:50%;transform:translateX(-50%);bottom:112px;background:var(--gradient);color:#fff;border:none;border-radius:999px;padding:15px 28px;font-weight:700;display:none;z-index:25}
     .page-home.active ~ .fab{display:block}
 
     .modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.65);backdrop-filter:blur(8px);z-index:50;align-items:flex-end;justify-content:center}
     .modal.active{display:flex}
-    .sheet{width:100%;max-width:430px;background:var(--card);border-radius:28px 28px 0 0;padding:26px 20px 42px;border-top:1px solid var(--border)}
+    .sheet{width:100%;max-width:430px;background:var(--card);border-radius:28px 28px 0 0;padding:26px 20px 42px}
     .sheet button,.sheet input{width:100%;margin-bottom:12px;padding:16px;border-radius:16px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:15.5px}
     .sheet button{font-weight:600}
-    .sheet button:active{background:var(--accent);color:#fff}
     .quick{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
     .quick button{width:auto;padding:9px 14px;margin:0;font-size:13px;border-radius:999px}
 
-    .welcome-box{margin:26px 18px;padding:36px 26px;border-radius:26px;background:var(--gradient-soft);border:1px solid rgba(42,171,238,0.25);text-align:center;box-shadow:var(--shadow-accent)}
+    .welcome-box{margin:26px 18px;padding:36px 26px;border-radius:26px;background:var(--gradient-soft);border:1px solid rgba(42,171,238,0.25);text-align:center}
     .welcome-title{font-size:34px;font-weight:800;margin-bottom:14px;background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
     .welcome-text{font-size:14.5px;line-height:1.65;color:var(--text2)}
     .ai-box{margin:10px 18px 22px;padding:18px 20px;border-radius:20px;background:var(--gradient-soft);border:1px solid rgba(42,171,238,0.3);font-size:14.5px}
     .empty{text-align:center;color:var(--text2);padding:48px 24px;font-size:14.5px}
     .clickable{cursor:pointer}
     .profile-tabs{display:flex;margin-top:18px;border-top:1px solid var(--border);padding-top:4px}
-    .profile-tab{flex:1;background:none;border:none;color:var(--text2);padding:14px 8px;border-bottom:2px solid transparent;font-size:22px}
+    .profile-tab{flex:1;background:none;border:none;color:var(--text2);padding:14px 8px;border-bottom:2px solid transparent}
     .profile-tab.active{color:var(--text);border-bottom-color:var(--accent)}
-    .profile-tab svg{width:26px;height:26px;display:block;margin:0 auto}
+    .profile-tab svg{width:24px;height:24px;display:block;margin:0 auto}
 
     #paywall{position:fixed;inset:0;z-index:100;max-width:430px;margin:0 auto;background:#03050a;color:#fff;display:flex;flex-direction:column;overflow:hidden}
-    .sg-bg{position:absolute;inset:0;overflow:hidden;background:radial-gradient(ellipse 80% 50% at 50% -10%,rgba(42,171,238,0.35),transparent 55%),radial-gradient(ellipse 60% 40% at 90% 80%,rgba(139,92,246,0.2),transparent 50%),#03050a}
+    .sg-bg{position:absolute;inset:0;background:radial-gradient(ellipse 80% 50% at 50% -10%,rgba(42,171,238,0.35),transparent 55%),#03050a}
     .sg-bg::before{content:"";position:absolute;inset:-20%;background:radial-gradient(circle at 30% 40%,rgba(42,171,238,0.15),transparent 40%);animation:orbFloat 12s ease-in-out infinite alternate}
-    .sg-live-app{position:absolute;inset:0;background:linear-gradient(180deg,#0c1220,#12182a);filter:blur(3px) brightness(0.85);transform:scale(1.03);opacity:0.9;pointer-events:none;padding-top:48px}
-    .sg-live-app .la-header{display:flex;align-items:center;padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.06);background:rgba(15,20,35,.9)}
-    .sg-live-app .la-logo{width:28px;height:28px;border-radius:9px;background:linear-gradient(135deg,#2AABEE,#8b5cf6)}
-    .sg-live-app .la-name{font-weight:700;font-size:14px;color:#f0f4ff}
-    .sg-live-app .la-sub{font-size:10px;color:#7a8aaa}
+    .sg-live-app{position:absolute;inset:0;background:linear-gradient(180deg,#0c1220,#12182a);filter:blur(3px) brightness(0.85);opacity:0.9;pointer-events:none;padding-top:48px}
+    .sg-live-app .la-header{padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.06);background:rgba(15,20,35,.9)}
+    .sg-live-app .la-logo{width:28px;height:28px;border-radius:9px;background:linear-gradient(135deg,#2AABEE,#8b5cf6);display:inline-block}
+    .sg-live-app .la-name{font-weight:700;font-size:14px;color:#f0f4ff;display:inline;margin-left:10px}
     .sg-live-app .la-stories{display:flex;gap:12px;padding:14px 16px}
-    .sg-live-app .la-ring{width:48px;height:48px;border-radius:50%;padding:2px;background:linear-gradient(135deg,#2AABEE,#8b5cf6,#ec4899)}
+    .sg-live-app .la-ring{width:48px;height:48px;border-radius:50%;padding:2px;background:linear-gradient(135deg,#2AABEE,#8b5cf6)}
     .sg-live-app .la-ring::after{content:"";display:block;width:100%;height:100%;border-radius:50%;background:#0c1220}
-    .sg-live-app .la-card{margin:8px 16px;height:72px;border-radius:16px;background:linear-gradient(135deg,rgba(42,171,238,0.12),rgba(139,92,246,0.08));border:1px solid rgba(255,255,255,0.08)}
+    .sg-live-app .la-card{margin:8px 16px;height:72px;border-radius:16px;background:rgba(42,171,238,0.12);border:1px solid rgba(255,255,255,0.08)}
     .sg-live-app .la-bottom{position:absolute;left:0;right:0;bottom:0;height:64px;border-top:1px solid rgba(255,255,255,.06);background:rgba(10,14,24,.95)}
-    .sg-dim{position:absolute;inset:0;background:linear-gradient(180deg,rgba(3,5,10,0.25),rgba(3,5,10,0.55) 40%,rgba(3,5,10,0.88));pointer-events:none}
+    .sg-dim{position:absolute;inset:0;background:linear-gradient(180deg,rgba(3,5,10,0.3),rgba(3,5,10,0.9));pointer-events:none}
     .sg-wrap{position:relative;z-index:2;height:100%;display:flex;flex-direction:column;padding:14px 18px 18px;overflow-y:auto}
-    .sg-close{width:36px;height:36px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.06);border-radius:50%;color:#fff;font-size:18px;align-self:flex-start;margin-bottom:8px}
+    .sg-close{width:36px;height:36px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.06);border-radius:50%;color:#fff;font-size:18px;align-self:flex-start}
     .sg-head{text-align:center;padding:8px 0 14px}
-    .sg-badge{font-size:11px;font-weight:700;padding:5px 12px;border-radius:999px;color:#e0f4ff;background:linear-gradient(135deg,rgba(42,171,238,0.45),rgba(139,92,246,0.35));border:1px solid rgba(42,171,238,0.5);animation:badgePulse 3s ease-in-out infinite}
-    .sg-sub{color:#c8d4e8;font-size:14.5px;max-width:300px;margin:10px auto 0}
-    .glass{background:rgba(12,18,32,0.72);border:1px solid rgba(255,255,255,0.12);box-shadow:0 12px 40px rgba(0,0,0,0.4);backdrop-filter:blur(18px)}
+    .sg-badge{font-size:11px;font-weight:700;padding:5px 12px;border-radius:999px;color:#e0f4ff;background:rgba(42,171,238,0.4);border:1px solid rgba(42,171,238,0.5);animation:badgePulse 3s infinite}
+    .sg-sub{color:#c8d4e8;font-size:14.5px;margin-top:10px}
+    .glass{background:rgba(12,18,32,0.72);border:1px solid rgba(255,255,255,0.12);backdrop-filter:blur(18px)}
     .sg-features{border-radius:22px;padding:6px 14px;margin:6px 0 12px}
-    .sg-item{display:flex;gap:14px;align-items:flex-start;padding:12px 4px}
+    .sg-item{display:flex;gap:14px;padding:12px 4px}
     .sg-item+.sg-item{border-top:1px solid rgba(255,255,255,0.07)}
-    .sg-ic{width:40px;height:40px;border-radius:13px;display:flex;align-items:center;justify-content:center;flex:0 0 40px;font-size:16px;color:#fff}
+    .sg-ic{width:40px;height:40px;border-radius:13px;display:flex;align-items:center;justify-content:center;flex:0 0 40px;color:#fff;font-size:16px}
     .sg-ic.c1{background:linear-gradient(135deg,#2AABEE,#0088cc)}
     .sg-ic.c2{background:linear-gradient(135deg,#8b5cf6,#6d28d9)}
     .sg-ic.c3{background:linear-gradient(135deg,#06b6d4,#0891b2)}
     .sg-ic.c5{background:linear-gradient(135deg,#22c55e,#16a34a)}
-    .sg-item-text{font-size:14px;font-weight:600;padding-top:3px}
+    .sg-item-text{font-size:14px;font-weight:600}
     .sg-item-text small{display:block;margin-top:2px;color:#9aabc4;font-size:12px;font-weight:400}
-    .sg-price-card{border-radius:18px;padding:16px 18px;margin-bottom:10px;position:relative;overflow:hidden}
-    .sg-price-card::before{content:"";position:absolute;top:-50%;left:-30%;width:80%;height:200%;background:linear-gradient(120deg,transparent,rgba(42,171,238,0.12),transparent);animation:shineSweep 4s ease-in-out infinite}
-    .sg-price-card .label{color:#a0b4d0;font-size:13px;position:relative}
-    .sg-price-card .amount{font-size:32px;font-weight:800;background:linear-gradient(90deg,#fff,#a8d8ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;position:relative}
+    .sg-price-card{border-radius:18px;padding:16px 18px;margin-bottom:10px}
+    .sg-price-card .label{color:#a0b4d0;font-size:13px}
+    .sg-price-card .amount{font-size:32px;font-weight:800;background:linear-gradient(90deg,#fff,#a8d8ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
     .sg-social{text-align:center;font-size:12.5px;color:#b0c0d8;margin:0 0 14px}
     .sg-social b{color:#fff}
-    .sg-cta{width:100%;border:none;border-radius:999px;padding:17px 18px;font-size:16.5px;font-weight:800;background:linear-gradient(135deg,#2AABEE,#1a8fd4 50%,#8b5cf6);color:#fff;margin-bottom:10px;box-shadow:0 8px 28px rgba(42,171,238,0.45);position:relative;overflow:hidden}
-    .sg-cta::after{content:"";position:absolute;top:0;left:-100%;width:60%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.25),transparent);animation:ctaShine 3.5s ease-in-out infinite}
-    .sg-cta:active{transform:scale(0.97)}
+    .sg-cta{width:100%;border:none;border-radius:999px;padding:17px;font-size:16.5px;font-weight:800;background:linear-gradient(135deg,#2AABEE,#8b5cf6);color:#fff;margin-bottom:10px;position:relative;overflow:hidden}
+    .sg-cta::after{content:"";position:absolute;top:0;left:-100%;width:60%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.25),transparent);animation:ctaShine 3.5s infinite}
     .sg-links{display:flex;justify-content:center;gap:8px;font-size:11px;color:#6a7a94}
     .sg-error{color:#f87171;font-size:12.5px;text-align:center;margin-top:8px}
-    .pw-pay{position:absolute;inset:0;z-index:30;background:rgba(0,0,0,.6);display:flex;align-items:flex-end;backdrop-filter:blur(6px)}
-    .pw-pay-card{width:100%;border-radius:22px 22px 0 0;border-top:1px solid rgba(255,255,255,0.1);background:#0a0e18;padding:18px 18px 28px;max-height:88vh;overflow:auto}
-    .pw-back{background:none;border:none;color:#a0b0c8;margin-bottom:12px;font-size:14.5px}
+    .pw-pay{position:absolute;inset:0;z-index:30;background:rgba(0,0,0,.6);display:flex;align-items:flex-end}
+    .pw-pay-card{width:100%;border-radius:22px 22px 0 0;background:#0a0e18;padding:18px 18px 28px;max-height:88vh;overflow:auto}
+    .pw-back{background:none;border:none;color:#a0b0c8;margin-bottom:12px}
     #success-screen{position:fixed;inset:0;z-index:200;max-width:430px;margin:0 auto;background:rgba(0,0,0,.92);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px}
     .success-check{width:78px;height:78px;border-radius:50%;background:linear-gradient(135deg,#16a34a,#22c55e);display:flex;align-items:center;justify-content:center;font-size:36px;color:#fff}
-    #success-screen h2{font-size:24px;font-weight:800}
-    #success-screen p{color:#a1a1aa;font-size:15px}
   </style>
 </head>
 <body>
-
-<div id="success-screen" class="hidden">
-  <div class="success-check">✓</div>
-  <h2>Bienvenue sur COD.IA</h2>
-  <p>Ton accès est activé</p>
-</div>
+<div id="success-screen" class="hidden"><div class="success-check">✓</div><h2>Bienvenue sur COD.IA</h2><p style="color:#a1a1aa">Ton accès est activé</p></div>
 
 <div id="paywall" class="hidden">
   <div class="sg-bg">
     <div class="sg-live-app">
-      <div class="la-header"><div style="display:flex;gap:10px;align-items:center"><div class="la-logo"></div><div><div class="la-name">COD.IA</div><div class="la-sub">Communauté codes</div></div></div></div>
-      <div class="la-stories"><div class="la-ring"></div><div class="la-ring"></div><div class="la-ring"></div><div class="la-ring"></div><div class="la-ring"></div></div>
+      <div class="la-header"><div class="la-logo"></div><span class="la-name">COD.IA</span></div>
+      <div class="la-stories"><div class="la-ring"></div><div class="la-ring"></div><div class="la-ring"></div><div class="la-ring"></div></div>
       <div class="la-card"></div><div class="la-card"></div><div class="la-card"></div>
       <div class="la-bottom"></div>
     </div>
     <div class="sg-dim"></div>
   </div>
   <div class="sg-wrap">
-    <button class="sg-close" type="button" onclick="Telegram.WebApp.close()">×</button>
+    <button class="sg-close" onclick="Telegram.WebApp.close()">×</button>
     <div class="sg-head">
       <div style="display:flex;justify-content:center;margin-bottom:12px">
         <div class="codia-logo">
@@ -256,19 +190,19 @@
       <div class="sg-item"><div class="sg-ic c1">⌂</div><div class="sg-item-text">Feed communauté<small>Codes en temps réel</small></div></div>
       <div class="sg-item"><div class="sg-ic c2">✦</div><div class="sg-item-text">Recherche + IA<small>Trouve plus vite</small></div></div>
       <div class="sg-item"><div class="sg-ic c3">✈</div><div class="sg-item-text">Voyages &amp; shopping<small>Booking, Uber, Zara…</small></div></div>
-      <div class="sg-item"><div class="sg-ic c5">⭐</div><div class="sg-item-text">Favoris<small>Glisse un code vers la droite</small></div></div>
+      <div class="sg-item"><div class="sg-ic c5">🔖</div><div class="sg-item-text">Sauvegardes<small>Tes codes favoris</small></div></div>
     </div>
     <div class="sg-price-card glass"><div class="label">Paiement unique · accès à vie</div><div class="amount">10 €</div></div>
     <div class="sg-social"><b id="pw-members">2.345k</b> members</div>
-    <button class="sg-cta" type="button" onclick="startPayment()">Passer à COD.IA</button>
+    <button class="sg-cta" onclick="startPayment()">Passer à COD.IA</button>
     <div class="sg-links"><span>Conditions</span><span>·</span><span>Confidentialité</span></div>
     <div class="sg-error" id="pw-error"></div>
   </div>
   <div class="pw-pay hidden" id="pw-pay">
     <div class="pw-pay-card">
-      <button class="pw-back" type="button" onclick="backToOffer()">← Retour</button>
+      <button class="pw-back" onclick="backToOffer()">← Retour</button>
       <h2>Finaliser l’accès</h2>
-      <p class="pw-desc" style="color:#8a9ab4;margin-bottom:14px">10 € · accès COD.IA à vie</p>
+      <p style="color:#8a9ab4;margin-bottom:14px">10 € · accès COD.IA</p>
       <div id="checkout">Chargement…</div>
       <div class="sg-error" id="pw-error-2"></div>
     </div>
@@ -288,55 +222,33 @@
       <div><div class="sub" id="members-count">2.345k members</div></div>
     </div>
     <div class="header-actions">
-      <button class="icon-btn" onclick="toggleNotifModal()">🔔
-        <span id="notif-badge" class="hidden" style="position:absolute;top:2px;right:2px;background:#ef4444;color:#fff;font-size:10px;width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center">0</span>
-      </button>
+      <button class="icon-btn" onclick="toggleNotifModal()">🔔<span id="notif-badge" class="hidden" style="position:absolute;top:2px;right:2px;background:#ef4444;color:#fff;font-size:10px;width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center">0</span></button>
       <button class="icon-btn" onclick="toggleTheme()">◐</button>
     </div>
   </div>
-
   <div class="stories" id="stories"></div>
-
   <div class="page page-home active" id="page-home">
     <div class="section">Top Codes</div>
     <div id="daily-codes"></div>
     <div class="section" id="feed-title">À la une</div>
-    <div style="padding:0 18px 8px;font-size:12px;color:var(--text2)">Glisse un code → pour l’ajouter aux favoris ⭐</div>
     <div id="codes-list"><div class="empty">Chargement...</div></div>
   </div>
-
   <div class="page page-search" id="page-search">
-    <div class="search-wrap">
-      <div class="search">
-        <span style="opacity:.7">⌕</span>
-        <input id="search-input" placeholder="Ex: Uber Eats, Booking..." onfocus="showRecentSuggestions()" onkeypress="if(event.key==='Enter') doSearch()">
-      </div>
-    </div>
+    <div class="search-wrap"><div class="search"><span>⌕</span><input id="search-input" placeholder="Uber, Booking, Zara..." onfocus="showRecentSuggestions()" onkeypress="if(event.key==='Enter') doSearch()"></div></div>
     <div class="chips" id="recent-suggestions"></div>
     <div class="section">Résultats</div>
     <div id="search-results"><div class="empty">Tape un mot-clé</div></div>
   </div>
-
   <div class="page page-codia" id="page-codia">
-    <div class="welcome-box">
-      <div class="welcome-title">COD.IA</div>
-      <div class="welcome-text">Bienvenue !<br><br>Glisse un code vers la <b>droite</b> pour le mettre en ⭐ Favoris.</div>
-    </div>
+    <div class="welcome-box"><div class="welcome-title">COD.IA</div><div class="welcome-text">Bienvenue ! Partage et trouve les meilleurs codes promo &amp; parrainages.</div></div>
     <div class="section">Assistant</div>
-    <div class="search-wrap">
-      <div class="search">
-        <span style="opacity:.7">✦</span>
-        <input id="ai-input" placeholder="Pose ta question..." onkeypress="if(event.key==='Enter') askAI()">
-      </div>
-    </div>
+    <div class="search-wrap"><div class="search"><span>✦</span><input id="ai-input" placeholder="Pose ta question..." onkeypress="if(event.key==='Enter') askAI()"></div></div>
     <div class="ai-box" id="ai-response" style="display:none"></div>
   </div>
-
   <div class="page page-profile" id="page-profile">
-    <div class="card" id="profile-card" style="margin:16px">Chargement...</div>
+    <div class="card" id="profile-card">Chargement...</div>
     <div id="my-codes"><div class="empty">Aucun code</div></div>
   </div>
-
   <button class="fab" onclick="openShare()">＋ Partager</button>
   <div class="bottom">
     <button class="nav active" onclick="showPage('home')"><div class="ic">⌂</div>Feed</button>
@@ -346,491 +258,151 @@
   </div>
 </div>
 
-<div class="modal" id="shareModal"><div class="sheet">
-  <div style="text-align:center;font-weight:700;margin-bottom:14px">Partager un code</div>
-  <button onclick="chooseShare('promo')">Code promo</button>
-  <button onclick="chooseShare('parrainage')">Code parrainage</button>
-  <button onclick="closeShare()">Annuler</button>
-</div></div>
-
-<div class="modal" id="formModal"><div class="sheet">
-  <div style="text-align:center;font-weight:700;margin-bottom:14px" id="formTitle">Nouveau code</div>
-  <div class="quick">
-    <button type="button" onclick="fillSite('Uber Eats')">Uber Eats</button>
-    <button type="button" onclick="fillSite('Booking')">Booking</button>
-    <button type="button" onclick="fillSite('Airbnb')">Airbnb</button>
-    <button type="button" onclick="fillSite('Zara')">Zara</button>
-  </div>
-  <input id="formSite" placeholder="Site">
-  <input id="formCode" placeholder="Code">
-  <input id="formDesc" placeholder="Ex: -20% ou +80€">
-  <button onclick="submitCode()">Publier</button>
-  <button onclick="closeForm()">Annuler</button>
-</div></div>
-
-<div class="modal" id="notifModal"><div class="sheet">
-  <div style="text-align:center;font-weight:700;margin-bottom:14px">Notifications</div>
-  <div id="notif-list"><div class="empty">Aucune</div></div>
-  <button onclick="closeNotifModal()">Fermer</button>
-</div></div>
-
-<div class="modal" id="followListModal"><div class="sheet">
-  <div style="text-align:center;font-weight:700;margin-bottom:14px" id="followListTitle">Abonnés</div>
-  <div id="follow-list"><div class="empty">Aucun</div></div>
-  <button onclick="closeFollowList()">Fermer</button>
-</div></div>
+<div class="modal" id="shareModal"><div class="sheet"><div style="text-align:center;font-weight:700;margin-bottom:14px">Partager</div><button onclick="chooseShare('promo')">Code promo</button><button onclick="chooseShare('parrainage')">Code parrainage</button><button onclick="closeShare()">Annuler</button></div></div>
+<div class="modal" id="formModal"><div class="sheet"><div style="text-align:center;font-weight:700;margin-bottom:14px" id="formTitle">Nouveau code</div><div class="quick"><button type="button" onclick="fillSite('Uber Eats')">Uber Eats</button><button type="button" onclick="fillSite('Booking')">Booking</button><button type="button" onclick="fillSite('Zara')">Zara</button></div><input id="formSite" placeholder="Site"><input id="formCode" placeholder="Code"><input id="formDesc" placeholder="Ex: -20%"><button onclick="submitCode()">Publier</button><button onclick="closeForm()">Annuler</button></div></div>
+<div class="modal" id="notifModal"><div class="sheet"><div style="text-align:center;font-weight:700;margin-bottom:14px">Notifications</div><div id="notif-list"></div><button onclick="closeNotifModal()">Fermer</button></div></div>
+<div class="modal" id="followListModal"><div class="sheet"><div style="text-align:center;font-weight:700;margin-bottom:14px" id="followListTitle">Abonnés</div><div id="follow-list"></div><button onclick="closeFollowList()">Fermer</button></div></div>
 
 <script>
 Telegram.WebApp.ready(); Telegram.WebApp.expand();
+let allCodes=[], currentShareType="promo", currentUserId=null, currentUserName=null, isAdmin=false, viewingUserId=null;
+const ICON_OUT=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>`;
+const ICON_FILL=`<svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>`;
 
-let allCodes=[], currentShareType="promo";
-let currentUserId=null, currentUserName=null, isAdmin=false, viewingUserId=null;
-let swipeStartX=0, swipeEl=null, swipeId=null, swipeActive=false;
-const SWIPE_MAX=100, SWIPE_TRIGGER=72;
-
-function getTgUser(){ return window.Telegram?.WebApp?.initDataUnsafe?.user||null; }
-
-function showSuccessThenApp(){
-  const s=document.getElementById('success-screen');
-  s.classList.remove('hidden');
-  try{Telegram.WebApp.HapticFeedback.notificationOccurred('success')}catch(e){}
-  setTimeout(()=>{s.classList.add('hidden');showApp()},1600);
-}
-
-async function loadStats(){
-  try{
-    const data=await (await fetch('/stats')).json();
-    const d=(data.members_display||'2.345k')+' members';
-    const el=document.getElementById('members-count'); if(el) el.textContent=d;
-    const pw=document.getElementById('pw-members'); if(pw) pw.textContent=data.members_display||'2.345k';
-  }catch(e){}
-}
-
+function getTgUser(){return window.Telegram?.WebApp?.initDataUnsafe?.user||null}
+function showSuccessThenApp(){const s=document.getElementById('success-screen');s.classList.remove('hidden');setTimeout(()=>{s.classList.add('hidden');showApp()},1600)}
+async function loadStats(){try{const d=await(await fetch('/stats')).json();const t=(d.members_display||'2.345k')+' members';const e=document.getElementById('members-count');if(e)e.textContent=t;const p=document.getElementById('pw-members');if(p)p.textContent=d.members_display||'2.345k'}catch(e){}}
 async function boot(){
-  const params=new URLSearchParams(location.search);
-  const u=getTgUser(); const userId=u?.id;
-  currentUserId=userId||null;
-  currentUserName=u?.username?('@'+u.username):(u?.first_name||'Membre COD.IA');
-  loadStats();
-  if(params.get('paid')==='1'&&userId){
-    await new Promise(r=>setTimeout(r,800));
-    try{
-      const data=await (await fetch('/access?user_id='+userId)).json();
-      if(data.paid){isAdmin=!!data.is_admin;showSuccessThenApp();return}
-    }catch(e){}
-  }
+  const params=new URLSearchParams(location.search);const u=getTgUser();const userId=u?.id;
+  currentUserId=userId||null;currentUserName=u?.username?('@'+u.username):(u?.first_name||'Membre COD.IA');loadStats();
+  if(params.get('paid')==='1'&&userId){await new Promise(r=>setTimeout(r,800));try{const d=await(await fetch('/access?user_id='+userId)).json();if(d.paid){isAdmin=!!d.is_admin;showSuccessThenApp();return}}catch(e){}}
   if(!userId){showPaywall();return}
-  try{
-    const data=await (await fetch('/access?user_id='+userId)).json();
-    if(data.paid){isAdmin=!!data.is_admin;showApp()} else showPaywall();
-  }catch(e){showPaywall()}
+  try{const d=await(await fetch('/access?user_id='+userId)).json();if(d.paid){isAdmin=!!d.is_admin;showApp()}else showPaywall()}catch(e){showPaywall()}
 }
-
 function showPaywall(){document.getElementById('paywall').classList.remove('hidden');document.getElementById('main-app').classList.add('hidden');loadStats()}
 function showApp(){document.getElementById('paywall').classList.add('hidden');document.getElementById('main-app').classList.remove('hidden');loadStats();loadCodes();loadNotifications()}
 function backToOffer(){document.getElementById('pw-pay').classList.add('hidden')}
-
 async function startPayment(){
-  const userId=getTgUser()?.id;
-  if(!userId){document.getElementById('pw-error').textContent='Ouvre COD.IA depuis Telegram';return}
-  try{Telegram.WebApp.HapticFeedback.impactOccurred('medium')}catch(e){}
-  document.getElementById('pw-pay').classList.remove('hidden');
-  document.getElementById('checkout').textContent='Chargement…';
-  document.getElementById('pw-error-2').textContent='';
-  await initEmbeddedCheckout(userId);
-}
-
-async function initEmbeddedCheckout(telegramId){
-  const err=document.getElementById('pw-error-2'), box=document.getElementById('checkout');
+  const userId=getTgUser()?.id;if(!userId){document.getElementById('pw-error').textContent='Ouvre depuis Telegram';return}
+  document.getElementById('pw-pay').classList.remove('hidden');document.getElementById('checkout').textContent='Chargement…';
   try{
-    const cfg=await (await fetch('/config')).json();
-    if(!cfg.stripe_pk){err.textContent='Clé Stripe manquante';box.textContent='';return}
+    const cfg=await(await fetch('/config')).json();if(!cfg.stripe_pk){document.getElementById('pw-error-2').textContent='Stripe manquant';return}
     const stripe=Stripe(cfg.stripe_pk);
-    const res=await fetch('/create-embedded-checkout',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({telegram_id:telegramId})});
-    const data=await res.json();
-    if(!data.clientSecret){err.textContent=data.error||'Paiement indisponible';box.textContent='';return}
+    const res=await fetch('/create-embedded-checkout',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({telegram_id:userId})});
+    const data=await res.json();if(!data.clientSecret){document.getElementById('pw-error-2').textContent=data.error||'Erreur';return}
     const checkout=await stripe.initEmbeddedCheckout({clientSecret:data.clientSecret});
-    box.innerHTML=''; checkout.mount('#checkout');
-  }catch(e){err.textContent='Paiement indisponible';box.textContent=''}
+    document.getElementById('checkout').innerHTML='';checkout.mount('#checkout');
+  }catch(e){document.getElementById('pw-error-2').textContent='Paiement indisponible'}
 }
-
-if(localStorage.getItem('theme')==='light') document.body.classList.add('light');
+if(localStorage.getItem('theme')==='light')document.body.classList.add('light');
 function toggleTheme(){document.body.classList.toggle('light');localStorage.setItem('theme',document.body.classList.contains('light')?'light':'dark')}
-
 async function loadNotifications(){
-  if(!currentUserId) return;
-  try{
-    const data=await (await fetch('/notifications?user_id='+currentUserId)).json();
-    const badge=document.getElementById('notif-badge');
-    if(data.unread>0){badge.textContent=data.unread>9?'9+':data.unread;badge.classList.remove('hidden');badge.style.display='flex'}
-    else{badge.classList.add('hidden');badge.style.display='none'}
-    window._lastNotifs=data.notifications||[];
-  }catch(e){}
+  if(!currentUserId)return;
+  try{const d=await(await fetch('/notifications?user_id='+currentUserId)).json();const b=document.getElementById('notif-badge');
+    if(d.unread>0){b.textContent=d.unread>9?'9+':d.unread;b.classList.remove('hidden');b.style.display='flex'}else{b.classList.add('hidden')}
+    window._lastNotifs=d.notifications||[]}catch(e){}
 }
 function toggleNotifModal(){
-  const list=document.getElementById('notif-list');
-  const notifs=window._lastNotifs||[];
-  list.innerHTML=notifs.length?notifs.map(n=>`<div class="card" style="margin-bottom:8px;opacity:${n.is_read?0.7:1}"><div style="font-size:13px">${(n.message||'').replace(/<[^>]+>/g,'')}</div><div class="muted">${timeAgo(n.created_at)}</div></div>`).join(''):'<div class="empty">Aucune</div>';
+  const list=document.getElementById('notif-list');const n=window._lastNotifs||[];
+  list.innerHTML=n.length?n.map(x=>`<div class="card" style="margin-bottom:8px"><div style="font-size:13px">${(x.message||'').replace(/<[^>]+>/g,'')}</div><div class="muted">${timeAgo(x.created_at)}</div></div>`).join(''):'<div class="empty">Aucune</div>';
   document.getElementById('notifModal').classList.add('active');
-  if(currentUserId) fetch('/notifications/read',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:currentUserId})}).then(()=>loadNotifications());
+  if(currentUserId)fetch('/notifications/read',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:currentUserId})}).then(()=>loadNotifications());
 }
 function closeNotifModal(){document.getElementById('notifModal').classList.remove('active')}
-
-function timeAgo(d){
-  if(!d) return 'à l’instant';
-  const diff=Math.max(0,(Date.now()-new Date(d).getTime())/1000);
-  if(diff<60) return 'à l’instant';
-  if(diff<3600) return `il y a ${Math.floor(diff/60)} min`;
-  if(diff<86400) return `il y a ${Math.floor(diff/3600)} h`;
-  return `il y a ${Math.floor(diff/86400)} j`;
-}
-
-function showPage(page){
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.nav').forEach(n=>n.classList.remove('active'));
-  if(page==='home'){document.getElementById('page-home').classList.add('active');document.querySelectorAll('.nav')[0].classList.add('active');loadCodes()}
-  else if(page==='search'){document.getElementById('page-search').classList.add('active');document.querySelectorAll('.nav')[1].classList.add('active')}
-  else if(page==='codia'){document.getElementById('page-codia').classList.add('active');document.querySelectorAll('.nav')[2].classList.add('active')}
+function timeAgo(d){if(!d)return 'à l’instant';const x=Math.max(0,(Date.now()-new Date(d).getTime())/1000);if(x<60)return 'à l’instant';if(x<3600)return `il y a ${Math.floor(x/60)} min`;if(x<86400)return `il y a ${Math.floor(x/3600)} h`;return `il y a ${Math.floor(x/86400)} j`}
+function showPage(p){
+  document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.nav').forEach(x=>x.classList.remove('active'));
+  if(p==='home'){document.getElementById('page-home').classList.add('active');document.querySelectorAll('.nav')[0].classList.add('active');loadCodes()}
+  else if(p==='search'){document.getElementById('page-search').classList.add('active');document.querySelectorAll('.nav')[1].classList.add('active')}
+  else if(p==='codia'){document.getElementById('page-codia').classList.add('active');document.querySelectorAll('.nav')[2].classList.add('active')}
   else{document.getElementById('page-profile').classList.add('active');document.querySelectorAll('.nav')[3].classList.add('active');viewingUserId=null;loadProfile()}
 }
-
 function openShare(){document.getElementById('shareModal').classList.add('active')}
 function closeShare(){document.getElementById('shareModal').classList.remove('active')}
 function closeForm(){document.getElementById('formModal').classList.remove('active')}
 function fillSite(v){document.getElementById('formSite').value=v}
-function chooseShare(type){
-  currentShareType=type;closeShare();
-  document.getElementById('formTitle').textContent=type==='promo'?'Nouveau code promo':'Nouveau code parrainage';
-  document.getElementById('formSite').value='';document.getElementById('formCode').value='';document.getElementById('formDesc').value='';
-  document.getElementById('formModal').classList.add('active');
-}
-
+function chooseShare(t){currentShareType=t;closeShare();document.getElementById('formTitle').textContent=t==='promo'?'Nouveau code promo':'Nouveau code parrainage';document.getElementById('formSite').value='';document.getElementById('formCode').value='';document.getElementById('formDesc').value='';document.getElementById('formModal').classList.add('active')}
 async function submitCode(){
-  const site=document.getElementById('formSite').value.trim();
-  const code=document.getElementById('formCode').value.trim();
-  const description=document.getElementById('formDesc').value.trim();
+  const site=document.getElementById('formSite').value.trim(),code=document.getElementById('formCode').value.trim(),description=document.getElementById('formDesc').value.trim();
   if(!site||!code){alert('Site et code obligatoires');return}
-  const u=getTgUser();
-  const added_by=u?.username?('@'+u.username):(u?.first_name||'Membre COD.IA');
-  try{
-    const data=await (await fetch('/codes/add',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({type:currentShareType,site,code,description,added_by,user_id:u?.id||null,photo_url:u?.photo_url||null})})).json();
-    if(data.success){closeForm();alert('Code en ligne ✅');await loadCodes();showPage('home')}
-    else alert('Erreur');
-  }catch(e){alert('Erreur')}
+  const u=getTgUser();const added_by=u?.username?('@'+u.username):(u?.first_name||'Membre');
+  try{const d=await(await fetch('/codes/add',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({type:currentShareType,site,code,description,added_by,user_id:u?.id,photo_url:u?.photo_url})})).json();
+    if(d.success){closeForm();alert('Code en ligne ✅');await loadCodes();showPage('home')}else alert('Erreur')}catch(e){alert('Erreur')}
 }
-
-function avatarHTML(c){
-  if(c.photo_url) return `<img class="avatar-img" src="${c.photo_url}">`;
-  return `<div class="avatar">${(c.added_by||'C')[0].toUpperCase()}</div>`;
-}
-
+function avatarHTML(c){return c.photo_url?`<img class="avatar-img" src="${c.photo_url}">`:`<div class="avatar">${(c.added_by||'C')[0].toUpperCase()}</div>`}
 function renderPost(c){
-  const id=c.id;
-  const liked=localStorage.getItem('like_'+id)==='1';
-  const disliked=localStorage.getItem('dislike_'+id)==='1';
-  const score=(c.likes||0)-(c.dislikes||0);
-  const popular=score>=5?'<span class="badge-pop">Populaire</span>':'';
-  const who=c.added_by||'Membre COD.IA';
-  const actionText=c.type==='parrainage'?'a partagé un code parrainage':'a partagé un code promo';
-  const copies=c.copies||0;
-  const canManage=isAdmin||(c.user_id&&currentUserId&&Number(c.user_id)===Number(currentUserId));
-  const isDeleted=c.deleted===true;
-  let manageBtns='';
-  if(canManage){
-    manageBtns=isDeleted
-      ?`<button onclick="restoreCode(${id})" style="color:var(--green)">Remettre</button>`
-      :`<button onclick="deleteCode(${id})" style="color:#f87171">Supprimer</button>`;
-  }
-  const clickProfile=c.user_id?`onclick="viewProfile(${c.user_id}, '${String(who).replace(/'/g,"\\'")}')"`:'';
-
-  return `<div class="post-wrap">
-    <div class="fav-reveal">⭐</div>
-    <div class="post" data-code-id="${id||''}" style="${isDeleted?'opacity:0.55':''}">
-      <div class="post-top">
-        <div ${clickProfile} style="cursor:pointer">${avatarHTML(c)}</div>
-        <div style="flex:1" ${clickProfile} class="clickable">
-          <div style="font-weight:600">${who} ${popular}</div>
-          <div class="muted">${actionText} • ${timeAgo(c.created_at)}</div>
-        </div>
-      </div>
-      <div class="muted">${c.site}${isDeleted?' · <span style="color:#f87171">Supprimé</span>':''}</div>
-      <div class="code"><span>${c.code} <span style="color:var(--green)">${c.description||''}</span></span>
-        <button class="copy-btn" onclick="copyCode(${c.id||0}, '${String(c.code).replace(/'/g,"\\'")}', this)">Copier${copies?' · '+copies:''}</button></div>
-      <div class="actions">${c.id?`
-        <button onclick="toggleReact(${c.id},'like',this)">${liked?'❤️':'🤍'} <span>${c.likes||0}</span></button>
-        <button onclick="toggleReact(${c.id},'dislike',this)">${disliked?'💔':'👎'} <span>${c.dislikes||0}</span></button>
-        ${manageBtns}`:''}</div>
-    </div>
-  </div>`;
+  const id=c.id,liked=localStorage.getItem('like_'+id)==='1',disliked=localStorage.getItem('dislike_'+id)==='1',saved=localStorage.getItem('saved_'+id)==='1';
+  const who=c.added_by||'Membre COD.IA',actionText=c.type==='parrainage'?'a partagé un code parrainage':'a partagé un code promo';
+  const canManage=isAdmin||(c.user_id&&currentUserId&&Number(c.user_id)===Number(currentUserId)),isDeleted=c.deleted===true;
+  let manage='';if(canManage)manage=isDeleted?`<button onclick="restoreCode(${id})" style="color:var(--green)">Remettre</button>`:`<button onclick="deleteCode(${id})" style="color:#f87171">Supprimer</button>`;
+  const click=c.user_id?`onclick="viewProfile(${c.user_id},'${String(who).replace(/'/g,"\\'")}')"`: '';
+  return `<div class="post" style="${isDeleted?'opacity:0.55':''}">
+    <div class="post-top"><div ${click}>${avatarHTML(c)}</div><div style="flex:1" ${click} class="clickable"><div style="font-weight:600">${who}</div><div class="muted">${actionText} • ${timeAgo(c.created_at)}</div></div></div>
+    <div class="muted">${c.site}</div>
+    <div class="code"><span>${c.code} <span style="color:var(--green)">${c.description||''}</span></span><button class="copy-btn" onclick="copyCode(${id||0},'${String(c.code).replace(/'/g,"\\'")}',this)">Copier${c.copies?' · '+c.copies:''}</button></div>
+    <div class="actions">${id?`<button onclick="toggleReact(${id},'like',this)">${liked?'❤️':'🤍'} <span>${c.likes||0}</span></button>
+      <button onclick="toggleReact(${id},'dislike',this)">${disliked?'💔':'👎'} <span>${c.dislikes||0}</span></button>
+      <button class="save-btn" onclick="toggleSave(${id},this)">${saved?ICON_FILL:ICON_OUT}</button>${manage}`:''}</div></div>`;
 }
-
-/* ===== VRAI SWIPE DROITE → FAVORIS ===== */
-document.addEventListener('touchstart', e=>{
-  const post=e.target.closest('.post[data-code-id]');
-  if(!post) return;
-  if(e.target.closest('button,a,input')) return;
-  const id=post.getAttribute('data-code-id');
-  if(!id) return;
-  swipeEl=post; swipeId=id; swipeStartX=e.touches[0].clientX; swipeActive=true;
-  post.classList.add('swiping');
-},{passive:true});
-
-document.addEventListener('touchmove', e=>{
-  if(!swipeActive||!swipeEl) return;
-  const dx=e.touches[0].clientX-swipeStartX;
-  const reveal=swipeEl.parentElement?.querySelector('.fav-reveal');
-  if(dx<=0){
-    swipeEl.style.transform='translateX(0)';
-    if(reveal) reveal.style.opacity='0';
-    return;
-  }
-  const move=Math.min(dx, SWIPE_MAX);
-  swipeEl.style.transform=`translateX(${move}px)`;
-  if(reveal) reveal.style.opacity=String(Math.min(move/40,1));
-},{passive:true});
-
-document.addEventListener('touchend', async ()=>{
-  if(!swipeActive||!swipeEl) return;
-  const el=swipeEl, id=swipeId;
-  const m=(el.style.transform||'').match(/translateX\(([-\d.]+)px\)/);
-  const dx=m?parseFloat(m[1]):0;
-  const reveal=el.parentElement?.querySelector('.fav-reveal');
-
-  el.classList.remove('swiping');
-  el.style.transition='transform 0.28s cubic-bezier(0.2,0.9,0.3,1)';
-  el.style.transform='translateX(0)';
-
-  if(dx>=SWIPE_TRIGGER && id && currentUserId){
-    const already=localStorage.getItem('saved_'+id)==='1';
-    try{
-      if(!already){
-        await fetch('/code/save',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:Number(id),user_id:currentUserId})});
-        localStorage.setItem('saved_'+id,'1');
-        try{Telegram.WebApp.HapticFeedback.notificationOccurred('success')}catch(e){}
-        if(reveal){reveal.style.opacity='1';reveal.textContent='⭐';setTimeout(()=>{reveal.style.opacity='0'},500)}
-      }else{
-        await fetch('/code/unsave',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:Number(id),user_id:currentUserId})});
-        localStorage.setItem('saved_'+id,'0');
-        try{Telegram.WebApp.HapticFeedback.impactOccurred('light')}catch(e){}
-        if(reveal){reveal.textContent='☆';reveal.style.opacity='1';setTimeout(()=>{reveal.style.opacity='0';reveal.textContent='⭐'},500)}
-      }
-    }catch(e){if(reveal) reveal.style.opacity='0'}
-  }else if(reveal){reveal.style.opacity='0'}
-
-  setTimeout(()=>{if(el) el.style.transition=''},300);
-  swipeEl=null; swipeId=null; swipeActive=false;
-});
-
-async function copyCode(id,code,btn){
-  try{await navigator.clipboard.writeText(code)}catch(e){alert(code)}
-  btn.textContent='Copié';
-  if(id&&currentUserId){
-    try{
-      const data=await (await fetch('/code/copy',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,user_id:currentUserId,actor_name:currentUserName})})).json();
-      if(data.copies!==undefined){setTimeout(()=>btn.textContent=`Copier · ${data.copies}`,800);return}
-    }catch(e){}
-  }
-  setTimeout(()=>btn.textContent='Copier',1000);
-}
-
+async function copyCode(id,code,btn){try{await navigator.clipboard.writeText(code)}catch(e){alert(code)}btn.textContent='Copié';
+  if(id&&currentUserId){try{const d=await(await fetch('/code/copy',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,user_id:currentUserId,actor_name:currentUserName})})).json();if(d.copies!==undefined){setTimeout(()=>btn.textContent=`Copier · ${d.copies}`,800);return}}catch(e){}}setTimeout(()=>btn.textContent='Copier',1000)}
 async function toggleReact(id,reaction,btn){
-  const key=reaction+'_'+id;
-  const isActive=localStorage.getItem(key)==='1';
-  const action=isActive?'remove':'add';
-  if(action==='add'){
-    const other=reaction==='like'?'dislike':'like';
-    if(localStorage.getItem(other+'_'+id)==='1'){
-      localStorage.setItem(other+'_'+id,'0');
-      fetch('/code/react',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,reaction:other,action:'remove',user_id:currentUserId,actor_name:currentUserName})});
-    }
-  }
+  const key=reaction+'_'+id,isActive=localStorage.getItem(key)==='1',action=isActive?'remove':'add';
+  if(action==='add'){const o=reaction==='like'?'dislike':'like';if(localStorage.getItem(o+'_'+id)==='1'){localStorage.setItem(o+'_'+id,'0');fetch('/code/react',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,reaction:o,action:'remove',user_id:currentUserId,actor_name:currentUserName})})}}
   localStorage.setItem(key,action==='add'?'1':'0');
-  try{
-    const data=await (await fetch('/code/react',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,reaction,action,user_id:currentUserId,actor_name:currentUserName})})).json();
-    const value=data.value??0;
-    btn.innerHTML=reaction==='like'?`${action==='add'?'❤️':'🤍'} <span>${value}</span>`:`${action==='add'?'💔':'👎'} <span>${value}</span>`;
-  }catch(e){}
+  try{const d=await(await fetch('/code/react',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,reaction,action,user_id:currentUserId,actor_name:currentUserName})})).json();
+    btn.innerHTML=reaction==='like'?`${action==='add'?'❤️':'🤍'} <span>${d.value??0}</span>`:`${action==='add'?'💔':'👎'} <span>${d.value??0}</span>`}catch(e){}
 }
-
-async function deleteCode(id){
-  if(!confirm('Supprimer ?')) return;
-  try{
-    const data=await (await fetch('/code/delete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,user_id:currentUserId})})).json();
-    if(data.success){await loadCodes();if(viewingUserId===null)loadProfile();else viewProfile(viewingUserId)}
-  }catch(e){}
+async function toggleSave(id,btn){
+  if(!currentUserId||!id)return;const isSaved=localStorage.getItem('saved_'+id)==='1';
+  try{await fetch(isSaved?'/code/unsave':'/code/save',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,user_id:currentUserId})});
+    localStorage.setItem('saved_'+id,isSaved?'0':'1');btn.innerHTML=isSaved?ICON_OUT:ICON_FILL}catch(e){}
 }
-async function restoreCode(id){
-  try{
-    const data=await (await fetch('/code/restore',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,user_id:currentUserId})})).json();
-    if(data.success){await loadCodes();if(viewingUserId===null)loadProfile();else viewProfile(viewingUserId)}
-  }catch(e){}
-}
-
-function renderStories(){
-  const base=["Top","Uber Eats","Booking","Airbnb","Zara"];
-  const dynamic=[...new Set(allCodes.map(c=>c.site).filter(Boolean))];
-  const names=["+ Partager",...base,...dynamic.filter(s=>!base.includes(s)).slice(0,4)];
-  document.getElementById('stories').innerHTML=names.map(n=>{
-    const label=n==="+ Partager"?"+":n.slice(0,1).toUpperCase();
-    return `<div class="story clickable" onclick="onStoryClick('${n.replace(/'/g,"\\'")}')"><div class="story-ring"><div>${label}</div></div>${n.length>10?n.slice(0,9)+'…':n}</div>`;
-  }).join('');
-}
-function onStoryClick(name){
-  if(name==="+ Partager"){openShare();return}
-  showPage('home');
-  const fromDb=allCodes.filter(c=>(c.site||'').toLowerCase().includes(name.toLowerCase())||name==='Top');
-  document.getElementById('feed-title').textContent=name==='Top'?'À la une':name;
-  document.getElementById('codes-list').innerHTML=fromDb.length?fromDb.map(c=>renderPost(c)).join(''):`<div class="empty">Pas de code pour ${name}</div>`;
-}
-
-async function showRecentSuggestions(){
-  try{
-    const data=await (await fetch('/search/recent')).json();
-    const q=data.queries||[];
-    document.getElementById('recent-suggestions').innerHTML=q.map(x=>`<button class="chip" onclick="quickSearch('${x.replace(/'/g,"\\'")}')">${x}</button>`).join('');
-  }catch(e){}
-}
-function quickSearch(q){document.getElementById('search-input').value=q;doSearch()}
-async function doSearch(){
-  const q=document.getElementById('search-input').value.trim();
-  if(!q) return;
-  fetch('/search/log',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({q})});
-  const results=document.getElementById('search-results');
-  results.innerHTML='<div class="empty">Recherche...</div>';
-  try{
-    const data=await (await fetch('/codes/search?q='+encodeURIComponent(q))).json();
-    results.innerHTML=(data.codes||[]).length?(data.codes||[]).map(c=>renderPost(c)).join(''):'<div class="empty">Aucun résultat</div>';
-  }catch(e){results.innerHTML='<div class="empty">Erreur</div>'}
-}
-
-async function askAI(){
-  const q=document.getElementById('ai-input').value.trim();
-  if(!q) return;
-  const box=document.getElementById('ai-response');
-  box.style.display='block'; box.innerHTML='Analyse...';
-  try{
-    const data=await (await fetch('/ask',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question:q})})).json();
-    box.innerHTML=data.answer||'Pas de réponse';
-  }catch(e){box.innerHTML='Erreur'}
-}
-
-async function viewProfile(userId,name){
-  viewingUserId=userId;
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.nav').forEach(n=>n.classList.remove('active'));
-  document.getElementById('page-profile').classList.add('active');
-  document.querySelectorAll('.nav')[3].classList.add('active');
-  await loadProfile(userId,name);
-}
-
-async function loadProfile(forceUserId=null,forceName=null){
-  const u=getTgUser();
-  const card=document.getElementById('profile-card');
-  const targetId=forceUserId||currentUserId;
-  const isOwn=!forceUserId||Number(forceUserId)===Number(currentUserId);
-  if(!targetId){card.innerHTML='Ouvre COD.IA depuis Telegram';return}
-  let name=forceName||(isOwn?(u?.username?'@'+u.username:(u?.first_name||'Membre')):'Membre COD.IA');
-  let photo=(isOwn&&u?.photo_url)?`<img class="avatar-img" src="${u.photo_url}">`:`<div class="avatar">${name[0].toUpperCase()}</div>`;
-  let followers=0,following=0;
-  try{const st=await (await fetch('/profile_stats?user_id='+targetId)).json();followers=st.followers||0;following=st.following||0}catch(e){}
-  let followBtn='';
-  if(!isOwn&&currentUserId){
-    let isF=false;
-    try{const fr=await (await fetch(`/is_following?follower=${currentUserId}&followed=${targetId}`)).json();isF=fr.following}catch(e){}
-    followBtn=isF
-      ?`<button class="pill" style="margin-top:10px;background:rgba(255,255,255,.1);color:var(--text)" onclick="toggleFollow(${targetId},false)">Abonné ✓</button>`
-      :`<button class="pill" style="margin-top:10px" onclick="toggleFollow(${targetId},true)">S’abonner</button>`;
-  }
-  card.innerHTML=`
-    <div class="post-top">${photo}<div>
-      <div style="font-weight:700">${name}</div>
-      <div class="muted">${isOwn?'Mon profil':'Profil COD.IA'}</div>
-    </div></div>
-    <div style="display:flex;gap:18px;margin:14px 0 6px;font-size:14px">
-      <div class="clickable" onclick="showFollowList(${targetId},'followers')"><b>${followers}</b> abonnés</div>
-      <div class="clickable" onclick="showFollowList(${targetId},'following')"><b>${following}</b> abonnements</div>
-    </div>
-    ${followBtn}
+async function deleteCode(id){if(!confirm('Supprimer ?'))return;try{const d=await(await fetch('/code/delete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,user_id:currentUserId})})).json();if(d.success){await loadCodes();loadProfile()}}catch(e){}}
+async function restoreCode(id){try{const d=await(await fetch('/code/restore',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,user_id:currentUserId})})).json();if(d.success){await loadCodes();loadProfile()}}catch(e){}}
+function renderStories(){const base=["Top","Uber Eats","Booking","Airbnb","Zara"];const dyn=[...new Set(allCodes.map(c=>c.site).filter(Boolean))];const names=["+ Partager",...base,...dyn.filter(s=>!base.includes(s)).slice(0,4)];
+  document.getElementById('stories').innerHTML=names.map(n=>`<div class="story clickable" onclick="onStoryClick('${n.replace(/'/g,"\\'")}')"><div class="story-ring"><div>${n==="+ Partager"?"+":n[0]}</div></div>${n.length>10?n.slice(0,9)+'…':n}</div>`).join('')}
+function onStoryClick(name){if(name==="+ Partager"){openShare();return}showPage('home');const f=allCodes.filter(c=>(c.site||'').toLowerCase().includes(name.toLowerCase())||name==='Top');document.getElementById('feed-title').textContent=name==='Top'?'À la une':name;document.getElementById('codes-list').innerHTML=f.length?f.map(c=>renderPost(c)).join(''):`<div class="empty">Pas de code</div>`}
+async function showRecentSuggestions(){try{const d=await(await fetch('/search/recent')).json();document.getElementById('recent-suggestions').innerHTML=(d.queries||[]).map(q=>`<button class="chip" onclick="document.getElementById('search-input').value='${q.replace(/'/g,"\\'")}';doSearch()">${q}</button>`).join('')}catch(e){}}
+async function doSearch(){const q=document.getElementById('search-input').value.trim();if(!q)return;fetch('/search/log',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({q})});const r=document.getElementById('search-results');r.innerHTML='<div class="empty">...</div>';
+  try{const d=await(await fetch('/codes/search?q='+encodeURIComponent(q))).json();r.innerHTML=(d.codes||[]).length?(d.codes||[]).map(c=>renderPost(c)).join(''):'<div class="empty">Aucun</div>'}catch(e){r.innerHTML='<div class="empty">Erreur</div>'}}
+async function askAI(){const q=document.getElementById('ai-input').value.trim();if(!q)return;const b=document.getElementById('ai-response');b.style.display='block';b.innerHTML='...';try{const d=await(await fetch('/ask',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question:q})})).json();b.innerHTML=d.answer||'—'}catch(e){b.innerHTML='Erreur'}}
+async function viewProfile(uid,name){viewingUserId=uid;document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.querySelectorAll('.nav').forEach(n=>n.classList.remove('active'));document.getElementById('page-profile').classList.add('active');document.querySelectorAll('.nav')[3].classList.add('active');await loadProfile(uid,name)}
+async function loadProfile(forceId=null,forceName=null){
+  const u=getTgUser(),card=document.getElementById('profile-card'),targetId=forceId||currentUserId,isOwn=!forceId||Number(forceId)===Number(currentUserId);
+  if(!targetId){card.innerHTML='Ouvre depuis Telegram';return}
+  let name=forceName||(isOwn?(u?.username?'@'+u.username:(u?.first_name||'Membre')):'Membre');
+  let photo=(isOwn&&u?.photo_url)?`<img class="avatar-img" src="${u.photo_url}">`:`<div class="avatar">${name[0]}</div>`;
+  let followers=0,following=0;try{const st=await(await fetch('/profile_stats?user_id='+targetId)).json();followers=st.followers||0;following=st.following||0}catch(e){}
+  let followBtn='';if(!isOwn&&currentUserId){let isF=false;try{isF=(await(await fetch(`/is_following?follower=${currentUserId}&followed=${targetId}`)).json()).following}catch(e){}
+    followBtn=isF?`<button class="pill" style="margin-top:10px" onclick="toggleFollow(${targetId},false)">Abonné ✓</button>`:`<button class="pill" style="margin-top:10px" onclick="toggleFollow(${targetId},true)">S’abonner</button>`}
+  card.innerHTML=`<div class="post-top">${photo}<div><div style="font-weight:700">${name}</div><div class="muted">${isOwn?'Mon profil':'Profil'}</div></div></div>
+    <div style="display:flex;gap:18px;margin:14px 0;font-size:14px"><div class="clickable" onclick="showFollowList(${targetId},'followers')"><b>${followers}</b> abonnés</div><div class="clickable" onclick="showFollowList(${targetId},'following')"><b>${following}</b> abonnements</div></div>${followBtn}
     <div class="profile-tabs">
-      <button class="profile-tab active" id="tab-posts" onclick="showProfileTab('posts',${targetId})">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-          <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
-          <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
-        </svg>
-      </button>
-      <button class="profile-tab" id="tab-saved" onclick="showProfileTab('saved',${targetId})">⭐</button>
+      <button class="profile-tab active" id="tab-posts" onclick="showProfileTab('posts',${targetId})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></button>
+      <button class="profile-tab" id="tab-saved" onclick="showProfileTab('saved',${targetId})">${ICON_OUT}</button>
     </div>`;
   showProfileTab('posts',targetId);
 }
-
 async function showProfileTab(tab,userId){
-  const tabPosts=document.getElementById('tab-posts');
-  const tabSaved=document.getElementById('tab-saved');
-  const container=document.getElementById('my-codes');
-  if(!container) return;
-  if(tab==='posts'){
-    if(tabPosts) tabPosts.classList.add('active');
-    if(tabSaved) tabSaved.classList.remove('active');
-    const isOwn=Number(userId)===Number(currentUserId);
-    const endpoint=isOwn?'/codes/mine?user_id='+userId:'/codes/user?user_id='+userId;
-    try{
-      const data=await (await fetch(endpoint)).json();
-      container.innerHTML=(data.codes||[]).length?(data.codes||[]).map(c=>renderPost(c)).join(''):'<div class="empty">Aucun code publié</div>';
-    }catch(e){container.innerHTML='<div class="empty">Erreur</div>'}
-  }else{
-    if(tabSaved) tabSaved.classList.add('active');
-    if(tabPosts) tabPosts.classList.remove('active');
-    if(Number(userId)!==Number(currentUserId)){container.innerHTML='<div class="empty">Favoris privés</div>';return}
-    try{
-      const data=await (await fetch('/codes/saved?user_id='+userId)).json();
-      container.innerHTML=(data.codes||[]).length?(data.codes||[]).map(c=>renderPost(c)).join(''):'<div class="empty">Aucun favori<br><small>Glisse un code vers la droite ⭐</small></div>';
-    }catch(e){container.innerHTML='<div class="empty">Erreur</div>'}
-  }
+  const tp=document.getElementById('tab-posts'),ts=document.getElementById('tab-saved'),c=document.getElementById('my-codes');
+  if(tab==='posts'){tp?.classList.add('active');ts?.classList.remove('active');
+    try{const d=await(await fetch((Number(userId)===Number(currentUserId)?'/codes/mine':'/codes/user')+'?user_id='+userId)).json();c.innerHTML=(d.codes||[]).length?(d.codes||[]).map(x=>renderPost(x)).join(''):'<div class="empty">Aucun code</div>'}catch(e){c.innerHTML='<div class="empty">Erreur</div>'}}
+  else{ts?.classList.add('active');tp?.classList.remove('active');if(Number(userId)!==Number(currentUserId)){c.innerHTML='<div class="empty">Privé</div>';return}
+    try{const d=await(await fetch('/codes/saved?user_id='+userId)).json();c.innerHTML=(d.codes||[]).length?(d.codes||[]).map(x=>renderPost(x)).join(''):'<div class="empty">Aucun sauvegardé</div>'}catch(e){c.innerHTML='<div class="empty">Erreur</div>'}}
 }
-
-async function toggleFollow(followedId,wantFollow){
-  if(!currentUserId) return;
-  try{
-    await fetch(wantFollow?'/follow':'/unfollow',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({follower_id:currentUserId,followed_id:followedId,actor_name:currentUserName})});
-    loadProfile(followedId);loadNotifications();
-  }catch(e){}
-}
-
-async function showFollowList(userId,type){
-  document.getElementById('followListTitle').textContent=type==='followers'?'Abonnés':'Abonnements';
-  const list=document.getElementById('follow-list');
-  list.innerHTML='<div class="empty">Chargement...</div>';
-  document.getElementById('followListModal').classList.add('active');
-  try{
-    const data=await (await fetch(`/${type}?user_id=`+userId)).json();
-    const users=data.users||[];
-    list.innerHTML=users.length?users.map(u=>`
-      <div class="card row clickable" style="margin-bottom:8px" onclick="closeFollowList();viewProfile(${u.user_id},'${String(u.name||'Membre').replace(/'/g,"\\'")}')">
-        <div style="display:flex;align-items:center;gap:10px">
-          ${u.photo_url?`<img class="avatar-img" src="${u.photo_url}">`:`<div class="avatar">${(u.name||'M')[0]}</div>`}
-          <div style="font-weight:600">${u.name||'Membre COD.IA'}</div>
-        </div>
-      </div>`).join(''):'<div class="empty">Aucun</div>';
-  }catch(e){list.innerHTML='<div class="empty">Erreur</div>'}
-}
+async function toggleFollow(fid,want){if(!currentUserId)return;try{await fetch(want?'/follow':'/unfollow',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({follower_id:currentUserId,followed_id:fid,actor_name:currentUserName})});loadProfile(fid)}catch(e){}}
+async function showFollowList(uid,type){document.getElementById('followListTitle').textContent=type==='followers'?'Abonnés':'Abonnements';const list=document.getElementById('follow-list');list.innerHTML='...';document.getElementById('followListModal').classList.add('active');
+  try{const d=await(await fetch(`/${type}?user_id=`+uid)).json();list.innerHTML=(d.users||[]).length?(d.users||[]).map(u=>`<div class="card row clickable" style="margin-bottom:8px" onclick="closeFollowList();viewProfile(${u.user_id},'${String(u.name||'').replace(/'/g,"\\'")}')"><div style="display:flex;gap:10px;align-items:center">${u.photo_url?`<img class="avatar-img" src="${u.photo_url}">`:`<div class="avatar">${(u.name||'M')[0]}</div>`}<b>${u.name||'Membre'}</b></div></div>`).join(''):'<div class="empty">Aucun</div>'}catch(e){list.innerHTML='Erreur'}}
 function closeFollowList(){document.getElementById('followListModal').classList.remove('active')}
-
 async function loadCodes(){
-  try{const data=await (await fetch('/codes')).json();allCodes=data.codes||[]}catch(e){allCodes=[]}
+  try{allCodes=(await(await fetch('/codes')).json()).codes||[]}catch(e){allCodes=[]}
   renderStories();
-  try{
-    const top=(await (await fetch('/codes/top')).json()).codes||[];
-    document.getElementById('daily-codes').innerHTML=top.length
-      ?top.map(c=>`<div class="card row"><div><strong>${c.site}</strong><div class="muted">${c.type||'promo'} • ${c.code}</div></div><div class="pill">${c.description||'Promo'}</div></div>`).join('')
-      :'<div class="empty">Pas encore de top code</div>';
-  }catch(e){document.getElementById('daily-codes').innerHTML='<div class="empty">Erreur</div>'}
+  try{const top=(await(await fetch('/codes/top')).json()).codes||[];document.getElementById('daily-codes').innerHTML=top.length?top.map(c=>`<div class="card row"><div><strong>${c.site}</strong><div class="muted">${c.type||'promo'} • ${c.code}</div></div><div class="pill">${c.description||'Promo'}</div></div>`).join(''):'<div class="empty">Pas de top</div>'}catch(e){}
   document.getElementById('feed-title').textContent='À la une';
-  document.getElementById('codes-list').innerHTML=allCodes.length?allCodes.map(c=>renderPost(c)).join(''):'<div class="empty">Feed vide<br><small>Glisse un code → pour les favoris ⭐</small></div>';
+  document.getElementById('codes-list').innerHTML=allCodes.length?allCodes.map(c=>renderPost(c)).join(''):'<div class="empty">Feed vide</div>';
 }
-
-setInterval(loadNotifications,45000);
-setInterval(loadStats,60000);
-boot();
+setInterval(loadNotifications,45000);setInterval(loadStats,60000);boot();
 </script>
 </body>
 </html>
