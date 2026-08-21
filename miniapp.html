@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Codia</title>
+  <title>COD.IA</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script src="https://js.stripe.com/v3/"></script>
   <style>
@@ -14,15 +14,15 @@
       --text: #f4f4f5;
       --text2: #a1a1aa;
       --border: #27272a;
-      --accent: #8b5cf6;
-      --accent2: #06b6d4;
+      --accent: #2AABEE;
+      --accent2: #8b5cf6;
       --accent3: #ec4899;
       --green: #22c55e;
       --orange: #f59e0b;
-      --gradient: linear-gradient(135deg, #8b5cf6 0%, #06b6d4 50%, #ec4899 100%);
-      --gradient-soft: linear-gradient(135deg, rgba(139,92,246,0.18), rgba(6,182,212,0.12));
+      --gradient: linear-gradient(135deg, #2AABEE 0%, #8b5cf6 55%, #ec4899 100%);
+      --gradient-soft: linear-gradient(135deg, rgba(42,171,238,0.16), rgba(139,92,246,0.12));
       --shadow: 0 10px 40px rgba(0,0,0,0.45);
-      --shadow-accent: 0 8px 32px rgba(139,92,246,0.22);
+      --shadow-accent: 0 8px 32px rgba(42,171,238,0.25);
       --radius: 22px;
       --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     }
@@ -33,13 +33,13 @@
       --text: #0f172a;
       --text2: #64748b;
       --border: #e2e8f0;
-      --accent: #7c3aed;
-      --accent2: #0891b2;
+      --accent: #0284c7;
+      --accent2: #7c3aed;
       --accent3: #db2777;
-      --gradient: linear-gradient(135deg, #7c3aed, #0891b2, #db2777);
-      --gradient-soft: linear-gradient(135deg, rgba(124,58,237,0.1), rgba(8,145,178,0.08));
+      --gradient: linear-gradient(135deg, #0284c7, #7c3aed, #db2777);
+      --gradient-soft: linear-gradient(135deg, rgba(2,132,199,0.1), rgba(124,58,237,0.08));
       --shadow: 0 12px 40px rgba(0,0,0,0.08);
-      --shadow-accent: 0 8px 28px rgba(124,58,237,0.15);
+      --shadow-accent: 0 8px 28px rgba(2,132,199,0.15);
     }
     *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
     body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Inter","Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--text);height:100vh;overflow:hidden;line-height:1.5;-webkit-font-smoothing:antialiased}
@@ -47,13 +47,31 @@
     .hidden{display:none !important}
     @keyframes fadeInUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
     @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+    @keyframes orbFloat{from{transform:translate(0,0) scale(1)}to{transform:translate(-3%,4%) scale(1.05)}}
+    @keyframes badgePulse{0%,100%{box-shadow:0 0 16px rgba(42,171,238,0.25)}50%{box-shadow:0 0 28px rgba(42,171,238,0.45)}}
+    @keyframes shineSweep{0%,100%{transform:translateX(-20%) rotate(15deg);opacity:0}40%,60%{opacity:1}100%{transform:translateX(120%) rotate(15deg)}}
+    @keyframes ctaShine{0%{left:-100%}50%,100%{left:130%}}
 
-    .header{padding:16px 18px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);background:rgba(7,7,11,0.82);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);position:sticky;top:0;z-index:20}
+    /* LOGO COD.IA */
+    .codia-logo{display:inline-flex;flex-direction:column;align-items:flex-start;line-height:1}
+    .codia-logo-main{display:flex;align-items:center;gap:2px;position:relative}
+    .codia-logo-text{font-family:"Segoe UI",system-ui,-apple-system,sans-serif;font-weight:900;font-size:28px;letter-spacing:-0.04em;color:#0a0a0a;position:relative;z-index:1}
+    body:not(.light) .codia-logo-text,#paywall .codia-logo-text{color:#ffffff}
+    .codia-logo-underline{position:absolute;left:0;bottom:2px;width:52%;height:5px;background:linear-gradient(90deg,#1e90ff 0%,#2AABEE 60%,transparent 100%);border-radius:4px;z-index:0;opacity:0.95}
+    .codia-logo-plane{width:22px;height:22px;border-radius:50%;background:#2AABEE;display:flex;align-items:center;justify-content:center;margin-left:4px;box-shadow:0 2px 10px rgba(42,171,238,0.55);flex-shrink:0}
+    .codia-logo-plane svg{width:12px;height:12px;fill:#fff;transform:translate(1px,-0.5px)}
+    .codia-logo-tagline{font-family:Georgia,"Times New Roman",cursive;font-style:italic;font-size:11px;color:#555;margin-top:4px;margin-left:2px}
+    #paywall .codia-logo-tagline{color:rgba(255,255,255,0.75)}
+    .codia-logo.compact .codia-logo-text{font-size:18px}
+    .codia-logo.compact .codia-logo-plane{width:16px;height:16px}
+    .codia-logo.compact .codia-logo-plane svg{width:9px;height:9px}
+    .codia-logo.compact .codia-logo-underline{height:3px;bottom:1px}
+    .codia-logo.compact .codia-logo-tagline{display:none}
+
+    .header{padding:14px 18px 12px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);background:rgba(7,7,11,0.82);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);position:sticky;top:0;z-index:20}
     body.light .header{background:rgba(248,250,252,0.85)}
     .brand{display:flex;align-items:center;gap:12px}
-    .logo-mark{width:40px;height:40px;border-radius:13px;background:var(--gradient);display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;font-size:18px;box-shadow:var(--shadow-accent);animation:float 4s ease-in-out infinite}
-    .name{font-size:21px;font-weight:800;letter-spacing:-0.04em}
-    .sub{font-size:12px;color:var(--text2);margin-top:1px;font-weight:500}
+    .sub{font-size:12px;color:var(--text2);font-weight:500}
     .header-actions{display:flex;gap:8px}
     .icon-btn{width:42px;height:42px;border-radius:15px;border:1px solid var(--border);background:var(--card);color:var(--text);position:relative;display:flex;align-items:center;justify-content:center;font-size:17px;transition:var(--transition)}
     .icon-btn:active{transform:scale(0.90);background:var(--card-hover)}
@@ -61,7 +79,7 @@
     .stories{display:flex;gap:14px;overflow-x:auto;padding:18px 18px 16px;border-bottom:1px solid var(--border);scrollbar-width:none}
     .stories::-webkit-scrollbar{display:none}
     .story{min-width:70px;text-align:center;font-size:11.5px;color:var(--text2);font-weight:500;animation:fadeInUp 0.4s ease both}
-    .story-ring{width:64px;height:64px;border-radius:50%;padding:2.5px;margin:0 auto 8px;background:var(--gradient);box-shadow:0 4px 14px rgba(139,92,246,0.25);position:relative;transition:var(--transition)}
+    .story-ring{width:64px;height:64px;border-radius:50%;padding:2.5px;margin:0 auto 8px;background:var(--gradient);box-shadow:0 4px 14px rgba(42,171,238,0.3);position:relative;transition:var(--transition)}
     .story-ring::after{content:none}
     .story-ring div{width:100%;height:100%;border-radius:50%;background:var(--bg);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:17px;color:var(--text)}
     .story:active .story-ring{transform:scale(0.92)}
@@ -72,7 +90,7 @@
 
     .search-wrap{padding:18px 18px 12px}
     .search{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--border);border-radius:20px;padding:15px 18px;box-shadow:var(--shadow);transition:var(--transition)}
-    .search:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px rgba(139,92,246,0.18),var(--shadow)}
+    .search:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px rgba(42,171,238,0.18),var(--shadow)}
     .search input{width:100%;border:none;outline:none;background:transparent;color:var(--text);font-size:15.5px;font-weight:500}
 
     .chips{display:flex;gap:8px;overflow-x:auto;padding:6px 18px 16px;flex-wrap:wrap}
@@ -82,7 +100,7 @@
     .section{padding:16px 18px 10px;font-size:12px;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:0.7px}
 
     .card,.post{margin:0 16px 16px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow);position:relative;overflow:hidden;transition:var(--transition);animation:fadeInUp 0.4s ease both}
-    .post::before{content:"";position:absolute;inset:0;border-radius:inherit;padding:1px;background:linear-gradient(135deg,rgba(139,92,246,0.25),transparent 60%);-webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none;opacity:0.6}
+    .post::before{content:"";position:absolute;inset:0;border-radius:inherit;padding:1px;background:linear-gradient(135deg,rgba(42,171,238,0.3),transparent 60%);-webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none;opacity:0.6}
     .post:active{transform:scale(0.98)}
 
     .row{display:flex;justify-content:space-between;align-items:center;gap:12px}
@@ -92,9 +110,9 @@
 
     .post-top{display:flex;align-items:center;gap:12px;margin-bottom:12px}
     .avatar,.avatar-img{width:46px;height:46px;border-radius:50%;object-fit:cover}
-    .avatar{background:var(--gradient);display:flex;align-items:center;justify-content:center;font-weight:700;color:white;font-size:17px;box-shadow:0 4px 14px rgba(139,92,246,0.35)}
+    .avatar{background:var(--gradient);display:flex;align-items:center;justify-content:center;font-weight:700;color:white;font-size:17px;box-shadow:0 4px 14px rgba(42,171,238,0.35)}
 
-    .code{margin:14px 0;padding:15px;border-radius:16px;background:rgba(139,92,246,0.07);border:1.5px dashed rgba(139,92,246,0.4);display:flex;justify-content:space-between;align-items:center;gap:12px;font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:15.5px;font-weight:600}
+    .code{margin:14px 0;padding:15px;border-radius:16px;background:rgba(42,171,238,0.07);border:1.5px dashed rgba(42,171,238,0.4);display:flex;justify-content:space-between;align-items:center;gap:12px;font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:15.5px;font-weight:600}
     .copy-btn{border:1px solid var(--border);background:var(--card);color:var(--text);border-radius:12px;padding:8px 13px;font-size:12.5px;font-weight:600;transition:var(--transition)}
     .copy-btn:active{background:var(--accent);color:white;border-color:var(--accent);transform:scale(0.95)}
 
@@ -108,9 +126,9 @@
     .nav{background:none;border:none;color:var(--text2);display:flex;flex-direction:column;align-items:center;gap:5px;font-size:11px;font-weight:600;transition:var(--transition)}
     .nav.active{color:var(--text)}
     .nav .ic{width:30px;height:30px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;transition:all 0.3s cubic-bezier(0.34,1.56,0.64,1)}
-    .nav.active .ic{background:var(--gradient);color:#fff;box-shadow:0 6px 18px rgba(139,92,246,0.5);transform:translateY(-3px) scale(1.05)}
+    .nav.active .ic{background:var(--gradient);color:#fff;box-shadow:0 6px 18px rgba(42,171,238,0.45);transform:translateY(-3px) scale(1.05)}
 
-    .fab{position:fixed;left:50%;transform:translateX(-50%);bottom:112px;background:var(--gradient);color:#fff;border:none;border-radius:999px;padding:15px 28px;font-weight:700;font-size:15px;display:none;z-index:25;box-shadow:0 10px 30px rgba(139,92,246,0.5);transition:var(--transition)}
+    .fab{position:fixed;left:50%;transform:translateX(-50%);bottom:112px;background:var(--gradient);color:#fff;border:none;border-radius:999px;padding:15px 28px;font-weight:700;font-size:15px;display:none;z-index:25;box-shadow:0 10px 30px rgba(42,171,238,0.45);transition:var(--transition)}
     .fab:active{transform:translateX(-50%) scale(0.94)}
     .page-home.active ~ .fab{display:block;animation:fadeInUp 0.4s ease}
 
@@ -123,11 +141,11 @@
     .quick{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
     .quick button{width:auto;padding:9px 14px;margin:0;font-size:13px;border-radius:999px}
 
-    .welcome-box{margin:26px 18px;padding:36px 26px;border-radius:26px;background:var(--gradient-soft);border:1px solid rgba(139,92,246,0.25);text-align:center;box-shadow:var(--shadow-accent);position:relative;overflow:hidden}
-    .welcome-box::before{content:"";position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:radial-gradient(circle,rgba(139,92,246,0.12) 0%,transparent 60%);pointer-events:none}
+    .welcome-box{margin:26px 18px;padding:36px 26px;border-radius:26px;background:var(--gradient-soft);border:1px solid rgba(42,171,238,0.25);text-align:center;box-shadow:var(--shadow-accent);position:relative;overflow:hidden}
+    .welcome-box::before{content:"";position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:radial-gradient(circle,rgba(42,171,238,0.12) 0%,transparent 60%);pointer-events:none}
     .welcome-title{font-size:34px;font-weight:800;margin-bottom:14px;letter-spacing:-0.045em;background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
     .welcome-text{font-size:14.5px;line-height:1.65;color:var(--text2);position:relative}
-    .ai-box{margin:10px 18px 22px;padding:18px 20px;border-radius:20px;background:var(--gradient-soft);border:1px solid rgba(139,92,246,0.3);font-size:14.5px;line-height:1.6;animation:fadeInUp 0.35s ease}
+    .ai-box{margin:10px 18px 22px;padding:18px 20px;border-radius:20px;background:var(--gradient-soft);border:1px solid rgba(42,171,238,0.3);font-size:14.5px;line-height:1.6;animation:fadeInUp 0.35s ease}
     .empty{text-align:center;color:var(--text2);padding:48px 24px;font-size:14.5px;line-height:1.55}
     .clickable{cursor:pointer}
 
@@ -135,48 +153,58 @@
     .profile-tab{flex:1;background:none;border:none;color:var(--text2);padding:14px 8px;font-size:20px;border-bottom:2px solid transparent;transition:var(--transition)}
     .profile-tab.active{color:var(--text);border-bottom-color:var(--accent)}
 
-    #paywall{position:fixed;inset:0;z-index:100;max-width:430px;margin:0 auto;background:#000;color:#fff;display:flex;flex-direction:column;overflow:hidden}
-    .sg-bg{position:absolute;inset:0;overflow:hidden}
-    .sg-live-app{position:absolute;inset:0;background:#f4f4f5;filter:blur(2.5px);transform:scale(1.02);opacity:1;pointer-events:none}
-    .sg-live-app .la-header{display:flex;align-items:center;padding:14px 16px;border-bottom:1px solid rgba(0,0,0,.06);background:#fff}
+    /* ===== PAYWALL BRILLANTE ===== */
+    #paywall{position:fixed;inset:0;z-index:100;max-width:430px;margin:0 auto;background:#03050a;color:#fff;display:flex;flex-direction:column;overflow:hidden}
+    .sg-bg{position:absolute;inset:0;overflow:hidden;background:radial-gradient(ellipse 80% 50% at 50% -10%,rgba(42,171,238,0.35),transparent 55%),radial-gradient(ellipse 60% 40% at 90% 80%,rgba(139,92,246,0.2),transparent 50%),radial-gradient(ellipse 50% 35% at 10% 70%,rgba(6,182,212,0.18),transparent 50%),#03050a}
+    .sg-bg::before{content:"";position:absolute;inset:-20%;background:radial-gradient(circle at 30% 40%,rgba(42,171,238,0.15) 0%,transparent 40%),radial-gradient(circle at 70% 60%,rgba(167,139,250,0.12) 0%,transparent 35%);animation:orbFloat 12s ease-in-out infinite alternate}
+    .sg-live-app{position:absolute;inset:0;background:linear-gradient(180deg,#0c1220 0%,#12182a 100%);filter:blur(3px) brightness(0.85);transform:scale(1.03);opacity:0.9;pointer-events:none;padding-top:48px}
+    .sg-live-app .la-header{display:flex;align-items:center;padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.06);background:rgba(15,20,35,.9)}
     .sg-live-app .la-brand{display:flex;gap:10px;align-items:center}
-    .sg-live-app .la-logo{width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,#8b5cf6,#06b6d4)}
-    .sg-live-app .la-name{font-weight:700;font-size:15px;color:#111}
-    .sg-live-app .la-sub{font-size:10px;color:#71717a}
-    .sg-live-app .la-stories{display:flex;gap:12px;padding:12px 16px;background:#fafafa}
-    .sg-live-app .la-ring{width:48px;height:48px;border-radius:50%;border:2px solid #a78bfa;background:#fff}
-    .sg-live-app .la-card{margin:10px 16px;height:82px;border-radius:16px;background:#fff;border:1px solid rgba(0,0,0,.06);box-shadow:0 1px 2px rgba(0,0,0,.04)}
-    .sg-live-app .la-bottom{position:absolute;left:0;right:0;bottom:0;height:70px;border-top:1px solid rgba(0,0,0,.06);background:#fff}
-    .sg-dim{position:absolute;inset:0;background:rgba(0,0,0,.28);pointer-events:none}
-    .sg-wrap{position:relative;z-index:2;height:100%;display:flex;flex-direction:column;padding:12px 18px 16px}
-    .sg-close{width:34px;height:34px;border:1px solid rgba(255,255,255,.14);background:rgba(18,18,24,.88);border-radius:50%;color:#fff;font-size:18px;align-self:flex-start;margin-bottom:6px}
-    .sg-head{text-align:center;padding:4px 0 10px}
-    .sg-title-row{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:8px}
-    .sg-title{font-size:34px;font-weight:800;letter-spacing:-.04em}
-    .sg-badge{font-size:11px;font-weight:700;padding:5px 11px;border-radius:999px;color:#efe9ff;background:rgba(139,92,246,.4);border:1px solid rgba(167,139,250,.45)}
-    .sg-sub{color:#e4e4e7;font-size:14.5px;line-height:1.4;max-width:300px;margin:0 auto;text-shadow:0 1px 8px rgba(0,0,0,.35)}
-    .glass{background:rgba(18,18,24,.92);border:1px solid rgba(255,255,255,.12);box-shadow:0 12px 30px rgba(0,0,0,.35);backdrop-filter:blur(12px)}
-    .sg-features{border-radius:22px;padding:4px 12px;margin:8px 0 12px}
+    .sg-live-app .la-logo{width:28px;height:28px;border-radius:9px;background:linear-gradient(135deg,#2AABEE,#8b5cf6);box-shadow:0 0 16px rgba(42,171,238,0.5)}
+    .sg-live-app .la-name{font-weight:700;font-size:14px;color:#f0f4ff}
+    .sg-live-app .la-sub{font-size:10px;color:#7a8aaa}
+    .sg-live-app .la-stories{display:flex;gap:12px;padding:14px 16px}
+    .sg-live-app .la-ring{width:48px;height:48px;border-radius:50%;padding:2px;background:linear-gradient(135deg,#2AABEE,#8b5cf6,#ec4899);box-shadow:0 0 12px rgba(42,171,238,0.35)}
+    .sg-live-app .la-ring::after{content:"";display:block;width:100%;height:100%;border-radius:50%;background:#0c1220}
+    .sg-live-app .la-card{margin:8px 16px;height:72px;border-radius:16px;background:linear-gradient(135deg,rgba(42,171,238,0.12),rgba(139,92,246,0.08));border:1px solid rgba(255,255,255,0.08);box-shadow:0 4px 20px rgba(0,0,0,0.3)}
+    .sg-live-app .la-bottom{position:absolute;left:0;right:0;bottom:0;height:64px;border-top:1px solid rgba(255,255,255,.06);background:rgba(10,14,24,.95)}
+    .sg-dim{position:absolute;inset:0;background:linear-gradient(180deg,rgba(3,5,10,0.25) 0%,rgba(3,5,10,0.55) 40%,rgba(3,5,10,0.88) 100%);pointer-events:none}
+    .sg-wrap{position:relative;z-index:2;height:100%;display:flex;flex-direction:column;padding:14px 18px 18px;overflow-y:auto}
+    .sg-close{width:36px;height:36px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.06);backdrop-filter:blur(12px);border-radius:50%;color:#fff;font-size:18px;align-self:flex-start;margin-bottom:8px}
+    .sg-head{text-align:center;padding:8px 0 14px}
+    .sg-title-row{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:10px}
+    .sg-badge{font-size:11px;font-weight:700;padding:5px 12px;border-radius:999px;color:#e0f4ff;background:linear-gradient(135deg,rgba(42,171,238,0.45),rgba(139,92,246,0.35));border:1px solid rgba(42,171,238,0.5);box-shadow:0 0 20px rgba(42,171,238,0.25);animation:badgePulse 3s ease-in-out infinite}
+    .sg-sub{color:#c8d4e8;font-size:14.5px;line-height:1.45;max-width:300px;margin:0 auto}
+    .glass{background:rgba(12,18,32,0.72);border:1px solid rgba(255,255,255,0.12);box-shadow:0 12px 40px rgba(0,0,0,0.4),inset 0 1px 0 rgba(255,255,255,0.08);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
+    .sg-features{border-radius:22px;padding:6px 14px;margin:6px 0 12px}
     .sg-item{display:flex;gap:14px;align-items:flex-start;padding:12px 4px}
-    .sg-item + .sg-item{border-top:1px solid rgba(255,255,255,.07)}
-    .sg-ic{width:38px;height:38px;border-radius:13px;display:flex;align-items:center;justify-content:center;flex:0 0 38px;font-size:16px;color:#fff}
-    .sg-ic.c1{background:#7c3aed}.sg-ic.c2{background:#0891b2}.sg-ic.c3{background:#ea580c}.sg-ic.c4{background:#db2777}.sg-ic.c5{background:#16a34a}.sg-ic.c6{background:#ca8a04}
+    .sg-item + .sg-item{border-top:1px solid rgba(255,255,255,0.07)}
+    .sg-ic{width:40px;height:40px;border-radius:13px;display:flex;align-items:center;justify-content:center;flex:0 0 40px;font-size:16px;color:#fff;box-shadow:0 4px 14px rgba(0,0,0,0.25)}
+    .sg-ic.c1{background:linear-gradient(135deg,#2AABEE,#0088cc)}
+    .sg-ic.c2{background:linear-gradient(135deg,#8b5cf6,#6d28d9)}
+    .sg-ic.c3{background:linear-gradient(135deg,#06b6d4,#0891b2)}
+    .sg-ic.c4{background:linear-gradient(135deg,#ec4899,#db2777)}
+    .sg-ic.c5{background:linear-gradient(135deg,#22c55e,#16a34a)}
+    .sg-ic.c6{background:linear-gradient(135deg,#f59e0b,#d97706)}
     .sg-item-text{font-size:14px;line-height:1.35;font-weight:600;padding-top:3px}
-    .sg-item-text small{display:block;margin-top:2px;color:#b4b4bc;font-size:12px;font-weight:400}
-    .sg-price-card{border-radius:18px;padding:14px 16px;margin-bottom:10px}
-    .sg-price-card .label{color:#c4c4c8;font-size:13px;margin-bottom:2px}
-    .sg-price-card .amount{font-size:28px;font-weight:800}
-    .sg-social{text-align:center;font-size:12.5px;color:#d4d4d8;margin:0 0 12px;text-shadow:0 1px 6px rgba(0,0,0,.3)}
+    .sg-item-text small{display:block;margin-top:2px;color:#9aabc4;font-size:12px;font-weight:400}
+    .sg-price-card{border-radius:18px;padding:16px 18px;margin-bottom:10px;position:relative;overflow:hidden}
+    .sg-price-card::before{content:"";position:absolute;top:-50%;left:-30%;width:80%;height:200%;background:linear-gradient(120deg,transparent,rgba(42,171,238,0.12),transparent);animation:shineSweep 4s ease-in-out infinite}
+    .sg-price-card .label{color:#a0b4d0;font-size:13px;margin-bottom:2px;position:relative}
+    .sg-price-card .amount{font-size:32px;font-weight:800;background:linear-gradient(90deg,#fff,#a8d8ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;position:relative}
+    .sg-social{text-align:center;font-size:12.5px;color:#b0c0d8;margin:0 0 14px}
     .sg-social b{color:#fff}
-    .sg-cta{width:100%;border:none;border-radius:999px;padding:16px 18px;font-size:16.5px;font-weight:800;background:#fff;color:#000;cursor:pointer;margin-bottom:10px;transition:transform 0.2s}
-    .sg-cta:active{transform:scale(0.97)}
-    .sg-links{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;font-size:11px;color:#a1a1aa}
+    .sg-cta{width:100%;border:none;border-radius:999px;padding:17px 18px;font-size:16.5px;font-weight:800;background:linear-gradient(135deg,#2AABEE 0%,#1a8fd4 50%,#8b5cf6 100%);color:#fff;cursor:pointer;margin-bottom:10px;box-shadow:0 8px 28px rgba(42,171,238,0.45),0 0 0 1px rgba(255,255,255,0.15) inset;transition:transform 0.2s,box-shadow 0.2s;position:relative;overflow:hidden}
+    .sg-cta::after{content:"";position:absolute;top:0;left:-100%;width:60%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.25),transparent);animation:ctaShine 3.5s ease-in-out infinite}
+    .sg-cta:active{transform:scale(0.97);box-shadow:0 4px 16px rgba(42,171,238,0.35)}
+    .sg-links{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;font-size:11px;color:#6a7a94}
     .sg-error{color:#f87171;font-size:12.5px;text-align:center;margin-top:8px}
-    .pw-pay{position:absolute;inset:0;z-index:30;background:rgba(0,0,0,.55);display:flex;align-items:flex-end}
-    .pw-pay-card{width:100%;border-radius:22px 22px 0 0;border-top:1px solid #2a2a2a;background:#0c0c0e;padding:18px 18px 28px;max-height:88vh;overflow:auto}
-    .pw-back{background:none;border:none;color:#a1a1aa;margin-bottom:12px;font-size:14.5px}
+    .pw-pay{position:absolute;inset:0;z-index:30;background:rgba(0,0,0,.6);display:flex;align-items:flex-end;backdrop-filter:blur(6px)}
+    .pw-pay-card{width:100%;border-radius:22px 22px 0 0;border-top:1px solid rgba(255,255,255,0.1);background:#0a0e18;padding:18px 18px 28px;max-height:88vh;overflow:auto}
+    .pw-back{background:none;border:none;color:#a0b0c8;margin-bottom:12px;font-size:14.5px}
     .pw-pay-card h2{font-size:19px;margin-bottom:4px}
-    .pw-pay-card .pw-desc{color:#a1a1aa;font-size:13.5px;margin-bottom:14px}
+    .pw-pay-card .pw-desc{color:#8a9ab4;font-size:13.5px;margin-bottom:14px}
+
     #success-screen{position:fixed;inset:0;z-index:200;max-width:430px;margin:0 auto;background:rgba(0,0,0,.92);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px}
     .success-check{width:78px;height:78px;border-radius:50%;background:linear-gradient(135deg,#16a34a,#22c55e);display:flex;align-items:center;justify-content:center;font-size:36px;color:#fff;box-shadow:0 10px 30px rgba(34,197,94,0.4)}
     #success-screen h2{font-size:24px;font-weight:800}
@@ -187,45 +215,92 @@
 
 <div id="success-screen" class="hidden">
   <div class="success-check">✓</div>
-  <h2>Bienvenue sur Codia</h2>
+  <h2>Bienvenue sur COD.IA</h2>
   <p>Ton accès est activé</p>
 </div>
 
 <div id="paywall" class="hidden">
   <div class="sg-bg">
     <div class="sg-live-app">
-      <div class="la-header"><div class="la-brand"><div class="la-logo"></div><div><div class="la-name">Codia</div><div class="la-sub">members</div></div></div></div>
-      <div class="la-stories"><div class="la-ring"></div><div class="la-ring"></div><div class="la-ring"></div><div class="la-ring"></div><div class="la-ring"></div></div>
-      <div class="la-card"></div><div class="la-card"></div><div class="la-card"></div>
+      <div class="la-header">
+        <div class="la-brand">
+          <div class="la-logo"></div>
+          <div>
+            <div class="la-name">COD.IA</div>
+            <div class="la-sub">Communauté codes</div>
+          </div>
+        </div>
+      </div>
+      <div class="la-stories">
+        <div class="la-ring"></div><div class="la-ring"></div>
+        <div class="la-ring"></div><div class="la-ring"></div>
+        <div class="la-ring"></div>
+      </div>
+      <div class="la-card"></div>
+      <div class="la-card"></div>
+      <div class="la-card"></div>
       <div class="la-bottom"></div>
     </div>
     <div class="sg-dim"></div>
   </div>
+
   <div class="sg-wrap">
     <button class="sg-close" type="button" onclick="Telegram.WebApp.close()">×</button>
+
     <div class="sg-head">
-      <div class="sg-title-row"><div class="sg-title">Codia</div><div class="sg-badge">Premium</div></div>
-      <div class="sg-sub">Trouve et partage les meilleures remises</div>
+      <div style="display:flex;justify-content:center;margin-bottom:12px">
+        <div class="codia-logo">
+          <div class="codia-logo-main">
+            <span class="codia-logo-text">COD.IA</span>
+            <span class="codia-logo-underline"></span>
+            <span class="codia-logo-plane">
+              <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+            </span>
+          </div>
+          <div class="codia-logo-tagline">Un monde tous ensemble</div>
+        </div>
+      </div>
+      <div class="sg-title-row">
+        <div class="sg-badge">Premium</div>
+      </div>
+      <div class="sg-sub">Accède aux meilleurs codes promo &amp; parrainages de la communauté</div>
     </div>
+
     <div class="sg-features glass">
-      <div class="sg-item"><div class="sg-ic c1">⌂</div><div class="sg-item-text">Feed communauté<small>Codes partagés en temps réel</small></div></div>
-      <div class="sg-item"><div class="sg-ic c2">✦</div><div class="sg-item-text">Recherche + IA<small>Trouve plus vite les bons codes</small></div></div>
-      <div class="sg-item"><div class="sg-ic c3">✈</div><div class="sg-item-text">Voyages & hôtels<small>Booking, Airbnb, mobilité</small></div></div>
-      <div class="sg-item"><div class="sg-ic c4">▦</div><div class="sg-item-text">Mode & shopping<small>Zara, Nike et marques</small></div></div>
-      <div class="sg-item"><div class="sg-ic c5">🔔</div><div class="sg-item-text">Alertes du jour<small>Nouveautés pertinentes</small></div></div>
-      <div class="sg-item"><div class="sg-ic c6">✓</div><div class="sg-item-text">Copie en 1 clic + profil<small>Tes codes et ton activité</small></div></div>
+      <div class="sg-item">
+        <div class="sg-ic c1">⌂</div>
+        <div class="sg-item-text">Feed communauté<small>Codes partagés en temps réel</small></div>
+      </div>
+      <div class="sg-item">
+        <div class="sg-ic c2">✦</div>
+        <div class="sg-item-text">Recherche + IA<small>Trouve plus vite les bons plans</small></div>
+      </div>
+      <div class="sg-item">
+        <div class="sg-ic c3">✈</div>
+        <div class="sg-item-text">Voyages &amp; shopping<small>Booking, Uber, Zara…</small></div>
+      </div>
+      <div class="sg-item">
+        <div class="sg-ic c5">🔖</div>
+        <div class="sg-item-text">Sauvegarde &amp; profil<small>Tes codes favoris toujours sous la main</small></div>
+      </div>
     </div>
-    <div class="sg-price-card glass"><div class="label">Paiement unique</div><div class="amount">10 €</div></div>
-    <div class="sg-social"><b id="pw-members">…</b> members</div>
-    <button class="sg-cta" type="button" onclick="startPayment()">Passer à Codia</button>
-    <div class="sg-links"><span>Conditions d'utilisation</span><span>·</span><span>Politique de confidentialité</span></div>
+
+    <div class="sg-price-card glass">
+      <div class="label">Paiement unique · accès à vie</div>
+      <div class="amount">10 €</div>
+    </div>
+
+    <div class="sg-social"><b id="pw-members">…</b> members · communauté active</div>
+    <button class="sg-cta" type="button" onclick="startPayment()">Passer à COD.IA</button>
+    <div class="sg-links"><span>Conditions</span><span>·</span><span>Confidentialité</span></div>
     <div class="sg-error" id="pw-error"></div>
   </div>
+
   <div class="pw-pay hidden" id="pw-pay">
     <div class="pw-pay-card">
       <button class="pw-back" type="button" onclick="backToOffer()">← Retour</button>
       <h2>Finaliser l’accès</h2>
-      <p class="pw-desc">10 € · accès Codia</p>
+      <p class="pw-desc">10 € · accès COD.IA à vie</p>
       <div id="checkout">Chargement…</div>
       <div class="sg-error" id="pw-error-2"></div>
     </div>
@@ -235,9 +310,16 @@
 <div class="app hidden" id="main-app">
   <div class="header">
     <div class="brand">
-      <div class="logo-mark">C</div>
+      <div class="codia-logo compact">
+        <div class="codia-logo-main">
+          <span class="codia-logo-text">COD.IA</span>
+          <span class="codia-logo-underline"></span>
+          <span class="codia-logo-plane">
+            <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+          </span>
+        </div>
+      </div>
       <div>
-        <div class="name">Codia</div>
         <div class="sub" id="members-count">… members</div>
       </div>
     </div>
@@ -278,7 +360,7 @@
 
   <div class="page page-codia" id="page-codia">
     <div class="welcome-box">
-      <div class="welcome-title">Codia</div>
+      <div class="welcome-title">COD.IA</div>
       <div class="welcome-text">
         Bienvenue sur l’application !<br><br>
         Ici tu peux partager et trouver les meilleurs codes promo et parrainages de la communauté.<br><br>
@@ -289,7 +371,7 @@
         La page <b>Recherche</b> te permet de trouver les codes promo beaucoup plus rapidement pour éviter de tout scroller.
       </div>
     </div>
-    <div class="section">Assistant Codia</div>
+    <div class="section">Assistant COD.IA</div>
     <div style="padding:0 18px 8px;font-size:13.5px;color:var(--text2)">
       Tu rencontres un problème sur l’application ? Pose ta question ici, l’IA t’aide comme un support.
     </div>
@@ -313,7 +395,7 @@
   <div class="bottom">
     <button class="nav active" onclick="showPage('home')"><div class="ic">⌂</div>Feed</button>
     <button class="nav" onclick="showPage('search')"><div class="ic">⌕</div>Recherche</button>
-    <button class="nav" onclick="showPage('codia')"><div class="ic">✦</div>Codia</button>
+    <button class="nav" onclick="showPage('codia')"><div class="ic">✦</div>COD.IA</button>
     <button class="nav" onclick="showPage('profile')"><div class="ic">☺</div>Profil</button>
   </div>
 </div>
@@ -395,7 +477,7 @@
     const u = getTgUser();
     const userId = u?.id;
     currentUserId = userId || null;
-    currentUserName = u?.username ? ('@'+u.username) : (u?.first_name || 'Membre Codia');
+    currentUserName = u?.username ? ('@'+u.username) : (u?.first_name || 'Membre COD.IA');
 
     loadStats();
 
@@ -437,7 +519,7 @@
   async function startPayment(){
     const userId = getTgUser()?.id;
     if(!userId){
-      document.getElementById('pw-error').textContent = 'Ouvre Codia depuis Telegram';
+      document.getElementById('pw-error').textContent = 'Ouvre COD.IA depuis Telegram';
       return;
     }
     try { Telegram.WebApp.HapticFeedback.impactOccurred('medium'); } catch(e){}
@@ -525,25 +607,21 @@
   function showPage(page){
     document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
     document.querySelectorAll('.nav').forEach(n=>n.classList.remove('active'));
-    
-    if(page==='home'){ 
-      document.getElementById('page-home').classList.add('active'); 
+    if(page==='home'){
+      document.getElementById('page-home').classList.add('active');
       document.querySelectorAll('.nav')[0].classList.add('active');
       loadCodes();
-    }
-    else if(page==='search'){ 
-      document.getElementById('page-search').classList.add('active'); 
-      document.querySelectorAll('.nav')[1].classList.add('active'); 
-    }
-    else if(page==='codia'){ 
-      document.getElementById('page-codia').classList.add('active'); 
-      document.querySelectorAll('.nav')[2].classList.add('active'); 
-    }
-    else { 
-      document.getElementById('page-profile').classList.add('active'); 
-      document.querySelectorAll('.nav')[3].classList.add('active'); 
-      viewingUserId = null; 
-      loadProfile(); 
+    } else if(page==='search'){
+      document.getElementById('page-search').classList.add('active');
+      document.querySelectorAll('.nav')[1].classList.add('active');
+    } else if(page==='codia'){
+      document.getElementById('page-codia').classList.add('active');
+      document.querySelectorAll('.nav')[2].classList.add('active');
+    } else {
+      document.getElementById('page-profile').classList.add('active');
+      document.querySelectorAll('.nav')[3].classList.add('active');
+      viewingUserId = null;
+      loadProfile();
     }
   }
 
@@ -564,7 +642,7 @@
     const description=document.getElementById('formDesc').value.trim();
     if(!site||!code){ alert('Site et code obligatoires'); return; }
     const u=getTgUser();
-    const added_by=u?.username?('@'+u.username):(u?.first_name||'Membre Codia');
+    const added_by=u?.username?('@'+u.username):(u?.first_name||'Membre COD.IA');
     try{
       const res=await fetch('/codes/add',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
         type:currentShareType,site,code,description,added_by,user_id:u?.id||null,photo_url:u?.photo_url||null
@@ -587,7 +665,7 @@
     const saved=localStorage.getItem('saved_'+id)==='1';
     const score=(c.likes||0)-(c.dislikes||0);
     const popular=score>=5?'<span class="badge-pop">Populaire</span>':'';
-    const who=c.added_by||'Membre Codia';
+    const who=c.added_by||'Membre COD.IA';
     const actionText=c.type==='parrainage'?'a partagé un code parrainage':'a partagé un code promo';
     const copies=c.copies||0;
     const canManage = isAdmin || (c.user_id && currentUserId && Number(c.user_id) === Number(currentUserId));
@@ -595,11 +673,8 @@
 
     let manageBtns = '';
     if(canManage){
-      if(isDeleted){
-        manageBtns = `<button onclick="restoreCode(${id})" style="color:var(--green)">Remettre</button>`;
-      } else {
-        manageBtns = `<button onclick="deleteCode(${id})" style="color:#f87171">Supprimer</button>`;
-      }
+      if(isDeleted) manageBtns = `<button onclick="restoreCode(${id})" style="color:var(--green)">Remettre</button>`;
+      else manageBtns = `<button onclick="deleteCode(${id})" style="color:#f87171">Supprimer</button>`;
     }
 
     const clickProfile = c.user_id ? `onclick="viewProfile(${c.user_id}, '${String(who).replace(/'/g,"\\'")}')"` : '';
@@ -724,7 +799,7 @@
       const data = await res.json();
       const queries = data.queries || [];
       if(!queries.length){ box.innerHTML = ''; return; }
-      box.innerHTML = queries.map(q => 
+      box.innerHTML = queries.map(q =>
         `<button class="chip" onclick="quickSearch('${q.replace(/'/g,"\\'")}')">${q}</button>`
       ).join('');
     }catch(e){ box.innerHTML = ''; }
@@ -744,8 +819,8 @@
     try{
       const res = await fetch('/codes/search?q=' + encodeURIComponent(q));
       const data = await res.json();
-      results.innerHTML = (data.codes||[]).length 
-        ? (data.codes||[]).map(c => renderPost(c)).join('') 
+      results.innerHTML = (data.codes||[]).length
+        ? (data.codes||[]).map(c => renderPost(c)).join('')
         : '<div class="empty">Aucun code trouvé pour « '+q+' »</div>';
     }catch(e){
       results.innerHTML = '<div class="empty">Erreur de recherche</div>';
@@ -785,9 +860,9 @@
     const targetId = forceUserId || currentUserId;
     const isOwn = !forceUserId || Number(forceUserId) === Number(currentUserId);
 
-    if(!targetId){ card.innerHTML='Ouvre Codia depuis Telegram'; return; }
+    if(!targetId){ card.innerHTML='Ouvre COD.IA depuis Telegram'; return; }
 
-    let name = forceName || (isOwn ? (u?.username ? '@'+u.username : (u?.first_name||'Membre')) : 'Membre Codia');
+    let name = forceName || (isOwn ? (u?.username ? '@'+u.username : (u?.first_name||'Membre')) : 'Membre COD.IA');
     let photo = '';
     if(isOwn && u?.photo_url) photo = `<img class="avatar-img" src="${u.photo_url}">`;
     else photo = `<div class="avatar">${name[0].toUpperCase()}</div>`;
@@ -814,7 +889,7 @@
     card.innerHTML = `
       <div class="post-top">${photo}<div>
         <div style="font-weight:700">${name}</div>
-        <div class="muted">${isOwn ? 'Mon profil' : 'Profil Codia'}</div>
+        <div class="muted">${isOwn ? 'Mon profil' : 'Profil COD.IA'}</div>
       </div></div>
       <div style="display:flex;gap:18px;margin:14px 0 6px;font-size:14px">
         <div class="clickable" onclick="showFollowList(${targetId}, 'followers')"><b>${followers}</b> abonnés</div>
@@ -837,8 +912,8 @@
     if(!container) return;
 
     if(tab === 'posts'){
-      if(tabPosts){ tabPosts.classList.add('active'); }
-      if(tabSaved){ tabSaved.classList.remove('active'); }
+      if(tabPosts) tabPosts.classList.add('active');
+      if(tabSaved) tabSaved.classList.remove('active');
       const isOwn = Number(userId) === Number(currentUserId);
       const endpoint = isOwn ? '/codes/mine?user_id='+userId : '/codes/user?user_id='+userId;
       try{
@@ -849,8 +924,8 @@
           : '<div class="empty">Aucun code publié</div>';
       }catch(e){ container.innerHTML = '<div class="empty">Erreur</div>'; }
     } else {
-      if(tabSaved){ tabSaved.classList.add('active'); }
-      if(tabPosts){ tabPosts.classList.remove('active'); }
+      if(tabSaved) tabSaved.classList.add('active');
+      if(tabPosts) tabPosts.classList.remove('active');
       if(Number(userId) !== Number(currentUserId)){
         container.innerHTML = '<div class="empty">Sauvegardés privés</div>';
         return;
@@ -896,7 +971,7 @@
         <div class="card row clickable" style="margin-bottom:8px" onclick="closeFollowList(); viewProfile(${u.user_id}, '${String(u.name||'Membre').replace(/'/g,"\\'")}')">
           <div style="display:flex;align-items:center;gap:10px">
             ${u.photo_url ? `<img class="avatar-img" src="${u.photo_url}">` : `<div class="avatar">${(u.name||'M')[0]}</div>`}
-            <div style="font-weight:600">${u.name || 'Membre Codia'}</div>
+            <div style="font-weight:600">${u.name || 'Membre COD.IA'}</div>
           </div>
         </div>
       `).join('');
@@ -912,7 +987,6 @@
     }catch(e){ allCodes=[]; }
     renderStories();
 
-    // Top Codes → format compact
     try{
       const topRes = await fetch('/codes/top');
       const topData = await topRes.json();
