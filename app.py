@@ -1,9 +1,7 @@
 import os
-import re
 import json
 import logging
 import random
-from datetime import datetime
 
 from flask import Flask, request, jsonify, send_from_directory
 import stripe
@@ -12,7 +10,6 @@ import psycopg2
 from psycopg2.extras import RealDictCursor
 from openai import OpenAI
 
-# ================== CONFIG ==================
 app = Flask(__name__)
 logging.basicConfig(level=logging.INFO)
 
@@ -27,8 +24,8 @@ CHANNEL_ID = os.getenv("CHANNEL_ID", "-1004414166682")
 DATABASE_URL = os.getenv("DATABASE_URL")
 XAI_API_KEY = os.getenv("XAI_API_KEY")
 SERVER_URL = os.getenv("SERVER_URL", "https://codeshare-bot-production.up.railway.app")
-MINIAPP_URL = os.getenv("MINIAPP_URL", f"{SERVER_URL}/miniapp")
-PRICE_CENTS = int(os.getenv("PRICE_CENTS", "1000"))  # 10 €
+MINIAPP_URL = os.getenv("MINIAPP_URL", f"{SERVER_URL}/miniapp?v=5")
+PRICE_CENTS = int(os.getenv("PRICE_CENTS", "1000"))
 
 BASE_MEMBERS = 2345  # affichage de départ : 2.345k
 
@@ -37,7 +34,6 @@ if XAI_API_KEY:
     client = OpenAI(api_key=XAI_API_KEY, base_url="https://api.x.ai/v1")
 
 
-# ================== DB ==================
 def get_conn():
     return psycopg2.connect(DATABASE_URL, cursor_factory=RealDictCursor)
 
@@ -49,17 +45,13 @@ def init_db():
     conn = get_conn()
     cur = conn.cursor()
 
-    cur.execute(
-        """
+    cur.execute("""
         CREATE TABLE IF NOT EXISTS paid_users (
             telegram_id BIGINT PRIMARY KEY,
             paid_at TIMESTAMP DEFAULT NOW()
         );
-        """
-    )
-
-    cur.execute(
-        """
+    """)
+    cur.execute("""
         CREATE TABLE IF NOT EXISTS codes (
             id SERIAL PRIMARY KEY,
             type VARCHAR(20) DEFAULT 'promo',
@@ -75,16 +67,13 @@ def init_db():
             deleted BOOLEAN DEFAULT FALSE,
             created_at TIMESTAMP DEFAULT NOW()
         );
-        """
-    )
-
+    """)
     try:
         cur.execute("ALTER TABLE codes ADD COLUMN IF NOT EXISTS deleted BOOLEAN DEFAULT FALSE;")
     except Exception:
         pass
 
-    cur.execute(
-        """
+    cur.execute("""
         CREATE TABLE IF NOT EXISTS follows (
             id SERIAL PRIMARY KEY,
             follower_id BIGINT NOT NULL,
@@ -92,22 +81,16 @@ def init_db():
             created_at TIMESTAMP DEFAULT NOW(),
             UNIQUE(follower_id, followed_id)
         );
-        """
-    )
-
-    cur.execute(
-        """
+    """)
+    cur.execute("""
         CREATE TABLE IF NOT EXISTS code_copies (
             code_id INT NOT NULL,
             user_id BIGINT NOT NULL,
             created_at TIMESTAMP DEFAULT NOW(),
             PRIMARY KEY (code_id, user_id)
         );
-        """
-    )
-
-    cur.execute(
-        """
+    """)
+    cur.execute("""
         CREATE TABLE IF NOT EXISTS notifications (
             id SERIAL PRIMARY KEY,
             user_id BIGINT NOT NULL,
@@ -119,29 +102,22 @@ def init_db():
             is_read BOOLEAN DEFAULT FALSE,
             created_at TIMESTAMP DEFAULT NOW()
         );
-        """
-    )
-
-    cur.execute(
-        """
+    """)
+    cur.execute("""
         CREATE TABLE IF NOT EXISTS search_logs (
             id SERIAL PRIMARY KEY,
             query VARCHAR(200) NOT NULL,
             created_at TIMESTAMP DEFAULT NOW()
         );
-        """
-    )
-
-    cur.execute(
-        """
+    """)
+    cur.execute("""
         CREATE TABLE IF NOT EXISTS saved_codes (
             user_id BIGINT NOT NULL,
             code_id INT NOT NULL,
             created_at TIMESTAMP DEFAULT NOW(),
             PRIMARY KEY (user_id, code_id)
         );
-        """
-    )
+    """)
 
     conn.commit()
     cur.close()
@@ -176,11 +152,7 @@ def mark_paid(telegram_id: int):
     conn = get_conn()
     cur = conn.cursor()
     cur.execute(
-        """
-        INSERT INTO paid_users (telegram_id)
-        VALUES (%s)
-        ON CONFLICT (telegram_id) DO NOTHING
-        """,
+        "INSERT INTO paid_users (telegram_id) VALUES (%s) ON CONFLICT (telegram_id) DO NOTHING",
         (int(telegram_id),),
     )
     conn.commit()
@@ -209,7 +181,6 @@ def create_notification(user_id, notif_type, actor_id, actor_name, code_id, mess
         logging.error(f"create_notification: {e}")
 
 
-# ================== TELEGRAM HELPERS ==================
 def send_telegram_message(chat_id, text, reply_markup=None, parse_mode="HTML"):
     if not TELEGRAM_TOKEN:
         return
@@ -218,30 +189,25 @@ def send_telegram_message(chat_id, text, reply_markup=None, parse_mode="HTML"):
     if reply_markup:
         payload["reply_markup"] = reply_markup
     try:
-        r = requests.post(url, json=payload, timeout=12)
-        logging.info(f"Envoi à {chat_id} → {r.status_code}")
+        requests.post(url, json=payload, timeout=12)
     except Exception as e:
         logging.error(f"send_telegram_message: {e}")
 
 
 def discover_keyboard(paid: bool):
     btn_text = "Ouvrir COD.IA" if paid else "Découvrir"
-    return {
-        "inline_keyboard": [[{"text": btn_text, "web_app": {"url": MINIAPP_URL}}]]
-    }
+    return {"inline_keyboard": [[{"text": btn_text, "web_app": {"url": MINIAPP_URL}}]]}
 
 
 def grant_access_message(chat_id):
     send_telegram_message(
         chat_id,
-        "✅ <b>Accès COD.IA activé</b>\n\n"
-        "Tu peux ouvrir l’app maintenant.\n"
+        "✅ <b>Accès COD.IA activé</b>\n\nTu peux ouvrir l’app maintenant.\n"
         f"Canal : {CHANNEL_LINK}",
         reply_markup=discover_keyboard(True),
     )
 
 
-# ================== ROUTES BASE ==================
 @app.route("/")
 def home():
     return "COD.IA Server is running ✅"
@@ -249,7 +215,11 @@ def home():
 
 @app.route("/miniapp")
 def miniapp():
-    return send_from_directory(".", "miniapp.html")
+    resp = send_from_directory(".", "miniapp.html")
+    resp.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+    resp.headers["Pragma"] = "no-cache"
+    resp.headers["Expires"] = "0"
+    return resp
 
 
 @app.route("/config")
@@ -259,9 +229,8 @@ def config():
 
 @app.route("/access")
 def access():
-    user_id = request.args.get("user_id")
     try:
-        uid = int(user_id)
+        uid = int(request.args.get("user_id"))
     except Exception:
         return jsonify({"paid": False})
     return jsonify({"paid": is_paid(uid), "is_admin": uid == ADMIN_ID})
@@ -269,7 +238,6 @@ def access():
 
 @app.route("/stats")
 def stats():
-    """Base 2.345k + nombre réel de paid_users"""
     try:
         conn = get_conn()
         cur = conn.cursor()
@@ -285,7 +253,6 @@ def stats():
         return jsonify({"members": BASE_MEMBERS, "members_display": "2.345k"})
 
 
-# ================== STRIPE ==================
 @app.route("/create-checkout", methods=["POST"])
 def create_checkout():
     data = request.json or {}
@@ -304,7 +271,7 @@ def create_checkout():
                 },
                 "quantity": 1,
             }],
-            success_url=f"{MINIAPP_URL}?paid=1",
+            success_url=f"{MINIAPP_URL}&paid=1" if "?" in MINIAPP_URL else f"{MINIAPP_URL}?paid=1",
             cancel_url=MINIAPP_URL,
             metadata={"telegram_id": str(telegram_id)},
         )
@@ -321,6 +288,7 @@ def create_embedded_checkout():
     if not telegram_id:
         return jsonify({"error": "telegram_id manquant"}), 400
     try:
+        return_url = f"{MINIAPP_URL}&paid=1" if "?" in MINIAPP_URL else f"{MINIAPP_URL}?paid=1"
         session = stripe.checkout.Session.create(
             ui_mode="embedded_page",
             mode="payment",
@@ -332,7 +300,7 @@ def create_embedded_checkout():
                 },
                 "quantity": 1,
             }],
-            return_url=f"{MINIAPP_URL}?paid=1",
+            return_url=return_url,
             metadata={"telegram_id": str(telegram_id)},
         )
         return jsonify({"clientSecret": session.client_secret})
@@ -363,11 +331,9 @@ def stripe_webhook():
                 grant_access_message(int(telegram_id))
             except Exception as e:
                 logging.error(f"grant after payment: {e}")
-
     return jsonify(success=True)
 
 
-# ================== CODES API ==================
 @app.route("/codes")
 def list_codes():
     try:
@@ -414,7 +380,8 @@ def search_codes():
         cur.execute(
             """
             SELECT * FROM codes
-            WHERE deleted = FALSE AND (site ILIKE %s OR code ILIKE %s OR description ILIKE %s)
+            WHERE deleted = FALSE
+              AND (site ILIKE %s OR code ILIKE %s OR description ILIKE %s)
             ORDER BY created_at DESC LIMIT 50
             """,
             (f"%{q}%", f"%{q}%", f"%{q}%"),
@@ -472,15 +439,13 @@ def add_code():
     user_id = data.get("user_id")
     if user_id and not is_paid(int(user_id)):
         return jsonify({"success": False, "error": "not_paid"}), 403
-
     try:
         conn = get_conn()
         cur = conn.cursor()
         cur.execute(
             """
             INSERT INTO codes (type, site, code, description, added_by, user_id, photo_url)
-            VALUES (%s,%s,%s,%s,%s,%s,%s)
-            RETURNING id
+            VALUES (%s,%s,%s,%s,%s,%s,%s) RETURNING id
             """,
             (
                 data.get("type") or "promo",
@@ -508,20 +473,16 @@ def code_copy():
     code_id = data.get("id")
     user_id = data.get("user_id")
     actor_name = data.get("actor_name") or "Quelqu’un"
-
     if not code_id or not user_id:
         return jsonify({"copies": 0, "already": True})
-
     try:
         conn = get_conn()
         cur = conn.cursor()
-
         cur.execute(
             "SELECT 1 FROM code_copies WHERE code_id = %s AND user_id = %s",
             (code_id, int(user_id)),
         )
-        already = cur.fetchone()
-        if already:
+        if cur.fetchone():
             cur.execute("SELECT copies FROM codes WHERE id = %s", (code_id,))
             row = cur.fetchone()
             cur.close()
@@ -541,16 +502,11 @@ def code_copy():
         cur.close()
         conn.close()
 
-        copies = row["copies"] if row else 0
-        owner_id = row["user_id"] if row else None
-        site = row["site"] if row else ""
-        code_val = row["code"] if row else ""
+        if row and row["user_id"] and int(row["user_id"]) != int(user_id):
+            msg = f"📋 <b>{actor_name}</b> a copié ton code <code>{row['code']}</code> sur <b>{row['site']}</b>"
+            create_notification(row["user_id"], "copy", user_id, actor_name, code_id, msg)
 
-        if owner_id and int(owner_id) != int(user_id):
-            msg = f"📋 <b>{actor_name}</b> a copié ton code <code>{code_val}</code> sur <b>{site}</b>"
-            create_notification(owner_id, "copy", user_id, actor_name, code_id, msg)
-
-        return jsonify({"copies": copies, "already": False})
+        return jsonify({"copies": row["copies"] if row else 0, "already": False})
     except Exception as e:
         logging.error(e)
         return jsonify({"copies": 0, "already": False})
@@ -564,7 +520,6 @@ def code_react():
     action = data.get("action")
     user_id = data.get("user_id")
     actor_name = data.get("actor_name") or "Quelqu’un"
-
     col = "likes" if reaction == "like" else "dislikes"
     delta = 1 if action == "add" else -1
     try:
@@ -579,20 +534,15 @@ def code_react():
         cur.close()
         conn.close()
 
-        value = row["value"] if row else 0
-        owner_id = row["user_id"] if row else None
-        site = row["site"] if row else ""
-        code_val = row["code"] if row else ""
-
-        if action == "add" and owner_id and user_id and int(owner_id) != int(user_id):
+        if action == "add" and row and row["user_id"] and user_id and int(row["user_id"]) != int(user_id):
             if reaction == "like":
-                msg = f"❤️ <b>{actor_name}</b> a aimé ton code <code>{code_val}</code> sur <b>{site}</b>"
-                create_notification(owner_id, "like", user_id, actor_name, code_id, msg)
+                msg = f"❤️ <b>{actor_name}</b> a aimé ton code <code>{row['code']}</code> sur <b>{row['site']}</b>"
+                create_notification(row["user_id"], "like", user_id, actor_name, code_id, msg)
             else:
-                msg = f"👎 <b>{actor_name}</b> n’a pas aimé ton code <code>{code_val}</code> sur <b>{site}</b>"
-                create_notification(owner_id, "dislike", user_id, actor_name, code_id, msg)
+                msg = f"👎 <b>{actor_name}</b> n’a pas aimé ton code <code>{row['code']}</code> sur <b>{row['site']}</b>"
+                create_notification(row["user_id"], "dislike", user_id, actor_name, code_id, msg)
 
-        return jsonify({"value": value})
+        return jsonify({"value": row["value"] if row else 0})
     except Exception as e:
         logging.error(e)
         return jsonify({"value": 0})
@@ -605,7 +555,6 @@ def code_delete():
     user_id = data.get("user_id")
     if not code_id or not user_id:
         return jsonify({"success": False}), 400
-
     try:
         conn = get_conn()
         cur = conn.cursor()
@@ -614,17 +563,12 @@ def code_delete():
         if not row:
             cur.close()
             conn.close()
-            return jsonify({"success": False, "error": "not_found"}), 404
-
+            return jsonify({"success": False}), 404
         owner_id = row["user_id"]
-        is_admin = int(user_id) == ADMIN_ID
-        is_owner = owner_id and int(owner_id) == int(user_id)
-
-        if not (is_admin or is_owner):
+        if not (int(user_id) == ADMIN_ID or (owner_id and int(owner_id) == int(user_id))):
             cur.close()
             conn.close()
-            return jsonify({"success": False, "error": "forbidden"}), 403
-
+            return jsonify({"success": False}), 403
         cur.execute("UPDATE codes SET deleted = TRUE WHERE id = %s", (code_id,))
         conn.commit()
         cur.close()
@@ -642,7 +586,6 @@ def code_restore():
     user_id = data.get("user_id")
     if not code_id or not user_id:
         return jsonify({"success": False}), 400
-
     try:
         conn = get_conn()
         cur = conn.cursor()
@@ -651,17 +594,12 @@ def code_restore():
         if not row:
             cur.close()
             conn.close()
-            return jsonify({"success": False, "error": "not_found"}), 404
-
+            return jsonify({"success": False}), 404
         owner_id = row["user_id"]
-        is_admin = int(user_id) == ADMIN_ID
-        is_owner = owner_id and int(owner_id) == int(user_id)
-
-        if not (is_admin or is_owner):
+        if not (int(user_id) == ADMIN_ID or (owner_id and int(owner_id) == int(user_id))):
             cur.close()
             conn.close()
-            return jsonify({"success": False, "error": "forbidden"}), 403
-
+            return jsonify({"success": False}), 403
         cur.execute("UPDATE codes SET deleted = FALSE WHERE id = %s", (code_id,))
         conn.commit()
         cur.close()
@@ -672,7 +610,7 @@ def code_restore():
         return jsonify({"success": False}), 500
 
 
-# ================== SAUVEGARDES ==================
+# ===== FAVORIS (swipe) =====
 @app.route("/code/save", methods=["POST"])
 def save_code():
     data = request.json or {}
@@ -748,17 +686,14 @@ def saved_codes():
         return jsonify({"codes": []})
 
 
-# ================== FOLLOWS ==================
 @app.route("/follow", methods=["POST"])
 def follow():
     data = request.json or {}
     follower_id = data.get("follower_id")
     followed_id = data.get("followed_id")
     actor_name = data.get("actor_name") or "Quelqu’un"
-
     if not follower_id or not followed_id or int(follower_id) == int(followed_id):
         return jsonify({"success": False}), 400
-
     try:
         conn = get_conn()
         cur = conn.cursor()
@@ -775,11 +710,9 @@ def follow():
         conn.commit()
         cur.close()
         conn.close()
-
         if row:
             msg = f"👤 <b>{actor_name}</b> s’est abonné à ton profil COD.IA"
             create_notification(followed_id, "follow", follower_id, actor_name, None, msg)
-
         return jsonify({"success": True, "following": True})
     except Exception as e:
         logging.error(e)
@@ -811,14 +744,12 @@ def unfollow():
 
 @app.route("/is_following")
 def is_following():
-    follower = request.args.get("follower")
-    followed = request.args.get("followed")
     try:
         conn = get_conn()
         cur = conn.cursor()
         cur.execute(
             "SELECT 1 FROM follows WHERE follower_id = %s AND followed_id = %s",
-            (int(follower), int(followed)),
+            (int(request.args.get("follower")), int(request.args.get("followed"))),
         )
         row = cur.fetchone()
         cur.close()
@@ -838,14 +769,13 @@ def followers():
             """
             SELECT f.follower_id AS user_id,
                    COALESCE(
-                       (SELECT added_by FROM codes WHERE user_id = f.follower_id ORDER BY created_at DESC LIMIT 1),
-                       'Membre COD.IA'
+                     (SELECT added_by FROM codes WHERE user_id = f.follower_id ORDER BY created_at DESC LIMIT 1),
+                     'Membre COD.IA'
                    ) AS name,
                    (SELECT photo_url FROM codes WHERE user_id = f.follower_id AND photo_url IS NOT NULL ORDER BY created_at DESC LIMIT 1) AS photo_url
             FROM follows f
             WHERE f.followed_id = %s
-            ORDER BY f.created_at DESC
-            LIMIT 100
+            ORDER BY f.created_at DESC LIMIT 100
             """,
             (int(user_id),),
         )
@@ -868,14 +798,13 @@ def following():
             """
             SELECT f.followed_id AS user_id,
                    COALESCE(
-                       (SELECT added_by FROM codes WHERE user_id = f.followed_id ORDER BY created_at DESC LIMIT 1),
-                       'Membre COD.IA'
+                     (SELECT added_by FROM codes WHERE user_id = f.followed_id ORDER BY created_at DESC LIMIT 1),
+                     'Membre COD.IA'
                    ) AS name,
                    (SELECT photo_url FROM codes WHERE user_id = f.followed_id AND photo_url IS NOT NULL ORDER BY created_at DESC LIMIT 1) AS photo_url
             FROM follows f
             WHERE f.follower_id = %s
-            ORDER BY f.created_at DESC
-            LIMIT 100
+            ORDER BY f.created_at DESC LIMIT 100
             """,
             (int(user_id),),
         )
@@ -905,7 +834,6 @@ def profile_stats():
         return jsonify({"followers": 0, "following": 0})
 
 
-# ================== NOTIFICATIONS ==================
 @app.route("/notifications")
 def get_notifications():
     user_id = request.args.get("user_id")
@@ -913,12 +841,7 @@ def get_notifications():
         conn = get_conn()
         cur = conn.cursor()
         cur.execute(
-            """
-            SELECT * FROM notifications
-            WHERE user_id = %s
-            ORDER BY created_at DESC
-            LIMIT 50
-            """,
+            "SELECT * FROM notifications WHERE user_id = %s ORDER BY created_at DESC LIMIT 50",
             (int(user_id),),
         )
         rows = cur.fetchall()
@@ -957,7 +880,6 @@ def mark_notifications_read():
         return jsonify({"success": False}), 500
 
 
-# ================== SEARCH LOGS ==================
 @app.route("/search/log", methods=["POST"])
 def log_search():
     data = request.json or {}
@@ -983,8 +905,7 @@ def recent_searches():
         cur = conn.cursor()
         cur.execute(
             """
-            SELECT query, COUNT(*) as cnt
-            FROM search_logs
+            SELECT query FROM search_logs
             WHERE created_at > NOW() - INTERVAL '30 days'
             GROUP BY query
             ORDER BY MAX(created_at) DESC
@@ -1002,29 +923,18 @@ def recent_searches():
         return jsonify({"queries": []})
 
 
-# ================== IA ==================
 @app.route("/ask", methods=["POST"])
 def ask():
     data = request.json or {}
     question = (data.get("question") or "").strip()
-    city = data.get("city")
     if not question:
-        return jsonify({"answer": "Dis-moi ce que tu cherches (Uber, Booking, Zara...)"})
-
+        return jsonify({"answer": "Dis-moi ce que tu cherches."})
     if not client:
         return jsonify({"answer": "IA non configurée (XAI_API_KEY manquante)."})
-
     system = (
-        "Tu es l'assistant COD.IA. Tu aides à trouver des codes promo, parrainage, remises "
-        "en France. Réponds toujours de façon utile et positive. "
-        "Si tu n'as pas de code exact, propose des alternatives concrètes (sites, types d'offres). "
-        "Interdit: répondre vide, inutile, ou purement négatif. "
-        "Réponds en français, court et actionnable. "
-        "Tu peux aussi aider les utilisateurs qui ont un problème technique sur l'application."
+        "Tu es l'assistant COD.IA. Tu aides à trouver des codes promo et parrainages en France. "
+        "Réponds en français, court et utile. Tu peux aussi aider sur les problèmes de l'app."
     )
-    if city:
-        system += f" Localisation utilisateur: {city}."
-
     try:
         completion = client.chat.completions.create(
             model="grok-2-latest",
@@ -1034,14 +944,12 @@ def ask():
             ],
             temperature=0.6,
         )
-        answer = completion.choices[0].message.content
-        return jsonify({"answer": answer})
+        return jsonify({"answer": completion.choices[0].message.content})
     except Exception as e:
         logging.error(e)
-        return jsonify({"answer": "Je cherche une alternative: regarde Booking, Uber Eats, Zara ou les banques en ligne (Fortuneo, Boursorama)."})
+        return jsonify({"answer": "Essaie Booking, Uber Eats, Zara ou les banques en ligne."})
 
 
-# ================== TELEGRAM WEBHOOK ==================
 @app.route("/telegram", methods=["POST"])
 def telegram_webhook():
     update = request.json or {}
@@ -1060,17 +968,13 @@ def telegram_webhook():
         if paid:
             send_telegram_message(
                 chat_id,
-                f"👋 Salut <b>{user.get('first_name') or ''}</b>\n\n"
-                "Ton accès COD.IA est actif.\n"
-                "Clique sur <b>Ouvrir</b> pour entrer dans l’app.",
+                f"👋 Salut <b>{user.get('first_name') or ''}</b>\n\nTon accès COD.IA est actif.\nClique sur <b>Ouvrir</b>.",
                 reply_markup=discover_keyboard(True),
             )
         else:
             send_telegram_message(
                 chat_id,
-                f"👋 Bienvenue sur <b>COD.IA</b>\n\n"
-                "Codes promo, parrainage, IA et communauté.\n\n"
-                "Clique sur <b>Découvrir</b> pour voir l’offre.",
+                "👋 Bienvenue sur <b>COD.IA</b>\n\nCodes promo, parrainage, IA et communauté.\nClique sur <b>Découvrir</b>.",
                 reply_markup=discover_keyboard(False),
             )
         return jsonify(success=True)
@@ -1086,7 +990,7 @@ def telegram_webhook():
     if not is_paid(user_id):
         send_telegram_message(
             chat_id,
-            "🔒 Accès réservé.\nClique sur Découvrir pour débloquer COD.IA.",
+            "🔒 Accès réservé. Clique sur Découvrir.",
             reply_markup=discover_keyboard(False),
         )
         return jsonify(success=True)
@@ -1098,19 +1002,13 @@ def telegram_webhook():
     if text.startswith("/promo"):
         parts = text.split()
         if len(parts) >= 4:
-            site = parts[1]
-            montant = parts[2]
-            code = parts[3]
-            expire = parts[4] if len(parts) >= 5 else None
+            site, montant, code = parts[1], parts[2], parts[3]
             display = f"@{user.get('username')}" if user.get("username") else user.get("first_name", "Membre")
             try:
                 conn = get_conn()
                 cur = conn.cursor()
                 cur.execute(
-                    """
-                    INSERT INTO codes (type, site, code, description, added_by, user_id)
-                    VALUES ('promo', %s, %s, %s, %s, %s)
-                    """,
+                    "INSERT INTO codes (type, site, code, description, added_by, user_id) VALUES ('promo', %s, %s, %s, %s, %s)",
                     (site, code, f"-{montant}%", display, user_id),
                 )
                 conn.commit()
@@ -1118,18 +1016,10 @@ def telegram_webhook():
                 conn.close()
             except Exception as e:
                 logging.error(e)
-
-            msg = (
-                f"🏷 <b>CODE PROMO</b>\n\n"
-                f"De : {display}\n"
-                f"Site : {site}\n"
-                f"Remise : <b>{montant}%</b>\n"
-                f"Code : <code>{code}</code>\n"
-                f"Statut : ✅ Actif"
+            send_telegram_message(
+                CHANNEL_ID,
+                f"🏷 <b>CODE PROMO</b>\n\nDe : {display}\nSite : {site}\nRemise : <b>{montant}%</b>\nCode : <code>{code}</code>",
             )
-            if expire:
-                msg += f"\nExpire le : {expire}"
-            send_telegram_message(CHANNEL_ID, msg)
             send_telegram_message(chat_id, f"✅ Promo publiée : {site} | {code}")
         else:
             send_telegram_message(chat_id, "Format : /promo Site 30 CODE")
@@ -1138,19 +1028,13 @@ def telegram_webhook():
     if text.startswith("/parrainage"):
         parts = text.split()
         if len(parts) >= 4:
-            site = parts[1]
-            montant = parts[2]
-            code = parts[3]
-            expire = parts[4] if len(parts) >= 5 else None
+            site, montant, code = parts[1], parts[2], parts[3]
             display = f"@{user.get('username')}" if user.get("username") else user.get("first_name", "Membre")
             try:
                 conn = get_conn()
                 cur = conn.cursor()
                 cur.execute(
-                    """
-                    INSERT INTO codes (type, site, code, description, added_by, user_id)
-                    VALUES ('parrainage', %s, %s, %s, %s, %s)
-                    """,
+                    "INSERT INTO codes (type, site, code, description, added_by, user_id) VALUES ('parrainage', %s, %s, %s, %s, %s)",
                     (site, code, f"+{montant}€", display, user_id),
                 )
                 conn.commit()
@@ -1158,18 +1042,10 @@ def telegram_webhook():
                 conn.close()
             except Exception as e:
                 logging.error(e)
-
-            msg = (
-                f"🔗 <b>CODE DE PARRAINAGE</b>\n\n"
-                f"De : {display}\n"
-                f"Site : {site}\n"
-                f"Bonus : <b>+{montant}€</b>\n"
-                f"Code : <code>{code}</code>\n"
-                f"Statut : ✅ Actif"
+            send_telegram_message(
+                CHANNEL_ID,
+                f"🔗 <b>CODE DE PARRAINAGE</b>\n\nDe : {display}\nSite : {site}\nBonus : <b>+{montant}€</b>\nCode : <code>{code}</code>",
             )
-            if expire:
-                msg += f"\nExpire le : {expire}"
-            send_telegram_message(CHANNEL_ID, msg)
             send_telegram_message(chat_id, f"✅ Parrainage publié : {site} | {code}")
         else:
             send_telegram_message(chat_id, "Format : /parrainage Site 20 CODE")
@@ -1183,7 +1059,7 @@ def notify_daily():
     data = request.json or {}
     if int(data.get("admin_id") or 0) != ADMIN_ID:
         return jsonify({"error": "unauthorized"}), 403
-    send_telegram_message(ADMIN_ID, "Cron daily reçu ✅ (aucune fausse remise envoyée).")
+    send_telegram_message(ADMIN_ID, "Cron daily reçu ✅")
     return jsonify({"ok": True})
 
 
