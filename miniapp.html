@@ -13,8 +13,7 @@
       --accent:#2AABEE; --accent2:#8b5cf6; --green:#22c55e; --orange:#f59e0b;
       --gradient:linear-gradient(135deg,#2AABEE 0%,#8b5cf6 55%,#ec4899 100%);
       --gradient-soft:linear-gradient(135deg,rgba(42,171,238,0.16),rgba(139,92,246,0.12));
-      --shadow:0 10px 40px rgba(0,0,0,0.45); --shadow-accent:0 8px 32px rgba(42,171,238,0.25);
-      --radius:22px; --transition:all 0.25s cubic-bezier(0.4,0,0.2,1);
+      --shadow:0 10px 40px rgba(0,0,0,0.45); --radius:22px;
     }
     body.light {
       --bg:#f8fafc; --card:#fff; --card-hover:#f1f5f9; --text:#0f172a; --text2:#64748b; --border:#e2e8f0;
@@ -28,9 +27,11 @@
     .app{max-width:430px;height:100vh;margin:0 auto;display:flex;flex-direction:column;position:relative;background:var(--bg)}
     .hidden{display:none!important}
     @keyframes fadeInUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes pageIn{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
     @keyframes orbFloat{from{transform:translate(0,0)}to{transform:translate(-3%,4%)}}
     @keyframes badgePulse{0%,100%{box-shadow:0 0 16px rgba(42,171,238,0.25)}50%{box-shadow:0 0 28px rgba(42,171,238,0.45)}}
     @keyframes ctaShine{0%{left:-100%}50%,100%{left:130%}}
+    @keyframes saveFlash{0%{box-shadow:0 0 0 0 rgba(42,171,238,0.6);transform:scale(1)}40%{box-shadow:0 0 0 16px rgba(42,171,238,0);transform:scale(1.015)}100%{box-shadow:var(--shadow);transform:scale(1)}}
 
     .codia-logo{display:inline-flex;flex-direction:column;align-items:flex-start;line-height:1}
     .codia-logo-main{display:flex;align-items:center;gap:2px;position:relative}
@@ -62,7 +63,6 @@
 
     .page{display:none;flex:1;overflow-y:auto;padding-bottom:115px;animation:pageIn 0.38s cubic-bezier(0.22,1,0.36,1)}
     .page.active{display:block}
-    @keyframes pageIn{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
 
     .search-wrap{padding:18px}
     .search{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--border);border-radius:20px;padding:15px 18px}
@@ -83,7 +83,7 @@
     .actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;align-items:center}
     .actions button{border:1px solid var(--border);background:var(--bg);color:var(--text);border-radius:999px;padding:8px 14px;font-size:13px}
 
-    /* === SWIPE FAVORIS – ANIMATION FLUIDE === */
+    /* SWIPE FAVORIS FLUIDE */
     .post-swipe-wrap{position:relative;margin:0 16px 16px;border-radius:var(--radius);overflow:hidden;animation:fadeInUp 0.4s ease both}
     .post-swipe-bg{position:absolute;inset:0;background:linear-gradient(90deg,rgba(42,171,238,0.35),rgba(42,171,238,0.04));display:flex;align-items:center;padding-left:28px;z-index:0}
     .post-swipe-bg .fav-icon{width:44px;height:44px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;color:#fff;transform:scale(0.45);opacity:0.25;transition:transform 0.18s cubic-bezier(0.34,1.56,0.64,1),opacity 0.18s ease;box-shadow:0 6px 20px rgba(42,171,238,0.45)}
@@ -92,7 +92,6 @@
     .post-swipe-content{position:relative;z-index:1;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow);transition:transform 0.32s cubic-bezier(0.22,1,0.36,1);will-change:transform;touch-action:pan-y;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
     .post-swipe-content.swiping{transition:none}
     .post-swipe-content.saved-flash{animation:saveFlash 0.55s cubic-bezier(0.22,1,0.36,1)}
-    @keyframes saveFlash{0%{box-shadow:0 0 0 0 rgba(42,171,238,0.6);transform:scale(1)}40%{box-shadow:0 0 0 16px rgba(42,171,238,0);transform:scale(1.015)}100%{box-shadow:var(--shadow);transform:scale(1)}}
     .post-swipe-wrap.removing{transition:opacity 0.35s cubic-bezier(0.4,0,0.2,1),transform 0.35s cubic-bezier(0.4,0,0.2,1);opacity:0;transform:translateX(60px) scale(0.97)}
     .post-swipe-content .code,.post-swipe-content .code *{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
 
@@ -113,7 +112,7 @@
     .quick{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
     .quick button{width:auto;padding:9px 14px;margin:0;font-size:13px;border-radius:999px}
 
-    .welcome-box{margin:26px 18px;padding:28px 24px;border-radius:26px;background:var(--gradient-soft);border:1px solid rgba(42,171,238,0.25);text-align:left}
+    .welcome-box{margin:26px 18px;padding:28px 24px;border-radius:26px;background:var(--gradient-soft);border:1px solid rgba(42,171,238,0.25)}
     .welcome-title{font-size:28px;font-weight:800;margin-bottom:12px;background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-align:center}
     .welcome-text{font-size:14px;line-height:1.65;color:var(--text2)}
     .welcome-text b{color:var(--text)}
@@ -124,6 +123,16 @@
     .profile-tab{flex:1;background:none;border:none;color:var(--text2);padding:14px 8px;border-bottom:2px solid transparent}
     .profile-tab.active{color:var(--text);border-bottom-color:var(--accent)}
     .profile-tab svg{width:24px;height:24px;display:block;margin:0 auto}
+
+    .toggle-row{display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-top:1px solid var(--border);margin-top:10px}
+    .toggle-label{font-size:14px;font-weight:600}
+    .toggle-sub{font-size:12px;color:var(--text2)}
+    .switch{position:relative;display:inline-block;width:48px;height:28px}
+    .switch input{opacity:0;width:0;height:0}
+    .slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:#333;border-radius:28px;transition:.3s}
+    .slider:before{position:absolute;content:"";height:22px;width:22px;left:3px;bottom:3px;background:white;border-radius:50%;transition:.3s}
+    input:checked + .slider{background:var(--accent)}
+    input:checked + .slider:before{transform:translateX(20px)}
 
     #paywall{position:fixed;inset:0;z-index:100;max-width:430px;margin:0 auto;background:#03050a;color:#fff;display:flex;flex-direction:column;overflow:hidden}
     .sg-bg{position:absolute;inset:0;background:radial-gradient(ellipse 80% 50% at 50% -10%,rgba(42,171,238,0.35),transparent 55%),#03050a}
@@ -258,10 +267,10 @@
       <div class="welcome-text">
         <b>Bienvenue !</b><br><br>
         Voici comment fonctionne l’app :<br><br>
-        • <b>Feed</b> → découvre les codes promo & parrainages de la communauté<br>
-        • <b>Swipe droite</b> sur une carte → ajoute-la à tes favoris<br>
+        • <b>Feed</b> → codes promo & parrainages de la communauté<br>
+        • <b>Swipe droite</b> sur une carte → ajoute aux favoris<br>
         • <b>Recherche</b> → trouve rapidement un code<br>
-        • <b>Profil</b> → tes codes postés (pellicule) + tes favoris<br>
+        • <b>Profil</b> → tes codes (pellicule) + tes favoris<br>
         • <b>Assistant IA</b> → pose ta question ci-dessous<br><br>
         Partage, sauvegarde et économise 🚀
       </div>
@@ -374,9 +383,7 @@ function renderPost(c, options = {}) {
       : `<button onclick="deleteCode(${id})" style="color:#f87171">Supprimer</button>`;
   }
 
-  const click = c.user_id
-    ? `onclick="viewProfile(${c.user_id},'${String(who).replace(/'/g, "\\'")}')"`
-    : '';
+  const click = c.user_id ? `onclick="viewProfile(${c.user_id},'${String(who).replace(/'/g, "\\'")}')"` : '';
 
   return `
   <div class="post-swipe-wrap" data-id="${id || ''}">
@@ -434,22 +441,7 @@ async function removeFromFavorites(id, btn) {
       wrap.classList.add('removing');
       setTimeout(() => wrap.remove(), 360);
     }
-    if (window.Telegram?.WebApp?.HapticFeedback) {
-      Telegram.WebApp.HapticFeedback.impactOccurred('light');
-    }
-  } catch (e) {}
-}
-
-async function toggleSave(id) {
-  if (!currentUserId || !id) return;
-  const isSaved = localStorage.getItem('saved_' + id) === '1';
-  try {
-    await fetch(isSaved ? '/code/unsave' : '/code/save', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id, user_id: currentUserId })
-    });
-    localStorage.setItem('saved_' + id, isSaved ? '0' : '1');
+    if (window.Telegram?.WebApp?.HapticFeedback) Telegram.WebApp.HapticFeedback.impactOccurred('light');
   } catch (e) {}
 }
 
@@ -471,8 +463,25 @@ async function loadProfile(forceId=null,forceName=null){
   let followers=0,following=0;try{const st=await(await fetch('/profile_stats?user_id='+targetId)).json();followers=st.followers||0;following=st.following||0}catch(e){}
   let followBtn='';if(!isOwn&&currentUserId){let isF=false;try{isF=(await(await fetch(`/is_following?follower=${currentUserId}&followed=${targetId}`)).json()).following}catch(e){}
     followBtn=isF?`<button class="pill" style="margin-top:10px" onclick="toggleFollow(${targetId},false)">Abonné ✓</button>`:`<button class="pill" style="margin-top:10px" onclick="toggleFollow(${targetId},true)">S’abonner</button>`}
+
+  let pushToggle = '';
+  if (isOwn) {
+    pushToggle = `
+      <div class="toggle-row">
+        <div>
+          <div class="toggle-label">Notifications push</div>
+          <div class="toggle-sub">Recevoir les alertes Telegram</div>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="push-toggle" onchange="togglePush(this.checked)">
+          <span class="slider"></span>
+        </label>
+      </div>`;
+  }
+
   card.innerHTML=`<div class="post-top">${photo}<div><div style="font-weight:700">${name}</div><div class="muted">${isOwn?'Mon profil':'Profil'}</div></div></div>
     <div style="display:flex;gap:18px;margin:14px 0;font-size:14px"><div class="clickable" onclick="showFollowList(${targetId},'followers')"><b>${followers}</b> abonnés</div><div class="clickable" onclick="showFollowList(${targetId},'following')"><b>${following}</b> abonnements</div></div>${followBtn}
+    ${pushToggle}
     <div class="profile-tabs">
       <button class="profile-tab active" id="tab-posts" onclick="showProfileTab('posts',${targetId})">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
@@ -483,21 +492,41 @@ async function loadProfile(forceId=null,forceName=null){
       <button class="profile-tab" id="tab-saved" onclick="showProfileTab('saved',${targetId})">${ICON_OUT}</button>
     </div>`;
   showProfileTab('posts',targetId);
+  if (isOwn) loadPushSetting();
 }
+
+async function loadPushSetting() {
+  if (!currentUserId) return;
+  try {
+    const d = await (await fetch('/settings/push?user_id=' + currentUserId)).json();
+    const toggle = document.getElementById('push-toggle');
+    if (toggle) toggle.checked = d.enabled !== false;
+  } catch (e) {}
+}
+
+async function togglePush(enabled) {
+  try {
+    await fetch('/settings/push', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user_id: currentUserId, enabled })
+    });
+    if (window.Telegram?.WebApp?.HapticFeedback) Telegram.WebApp.HapticFeedback.selectionChanged();
+  } catch (e) {}
+}
+
 async function showProfileTab(tab, userId) {
   const tp = document.getElementById('tab-posts');
   const ts = document.getElementById('tab-saved');
   const c = document.getElementById('my-codes');
   if (tab === 'posts') {
-    tp?.classList.add('active');
-    ts?.classList.remove('active');
+    tp?.classList.add('active'); ts?.classList.remove('active');
     try {
       const d = await (await fetch((Number(userId) === Number(currentUserId) ? '/codes/mine' : '/codes/user') + '?user_id=' + userId)).json();
       c.innerHTML = (d.codes || []).length ? (d.codes || []).map(x => renderPost(x)).join('') : '<div class="empty">Aucun code</div>';
     } catch (e) { c.innerHTML = '<div class="empty">Erreur</div>'; }
   } else {
-    ts?.classList.add('active');
-    tp?.classList.remove('active');
+    ts?.classList.add('active'); tp?.classList.remove('active');
     if (Number(userId) !== Number(currentUserId)) { c.innerHTML = '<div class="empty">Privé</div>'; return; }
     try {
       const d = await (await fetch('/codes/saved?user_id=' + userId)).json();
@@ -517,7 +546,7 @@ async function loadCodes(){
   document.getElementById('codes-list').innerHTML=allCodes.length?allCodes.map(c=>renderPost(c)).join(''):'<div class="empty">Feed vide</div>';
 }
 
-/* === SWIPE DROITE FAVORIS – FLUIDE === */
+/* === SWIPE DROITE FAVORIS === */
 const SWIPE_THRESHOLD = 85;
 let swipeActive = null;
 
@@ -581,16 +610,14 @@ async function onSwipeEnd() {
         await fetch(isSaved ? '/code/unsave' : '/code/save', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ id, user_id: currentUserId })
+          body: JSON.stringify({ id, user_id: currentUserId, actor_name: currentUserName })
         });
         localStorage.setItem('saved_' + id, isSaved ? '0' : '1');
         const favIcon = bg.querySelector('.fav-icon');
         if (favIcon) favIcon.innerHTML = isSaved ? ICON_OUT : ICON_FILL;
         content.classList.add('saved-flash');
         setTimeout(() => content.classList.remove('saved-flash'), 550);
-        if (window.Telegram?.WebApp?.HapticFeedback) {
-          Telegram.WebApp.HapticFeedback.impactOccurred('medium');
-        }
+        if (window.Telegram?.WebApp?.HapticFeedback) Telegram.WebApp.HapticFeedback.impactOccurred('medium');
         if (isSaved && document.getElementById('tab-saved')?.classList.contains('active')) {
           wrap.classList.add('removing');
           setTimeout(() => wrap.remove(), 360);
