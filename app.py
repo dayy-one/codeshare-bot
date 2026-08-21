@@ -24,10 +24,15 @@ CHANNEL_ID = os.getenv("CHANNEL_ID", "-1004414166682")
 DATABASE_URL = os.getenv("DATABASE_URL")
 XAI_API_KEY = os.getenv("XAI_API_KEY")
 SERVER_URL = os.getenv("SERVER_URL", "https://codeshare-bot-production.up.railway.app")
-MINIAPP_URL = os.getenv("MINIAPP_URL", f"{SERVER_URL}/miniapp?v=6")
+MINIAPP_URL = os.getenv("MINIAPP_URL", f"{SERVER_URL}/miniapp?v=8")
 PRICE_CENTS = int(os.getenv("PRICE_CENTS", "1000"))
 
-BASE_MEMBERS = 2345  # affichage départ : 2.345k
+# Twilio (optionnel pour SMS)
+TWILIO_ACCOUNT_SID = os.getenv("TWILIO_ACCOUNT_SID")
+TWILIO_AUTH_TOKEN = os.getenv("TWILIO_AUTH_TOKEN")
+TWILIO_FROM_NUMBER = os.getenv("TWILIO_FROM_NUMBER")
+
+BASE_MEMBERS = 2345
 
 client = None
 if XAI_API_KEY:
@@ -118,6 +123,15 @@ def init_db():
             PRIMARY KEY (user_id, code_id)
         );
     """)
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS user_settings (
+            telegram_id BIGINT PRIMARY KEY,
+            push_enabled BOOLEAN DEFAULT TRUE,
+            sms_enabled BOOLEAN DEFAULT FALSE,
+            phone VARCHAR(30),
+            updated_at TIMESTAMP DEFAULT NOW()
+        );
+    """)
 
     conn.commit()
     cur.close()
@@ -160,6 +174,75 @@ def mark_paid(telegram_id: int):
     conn.close()
 
 
+def send_telegram_message(chat_id, text, reply_markup=None, parse_mode="HTML"):
+    if not TELEGRAM_TOKEN:
+        return
+    url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
+    payload = {"chat_id": chat_id, "text": text, "parse_mode": parse_mode}
+    if reply_markup:
+        payload["reply_markup"] = reply_markup
+    try:
+        requests.post(url, json=payload, timeout=12)
+    except Exception as e:
+        logging.error(f"send_telegram_message: {e}")
+
+
+def is_push_enabled(telegram_id: int) -> bool:
+    try:
+        conn = get_conn()
+        cur = conn.cursor()
+        cur.execute("SELECT push_enabled FROM user_settings WHERE telegram_id = %s", (int(telegram_id),))
+        row = cur.fetchone()
+        cur.close()
+        conn.close()
+        return True if row is None else bool(row["push_enabled"])
+    except Exception:
+        return True
+
+
+def set_push_enabled(telegram_id: int, enabled: bool):
+    try:
+        conn = get_conn()
+        cur = conn.cursor()
+        cur.execute("""
+            INSERT INTO user_settings (telegram_id, push_enabled)
+            VALUES (%s, %s)
+            ON CONFLICT (telegram_id) DO UPDATE SET push_enabled = EXCLUDED.push_enabled, updated_at = NOW()
+        """, (int(telegram_id), enabled))
+        conn.commit()
+        cur.close()
+        conn.close()
+    except Exception as e:
+        logging.error(f"set_push_enabled: {e}")
+
+
+def send_push(chat_id, text):
+    if not is_push_enabled(chat_id):
+        return
+    reply_markup = {
+        "inline_keyboard": [[{
+            "text": "Ouvrir COD.IA",
+            "web_app": {"url": MINIAPP_URL}
+        }]]
+    }
+    send_telegram_message(chat_id, text, reply_markup=reply_markup)
+
+
+def send_sms(phone: str, text: str):
+    if not all([TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_FROM_NUMBER, phone]):
+        return
+    try:
+        from twilio.rest import Client
+        client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
+        client.messages.create(
+            body=text[:160],
+            from_=TWILIO_FROM_NUMBER,
+            to=phone if phone.startswith("+") else f"+{phone}"
+        )
+    except Exception as e:
+        logging.error(f"send_sms: {e}")
+
+
 def create_notification(user_id, notif_type, actor_id, actor_name, code_id, message):
     if not user_id or int(user_id) == int(actor_id or 0):
         return
@@ -174,24 +257,21 @@ def create_notification(user_id, notif_type, actor_id, actor_name, code_id, mess
             (int(user_id), notif_type, actor_id, actor_name, code_id, message),
         )
         conn.commit()
+
+        # Push Telegram
+        send_push(int(user_id), message)
+
+        # SMS si activé
+        cur.execute("SELECT phone, sms_enabled FROM user_settings WHERE telegram_id = %s", (int(user_id),))
+        row = cur.fetchone()
+        if row and row.get("sms_enabled") and row.get("phone"):
+            short = message.replace("<b>", "").replace("</b>", "").replace("<code>", "").replace("</code>", "")
+            send_sms(row["phone"], f"COD.IA: {short[:140]}")
+
         cur.close()
         conn.close()
-        send_telegram_message(int(user_id), message)
     except Exception as e:
         logging.error(f"create_notification: {e}")
-
-
-def send_telegram_message(chat_id, text, reply_markup=None, parse_mode="HTML"):
-    if not TELEGRAM_TOKEN:
-        return
-    url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
-    payload = {"chat_id": chat_id, "text": text, "parse_mode": parse_mode}
-    if reply_markup:
-        payload["reply_markup"] = reply_markup
-    try:
-        requests.post(url, json=payload, timeout=12)
-    except Exception as e:
-        logging.error(f"send_telegram_message: {e}")
 
 
 def discover_keyboard(paid: bool):
@@ -616,6 +696,7 @@ def save_code():
     data = request.json or {}
     user_id = data.get("user_id")
     code_id = data.get("id")
+    actor_name = data.get("actor_name") or "Quelqu’un"
     if not user_id or not code_id:
         return jsonify({"success": False}), 400
     try:
@@ -626,9 +707,17 @@ def save_code():
             INSERT INTO saved_codes (user_id, code_id)
             VALUES (%s, %s)
             ON CONFLICT (user_id, code_id) DO NOTHING
+            RETURNING code_id
             """,
             (int(user_id), int(code_id)),
         )
+        inserted = cur.fetchone()
+        if inserted:
+            cur.execute("SELECT user_id, site, code FROM codes WHERE id = %s", (code_id,))
+            owner = cur.fetchone()
+            if owner and owner["user_id"] and int(owner["user_id"]) != int(user_id):
+                msg = f"🔖 <b>{actor_name}</b> a ajouté ton code <code>{owner['code']}</code> ({owner['site']}) à ses favoris"
+                create_notification(owner["user_id"], "save", user_id, actor_name, code_id, msg)
         conn.commit()
         cur.close()
         conn.close()
@@ -871,6 +960,72 @@ def mark_notifications_read():
             "UPDATE notifications SET is_read = TRUE WHERE user_id = %s AND is_read = FALSE",
             (int(user_id),),
         )
+        conn.commit()
+        cur.close()
+        conn.close()
+        return jsonify({"success": True})
+    except Exception as e:
+        logging.error(e)
+        return jsonify({"success": False}), 500
+
+
+@app.route("/settings/push", methods=["GET", "POST"])
+def settings_push():
+    if request.method == "GET":
+        user_id = request.args.get("user_id")
+        if not user_id:
+            return jsonify({"enabled": True})
+        return jsonify({"enabled": is_push_enabled(int(user_id))})
+
+    data = request.json or {}
+    user_id = data.get("user_id")
+    enabled = data.get("enabled", True)
+    if not user_id:
+        return jsonify({"success": False}), 400
+    set_push_enabled(int(user_id), bool(enabled))
+    return jsonify({"success": True, "enabled": bool(enabled)})
+
+
+@app.route("/settings/sms", methods=["GET", "POST"])
+def settings_sms():
+    if request.method == "GET":
+        user_id = request.args.get("user_id")
+        if not user_id:
+            return jsonify({"enabled": False, "phone": None})
+        try:
+            conn = get_conn()
+            cur = conn.cursor()
+            cur.execute("SELECT sms_enabled, phone FROM user_settings WHERE telegram_id = %s", (int(user_id),))
+            row = cur.fetchone()
+            cur.close()
+            conn.close()
+            if not row:
+                return jsonify({"enabled": False, "phone": None})
+            return jsonify({"enabled": bool(row["sms_enabled"]), "phone": row["phone"]})
+        except Exception:
+            return jsonify({"enabled": False, "phone": None})
+
+    data = request.json or {}
+    user_id = data.get("user_id")
+    if not user_id:
+        return jsonify({"success": False}), 400
+    enabled = data.get("enabled")
+    phone = data.get("phone")
+    try:
+        conn = get_conn()
+        cur = conn.cursor()
+        if phone is not None:
+            cur.execute("""
+                INSERT INTO user_settings (telegram_id, phone, sms_enabled)
+                VALUES (%s, %s, COALESCE(%s, FALSE))
+                ON CONFLICT (telegram_id) DO UPDATE SET phone = EXCLUDED.phone, updated_at = NOW()
+            """, (int(user_id), phone, enabled))
+        if enabled is not None:
+            cur.execute("""
+                INSERT INTO user_settings (telegram_id, sms_enabled)
+                VALUES (%s, %s)
+                ON CONFLICT (telegram_id) DO UPDATE SET sms_enabled = EXCLUDED.sms_enabled, updated_at = NOW()
+            """, (int(user_id), bool(enabled)))
         conn.commit()
         cur.close()
         conn.close()
