@@ -240,6 +240,23 @@ def grant_access_message(chat_id):
 
 
 # ================== ROUTES BASE ==================
+@app.route("/stats")
+def stats():
+    BASE_MEMBERS = 2345
+    try:
+        conn = get_conn()
+        cur = conn.cursor()
+        cur.execute("SELECT COUNT(*) AS c FROM paid_users")
+        real = cur.fetchone()["c"] or 0
+        cur.close()
+        conn.close()
+        total = BASE_MEMBERS + int(real)
+        display = f"{total / 1000:.3f}k"
+        return jsonify({"members": total, "members_display": display})
+    except Exception as e:
+        logging.error(e)
+        return jsonify({"members": BASE_MEMBERS, "members_display": "2.345k"})
+
 @app.route("/")
 def home():
     return "Codia Server is running ✅"
