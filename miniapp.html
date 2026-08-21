@@ -46,13 +46,11 @@
     .app{max-width:430px;height:100vh;margin:0 auto;display:flex;flex-direction:column;position:relative;background:var(--bg)}
     .hidden{display:none !important}
     @keyframes fadeInUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
-    @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
     @keyframes orbFloat{from{transform:translate(0,0) scale(1)}to{transform:translate(-3%,4%) scale(1.05)}}
     @keyframes badgePulse{0%,100%{box-shadow:0 0 16px rgba(42,171,238,0.25)}50%{box-shadow:0 0 28px rgba(42,171,238,0.45)}}
     @keyframes shineSweep{0%,100%{transform:translateX(-20%) rotate(15deg);opacity:0}40%,60%{opacity:1}100%{transform:translateX(120%) rotate(15deg)}}
     @keyframes ctaShine{0%{left:-100%}50%,100%{left:130%}}
 
-    /* LOGO COD.IA */
     .codia-logo{display:inline-flex;flex-direction:column;align-items:flex-start;line-height:1}
     .codia-logo-main{display:flex;align-items:center;gap:2px;position:relative}
     .codia-logo-text{font-family:"Segoe UI",system-ui,-apple-system,sans-serif;font-weight:900;font-size:28px;letter-spacing:-0.04em;color:#0a0a0a;position:relative;z-index:1}
@@ -79,8 +77,7 @@
     .stories{display:flex;gap:14px;overflow-x:auto;padding:18px 18px 16px;border-bottom:1px solid var(--border);scrollbar-width:none}
     .stories::-webkit-scrollbar{display:none}
     .story{min-width:70px;text-align:center;font-size:11.5px;color:var(--text2);font-weight:500;animation:fadeInUp 0.4s ease both}
-    .story-ring{width:64px;height:64px;border-radius:50%;padding:2.5px;margin:0 auto 8px;background:var(--gradient);box-shadow:0 4px 14px rgba(42,171,238,0.3);position:relative;transition:var(--transition)}
-    .story-ring::after{content:none}
+    .story-ring{width:64px;height:64px;border-radius:50%;padding:2.5px;margin:0 auto 8px;background:var(--gradient);box-shadow:0 4px 14px rgba(42,171,238,0.3)}
     .story-ring div{width:100%;height:100%;border-radius:50%;background:var(--bg);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:17px;color:var(--text)}
     .story:active .story-ring{transform:scale(0.92)}
 
@@ -99,9 +96,12 @@
 
     .section{padding:16px 18px 10px;font-size:12px;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:0.7px}
 
-    .card,.post{margin:0 16px 16px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow);position:relative;overflow:hidden;transition:var(--transition);animation:fadeInUp 0.4s ease both}
+    .post-wrap{position:relative;margin:0 16px 16px;overflow:hidden;border-radius:var(--radius)}
+    .fav-reveal{position:absolute;left:18px;top:50%;transform:translateY(-50%);font-size:32px;opacity:0;pointer-events:none;z-index:0;transition:opacity 0.12s}
+    .card,.post{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow);position:relative;overflow:hidden;transition:transform 0.2s ease;animation:fadeInUp 0.4s ease both;touch-action:pan-y}
+    .post{margin:0;z-index:1}
+    .post.swiping{transition:none;z-index:2}
     .post::before{content:"";position:absolute;inset:0;border-radius:inherit;padding:1px;background:linear-gradient(135deg,rgba(42,171,238,0.3),transparent 60%);-webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none;opacity:0.6}
-    .post:active{transform:scale(0.98)}
 
     .row{display:flex;justify-content:space-between;align-items:center;gap:12px}
     .muted{color:var(--text2);font-size:12.5px}
@@ -119,7 +119,6 @@
     .actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;align-items:center}
     .actions button{border:1px solid var(--border);background:var(--bg);color:var(--text);border-radius:999px;padding:8px 14px;font-size:13px;font-weight:500;transition:var(--transition)}
     .actions button:active{transform:scale(0.94)}
-    .actions .save-btn{border:none;background:transparent;padding:6px 10px;font-size:18px;line-height:1}
 
     .bottom{position:absolute;left:0;right:0;bottom:0;height:94px;border-top:1px solid var(--border);background:rgba(7,7,11,0.9);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);display:flex;justify-content:space-around;align-items:center;padding-bottom:20px;z-index:30}
     body.light .bottom{background:rgba(248,250,252,0.92)}
@@ -150,10 +149,10 @@
     .clickable{cursor:pointer}
 
     .profile-tabs{display:flex;margin-top:18px;border-top:1px solid var(--border);padding-top:4px}
-    .profile-tab{flex:1;background:none;border:none;color:var(--text2);padding:14px 8px;font-size:20px;border-bottom:2px solid transparent;transition:var(--transition)}
+    .profile-tab{flex:1;background:none;border:none;color:var(--text2);padding:14px 8px;border-bottom:2px solid transparent;transition:var(--transition);font-size:22px}
     .profile-tab.active{color:var(--text);border-bottom-color:var(--accent)}
+    .profile-tab svg{width:26px;height:26px;display:block;margin:0 auto}
 
-    /* ===== PAYWALL BRILLANTE ===== */
     #paywall{position:fixed;inset:0;z-index:100;max-width:430px;margin:0 auto;background:#03050a;color:#fff;display:flex;flex-direction:column;overflow:hidden}
     .sg-bg{position:absolute;inset:0;overflow:hidden;background:radial-gradient(ellipse 80% 50% at 50% -10%,rgba(42,171,238,0.35),transparent 55%),radial-gradient(ellipse 60% 40% at 90% 80%,rgba(139,92,246,0.2),transparent 50%),radial-gradient(ellipse 50% 35% at 10% 70%,rgba(6,182,212,0.18),transparent 50%),#03050a}
     .sg-bg::before{content:"";position:absolute;inset:-20%;background:radial-gradient(circle at 30% 40%,rgba(42,171,238,0.15) 0%,transparent 40%),radial-gradient(circle at 70% 60%,rgba(167,139,250,0.12) 0%,transparent 35%);animation:orbFloat 12s ease-in-out infinite alternate}
@@ -183,9 +182,7 @@
     .sg-ic.c1{background:linear-gradient(135deg,#2AABEE,#0088cc)}
     .sg-ic.c2{background:linear-gradient(135deg,#8b5cf6,#6d28d9)}
     .sg-ic.c3{background:linear-gradient(135deg,#06b6d4,#0891b2)}
-    .sg-ic.c4{background:linear-gradient(135deg,#ec4899,#db2777)}
     .sg-ic.c5{background:linear-gradient(135deg,#22c55e,#16a34a)}
-    .sg-ic.c6{background:linear-gradient(135deg,#f59e0b,#d97706)}
     .sg-item-text{font-size:14px;line-height:1.35;font-weight:600;padding-top:3px}
     .sg-item-text small{display:block;margin-top:2px;color:#9aabc4;font-size:12px;font-weight:400}
     .sg-price-card{border-radius:18px;padding:16px 18px;margin-bottom:10px;position:relative;overflow:hidden}
@@ -194,9 +191,9 @@
     .sg-price-card .amount{font-size:32px;font-weight:800;background:linear-gradient(90deg,#fff,#a8d8ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;position:relative}
     .sg-social{text-align:center;font-size:12.5px;color:#b0c0d8;margin:0 0 14px}
     .sg-social b{color:#fff}
-    .sg-cta{width:100%;border:none;border-radius:999px;padding:17px 18px;font-size:16.5px;font-weight:800;background:linear-gradient(135deg,#2AABEE 0%,#1a8fd4 50%,#8b5cf6 100%);color:#fff;cursor:pointer;margin-bottom:10px;box-shadow:0 8px 28px rgba(42,171,238,0.45),0 0 0 1px rgba(255,255,255,0.15) inset;transition:transform 0.2s,box-shadow 0.2s;position:relative;overflow:hidden}
+    .sg-cta{width:100%;border:none;border-radius:999px;padding:17px 18px;font-size:16.5px;font-weight:800;background:linear-gradient(135deg,#2AABEE 0%,#1a8fd4 50%,#8b5cf6 100%);color:#fff;cursor:pointer;margin-bottom:10px;box-shadow:0 8px 28px rgba(42,171,238,0.45),0 0 0 1px rgba(255,255,255,0.15) inset;position:relative;overflow:hidden}
     .sg-cta::after{content:"";position:absolute;top:0;left:-100%;width:60%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.25),transparent);animation:ctaShine 3.5s ease-in-out infinite}
-    .sg-cta:active{transform:scale(0.97);box-shadow:0 4px 16px rgba(42,171,238,0.35)}
+    .sg-cta:active{transform:scale(0.97)}
     .sg-links{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;font-size:11px;color:#6a7a94}
     .sg-error{color:#f87171;font-size:12.5px;text-align:center;margin-top:8px}
     .pw-pay{position:absolute;inset:0;z-index:30;background:rgba(0,0,0,.6);display:flex;align-items:flex-end;backdrop-filter:blur(6px)}
@@ -222,80 +219,41 @@
 <div id="paywall" class="hidden">
   <div class="sg-bg">
     <div class="sg-live-app">
-      <div class="la-header">
-        <div class="la-brand">
-          <div class="la-logo"></div>
-          <div>
-            <div class="la-name">COD.IA</div>
-            <div class="la-sub">Communauté codes</div>
-          </div>
-        </div>
-      </div>
-      <div class="la-stories">
-        <div class="la-ring"></div><div class="la-ring"></div>
-        <div class="la-ring"></div><div class="la-ring"></div>
-        <div class="la-ring"></div>
-      </div>
-      <div class="la-card"></div>
-      <div class="la-card"></div>
-      <div class="la-card"></div>
+      <div class="la-header"><div class="la-brand"><div class="la-logo"></div><div><div class="la-name">COD.IA</div><div class="la-sub">Communauté codes</div></div></div></div>
+      <div class="la-stories"><div class="la-ring"></div><div class="la-ring"></div><div class="la-ring"></div><div class="la-ring"></div><div class="la-ring"></div></div>
+      <div class="la-card"></div><div class="la-card"></div><div class="la-card"></div>
       <div class="la-bottom"></div>
     </div>
     <div class="sg-dim"></div>
   </div>
-
   <div class="sg-wrap">
     <button class="sg-close" type="button" onclick="Telegram.WebApp.close()">×</button>
-
     <div class="sg-head">
       <div style="display:flex;justify-content:center;margin-bottom:12px">
         <div class="codia-logo">
           <div class="codia-logo-main">
             <span class="codia-logo-text">COD.IA</span>
             <span class="codia-logo-underline"></span>
-            <span class="codia-logo-plane">
-              <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
-            </span>
+            <span class="codia-logo-plane"><svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg></span>
           </div>
           <div class="codia-logo-tagline">Un monde tous ensemble</div>
         </div>
       </div>
-      <div class="sg-title-row">
-        <div class="sg-badge">Premium</div>
-      </div>
+      <div class="sg-title-row"><div class="sg-badge">Premium</div></div>
       <div class="sg-sub">Accède aux meilleurs codes promo &amp; parrainages de la communauté</div>
     </div>
-
     <div class="sg-features glass">
-      <div class="sg-item">
-        <div class="sg-ic c1">⌂</div>
-        <div class="sg-item-text">Feed communauté<small>Codes partagés en temps réel</small></div>
-      </div>
-      <div class="sg-item">
-        <div class="sg-ic c2">✦</div>
-        <div class="sg-item-text">Recherche + IA<small>Trouve plus vite les bons plans</small></div>
-      </div>
-      <div class="sg-item">
-        <div class="sg-ic c3">✈</div>
-        <div class="sg-item-text">Voyages &amp; shopping<small>Booking, Uber, Zara…</small></div>
-      </div>
-      <div class="sg-item">
-        <div class="sg-ic c5">🔖</div>
-        <div class="sg-item-text">Sauvegarde &amp; profil<small>Tes codes favoris toujours sous la main</small></div>
-      </div>
+      <div class="sg-item"><div class="sg-ic c1">⌂</div><div class="sg-item-text">Feed communauté<small>Codes partagés en temps réel</small></div></div>
+      <div class="sg-item"><div class="sg-ic c2">✦</div><div class="sg-item-text">Recherche + IA<small>Trouve plus vite les bons plans</small></div></div>
+      <div class="sg-item"><div class="sg-ic c3">✈</div><div class="sg-item-text">Voyages &amp; shopping<small>Booking, Uber, Zara…</small></div></div>
+      <div class="sg-item"><div class="sg-ic c5">⭐</div><div class="sg-item-text">Favoris<small>Glisse un code vers la droite</small></div></div>
     </div>
-
-    <div class="sg-price-card glass">
-      <div class="label">Paiement unique · accès à vie</div>
-      <div class="amount">10 €</div>
-    </div>
-
-    <div class="sg-social"><b id="pw-members">…</b> members · communauté active</div>
+    <div class="sg-price-card glass"><div class="label">Paiement unique · accès à vie</div><div class="amount">10 €</div></div>
+    <div class="sg-social"><b id="pw-members">2.345k</b> members · communauté active</div>
     <button class="sg-cta" type="button" onclick="startPayment()">Passer à COD.IA</button>
     <div class="sg-links"><span>Conditions</span><span>·</span><span>Confidentialité</span></div>
     <div class="sg-error" id="pw-error"></div>
   </div>
-
   <div class="pw-pay hidden" id="pw-pay">
     <div class="pw-pay-card">
       <button class="pw-back" type="button" onclick="backToOffer()">← Retour</button>
@@ -314,17 +272,13 @@
         <div class="codia-logo-main">
           <span class="codia-logo-text">COD.IA</span>
           <span class="codia-logo-underline"></span>
-          <span class="codia-logo-plane">
-            <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
-          </span>
+          <span class="codia-logo-plane"><svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg></span>
         </div>
       </div>
-      <div>
-        <div class="sub" id="members-count">… members</div>
-      </div>
+      <div><div class="sub" id="members-count">2.345k members</div></div>
     </div>
     <div class="header-actions">
-      <button class="icon-btn" id="notifBtn" onclick="toggleNotifModal()">
+      <button class="icon-btn" onclick="toggleNotifModal()">
         🔔
         <span id="notif-badge" class="hidden" style="position:absolute;top:2px;right:2px;background:#ef4444;color:#fff;font-size:10px;width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center;">0</span>
       </button>
@@ -345,41 +299,29 @@
     <div class="search-wrap">
       <div class="search">
         <span style="opacity:.7">⌕</span>
-        <input id="search-input" placeholder="Ex: Uber Eats, Booking, Zara..."
-               onfocus="showRecentSuggestions()"
-               onkeypress="if(event.key==='Enter') doSearch()">
+        <input id="search-input" placeholder="Ex: Uber Eats, Booking, Zara..." onfocus="showRecentSuggestions()" onkeypress="if(event.key==='Enter') doSearch()">
       </div>
     </div>
-    <div style="padding:0 18px 8px;font-size:13.5px;color:var(--text2);line-height:1.4">
-      Recherche plus rapidement ton code promo en écrivant ici ce que tu recherches.
-    </div>
+    <div style="padding:0 18px 8px;font-size:13.5px;color:var(--text2)">Recherche plus rapidement ton code promo.</div>
     <div class="chips" id="recent-suggestions"></div>
     <div class="section">Résultats</div>
-    <div id="search-results"><div class="empty">Tape un mot-clé pour trouver un code</div></div>
+    <div id="search-results"><div class="empty">Tape un mot-clé</div></div>
   </div>
 
   <div class="page page-codia" id="page-codia">
     <div class="welcome-box">
       <div class="welcome-title">COD.IA</div>
       <div class="welcome-text">
-        Bienvenue sur l’application !<br><br>
-        Ici tu peux partager et trouver les meilleurs codes promo et parrainages de la communauté.<br><br>
-        <b>Comment ça marche ?</b><br>
-        • Publie tes codes depuis le bouton ＋<br>
-        • Like, copie et sauvegarde ceux des autres<br>
-        • Abonne-toi aux profils qui partagent de bons plans<br><br>
-        La page <b>Recherche</b> te permet de trouver les codes promo beaucoup plus rapidement pour éviter de tout scroller.
+        Bienvenue !<br><br>
+        Partage et trouve les meilleurs codes promo &amp; parrainages.<br><br>
+        <b>Astuce :</b> glisse un code vers la <b>droite</b> pour l’ajouter en ⭐ Favoris.
       </div>
     </div>
     <div class="section">Assistant COD.IA</div>
-    <div style="padding:0 18px 8px;font-size:13.5px;color:var(--text2)">
-      Tu rencontres un problème sur l’application ? Pose ta question ici, l’IA t’aide comme un support.
-    </div>
     <div class="search-wrap">
       <div class="search">
         <span style="opacity:.7">✦</span>
-        <input id="ai-input" placeholder="Ex: mon code n’apparaît pas, problème de paiement..."
-               onkeypress="if(event.key==='Enter') askAI()">
+        <input id="ai-input" placeholder="Ex: mon code n’apparaît pas..." onkeypress="if(event.key==='Enter') askAI()">
       </div>
     </div>
     <div class="ai-box" id="ai-response" style="display:none"></div>
@@ -447,9 +389,9 @@
   Telegram.WebApp.ready();
   Telegram.WebApp.expand();
 
-  let allCodes = [], userCity = null, currentShareType = "promo";
-  let currentUserId = null, currentUserName = null, isAdmin = false;
-  let viewingUserId = null;
+  let allCodes = [], currentShareType = "promo";
+  let currentUserId = null, currentUserName = null, isAdmin = false, viewingUserId = null;
+  let swipeStartX = 0, swipeEl = null, swipeId = null, swipeMoved = false;
 
   function getTgUser(){ return window.Telegram?.WebApp?.initDataUnsafe?.user || null; }
 
@@ -464,11 +406,11 @@
     try{
       const res = await fetch('/stats');
       const data = await res.json();
-      const display = (data.members_display || data.members || '0') + ' members';
+      const display = (data.members_display || '2.345k') + ' members';
       const el = document.getElementById('members-count');
       if(el) el.textContent = display;
       const pw = document.getElementById('pw-members');
-      if(pw) pw.textContent = data.members_display || data.members || '0';
+      if(pw) pw.textContent = data.members_display || '2.345k';
     }catch(e){}
   }
 
@@ -478,9 +420,7 @@
     const userId = u?.id;
     currentUserId = userId || null;
     currentUserName = u?.username ? ('@'+u.username) : (u?.first_name || 'Membre COD.IA');
-
     loadStats();
-
     if(params.get('paid') === '1' && userId){
       await new Promise(r => setTimeout(r, 800));
       try{
@@ -489,7 +429,6 @@
         if(data.paid){ isAdmin = !!data.is_admin; showSuccessThenApp(); return; }
       }catch(e){}
     }
-
     if(!userId){ showPaywall(); return; }
     try{
       const res = await fetch('/access?user_id=' + userId);
@@ -498,7 +437,7 @@
       else showPaywall();
     }catch(e){
       showPaywall();
-      document.getElementById('pw-error').textContent = 'Erreur accès. Réessaie.';
+      document.getElementById('pw-error').textContent = 'Erreur accès.';
     }
   }
 
@@ -510,21 +449,16 @@
   function showApp(){
     document.getElementById('paywall').classList.add('hidden');
     document.getElementById('main-app').classList.remove('hidden');
-    loadStats();
-    loadCodes();
-    loadNotifications();
+    loadStats(); loadCodes(); loadNotifications();
   }
   function backToOffer(){ document.getElementById('pw-pay').classList.add('hidden'); }
 
   async function startPayment(){
     const userId = getTgUser()?.id;
-    if(!userId){
-      document.getElementById('pw-error').textContent = 'Ouvre COD.IA depuis Telegram';
-      return;
-    }
+    if(!userId){ document.getElementById('pw-error').textContent = 'Ouvre COD.IA depuis Telegram'; return; }
     try { Telegram.WebApp.HapticFeedback.impactOccurred('medium'); } catch(e){}
     document.getElementById('pw-pay').classList.remove('hidden');
-    document.getElementById('checkout').textContent = 'Chargement du paiement…';
+    document.getElementById('checkout').textContent = 'Chargement…';
     document.getElementById('pw-error-2').textContent = '';
     await initEmbeddedCheckout(userId);
   }
@@ -545,10 +479,7 @@
       const checkout = await stripe.initEmbeddedCheckout({ clientSecret: data.clientSecret });
       box.innerHTML = '';
       checkout.mount('#checkout');
-    }catch(e){
-      err.textContent = 'Paiement indisponible pour le moment.';
-      box.textContent = '';
-    }
+    }catch(e){ err.textContent = 'Paiement indisponible.'; box.textContent = ''; }
   }
 
   if (localStorage.getItem('theme') === 'light') document.body.classList.add('light');
@@ -562,12 +493,8 @@
       const badge = document.getElementById('notif-badge');
       if(data.unread > 0){
         badge.textContent = data.unread > 9 ? '9+' : data.unread;
-        badge.classList.remove('hidden');
-        badge.style.display = 'flex';
-      } else {
-        badge.classList.add('hidden');
-        badge.style.display = 'none';
-      }
+        badge.classList.remove('hidden'); badge.style.display = 'flex';
+      } else { badge.classList.add('hidden'); badge.style.display = 'none'; }
       window._lastNotifs = data.notifications || [];
     }catch(e){}
   }
@@ -575,22 +502,12 @@
   function toggleNotifModal(){
     const list = document.getElementById('notif-list');
     const notifs = window._lastNotifs || [];
-    if(!notifs.length){
-      list.innerHTML = '<div class="empty">Aucune notification</div>';
-    } else {
-      list.innerHTML = notifs.map(n => `
-        <div class="card" style="margin-bottom:8px;opacity:${n.is_read?0.7:1}">
-          <div style="font-size:13px">${(n.message||'').replace(/<[^>]+>/g,'')}</div>
-          <div class="muted" style="margin-top:4px">${timeAgo(n.created_at)}</div>
-        </div>
-      `).join('');
-    }
+    list.innerHTML = notifs.length
+      ? notifs.map(n => `<div class="card" style="margin-bottom:8px;opacity:${n.is_read?0.7:1}"><div style="font-size:13px">${(n.message||'').replace(/<[^>]+>/g,'')}</div><div class="muted" style="margin-top:4px">${timeAgo(n.created_at)}</div></div>`).join('')
+      : '<div class="empty">Aucune notification</div>';
     document.getElementById('notifModal').classList.add('active');
     if(currentUserId){
-      fetch('/notifications/read', {
-        method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({user_id: currentUserId})
-      }).then(() => loadNotifications());
+      fetch('/notifications/read', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({user_id: currentUserId})}).then(() => loadNotifications());
     }
   }
   function closeNotifModal(){ document.getElementById('notifModal').classList.remove('active'); }
@@ -607,22 +524,10 @@
   function showPage(page){
     document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
     document.querySelectorAll('.nav').forEach(n=>n.classList.remove('active'));
-    if(page==='home'){
-      document.getElementById('page-home').classList.add('active');
-      document.querySelectorAll('.nav')[0].classList.add('active');
-      loadCodes();
-    } else if(page==='search'){
-      document.getElementById('page-search').classList.add('active');
-      document.querySelectorAll('.nav')[1].classList.add('active');
-    } else if(page==='codia'){
-      document.getElementById('page-codia').classList.add('active');
-      document.querySelectorAll('.nav')[2].classList.add('active');
-    } else {
-      document.getElementById('page-profile').classList.add('active');
-      document.querySelectorAll('.nav')[3].classList.add('active');
-      viewingUserId = null;
-      loadProfile();
-    }
+    if(page==='home'){ document.getElementById('page-home').classList.add('active'); document.querySelectorAll('.nav')[0].classList.add('active'); loadCodes(); }
+    else if(page==='search'){ document.getElementById('page-search').classList.add('active'); document.querySelectorAll('.nav')[1].classList.add('active'); }
+    else if(page==='codia'){ document.getElementById('page-codia').classList.add('active'); document.querySelectorAll('.nav')[2].classList.add('active'); }
+    else { document.getElementById('page-profile').classList.add('active'); document.querySelectorAll('.nav')[3].classList.add('active'); viewingUserId=null; loadProfile(); }
   }
 
   function openShare(){ document.getElementById('shareModal').classList.add('active'); }
@@ -662,7 +567,6 @@
     const id=c.id;
     const liked=localStorage.getItem('like_'+id)==='1';
     const disliked=localStorage.getItem('dislike_'+id)==='1';
-    const saved=localStorage.getItem('saved_'+id)==='1';
     const score=(c.likes||0)-(c.dislikes||0);
     const popular=score>=5?'<span class="badge-pop">Populaire</span>':'';
     const who=c.added_by||'Membre COD.IA';
@@ -670,42 +574,114 @@
     const copies=c.copies||0;
     const canManage = isAdmin || (c.user_id && currentUserId && Number(c.user_id) === Number(currentUserId));
     const isDeleted = c.deleted === true;
-
     let manageBtns = '';
     if(canManage){
       if(isDeleted) manageBtns = `<button onclick="restoreCode(${id})" style="color:var(--green)">Remettre</button>`;
       else manageBtns = `<button onclick="deleteCode(${id})" style="color:#f87171">Supprimer</button>`;
     }
-
     const clickProfile = c.user_id ? `onclick="viewProfile(${c.user_id}, '${String(who).replace(/'/g,"\\'")}')"` : '';
 
-    return `<div class="post" style="${isDeleted?'opacity:0.55':''}">
-      <div class="post-top">
-        <div ${clickProfile} style="cursor:pointer">${avatarHTML(c)}</div>
-        <div style="flex:1" ${clickProfile} class="clickable">
-          <div style="font-weight:600">${who} ${popular}</div>
-          <div class="muted">${actionText} • ${timeAgo(c.created_at)}</div>
+    return `<div class="post-wrap">
+      <div class="fav-reveal">⭐</div>
+      <div class="post" data-code-id="${id||''}" style="${isDeleted?'opacity:0.55':''}">
+        <div class="post-top">
+          <div ${clickProfile} style="cursor:pointer">${avatarHTML(c)}</div>
+          <div style="flex:1" ${clickProfile} class="clickable">
+            <div style="font-weight:600">${who} ${popular}</div>
+            <div class="muted">${actionText} • ${timeAgo(c.created_at)}</div>
+          </div>
         </div>
+        <div class="muted">${c.site}${isDeleted?' · <span style="color:#f87171">Supprimé</span>':''}</div>
+        <div class="code"><span>${c.code} <span style="color:var(--green)">${c.description||''}</span></span>
+          <button class="copy-btn" onclick="copyCode(${c.id||0}, '${String(c.code).replace(/'/g,"\\'")}', this)">Copier${copies?' · '+copies:''}</button></div>
+        <div class="actions">${c.id?`
+          <button onclick="toggleReact(${c.id},'like',this)">${liked?'❤️':'🤍'} <span>${c.likes||0}</span></button>
+          <button onclick="toggleReact(${c.id},'dislike',this)">${disliked?'💔':'👎'} <span>${c.dislikes||0}</span></button>
+          ${manageBtns}`:''}</div>
       </div>
-      <div class="muted">${c.site}${isDeleted?' · <span style="color:#f87171">Supprimé</span>':''}</div>
-      <div class="code"><span>${c.code} <span style="color:var(--green)">${c.description||''}</span></span>
-        <button class="copy-btn" onclick="copyCode(${c.id||0}, '${String(c.code).replace(/'/g,"\\'")}', this)">Copier${copies?' · '+copies:''}</button></div>
-      <div class="actions">${c.id?`
-        <button onclick="toggleReact(${c.id},'like',this)">${liked?'❤️':'🤍'} <span>${c.likes||0}</span></button>
-        <button onclick="toggleReact(${c.id},'dislike',this)">${disliked?'💔':'👎'} <span>${c.dislikes||0}</span></button>
-        <button class="save-btn" onclick="toggleSave(${c.id}, this)">${saved?'🔖':'📑'}</button>
-        ${manageBtns}`:''}</div></div>`;
+    </div>`;
   }
+
+  /* ===== SLIDE DROITE = FAVORIS ===== */
+  document.addEventListener('touchstart', (e) => {
+    const post = e.target.closest('.post[data-code-id]');
+    if (!post || !post.getAttribute('data-code-id')) return;
+    if (e.target.closest('button')) return;
+    swipeEl = post;
+    swipeId = post.getAttribute('data-code-id');
+    swipeStartX = e.touches[0].clientX;
+    swipeMoved = false;
+    post.classList.add('swiping');
+  }, {passive: true});
+
+  document.addEventListener('touchmove', (e) => {
+    if (!swipeEl) return;
+    const dx = e.touches[0].clientX - swipeStartX;
+    if (dx > 8) swipeMoved = true;
+    if (dx > 0) {
+      const move = Math.min(dx, 120);
+      swipeEl.style.transform = `translateX(${move}px)`;
+      const reveal = swipeEl.parentElement?.querySelector('.fav-reveal');
+      if (reveal) reveal.style.opacity = Math.min(move / 60, 1);
+    }
+  }, {passive: true});
+
+  document.addEventListener('touchend', async () => {
+    if (!swipeEl) return;
+    const el = swipeEl;
+    const id = swipeId;
+    const m = (el.style.transform || '').match(/translateX\(([-\d.]+)px\)/);
+    const dx = m ? parseFloat(m[1]) : 0;
+
+    el.style.transition = 'transform 0.25s ease';
+    el.style.transform = 'translateX(0)';
+    el.classList.remove('swiping');
+    const reveal = el.parentElement?.querySelector('.fav-reveal');
+
+    if (dx > 70 && id && currentUserId && swipeMoved) {
+      const already = localStorage.getItem('saved_' + id) === '1';
+      try {
+        if (!already) {
+          await fetch('/code/save', {
+            method:'POST', headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({id: Number(id), user_id: currentUserId})
+          });
+          localStorage.setItem('saved_' + id, '1');
+          try { Telegram.WebApp.HapticFeedback.notificationOccurred('success'); } catch(e){}
+          if (reveal) {
+            reveal.style.opacity = '1';
+            reveal.textContent = '⭐';
+            setTimeout(() => { reveal.style.opacity = '0'; }, 700);
+          }
+        } else {
+          await fetch('/code/unsave', {
+            method:'POST', headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({id: Number(id), user_id: currentUserId})
+          });
+          localStorage.setItem('saved_' + id, '0');
+          try { Telegram.WebApp.HapticFeedback.impactOccurred('light'); } catch(e){}
+          if (reveal) {
+            reveal.textContent = '☆';
+            reveal.style.opacity = '1';
+            setTimeout(() => { reveal.style.opacity = '0'; reveal.textContent = '⭐'; }, 700);
+          }
+        }
+      } catch(e) {}
+    } else if (reveal) {
+      reveal.style.opacity = '0';
+    }
+
+    setTimeout(() => { if (el) el.style.transition = ''; }, 280);
+    swipeEl = null; swipeId = null; swipeMoved = false;
+  });
 
   async function copyCode(id, code, btn){
     try{ await navigator.clipboard.writeText(code); }catch(e){ alert(code); }
     btn.textContent='Copié';
     if(id && currentUserId){
       try{
-        const res=await fetch('/code/copy',{
-          method:'POST',headers:{'Content-Type':'application/json'},
-          body:JSON.stringify({id, user_id: currentUserId, actor_name: currentUserName})
-        });
+        const res=await fetch('/code/copy',{method:'POST',headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({id, user_id: currentUserId, actor_name: currentUserName})});
         const data=await res.json();
         if(data.copies!==undefined){ setTimeout(()=>btn.textContent=`Copier · ${data.copies}`,800); return; }
       }catch(e){}
@@ -735,44 +711,21 @@
     }catch(e){}
   }
 
-  async function toggleSave(id, btn){
-    if(!currentUserId || !id) return;
-    const isSaved = localStorage.getItem('saved_'+id) === '1';
-    const url = isSaved ? '/code/unsave' : '/code/save';
-    try{
-      await fetch(url, {
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({id, user_id: currentUserId})
-      });
-      localStorage.setItem('saved_'+id, isSaved ? '0' : '1');
-      btn.textContent = isSaved ? '📑' : '🔖';
-    }catch(e){}
-  }
-
   async function deleteCode(id){
     if(!confirm('Supprimer ce code ?')) return;
     try{
-      const res = await fetch('/code/delete', {
-        method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({id, user_id: currentUserId})
-      });
+      const res = await fetch('/code/delete', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({id, user_id: currentUserId})});
       const data = await res.json();
       if(data.success){ await loadCodes(); if(viewingUserId===null) loadProfile(); else viewProfile(viewingUserId); }
-      else alert('Impossible de supprimer');
-    }catch(e){ alert('Erreur'); }
+    }catch(e){}
   }
 
   async function restoreCode(id){
     try{
-      const res = await fetch('/code/restore', {
-        method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({id, user_id: currentUserId})
-      });
+      const res = await fetch('/code/restore', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({id, user_id: currentUserId})});
       const data = await res.json();
       if(data.success){ await loadCodes(); if(viewingUserId===null) loadProfile(); else viewProfile(viewingUserId); }
-      else alert('Impossible de restaurer');
-    }catch(e){ alert('Erreur'); }
+    }catch(e){}
   }
 
   function renderStories(){
@@ -798,17 +751,10 @@
       const res = await fetch('/search/recent');
       const data = await res.json();
       const queries = data.queries || [];
-      if(!queries.length){ box.innerHTML = ''; return; }
-      box.innerHTML = queries.map(q =>
-        `<button class="chip" onclick="quickSearch('${q.replace(/'/g,"\\'")}')">${q}</button>`
-      ).join('');
+      box.innerHTML = queries.length ? queries.map(q => `<button class="chip" onclick="quickSearch('${q.replace(/'/g,"\\'")}')">${q}</button>`).join('') : '';
     }catch(e){ box.innerHTML = ''; }
   }
-
-  function quickSearch(q){
-    document.getElementById('search-input').value = q;
-    doSearch();
-  }
+  function quickSearch(q){ document.getElementById('search-input').value = q; doSearch(); }
 
   async function doSearch(){
     const q = document.getElementById('search-input').value.trim();
@@ -819,12 +765,8 @@
     try{
       const res = await fetch('/codes/search?q=' + encodeURIComponent(q));
       const data = await res.json();
-      results.innerHTML = (data.codes||[]).length
-        ? (data.codes||[]).map(c => renderPost(c)).join('')
-        : '<div class="empty">Aucun code trouvé pour « '+q+' »</div>';
-    }catch(e){
-      results.innerHTML = '<div class="empty">Erreur de recherche</div>';
-    }
+      results.innerHTML = (data.codes||[]).length ? (data.codes||[]).map(c => renderPost(c)).join('') : '<div class="empty">Aucun résultat</div>';
+    }catch(e){ results.innerHTML = '<div class="empty">Erreur</div>'; }
   }
 
   async function askAI(){
@@ -832,17 +774,12 @@
     if(!q) return;
     const box = document.getElementById('ai-response');
     box.style.display = 'block';
-    box.innerHTML = 'Analyse en cours...';
+    box.innerHTML = 'Analyse...';
     try{
-      const res = await fetch('/ask', {
-        method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({question: q, city: userCity})
-      });
+      const res = await fetch('/ask', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({question: q})});
       const data = await res.json();
-      box.innerHTML = data.answer || 'Je n’ai pas trouvé de réponse pour le moment.';
-    }catch(e){
-      box.innerHTML = 'Erreur de connexion avec l’assistant.';
-    }
+      box.innerHTML = data.answer || 'Pas de réponse.';
+    }catch(e){ box.innerHTML = 'Erreur assistant.'; }
   }
 
   async function viewProfile(userId, name){
@@ -859,19 +796,15 @@
     const card = document.getElementById('profile-card');
     const targetId = forceUserId || currentUserId;
     const isOwn = !forceUserId || Number(forceUserId) === Number(currentUserId);
-
     if(!targetId){ card.innerHTML='Ouvre COD.IA depuis Telegram'; return; }
 
     let name = forceName || (isOwn ? (u?.username ? '@'+u.username : (u?.first_name||'Membre')) : 'Membre COD.IA');
-    let photo = '';
-    if(isOwn && u?.photo_url) photo = `<img class="avatar-img" src="${u.photo_url}">`;
-    else photo = `<div class="avatar">${name[0].toUpperCase()}</div>`;
+    let photo = (isOwn && u?.photo_url) ? `<img class="avatar-img" src="${u.photo_url}">` : `<div class="avatar">${name[0].toUpperCase()}</div>`;
 
     let followers = 0, following = 0;
     try{
       const st = await fetch('/profile_stats?user_id=' + targetId).then(r=>r.json());
-      followers = st.followers || 0;
-      following = st.following || 0;
+      followers = st.followers || 0; following = st.following || 0;
     }catch(e){}
 
     let followBtn = '';
@@ -897,11 +830,14 @@
       </div>
       ${followBtn}
       <div class="profile-tabs">
-        <button class="profile-tab active" id="tab-posts" onclick="showProfileTab('posts', ${targetId})">🎬</button>
-        <button class="profile-tab" id="tab-saved" onclick="showProfileTab('saved', ${targetId})">🔖</button>
-      </div>
-    `;
-
+        <button class="profile-tab active" id="tab-posts" onclick="showProfileTab('posts', ${targetId})">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+            <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+          </svg>
+        </button>
+        <button class="profile-tab" id="tab-saved" onclick="showProfileTab('saved', ${targetId})">⭐</button>
+      </div>`;
     showProfileTab('posts', targetId);
   }
 
@@ -910,7 +846,6 @@
     const tabSaved = document.getElementById('tab-saved');
     const container = document.getElementById('my-codes');
     if(!container) return;
-
     if(tab === 'posts'){
       if(tabPosts) tabPosts.classList.add('active');
       if(tabSaved) tabSaved.classList.remove('active');
@@ -919,41 +854,31 @@
       try{
         const res = await fetch(endpoint);
         const data = await res.json();
-        container.innerHTML = (data.codes||[]).length
-          ? (data.codes||[]).map(c => renderPost(c)).join('')
-          : '<div class="empty">Aucun code publié</div>';
+        container.innerHTML = (data.codes||[]).length ? (data.codes||[]).map(c => renderPost(c)).join('') : '<div class="empty">Aucun code publié</div>';
       }catch(e){ container.innerHTML = '<div class="empty">Erreur</div>'; }
     } else {
       if(tabSaved) tabSaved.classList.add('active');
       if(tabPosts) tabPosts.classList.remove('active');
       if(Number(userId) !== Number(currentUserId)){
-        container.innerHTML = '<div class="empty">Sauvegardés privés</div>';
+        container.innerHTML = '<div class="empty">Favoris privés</div>';
         return;
       }
       try{
         const res = await fetch('/codes/saved?user_id=' + userId);
         const data = await res.json();
-        container.innerHTML = (data.codes||[]).length
-          ? (data.codes||[]).map(c => renderPost(c)).join('')
-          : '<div class="empty">Aucun code sauvegardé</div>';
+        container.innerHTML = (data.codes||[]).length ? (data.codes||[]).map(c => renderPost(c)).join('') : '<div class="empty">Aucun favori — glisse un code vers la droite ⭐</div>';
       }catch(e){ container.innerHTML = '<div class="empty">Erreur</div>'; }
     }
   }
 
   async function toggleFollow(followedId, wantFollow){
     if(!currentUserId) return;
-    const url = wantFollow ? '/follow' : '/unfollow';
     try{
-      await fetch(url, {
+      await fetch(wantFollow ? '/follow' : '/unfollow', {
         method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({
-          follower_id: currentUserId,
-          followed_id: followedId,
-          actor_name: currentUserName
-        })
+        body: JSON.stringify({follower_id: currentUserId, followed_id: followedId, actor_name: currentUserName})
       });
-      loadProfile(followedId);
-      loadNotifications();
+      loadProfile(followedId); loadNotifications();
     }catch(e){}
   }
 
@@ -966,15 +891,13 @@
       const res = await fetch(`/${type}?user_id=` + userId);
       const data = await res.json();
       const users = data.users || [];
-      if(!users.length){ list.innerHTML = '<div class="empty">Aucun</div>'; return; }
-      list.innerHTML = users.map(u => `
+      list.innerHTML = users.length ? users.map(u => `
         <div class="card row clickable" style="margin-bottom:8px" onclick="closeFollowList(); viewProfile(${u.user_id}, '${String(u.name||'Membre').replace(/'/g,"\\'")}')">
           <div style="display:flex;align-items:center;gap:10px">
             ${u.photo_url ? `<img class="avatar-img" src="${u.photo_url}">` : `<div class="avatar">${(u.name||'M')[0]}</div>`}
             <div style="font-weight:600">${u.name || 'Membre COD.IA'}</div>
           </div>
-        </div>
-      `).join('');
+        </div>`).join('') : '<div class="empty">Aucun</div>';
     }catch(e){ list.innerHTML = '<div class="empty">Erreur</div>'; }
   }
   function closeFollowList(){ document.getElementById('followListModal').classList.remove('active'); }
@@ -986,33 +909,20 @@
       allCodes=data.codes||[];
     }catch(e){ allCodes=[]; }
     renderStories();
-
     try{
       const topRes = await fetch('/codes/top');
       const topData = await topRes.json();
       const top = topData.codes || [];
       document.getElementById('daily-codes').innerHTML = top.length
-        ? top.map(c => `
-            <div class="card row">
-              <div>
-                <strong>${c.site}</strong>
-                <div class="muted">${c.type || 'promo'} • ${c.code}</div>
-              </div>
-              <div class="pill">${c.description || 'Promo'}</div>
-            </div>
-          `).join('')
+        ? top.map(c => `<div class="card row" style="margin:0 16px 12px"><div><strong>${c.site}</strong><div class="muted">${c.type||'promo'} • ${c.code}</div></div><div class="pill">${c.description||'Promo'}</div></div>`).join('')
         : '<div class="empty">Pas encore de top code</div>';
-    }catch(e){
-      document.getElementById('daily-codes').innerHTML = '<div class="empty">Erreur</div>';
-    }
-
+    }catch(e){ document.getElementById('daily-codes').innerHTML = '<div class="empty">Erreur</div>'; }
     document.getElementById('feed-title').textContent = 'À la une';
-    document.getElementById('codes-list').innerHTML=allCodes.length?allCodes.map(c=>renderPost(c)).join(''):'<div class="empty">Feed vide — sois le premier</div>';
+    document.getElementById('codes-list').innerHTML=allCodes.length?allCodes.map(c=>renderPost(c)).join(''):'<div class="empty">Feed vide — sois le premier<br><small>Glisse un code → pour le mettre en favoris ⭐</small></div>';
   }
 
   setInterval(loadNotifications, 45000);
   setInterval(loadStats, 60000);
-
   boot();
 </script>
 </body>
