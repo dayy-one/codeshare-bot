@@ -30,6 +30,8 @@ SERVER_URL = os.getenv("SERVER_URL", "https://codeshare-bot-production.up.railwa
 MINIAPP_URL = os.getenv("MINIAPP_URL", f"{SERVER_URL}/miniapp")
 PRICE_CENTS = int(os.getenv("PRICE_CENTS", "1000"))  # 10 €
 
+BASE_MEMBERS = 2345  # affichage de départ : 2.345k
+
 client = None
 if XAI_API_KEY:
     client = OpenAI(api_key=XAI_API_KEY, base_url="https://api.x.ai/v1")
@@ -223,7 +225,7 @@ def send_telegram_message(chat_id, text, reply_markup=None, parse_mode="HTML"):
 
 
 def discover_keyboard(paid: bool):
-    btn_text = "Ouvrir Codia" if paid else "Découvrir"
+    btn_text = "Ouvrir COD.IA" if paid else "Découvrir"
     return {
         "inline_keyboard": [[{"text": btn_text, "web_app": {"url": MINIAPP_URL}}]]
     }
@@ -232,7 +234,7 @@ def discover_keyboard(paid: bool):
 def grant_access_message(chat_id):
     send_telegram_message(
         chat_id,
-        "✅ <b>Accès Codia activé</b>\n\n"
+        "✅ <b>Accès COD.IA activé</b>\n\n"
         "Tu peux ouvrir l’app maintenant.\n"
         f"Canal : {CHANNEL_LINK}",
         reply_markup=discover_keyboard(True),
@@ -240,26 +242,9 @@ def grant_access_message(chat_id):
 
 
 # ================== ROUTES BASE ==================
-@app.route("/stats")
-def stats():
-    BASE_MEMBERS = 2345
-    try:
-        conn = get_conn()
-        cur = conn.cursor()
-        cur.execute("SELECT COUNT(*) AS c FROM paid_users")
-        real = cur.fetchone()["c"] or 0
-        cur.close()
-        conn.close()
-        total = BASE_MEMBERS + int(real)
-        display = f"{total / 1000:.3f}k"
-        return jsonify({"members": total, "members_display": display})
-    except Exception as e:
-        logging.error(e)
-        return jsonify({"members": BASE_MEMBERS, "members_display": "2.345k"})
-
 @app.route("/")
 def home():
-    return "Codia Server is running ✅"
+    return "COD.IA Server is running ✅"
 
 
 @app.route("/miniapp")
@@ -284,21 +269,20 @@ def access():
 
 @app.route("/stats")
 def stats():
+    """Base 2.345k + nombre réel de paid_users"""
     try:
         conn = get_conn()
         cur = conn.cursor()
         cur.execute("SELECT COUNT(*) AS c FROM paid_users")
-        count = cur.fetchone()["c"]
+        real = cur.fetchone()["c"] or 0
         cur.close()
         conn.close()
-        if count >= 1000:
-            display = f"{count / 1000:.1f}k".replace(".0k", "k")
-        else:
-            display = str(count)
-        return jsonify({"members": count, "members_display": display})
+        total = BASE_MEMBERS + int(real)
+        display = f"{total / 1000:.3f}k"
+        return jsonify({"members": total, "members_display": display})
     except Exception as e:
         logging.error(e)
-        return jsonify({"members": 0, "members_display": "0"})
+        return jsonify({"members": BASE_MEMBERS, "members_display": "2.345k"})
 
 
 # ================== STRIPE ==================
@@ -315,7 +299,7 @@ def create_checkout():
             line_items=[{
                 "price_data": {
                     "currency": "eur",
-                    "product_data": {"name": "Codia — accès à vie"},
+                    "product_data": {"name": "COD.IA — accès à vie"},
                     "unit_amount": PRICE_CENTS,
                 },
                 "quantity": 1,
@@ -343,7 +327,7 @@ def create_embedded_checkout():
             line_items=[{
                 "price_data": {
                     "currency": "eur",
-                    "product_data": {"name": "Codia — accès à vie"},
+                    "product_data": {"name": "COD.IA — accès à vie"},
                     "unit_amount": PRICE_CENTS,
                 },
                 "quantity": 1,
@@ -793,7 +777,7 @@ def follow():
         conn.close()
 
         if row:
-            msg = f"👤 <b>{actor_name}</b> s’est abonné à ton profil Codia"
+            msg = f"👤 <b>{actor_name}</b> s’est abonné à ton profil COD.IA"
             create_notification(followed_id, "follow", follower_id, actor_name, None, msg)
 
         return jsonify({"success": True, "following": True})
@@ -855,7 +839,7 @@ def followers():
             SELECT f.follower_id AS user_id,
                    COALESCE(
                        (SELECT added_by FROM codes WHERE user_id = f.follower_id ORDER BY created_at DESC LIMIT 1),
-                       'Membre Codia'
+                       'Membre COD.IA'
                    ) AS name,
                    (SELECT photo_url FROM codes WHERE user_id = f.follower_id AND photo_url IS NOT NULL ORDER BY created_at DESC LIMIT 1) AS photo_url
             FROM follows f
@@ -885,7 +869,7 @@ def following():
             SELECT f.followed_id AS user_id,
                    COALESCE(
                        (SELECT added_by FROM codes WHERE user_id = f.followed_id ORDER BY created_at DESC LIMIT 1),
-                       'Membre Codia'
+                       'Membre COD.IA'
                    ) AS name,
                    (SELECT photo_url FROM codes WHERE user_id = f.followed_id AND photo_url IS NOT NULL ORDER BY created_at DESC LIMIT 1) AS photo_url
             FROM follows f
@@ -1031,7 +1015,7 @@ def ask():
         return jsonify({"answer": "IA non configurée (XAI_API_KEY manquante)."})
 
     system = (
-        "Tu es l'assistant Codia. Tu aides à trouver des codes promo, parrainage, remises "
+        "Tu es l'assistant COD.IA. Tu aides à trouver des codes promo, parrainage, remises "
         "en France. Réponds toujours de façon utile et positive. "
         "Si tu n'as pas de code exact, propose des alternatives concrètes (sites, types d'offres). "
         "Interdit: répondre vide, inutile, ou purement négatif. "
@@ -1077,15 +1061,15 @@ def telegram_webhook():
             send_telegram_message(
                 chat_id,
                 f"👋 Salut <b>{user.get('first_name') or ''}</b>\n\n"
-                "Ton accès Codia est actif.\n"
+                "Ton accès COD.IA est actif.\n"
                 "Clique sur <b>Ouvrir</b> pour entrer dans l’app.",
                 reply_markup=discover_keyboard(True),
             )
         else:
             send_telegram_message(
                 chat_id,
-                f"👋 Bienvenue sur <b>Codia</b>\n\n"
-                "Codes promo, parrainage, IA Discover et communauté.\n\n"
+                f"👋 Bienvenue sur <b>COD.IA</b>\n\n"
+                "Codes promo, parrainage, IA et communauté.\n\n"
                 "Clique sur <b>Découvrir</b> pour voir l’offre.",
                 reply_markup=discover_keyboard(False),
             )
@@ -1102,7 +1086,7 @@ def telegram_webhook():
     if not is_paid(user_id):
         send_telegram_message(
             chat_id,
-            "🔒 Accès réservé.\nClique sur Découvrir pour débloquer Codia.",
+            "🔒 Accès réservé.\nClique sur Découvrir pour débloquer COD.IA.",
             reply_markup=discover_keyboard(False),
         )
         return jsonify(success=True)
