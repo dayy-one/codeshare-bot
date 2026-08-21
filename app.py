@@ -24,13 +24,8 @@ CHANNEL_ID = os.getenv("CHANNEL_ID", "-1004414166682")
 DATABASE_URL = os.getenv("DATABASE_URL")
 XAI_API_KEY = os.getenv("XAI_API_KEY")
 SERVER_URL = os.getenv("SERVER_URL", "https://codeshare-bot-production.up.railway.app")
-MINIAPP_URL = os.getenv("MINIAPP_URL", f"{SERVER_URL}/miniapp?v=8")
+MINIAPP_URL = os.getenv("MINIAPP_URL", f"{SERVER_URL}/miniapp?v=9")
 PRICE_CENTS = int(os.getenv("PRICE_CENTS", "1000"))
-
-# Twilio (optionnel pour SMS)
-TWILIO_ACCOUNT_SID = os.getenv("TWILIO_ACCOUNT_SID")
-TWILIO_AUTH_TOKEN = os.getenv("TWILIO_AUTH_TOKEN")
-TWILIO_FROM_NUMBER = os.getenv("TWILIO_FROM_NUMBER")
 
 BASE_MEMBERS = 2345
 
@@ -127,8 +122,6 @@ def init_db():
         CREATE TABLE IF NOT EXISTS user_settings (
             telegram_id BIGINT PRIMARY KEY,
             push_enabled BOOLEAN DEFAULT TRUE,
-            sms_enabled BOOLEAN DEFAULT FALSE,
-            phone VARCHAR(30),
             updated_at TIMESTAMP DEFAULT NOW()
         );
     """)
@@ -228,21 +221,6 @@ def send_push(chat_id, text):
     send_telegram_message(chat_id, text, reply_markup=reply_markup)
 
 
-def send_sms(phone: str, text: str):
-    if not all([TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_FROM_NUMBER, phone]):
-        return
-    try:
-        from twilio.rest import Client
-        client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
-        client.messages.create(
-            body=text[:160],
-            from_=TWILIO_FROM_NUMBER,
-            to=phone if phone.startswith("+") else f"+{phone}"
-        )
-    except Exception as e:
-        logging.error(f"send_sms: {e}")
-
-
 def create_notification(user_id, notif_type, actor_id, actor_name, code_id, message):
     if not user_id or int(user_id) == int(actor_id or 0):
         return
@@ -257,19 +235,9 @@ def create_notification(user_id, notif_type, actor_id, actor_name, code_id, mess
             (int(user_id), notif_type, actor_id, actor_name, code_id, message),
         )
         conn.commit()
-
-        # Push Telegram
-        send_push(int(user_id), message)
-
-        # SMS si activé
-        cur.execute("SELECT phone, sms_enabled FROM user_settings WHERE telegram_id = %s", (int(user_id),))
-        row = cur.fetchone()
-        if row and row.get("sms_enabled") and row.get("phone"):
-            short = message.replace("<b>", "").replace("</b>", "").replace("<code>", "").replace("</code>", "")
-            send_sms(row["phone"], f"COD.IA: {short[:140]}")
-
         cur.close()
         conn.close()
+        send_push(int(user_id), message)
     except Exception as e:
         logging.error(f"create_notification: {e}")
 
@@ -435,14 +403,12 @@ def top_codes():
     try:
         conn = get_conn()
         cur = conn.cursor()
-        cur.execute(
-            """
+        cur.execute("""
             SELECT * FROM codes
             WHERE deleted = FALSE
             ORDER BY (likes + copies) DESC, created_at DESC
             LIMIT 5
-            """
-        )
+        """)
         rows = cur.fetchall()
         cur.close()
         conn.close()
@@ -458,15 +424,12 @@ def search_codes():
     try:
         conn = get_conn()
         cur = conn.cursor()
-        cur.execute(
-            """
+        cur.execute("""
             SELECT * FROM codes
             WHERE deleted = FALSE
               AND (site ILIKE %s OR code ILIKE %s OR description ILIKE %s)
             ORDER BY created_at DESC LIMIT 50
-            """,
-            (f"%{q}%", f"%{q}%", f"%{q}%"),
-        )
+        """, (f"%{q}%", f"%{q}%", f"%{q}%"))
         rows = cur.fetchall()
         cur.close()
         conn.close()
@@ -482,10 +445,7 @@ def my_codes():
     try:
         conn = get_conn()
         cur = conn.cursor()
-        cur.execute(
-            "SELECT * FROM codes WHERE user_id = %s ORDER BY created_at DESC LIMIT 50",
-            (int(user_id),),
-        )
+        cur.execute("SELECT * FROM codes WHERE user_id = %s ORDER BY created_at DESC LIMIT 50", (int(user_id),))
         rows = cur.fetchall()
         cur.close()
         conn.close()
@@ -501,10 +461,7 @@ def user_codes():
     try:
         conn = get_conn()
         cur = conn.cursor()
-        cur.execute(
-            "SELECT * FROM codes WHERE user_id = %s AND deleted = FALSE ORDER BY created_at DESC LIMIT 50",
-            (int(user_id),),
-        )
+        cur.execute("SELECT * FROM codes WHERE user_id = %s AND deleted = FALSE ORDER BY created_at DESC LIMIT 50", (int(user_id),))
         rows = cur.fetchall()
         cur.close()
         conn.close()
@@ -523,21 +480,18 @@ def add_code():
     try:
         conn = get_conn()
         cur = conn.cursor()
-        cur.execute(
-            """
+        cur.execute("""
             INSERT INTO codes (type, site, code, description, added_by, user_id, photo_url)
             VALUES (%s,%s,%s,%s,%s,%s,%s) RETURNING id
-            """,
-            (
-                data.get("type") or "promo",
-                data.get("site"),
-                data.get("code"),
-                data.get("description"),
-                data.get("added_by"),
-                data.get("user_id"),
-                data.get("photo_url"),
-            ),
-        )
+        """, (
+            data.get("type") or "promo",
+            data.get("site"),
+            data.get("code"),
+            data.get("description"),
+            data.get("added_by"),
+            data.get("user_id"),
+            data.get("photo_url"),
+        ))
         new_id = cur.fetchone()["id"]
         conn.commit()
         cur.close()
@@ -559,10 +513,7 @@ def code_copy():
     try:
         conn = get_conn()
         cur = conn.cursor()
-        cur.execute(
-            "SELECT 1 FROM code_copies WHERE code_id = %s AND user_id = %s",
-            (code_id, int(user_id)),
-        )
+        cur.execute("SELECT 1 FROM code_copies WHERE code_id = %s AND user_id = %s", (code_id, int(user_id)))
         if cur.fetchone():
             cur.execute("SELECT copies FROM codes WHERE id = %s", (code_id,))
             row = cur.fetchone()
@@ -570,14 +521,8 @@ def code_copy():
             conn.close()
             return jsonify({"copies": row["copies"] if row else 0, "already": True})
 
-        cur.execute(
-            "INSERT INTO code_copies (code_id, user_id) VALUES (%s, %s)",
-            (code_id, int(user_id)),
-        )
-        cur.execute(
-            "UPDATE codes SET copies = copies + 1 WHERE id = %s RETURNING copies, user_id, site, code",
-            (code_id,),
-        )
+        cur.execute("INSERT INTO code_copies (code_id, user_id) VALUES (%s, %s)", (code_id, int(user_id)))
+        cur.execute("UPDATE codes SET copies = copies + 1 WHERE id = %s RETURNING copies, user_id, site, code", (code_id,))
         row = cur.fetchone()
         conn.commit()
         cur.close()
@@ -702,15 +647,12 @@ def save_code():
     try:
         conn = get_conn()
         cur = conn.cursor()
-        cur.execute(
-            """
+        cur.execute("""
             INSERT INTO saved_codes (user_id, code_id)
             VALUES (%s, %s)
             ON CONFLICT (user_id, code_id) DO NOTHING
             RETURNING code_id
-            """,
-            (int(user_id), int(code_id)),
-        )
+        """, (int(user_id), int(code_id)))
         inserted = cur.fetchone()
         if inserted:
             cur.execute("SELECT user_id, site, code FROM codes WHERE id = %s", (code_id,))
@@ -737,10 +679,7 @@ def unsave_code():
     try:
         conn = get_conn()
         cur = conn.cursor()
-        cur.execute(
-            "DELETE FROM saved_codes WHERE user_id = %s AND code_id = %s",
-            (int(user_id), int(code_id)),
-        )
+        cur.execute("DELETE FROM saved_codes WHERE user_id = %s AND code_id = %s", (int(user_id), int(code_id)))
         conn.commit()
         cur.close()
         conn.close()
@@ -756,16 +695,13 @@ def saved_codes():
     try:
         conn = get_conn()
         cur = conn.cursor()
-        cur.execute(
-            """
+        cur.execute("""
             SELECT c.* FROM codes c
             INNER JOIN saved_codes s ON s.code_id = c.id
             WHERE s.user_id = %s AND c.deleted = FALSE
             ORDER BY s.created_at DESC
             LIMIT 50
-            """,
-            (int(user_id),),
-        )
+        """, (int(user_id),))
         rows = cur.fetchall()
         cur.close()
         conn.close()
@@ -786,15 +722,12 @@ def follow():
     try:
         conn = get_conn()
         cur = conn.cursor()
-        cur.execute(
-            """
+        cur.execute("""
             INSERT INTO follows (follower_id, followed_id)
             VALUES (%s, %s)
             ON CONFLICT (follower_id, followed_id) DO NOTHING
             RETURNING id
-            """,
-            (int(follower_id), int(followed_id)),
-        )
+        """, (int(follower_id), int(followed_id)))
         row = cur.fetchone()
         conn.commit()
         cur.close()
@@ -818,10 +751,7 @@ def unfollow():
     try:
         conn = get_conn()
         cur = conn.cursor()
-        cur.execute(
-            "DELETE FROM follows WHERE follower_id = %s AND followed_id = %s",
-            (int(follower_id), int(followed_id)),
-        )
+        cur.execute("DELETE FROM follows WHERE follower_id = %s AND followed_id = %s", (int(follower_id), int(followed_id)))
         conn.commit()
         cur.close()
         conn.close()
@@ -836,10 +766,8 @@ def is_following():
     try:
         conn = get_conn()
         cur = conn.cursor()
-        cur.execute(
-            "SELECT 1 FROM follows WHERE follower_id = %s AND followed_id = %s",
-            (int(request.args.get("follower")), int(request.args.get("followed"))),
-        )
+        cur.execute("SELECT 1 FROM follows WHERE follower_id = %s AND followed_id = %s",
+                    (int(request.args.get("follower")), int(request.args.get("followed"))))
         row = cur.fetchone()
         cur.close()
         conn.close()
@@ -854,8 +782,7 @@ def followers():
     try:
         conn = get_conn()
         cur = conn.cursor()
-        cur.execute(
-            """
+        cur.execute("""
             SELECT f.follower_id AS user_id,
                    COALESCE(
                      (SELECT added_by FROM codes WHERE user_id = f.follower_id ORDER BY created_at DESC LIMIT 1),
@@ -865,9 +792,7 @@ def followers():
             FROM follows f
             WHERE f.followed_id = %s
             ORDER BY f.created_at DESC LIMIT 100
-            """,
-            (int(user_id),),
-        )
+        """, (int(user_id),))
         rows = cur.fetchall()
         cur.close()
         conn.close()
@@ -883,8 +808,7 @@ def following():
     try:
         conn = get_conn()
         cur = conn.cursor()
-        cur.execute(
-            """
+        cur.execute("""
             SELECT f.followed_id AS user_id,
                    COALESCE(
                      (SELECT added_by FROM codes WHERE user_id = f.followed_id ORDER BY created_at DESC LIMIT 1),
@@ -894,9 +818,7 @@ def following():
             FROM follows f
             WHERE f.follower_id = %s
             ORDER BY f.created_at DESC LIMIT 100
-            """,
-            (int(user_id),),
-        )
+        """, (int(user_id),))
         rows = cur.fetchall()
         cur.close()
         conn.close()
@@ -929,15 +851,9 @@ def get_notifications():
     try:
         conn = get_conn()
         cur = conn.cursor()
-        cur.execute(
-            "SELECT * FROM notifications WHERE user_id = %s ORDER BY created_at DESC LIMIT 50",
-            (int(user_id),),
-        )
+        cur.execute("SELECT * FROM notifications WHERE user_id = %s ORDER BY created_at DESC LIMIT 50", (int(user_id),))
         rows = cur.fetchall()
-        cur.execute(
-            "SELECT COUNT(*) AS c FROM notifications WHERE user_id = %s AND is_read = FALSE",
-            (int(user_id),),
-        )
+        cur.execute("SELECT COUNT(*) AS c FROM notifications WHERE user_id = %s AND is_read = FALSE", (int(user_id),))
         unread = cur.fetchone()["c"]
         cur.close()
         conn.close()
@@ -956,10 +872,7 @@ def mark_notifications_read():
     try:
         conn = get_conn()
         cur = conn.cursor()
-        cur.execute(
-            "UPDATE notifications SET is_read = TRUE WHERE user_id = %s AND is_read = FALSE",
-            (int(user_id),),
-        )
+        cur.execute("UPDATE notifications SET is_read = TRUE WHERE user_id = %s AND is_read = FALSE", (int(user_id),))
         conn.commit()
         cur.close()
         conn.close()
@@ -986,55 +899,6 @@ def settings_push():
     return jsonify({"success": True, "enabled": bool(enabled)})
 
 
-@app.route("/settings/sms", methods=["GET", "POST"])
-def settings_sms():
-    if request.method == "GET":
-        user_id = request.args.get("user_id")
-        if not user_id:
-            return jsonify({"enabled": False, "phone": None})
-        try:
-            conn = get_conn()
-            cur = conn.cursor()
-            cur.execute("SELECT sms_enabled, phone FROM user_settings WHERE telegram_id = %s", (int(user_id),))
-            row = cur.fetchone()
-            cur.close()
-            conn.close()
-            if not row:
-                return jsonify({"enabled": False, "phone": None})
-            return jsonify({"enabled": bool(row["sms_enabled"]), "phone": row["phone"]})
-        except Exception:
-            return jsonify({"enabled": False, "phone": None})
-
-    data = request.json or {}
-    user_id = data.get("user_id")
-    if not user_id:
-        return jsonify({"success": False}), 400
-    enabled = data.get("enabled")
-    phone = data.get("phone")
-    try:
-        conn = get_conn()
-        cur = conn.cursor()
-        if phone is not None:
-            cur.execute("""
-                INSERT INTO user_settings (telegram_id, phone, sms_enabled)
-                VALUES (%s, %s, COALESCE(%s, FALSE))
-                ON CONFLICT (telegram_id) DO UPDATE SET phone = EXCLUDED.phone, updated_at = NOW()
-            """, (int(user_id), phone, enabled))
-        if enabled is not None:
-            cur.execute("""
-                INSERT INTO user_settings (telegram_id, sms_enabled)
-                VALUES (%s, %s)
-                ON CONFLICT (telegram_id) DO UPDATE SET sms_enabled = EXCLUDED.sms_enabled, updated_at = NOW()
-            """, (int(user_id), bool(enabled)))
-        conn.commit()
-        cur.close()
-        conn.close()
-        return jsonify({"success": True})
-    except Exception as e:
-        logging.error(e)
-        return jsonify({"success": False}), 500
-
-
 @app.route("/search/log", methods=["POST"])
 def log_search():
     data = request.json or {}
@@ -1058,15 +922,13 @@ def recent_searches():
     try:
         conn = get_conn()
         cur = conn.cursor()
-        cur.execute(
-            """
+        cur.execute("""
             SELECT query FROM search_logs
             WHERE created_at > NOW() - INTERVAL '30 days'
             GROUP BY query
             ORDER BY MAX(created_at) DESC
             LIMIT 40
-            """
-        )
+        """)
         rows = cur.fetchall()
         cur.close()
         conn.close()
