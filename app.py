@@ -25,7 +25,7 @@ CHANNEL_ID = os.getenv("CHANNEL_ID", "-1004414166682")
 DATABASE_URL = os.getenv("DATABASE_URL")
 XAI_API_KEY = os.getenv("XAI_API_KEY")
 SERVER_URL = os.getenv("SERVER_URL", "https://codeshare-bot-production.up.railway.app")
-MINIAPP_URL = os.getenv("MINIAPP_URL", f"{SERVER_URL}/miniapp?v=15")
+MINIAPP_URL = os.getenv("MINIAPP_URL", f"{SERVER_URL}/miniapp?v=16")
 PRICE_CENTS = int(os.getenv("PRICE_CENTS", "1000"))
 
 BASE_MEMBERS = 2345
@@ -381,7 +381,7 @@ def create_checkout():
             line_items=[{
                 "price_data": {
                     "currency": "eur",
-                    "product_data": {"name": "COD.IA — accès à vie"},
+                    "product_data": {"name": "COD.IA — accès Premium"},
                     "unit_amount": PRICE_CENTS,
                 },
                 "quantity": 1,
@@ -410,7 +410,7 @@ def create_embedded_checkout():
             line_items=[{
                 "price_data": {
                     "currency": "eur",
-                    "product_data": {"name": "COD.IA — accès à vie"},
+                    "product_data": {"name": "COD.IA — accès Premium"},
                     "unit_amount": PRICE_CENTS,
                 },
                 "quantity": 1,
@@ -1476,6 +1476,24 @@ def telegram_webhook():
             return jsonify(success=True)
         mark_paid(user_id)
         grant_access_message(chat_id)
+        return jsonify(success=True)
+
+    # ========== COMMANDE /free ==========
+    if text.strip().lower() == "/free":
+        free_url = f"{SERVER_URL}/miniapp?force_free=1&v=16"
+        keyboard = {
+            "inline_keyboard": [[
+                {
+                    "text": "Voir version Gratuite",
+                    "web_app": {"url": free_url}
+                }
+            ]]
+        }
+        send_telegram_message(
+            chat_id,
+            "Voici la <b>version gratuite</b> verrouillée (aucun code visible) :",
+            reply_markup=keyboard
+        )
         return jsonify(success=True)
 
     if not is_paid(user_id):
