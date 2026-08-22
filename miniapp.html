@@ -1,564 +1,556 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
- <meta charset="UTF-8">
- <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
- <title>COD.IA</title>
- <script src="https://telegram.org/js/telegram-web-app.js"></script>
- <script src="https://js.stripe.com/v3/"></script>
- <style>
- :root{--bg:#07070b;--card:#121218;--card-hover:#1a1a22;--text:#f4f4f5;--text2:#a1a1aa;--border:#27272a;--accent:#2AABEE;--accent2:#8b5cf6;--green:#22c55e;--orange:#f59e0b;--gradient:linear-gradient(135deg,#2AABEE 0%,#8b5cf6 55%,#ec4899 100%);--gradient-soft:linear-gradient(135deg,rgba(42,171,238,0.16),rgba(139,92,246,0.12));--shadow:0 10px 40px rgba(0,0,0,0.45);--radius:22px}
- body.light{--bg:#f8fafc;--card:#fff;--card-hover:#f1f5f9;--text:#0f172a;--text2:#64748b;--border:#e2e8f0;--accent:#0284c7;--accent2:#7c3aed;--gradient:linear-gradient(135deg,#0284c7,#7c3aed,#db2777);--gradient-soft:linear-gradient(135deg,rgba(2,132,199,0.1),rgba(124,58,237,0.08));--shadow:0 12px 40px rgba(0,0,0,0.08)}
- *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
- body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Inter",sans-serif;background:var(--bg);color:var(--text);height:100vh;overflow:hidden;line-height:1.5}
- .app{max-width:430px;height:100vh;margin:0 auto;display:flex;flex-direction:column;position:relative;background:var(--bg)}
- .hidden{display:none!important}
- @keyframes fadeInUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
- @keyframes pageIn{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
- @keyframes orbFloat{from{transform:translate(0,0)}to{transform:translate(-3%,4%)}}
- @keyframes badgePulse{0%,100%{box-shadow:0 0 16px rgba(42,171,238,0.25)}50%{box-shadow:0 0 28px rgba(42,171,238,0.45)}}
- @keyframes ctaShine{0%{left:-100%}50%,100%{left:130%}}
- @keyframes saveFlash{0%{box-shadow:0 0 0 0 rgba(42,171,238,0.6);transform:scale(1)}40%{box-shadow:0 0 0 16px rgba(42,171,238,0);transform:scale(1.015)}100%{box-shadow:var(--shadow);transform:scale(1)}}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>COD.IA</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script src="https://js.stripe.com/v3/"></script>
+  <style>
+    :root{--bg:#07070b;--card:#121218;--card-hover:#1a1a22;--text:#f4f4f5;--text2:#a1a1aa;--border:#27272a;--accent:#2AABEE;--accent2:#8b5cf6;--green:#22c55e;--orange:#f59e0b;--gradient:linear-gradient(135deg,#2AABEE 0%,#8b5cf6 55%,#ec4899 100%);--gradient-soft:linear-gradient(135deg,rgba(42,171,238,0.16),rgba(139,92,246,0.12));--shadow:0 10px 40px rgba(0,0,0,0.45);--radius:22px}
+    body.light{--bg:#f8fafc;--card:#fff;--card-hover:#f1f5f9;--text:#0f172a;--text2:#64748b;--border:#e2e8f0;--accent:#0284c7;--accent2:#7c3aed;--gradient:linear-gradient(135deg,#0284c7,#7c3aed,#db2777);--gradient-soft:linear-gradient(135deg,rgba(2,132,199,0.1),rgba(124,58,237,0.08));--shadow:0 12px 40px rgba(0,0,0,0.08)}
+    *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+    body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Inter",sans-serif;background:var(--bg);color:var(--text);height:100vh;overflow:hidden;line-height:1.5}
+    .app{max-width:430px;height:100vh;margin:0 auto;display:flex;flex-direction:column;position:relative;background:var(--bg)}
+    .hidden{display:none!important}
+    @keyframes fadeInUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes pageIn{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes orbFloat{from{transform:translate(0,0)}to{transform:translate(-3%,4%)}}
+    @keyframes badgePulse{0%,100%{box-shadow:0 0 16px rgba(42,171,238,0.25)}50%{box-shadow:0 0 28px rgba(42,171,238,0.45)}}
+    @keyframes ctaShine{0%{left:-100%}50%,100%{left:130%}}
+    @keyframes saveFlash{0%{box-shadow:0 0 0 0 rgba(42,171,238,0.6);transform:scale(1)}40%{box-shadow:0 0 0 16px rgba(42,171,238,0);transform:scale(1.015)}100%{box-shadow:var(--shadow);transform:scale(1)}}
 
- .codia-logo{display:inline-flex;flex-direction:column;align-items:flex-start;line-height:1}
- .codia-logo-main{display:flex;align-items:center;gap:2px;position:relative}
- .codia-logo-text{font-weight:900;font-size:28px;letter-spacing:-0.04em;color:#0a0a0a;position:relative;z-index:1}
- body:not(.light) .codia-logo-text,#paywall .codia-logo-text,#free-locked-page .codia-logo-text{color:#fff}
- .codia-logo-underline{position:absolute;left:0;bottom:2px;width:52%;height:5px;background:linear-gradient(90deg,#1e90ff,#2AABEE 60%,transparent);border-radius:4px;z-index:0}
- .codia-logo-plane{width:22px;height:22px;border-radius:50%;background:#2AABEE;display:flex;align-items:center;justify-content:center;margin-left:4px;box-shadow:0 2px 10px rgba(42,171,238,0.55)}
- .codia-logo-plane svg{width:12px;height:12px;fill:#fff}
- .codia-logo-tagline{font-family:Georgia,cursive;font-style:italic;font-size:11px;color:#555;margin-top:4px}
- #paywall .codia-logo-tagline,#free-locked-page .codia-logo-tagline{color:rgba(255,255,255,0.75)}
- .codia-logo.compact .codia-logo-text{font-size:18px}
- .codia-logo.compact .codia-logo-plane{width:16px;height:16px}
- .codia-logo.compact .codia-logo-plane svg{width:9px;height:9px}
- .codia-logo.compact .codia-logo-underline{height:3px;bottom:1px}
- .codia-logo.compact .codia-logo-tagline{display:none}
+    .codia-logo{display:inline-flex;flex-direction:column;align-items:flex-start;line-height:1}
+    .codia-logo-main{display:flex;align-items:center;gap:2px;position:relative}
+    .codia-logo-text{font-weight:900;font-size:28px;letter-spacing:-0.04em;color:#0a0a0a;position:relative;z-index:1}
+    body:not(.light) .codia-logo-text,#paywall .codia-logo-text,#free-locked-page .codia-logo-text{color:#fff}
+    .codia-logo-underline{position:absolute;left:0;bottom:2px;width:52%;height:5px;background:linear-gradient(90deg,#1e90ff,#2AABEE 60%,transparent);border-radius:4px;z-index:0}
+    .codia-logo-plane{width:22px;height:22px;border-radius:50%;background:#2AABEE;display:flex;align-items:center;justify-content:center;margin-left:4px;box-shadow:0 2px 10px rgba(42,171,238,0.55)}
+    .codia-logo-plane svg{width:12px;height:12px;fill:#fff}
+    .codia-logo-tagline{font-family:Georgia,cursive;font-style:italic;font-size:11px;color:#555;margin-top:4px}
+    #paywall .codia-logo-tagline,#free-locked-page .codia-logo-tagline{color:rgba(255,255,255,0.75)}
+    .codia-logo.compact .codia-logo-text{font-size:18px}
+    .codia-logo.compact .codia-logo-plane{width:16px;height:16px}
+    .codia-logo.compact .codia-logo-plane svg{width:9px;height:9px}
+    .codia-logo.compact .codia-logo-underline{height:3px;bottom:1px}
+    .codia-logo.compact .codia-logo-tagline{display:none}
 
- .header{padding:14px 18px 12px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);background:rgba(7,7,11,0.82);backdrop-filter:blur(20px);position:sticky;top:0;z-index:20}
- body.light .header{background:rgba(248,250,252,0.85)}
- .brand{display:flex;align-items:center;gap:12px}
- .sub{font-size:12px;color:var(--text2)}
- .header-actions{display:flex;gap:8px}
- .icon-btn{width:42px;height:42px;border-radius:15px;border:1px solid var(--border);background:var(--card);color:var(--text);position:relative;display:flex;align-items:center;justify-content:center;font-size:17px}
+    .header{padding:14px 18px 12px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);background:rgba(7,7,11,0.82);backdrop-filter:blur(20px);position:sticky;top:0;z-index:20}
+    body.light .header{background:rgba(248,250,252,0.85)}
+    .brand{display:flex;align-items:center;gap:12px}
+    .sub{font-size:12px;color:var(--text2)}
+    .header-actions{display:flex;gap:8px}
+    .icon-btn{width:42px;height:42px;border-radius:15px;border:1px solid var(--border);background:var(--card);color:var(--text);position:relative;display:flex;align-items:center;justify-content:center;font-size:17px}
 
- .stories{display:flex;gap:14px;overflow-x:auto;padding:18px;border-bottom:1px solid var(--border);scrollbar-width:none}
- .stories::-webkit-scrollbar{display:none}
- .story{min-width:70px;text-align:center;font-size:11.5px;color:var(--text2)}
- .story-ring{width:64px;height:64px;border-radius:50%;padding:2.5px;margin:0 auto 8px;background:var(--gradient)}
- .story-ring div{width:100%;height:100%;border-radius:50%;background:var(--bg);display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--text)}
+    .stories{display:flex;gap:14px;overflow-x:auto;padding:18px;border-bottom:1px solid var(--border);scrollbar-width:none}
+    .stories::-webkit-scrollbar{display:none}
+    .story{min-width:70px;text-align:center;font-size:11.5px;color:var(--text2)}
+    .story-ring{width:64px;height:64px;border-radius:50%;padding:2.5px;margin:0 auto 8px;background:var(--gradient)}
+    .story-ring div{width:100%;height:100%;border-radius:50%;background:var(--bg);display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--text)}
 
- .page{display:none;flex:1;overflow-y:auto;padding-bottom:115px;animation:pageIn 0.38s cubic-bezier(0.22,1,0.36,1)}
- .page.active{display:block}
+    .page{display:none;flex:1;overflow-y:auto;padding-bottom:115px;animation:pageIn 0.38s cubic-bezier(0.22,1,0.36,1)}
+    .page.active{display:block}
 
- .search-wrap{padding:18px}
- .search{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--border);border-radius:20px;padding:15px 18px}
- .search input{width:100%;border:none;outline:none;background:transparent;color:var(--text);font-size:15.5px}
- .chips{display:flex;gap:8px;flex-wrap:wrap;padding:0 18px 16px}
- .chip{border:1px solid var(--border);background:var(--card);color:var(--text);border-radius:999px;padding:9px 15px;font-size:13px}
- .chip.active{background:var(--accent);color:#fff;border-color:var(--accent)}
- .section{padding:16px 18px 10px;font-size:12px;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:0.7px}
+    .search-wrap{padding:18px}
+    .search{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--border);border-radius:20px;padding:15px 18px}
+    .search input{width:100%;border:none;outline:none;background:transparent;color:var(--text);font-size:15.5px}
+    .chips{display:flex;gap:8px;flex-wrap:wrap;padding:0 18px 16px}
+    .chip{border:1px solid var(--border);background:var(--card);color:var(--text);border-radius:999px;padding:9px 15px;font-size:13px}
+    .chip.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+    .section{padding:16px 18px 10px;font-size:12px;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:0.7px}
 
- .card{margin:0 16px 16px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow);position:relative;animation:fadeInUp 0.4s ease both}
- .row{display:flex;justify-content:space-between;align-items:center;gap:12px}
- .muted{color:var(--text2);font-size:12.5px}
- .pill{background:rgba(34,197,94,0.15);color:var(--green);padding:6px 12px;border-radius:999px;font-size:12px;font-weight:700}
- .post-top{display:flex;align-items:center;gap:12px;margin-bottom:12px}
- .avatar,.avatar-img{width:46px;height:46px;border-radius:50%;object-fit:cover}
- .avatar{background:var(--gradient);display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;font-size:17px}
- .code{margin:14px 0;padding:15px;border-radius:16px;background:rgba(42,171,238,0.07);border:1.5px dashed rgba(42,171,238,0.4);display:flex;justify-content:space-between;align-items:center;gap:12px;font-family:ui-monospace,Menlo,monospace;font-size:15.5px;font-weight:600}
- .copy-btn{border:1px solid var(--border);background:var(--card);color:var(--text);border-radius:12px;padding:8px 13px;font-size:12.5px;font-weight:600}
- .actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;align-items:center}
- .actions button{border:1px solid var(--border);background:var(--bg);color:var(--text);border-radius:999px;padding:8px 14px;font-size:13px}
- .expire{font-size:12px;color:var(--orange);margin-top:6px}
+    .card{margin:0 16px 16px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow);position:relative;animation:fadeInUp 0.4s ease both}
+    .row{display:flex;justify-content:space-between;align-items:center;gap:12px}
+    .muted{color:var(--text2);font-size:12.5px}
+    .pill{background:rgba(34,197,94,0.15);color:var(--green);padding:6px 12px;border-radius:999px;font-size:12px;font-weight:700}
+    .post-top{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+    .avatar,.avatar-img{width:46px;height:46px;border-radius:50%;object-fit:cover}
+    .avatar{background:var(--gradient);display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;font-size:17px}
+    .code{margin:14px 0;padding:15px;border-radius:16px;background:rgba(42,171,238,0.07);border:1.5px dashed rgba(42,171,238,0.4);display:flex;justify-content:space-between;align-items:center;gap:12px;font-family:ui-monospace,Menlo,monospace;font-size:15.5px;font-weight:600}
+    .copy-btn{border:1px solid var(--border);background:var(--card);color:var(--text);border-radius:12px;padding:8px 13px;font-size:12.5px;font-weight:600}
+    .actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;align-items:center}
+    .actions button{border:1px solid var(--border);background:var(--bg);color:var(--text);border-radius:999px;padding:8px 14px;font-size:13px}
+    .expire{font-size:12px;color:var(--orange);margin-top:6px}
 
- .post-swipe-wrap{position:relative;margin:0 16px 16px;border-radius:var(--radius);overflow:hidden;animation:fadeInUp 0.4s ease both}
- .post-swipe-bg{position:absolute;inset:0;background:linear-gradient(90deg,rgba(42,171,238,0.35),rgba(42,171,238,0.04));display:flex;align-items:center;padding-left:28px;z-index:0}
- .post-swipe-bg .fav-icon{width:44px;height:44px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;color:#fff;transform:scale(0.45);opacity:0.25;transition:transform 0.18s cubic-bezier(0.34,1.56,0.64,1),opacity 0.18s ease;box-shadow:0 6px 20px rgba(42,171,238,0.45)}
- .post-swipe-bg .fav-icon svg{width:22px;height:22px;fill:currentColor}
- .post-swipe-bg.active .fav-icon{transform:scale(1.12);opacity:1}
- .post-swipe-content{position:relative;z-index:1;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow);transition:transform 0.32s cubic-bezier(0.22,1,0.36,1);will-change:transform;touch-action:pan-y;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
- .post-swipe-content.swiping{transition:none}
- .post-swipe-content.saved-flash{animation:saveFlash 0.55s cubic-bezier(0.22,1,0.36,1)}
- .post-swipe-wrap.removing{transition:opacity 0.35s cubic-bezier(0.4,0,0.2,1);opacity:0;transform:translateX(60px) scale(0.97)}
+    .post-swipe-wrap{position:relative;margin:0 16px 16px;border-radius:var(--radius);overflow:hidden;animation:fadeInUp 0.4s ease both}
+    .post-swipe-bg{position:absolute;inset:0;background:linear-gradient(90deg,rgba(42,171,238,0.35),rgba(42,171,238,0.04));display:flex;align-items:center;padding-left:28px;z-index:0}
+    .post-swipe-bg .fav-icon{width:44px;height:44px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;color:#fff;transform:scale(0.45);opacity:0.25;transition:transform 0.18s cubic-bezier(0.34,1.56,0.64,1),opacity 0.18s ease;box-shadow:0 6px 20px rgba(42,171,238,0.45)}
+    .post-swipe-bg .fav-icon svg{width:22px;height:22px;fill:currentColor}
+    .post-swipe-bg.active .fav-icon{transform:scale(1.12);opacity:1}
+    .post-swipe-content{position:relative;z-index:1;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow);transition:transform 0.32s cubic-bezier(0.22,1,0.36,1);will-change:transform;touch-action:pan-y;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+    .post-swipe-content.swiping{transition:none}
+    .post-swipe-content.saved-flash{animation:saveFlash 0.55s cubic-bezier(0.22,1,0.36,1)}
+    .post-swipe-wrap.removing{transition:opacity 0.35s cubic-bezier(0.4,0,0.2,1),transform 0.35s cubic-bezier(0.4,0,0.2,1);opacity:0;transform:translateX(60px) scale(0.97)}
 
- .bottom{position:absolute;left:0;right:0;bottom:0;height:94px;border-top:1px solid var(--border);background:rgba(7,7,11,0.9);backdrop-filter:blur(20px);display:flex;justify-content:space-around;align-items:center;padding-bottom:20px;z-index:30}
- body.light .bottom{background:rgba(248,250,252,0.92)}
- .nav{background:none;border:none;color:var(--text2);display:flex;flex-direction:column;align-items:center;gap:5px;font-size:11px;font-weight:600}
- .nav.active{color:var(--text)}
- .nav .ic{width:30px;height:30px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:15px}
- .nav.active .ic{background:var(--gradient);color:#fff;transform:translateY(-3px)}
- .fab{position:fixed;left:50%;transform:translateX(-50%);bottom:112px;background:var(--gradient);color:#fff;border:none;border-radius:999px;padding:15px 28px;font-weight:700;display:none;z-index:25}
- .page-home.active ~ .fab{display:block}
+    .bottom{position:absolute;left:0;right:0;bottom:0;height:94px;border-top:1px solid var(--border);background:rgba(7,7,11,0.9);backdrop-filter:blur(20px);display:flex;justify-content:space-around;align-items:center;padding-bottom:20px;z-index:30}
+    body.light .bottom{background:rgba(248,250,252,0.92)}
+    .nav{background:none;border:none;color:var(--text2);display:flex;flex-direction:column;align-items:center;gap:5px;font-size:11px;font-weight:600}
+    .nav.active{color:var(--text)}
+    .nav .ic{width:30px;height:30px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:15px}
+    .nav.active .ic{background:var(--gradient);color:#fff;transform:translateY(-3px)}
+    .fab{position:fixed;left:50%;transform:translateX(-50%);bottom:112px;background:var(--gradient);color:#fff;border:none;border-radius:999px;padding:15px 28px;font-weight:700;display:none;z-index:25}
+    .page-home.active ~ .fab{display:block}
 
- .modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.65);backdrop-filter:blur(8px);z-index:50;align-items:flex-end;justify-content:center}
- .modal.active{display:flex}
- .sheet{width:100%;max-width:430px;background:var(--card);border-radius:28px 28px 0 0;padding:26px 20px 42px;max-height:90vh;overflow-y:auto}
- .sheet button,.sheet input,.sheet textarea{width:100%;margin-bottom:12px;padding:16px;border-radius:16px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:15.5px}
- .sheet button{font-weight:600}
- .sheet .danger{color:#f87171;border-color:rgba(248,113,113,0.4)}
- .quick{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
- .quick button{width:auto;padding:9px 14px;margin:0;font-size:13px;border-radius:999px}
+    .modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.65);backdrop-filter:blur(8px);z-index:50;align-items:flex-end;justify-content:center}
+    .modal.active{display:flex}
+    .sheet{width:100%;max-width:430px;background:var(--card);border-radius:28px 28px 0 0;padding:26px 20px 42px;max-height:90vh;overflow-y:auto}
+    .sheet button,.sheet input,.sheet textarea{width:100%;margin-bottom:12px;padding:16px;border-radius:16px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:15.5px}
+    .sheet button{font-weight:600}
+    .sheet .danger{color:#f87171;border-color:rgba(248,113,113,0.4)}
+    .quick{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+    .quick button{width:auto;padding:9px 14px;margin:0;font-size:13px;border-radius:999px}
 
- .welcome-box{margin:26px 18px;padding:28px 24px;border-radius:26px;background:var(--gradient-soft);border:1px solid rgba(42,171,238,0.25)}
- .welcome-title{font-size:28px;font-weight:800;margin-bottom:12px;background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-align:center}
- .welcome-text{font-size:14px;line-height:1.65;color:var(--text2)}
- .welcome-text b{color:var(--text)}
- .ai-box{margin:10px 18px 22px;padding:18px 20px;border-radius:20px;background:var(--gradient-soft);border:1px solid rgba(42,171,238,0.3);font-size:14.5px}
- .empty{text-align:center;color:var(--text2);padding:48px 24px;font-size:14.5px}
- .clickable{cursor:pointer}
- .profile-tabs{display:flex;margin-top:18px;border-top:1px solid var(--border);padding-top:4px}
- .profile-tab{flex:1;background:none;border:none;color:var(--text2);padding:14px 8px;border-bottom:2px solid transparent;font-size:12px}
- .profile-tab.active{color:var(--text);border-bottom-color:var(--accent)}
- .profile-tab svg{width:22px;height:22px;display:block;margin:0 auto 4px}
+    .welcome-box{margin:26px 18px;padding:28px 24px;border-radius:26px;background:var(--gradient-soft);border:1px solid rgba(42,171,238,0.25)}
+    .welcome-title{font-size:28px;font-weight:800;margin-bottom:12px;background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-align:center}
+    .welcome-text{font-size:14px;line-height:1.65;color:var(--text2)}
+    .welcome-text b{color:var(--text)}
+    .ai-box{margin:10px 18px 22px;padding:18px 20px;border-radius:20px;background:var(--gradient-soft);border:1px solid rgba(42,171,238,0.3);font-size:14.5px}
+    .empty{text-align:center;color:var(--text2);padding:48px 24px;font-size:14.5px}
+    .clickable{cursor:pointer}
+    .profile-tabs{display:flex;margin-top:18px;border-top:1px solid var(--border);padding-top:4px}
+    .profile-tab{flex:1;background:none;border:none;color:var(--text2);padding:14px 8px;border-bottom:2px solid transparent;font-size:12px}
+    .profile-tab.active{color:var(--text);border-bottom-color:var(--accent)}
+    .profile-tab svg{width:22px;height:22px;display:block;margin:0 auto 4px}
 
- .toggle-label{font-size:14px;font-weight:600}
- .toggle-sub{font-size:12px;color:var(--text2)}
- .switch{position:relative;display:inline-block;width:48px;height:28px}
- .switch input{opacity:0;width:0;height:0}
- .slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:#333;border-radius:28px;transition:.3s}
- .slider:before{position:absolute;content:"";height:22px;width:22px;left:3px;bottom:3px;background:white;border-radius:50%;transition:.3s}
- input:checked + .slider{background:var(--accent)}
- input:checked + .slider:before{transform:translateX(20px)}
+    .toggle-label{font-size:14px;font-weight:600}
+    .toggle-sub{font-size:12px;color:var(--text2)}
+    .switch{position:relative;display:inline-block;width:48px;height:28px}
+    .switch input{opacity:0;width:0;height:0}
+    .slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:#333;border-radius:28px;transition:.3s}
+    .slider:before{position:absolute;content:"";height:22px;width:22px;left:3px;bottom:3px;background:white;border-radius:50%;transition:.3s}
+    input:checked + .slider{background:var(--accent)}
+    input:checked + .slider:before{transform:translateX(20px)}
 
- .leader-item{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)}
- .leader-rank{width:28px;height:28px;border-radius:50%;background:var(--gradient);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px}
+    .leader-item{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)}
+    .leader-rank{width:28px;height:28px;border-radius:50%;background:var(--gradient);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px}
 
- .check-row{display:flex;align-items:center;gap:10px;margin:14px 0;font-size:14px}
- .check-row input{width:auto;margin:0}
+    .check-row{display:flex;align-items:center;gap:10px;margin:14px 0;font-size:14px}
+    .check-row input{width:auto;margin:0}
 
- /* PROFIL PREMIUM V2 */
- #profile-card{background:transparent!important;border:none!important;box-shadow:none!important;padding:0!important;margin:0!important}
- .profile-header{margin:12px 16px 18px;padding:28px 20px 22px;background:var(--card);border:1px solid var(--border);border-radius:22px;text-align:center;position:relative;overflow:hidden}
- .profile-header::before{content:"";position:absolute;top:0;left:0;right:0;height:76px;background:linear-gradient(180deg,rgba(42,171,238,0.12),transparent);pointer-events:none}
- .profile-avatar-wrap{width:92px;height:92px;margin:0 auto 14px;position:relative;z-index:1}
- .profile-avatar-wrap .avatar,.profile-avatar-wrap .avatar-img{width:92px;height:92px;border:3px solid var(--card);box-shadow:0 0 0 2px var(--border),0 8px 24px rgba(0,0,0,0.18)}
- .profile-name{font-size:23px;font-weight:700;letter-spacing:-0.4px;margin-bottom:2px;position:relative;z-index:1}
- .profile-username{font-size:14px;color:var(--text2);margin-bottom:14px;position:relative;z-index:1}
- .profile-bio{font-size:14.5px;line-height:1.55;color:var(--text);margin:0 auto 16px;max-width:290px;white-space:pre-wrap;position:relative;z-index:1}
- .profile-bio-empty{color:var(--text2);font-style:italic}
- .profile-badge{display:inline-flex;align-items:center;gap:6px;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:5px 13px;border-radius:999px;font-size:12.5px;font-weight:600;margin-bottom:4px;position:relative;z-index:1}
- .profile-level{margin:0 16px 16px;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:13px 16px}
- .profile-level-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-size:13px}
- .profile-level-top span:first-child{color:var(--text2)}
- .profile-level-top strong{font-weight:600;color:var(--text)}
- .profile-level-bar{height:5px;background:var(--bg);border-radius:999px;overflow:hidden}
- .profile-level-fill{height:100%;background:var(--accent);border-radius:999px;transition:width 0.85s cubic-bezier(0.22,1,0.36,1)}
- .stats-row{display:flex;justify-content:space-around;margin:0 16px 18px;padding:18px 8px;background:var(--card);border:1px solid var(--border);border-radius:18px}
- .stat-item{text-align:center;flex:1}
- .stat-item b{display:block;font-size:19px;font-weight:700;margin-bottom:3px;letter-spacing:-0.3px}
- .stat-item span{font-size:12px;color:var(--text2);font-weight:500}
- .follow-stats{display:flex;justify-content:center;gap:36px;margin-bottom:18px;font-size:14.5px}
- .follow-stats b{font-weight:700}
- .profile-actions{display:flex;gap:10px;margin:0 16px 18px}
- .profile-actions button{flex:1;padding:13px 12px;border-radius:14px;border:1px solid var(--border);background:var(--card);color:var(--text);font-weight:600;font-size:14px;transition:all 0.2s ease}
- .profile-actions button:active{transform:scale(0.97)}
- .profile-actions .primary{background:var(--accent);color:#fff;border-color:var(--accent)}
- .profile-tabs{margin:0 16px!important;border-radius:16px 16px 0 0;overflow:hidden;border:1px solid var(--border);border-bottom:none;background:var(--card)}
+    /* PROFIL PREMIUM V2 */
+    #profile-card{background:transparent!important;border:none!important;box-shadow:none!important;padding:0!important;margin:0!important}
+    .profile-header{margin:12px 16px 18px;padding:28px 20px 22px;background:var(--card);border:1px solid var(--border);border-radius:22px;text-align:center;position:relative;overflow:hidden}
+    .profile-header::before{content:"";position:absolute;top:0;left:0;right:0;height:76px;background:linear-gradient(180deg,rgba(42,171,238,0.12),transparent);pointer-events:none}
+    .profile-avatar-wrap{width:92px;height:92px;margin:0 auto 14px;position:relative;z-index:1}
+    .profile-avatar-wrap .avatar,.profile-avatar-wrap .avatar-img{width:92px;height:92px;border:3px solid var(--card);box-shadow:0 0 0 2px var(--border),0 8px 24px rgba(0,0,0,0.18)}
+    .profile-name{font-size:23px;font-weight:700;letter-spacing:-0.4px;margin-bottom:2px;position:relative;z-index:1}
+    .profile-username{font-size:14px;color:var(--text2);margin-bottom:14px;position:relative;z-index:1}
+    .profile-bio{font-size:14.5px;line-height:1.55;color:var(--text);margin:0 auto 16px;max-width:290px;white-space:pre-wrap;position:relative;z-index:1}
+    .profile-bio-empty{color:var(--text2);font-style:italic}
+    .profile-badge{display:inline-flex;align-items:center;gap:6px;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:5px 13px;border-radius:999px;font-size:12.5px;font-weight:600;margin-bottom:4px;position:relative;z-index:1}
+    .profile-level{margin:0 16px 16px;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:13px 16px}
+    .profile-level-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-size:13px}
+    .profile-level-top span:first-child{color:var(--text2)}
+    .profile-level-top strong{font-weight:600;color:var(--text)}
+    .profile-level-bar{height:5px;background:var(--bg);border-radius:999px;overflow:hidden}
+    .profile-level-fill{height:100%;background:var(--accent);border-radius:999px;transition:width 0.85s cubic-bezier(0.22,1,0.36,1)}
+    .stats-row{display:flex;justify-content:space-around;margin:0 16px 18px;padding:18px 8px;background:var(--card);border:1px solid var(--border);border-radius:18px}
+    .stat-item{text-align:center;flex:1}
+    .stat-item b{display:block;font-size:19px;font-weight:700;margin-bottom:3px;letter-spacing:-0.3px}
+    .stat-item span{font-size:12px;color:var(--text2);font-weight:500}
+    .follow-stats{display:flex;justify-content:center;gap:36px;margin-bottom:18px;font-size:14.5px}
+    .follow-stats b{font-weight:700}
+    .profile-actions{display:flex;gap:10px;margin:0 16px 18px}
+    .profile-actions button{flex:1;padding:13px 12px;border-radius:14px;border:1px solid var(--border);background:var(--card);color:var(--text);font-weight:600;font-size:14px;transition:all 0.2s ease}
+    .profile-actions button:active{transform:scale(0.97)}
+    .profile-actions .primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+    .profile-tabs{margin:0 16px!important;border-radius:16px 16px 0 0;overflow:hidden;border:1px solid var(--border);border-bottom:none;background:var(--card)}
 
- /* PAYWALL */
- #paywall{position:fixed;inset:0;z-index:100;max-width:430px;margin:0 auto;background:#03050a;color:#fff;display:flex;flex-direction:column;overflow:hidden}
- .sg-bg{position:absolute;inset:0;background:radial-gradient(ellipse 80% 50% at 50% -10%,rgba(42,171,238,0.35),transparent 55%),#03050a}
- .sg-bg::before{content:"";position:absolute;inset:-20%;background:radial-gradient(circle at 30% 40%,rgba(42,171,238,0.15),transparent 40%);animation:orbFloat 12s ease-in-out infinite alternate}
- .sg-live-app{position:absolute;inset:0;background:linear-gradient(180deg,#0c1220,#12182a);filter:blur(3px) brightness(0.85);opacity:0.9;pointer-events:none;padding-top:48px}
- .sg-live-app .la-header{padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.06);background:rgba(15,20,35,.9)}
- .sg-live-app .la-logo{width:28px;height:28px;border-radius:9px;background:linear-gradient(135deg,#2AABEE,#8b5cf6);display:inline-block}
- .sg-live-app .la-name{font-weight:700;font-size:14px;color:#f0f4ff;display:inline;margin-left:10px}
- .sg-live-app .la-stories{display:flex;gap:12px;padding:14px 16px}
- .sg-live-app .la-ring{width:48px;height:48px;border-radius:50%;padding:2px;background:linear-gradient(135deg,#2AABEE,#8b5cf6)}
- .sg-live-app .la-ring::after{content:"";display:block;width:100%;height:100%;background:#0c1220;border-radius:50%}
- .sg-live-app .la-card{margin:8px 16px;height:72px;border-radius:16px;background:rgba(42,171,238,0.12);border:1px solid rgba(255,255,255,0.08)}
- .sg-live-app .la-bottom{position:absolute;left:0;right:0;bottom:0;height:64px;border-top:1px solid rgba(255,255,255,.06);background:rgba(10,14,24,.95)}
- .sg-dim{position:absolute;inset:0;background:linear-gradient(180deg,rgba(3,5,10,0.3),rgba(3,5,10,0.9));pointer-events:none}
- .sg-wrap{position:relative;z-index:2;height:100%;display:flex;flex-direction:column;padding:14px 18px 18px;overflow-y:auto}
- .sg-close{width:36px;height:36px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.06);border-radius:50%;color:#fff;font-size:18px;align-self:flex-start}
- .sg-head{text-align:center;padding:8px 0 14px}
- .sg-badge{font-size:11px;font-weight:700;padding:5px 12px;border-radius:999px;color:#e0f4ff;background:rgba(42,171,238,0.4);border:1px solid rgba(42,171,238,0.5);animation:badgePulse 3s infinite}
- .sg-sub{color:#c8d4e8;font-size:14.5px;margin-top:10px}
- .glass{background:rgba(12,18,32,0.72);border:1px solid rgba(255,255,255,0.12);backdrop-filter:blur(18px)}
- .sg-features{border-radius:22px;padding:6px 14px;margin:6px 0 12px}
- .sg-item{display:flex;gap:14px;padding:12px 4px}
- .sg-item+.sg-item{border-top:1px solid rgba(255,255,255,0.07)}
- .sg-ic{width:40px;height:40px;border-radius:13px;display:flex;align-items:center;justify-content:center;flex:0 0 40px;color:#fff;font-size:16px}
- .sg-ic.c1{background:linear-gradient(135deg,#2AABEE,#0088cc)}
- .sg-ic.c2{background:linear-gradient(135deg,#8b5cf6,#6d28d9)}
- .sg-ic.c3{background:linear-gradient(135deg,#06b6d4,#0891b2)}
- .sg-ic.c5{background:linear-gradient(135deg,#22c55e,#16a34a)}
- .sg-item-text{font-size:14px;font-weight:600}
- .sg-price-card{border-radius:18px;padding:16px 18px;margin-bottom:10px}
- .sg-price-card .label{color:#a0b4d0;font-size:13px}
- .sg-price-card .amount{font-size:32px;font-weight:800;background:linear-gradient(90deg,#fff,#a8d8ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
- .sg-social{text-align:center;font-size:12.5px;color:#b0c0d8;margin:0 0 14px}
- .sg-social b{color:#fff}
- .sg-cta{width:100%;border:none;border-radius:999px;padding:17px;font-size:16.5px;font-weight:800;background:linear-gradient(135deg,#2AABEE,#8b5cf6);color:#fff;margin-bottom:10px;position:relative;overflow:hidden}
- .sg-cta::after{content:"";position:absolute;top:0;left:-100%;width:60%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.25),transparent);animation:ctaShine 3.5s infinite}
- .sg-links{display:flex;justify-content:center;gap:8px;font-size:11px;color:#6a7a94}
- .sg-error{color:#f87171;font-size:12.5px;text-align:center;margin-top:8px}
- .pw-pay{position:absolute;inset:0;z-index:30;background:rgba(0,0,0,.6);display:flex;align-items:flex-end}
- .pw-pay-card{width:100%;border-radius:22px 22px 0 0;background:#0a0e18;padding:18px 18px 28px;max-height:88vh;overflow:auto}
- .pw-back{background:none;border:none;color:#a0b0c8;margin-bottom:12px}
- #success-screen{position:fixed;inset:0;z-index:200;max-width:430px;margin:0 auto;background:rgba(0,0,0,.92);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px}
- .success-check{width:78px;height:78px;border-radius:50%;background:linear-gradient(135deg,#16a34a,#22c55e);display:flex;align-items:center;justify-content:center;font-size:36px;color:#fff}
+    /* ========== PAGE GRATUITE + PAYWALL (même style) ========== */
+    #free-locked-page, #paywall{
+      position:fixed;inset:0;z-index:90;max-width:430px;margin:0 auto;
+      background:var(--bg);color:var(--text);overflow-y:auto;display:none;
+    }
+    #paywall{z-index:100}
+    .fl-header{
+      display:flex;justify-content:space-between;align-items:center;
+      padding:14px 18px;position:sticky;top:0;z-index:10;
+      background:rgba(7,7,11,0.92);backdrop-filter:blur(16px);
+      border-bottom:1px solid var(--border);
+    }
+    body.light .fl-header{background:rgba(248,250,252,0.92)}
+    .fl-badge{
+      font-size:11px;background:rgba(42,171,238,0.15);color:var(--accent);
+      padding:4px 10px;border-radius:999px;font-weight:600;margin-left:8px;
+    }
+    .fl-btn-premium{
+      background:var(--gradient);color:#fff;border:none;
+      padding:9px 14px;border-radius:999px;font-size:13px;font-weight:700;cursor:pointer;
+    }
+    .fl-hero{text-align:center;padding:36px 22px 28px}
+    .fl-lock-icon{font-size:48px;margin-bottom:14px}
+    .fl-hero h1{font-size:24px;font-weight:800;line-height:1.3;margin-bottom:12px}
+    .fl-subtitle{font-size:15px;color:var(--text2);line-height:1.5;margin-bottom:26px}
+    .fl-btn-main{
+      background:var(--gradient);color:#fff;border:none;
+      padding:16px 28px;border-radius:16px;font-size:16px;font-weight:700;
+      width:100%;max-width:320px;cursor:pointer;
+      box-shadow:0 10px 30px rgba(42,171,238,0.35);
+    }
+    .fl-secure{font-size:12px;color:var(--text2);margin-top:12px}
+    .fl-features{padding:10px 18px 6px}
+    .fl-features h2{font-size:15px;font-weight:700;margin-bottom:14px;text-transform:uppercase;letter-spacing:0.6px;color:var(--text2)}
+    .fl-features-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .fl-feature-card{
+      background:var(--card);border:1px solid var(--border);border-radius:18px;
+      padding:16px 12px;text-align:center;position:relative;
+    }
+    .fl-feature-icon{font-size:24px;margin-bottom:8px}
+    .fl-feature-text{font-size:13px;color:var(--text2);line-height:1.35}
+    .fl-feature-lock{position:absolute;top:10px;right:12px;font-size:12px;opacity:0.55}
+    .fl-preview{padding:24px 18px 8px}
+    .fl-preview h2{font-size:15px;font-weight:700;margin-bottom:14px;text-transform:uppercase;letter-spacing:0.6px;color:var(--text2)}
+    .fl-blurred-feed{position:relative;border-radius:20px;overflow:hidden}
+    .fl-code-card{
+      background:var(--card);border:1px solid var(--border);border-radius:18px;
+      padding:16px;margin-bottom:12px;
+    }
+    .fl-code-card.blurred{filter:blur(6px);user-select:none;pointer-events:none}
+    .fl-code-header{display:flex;justify-content:space-between;margin-bottom:8px}
+    .fl-code-brand{font-weight:700;font-size:15px}
+    .fl-code-type{font-size:12px;background:rgba(42,171,238,0.15);color:var(--accent);padding:3px 10px;border-radius:999px}
+    .fl-code-title{font-size:14px;color:var(--text2);margin-bottom:10px}
+    .fl-code-footer{display:flex;justify-content:space-between;font-size:12px;color:var(--text2)}
+    .fl-blur-overlay{
+      position:absolute;inset:0;background:rgba(7,7,11,0.62);
+      display:flex;align-items:center;justify-content:center;cursor:pointer;
+      backdrop-filter:blur(2px);
+    }
+    body.light .fl-blur-overlay{background:rgba(248,250,252,0.72)}
+    .fl-blur-text{text-align:center;font-size:15px;line-height:1.5}
+    .fl-blur-text strong{display:block;margin-top:4px;font-size:16px;color:var(--accent)}
+    .fl-compare{padding:24px 18px 10px}
+    .fl-compare h2{font-size:15px;font-weight:700;margin-bottom:14px;text-transform:uppercase;letter-spacing:0.6px;color:var(--text2)}
+    .fl-table{background:var(--card);border:1px solid var(--border);border-radius:18px;overflow:hidden}
+    .fl-table-row{display:grid;grid-template-columns:1.6fr 0.7fr 0.7fr;padding:14px 16px;font-size:14px;border-bottom:1px solid var(--border)}
+    .fl-table-row:last-child{border-bottom:none}
+    .fl-table-header{background:rgba(42,171,238,0.08);font-weight:700;font-size:13px;color:var(--text2)}
+    .fl-yes{color:var(--green);font-weight:700;text-align:center}
+    .fl-no{color:#f87171;text-align:center}
+    .fl-footer{text-align:center;padding:32px 18px 40px}
+    .fl-footer p{font-size:13px;color:var(--text2);margin-bottom:16px}
+    .fl-btn-secondary{
+      background:transparent;border:1px solid var(--border);color:var(--text);
+      padding:13px 26px;border-radius:14px;font-size:14px;font-weight:600;cursor:pointer;
+    }
 
- /* ========== PAGE GRATUITE VERROUILLÉE ========== */
- #free-locked-page{
- position:fixed;inset:0;z-index:90;max-width:430px;margin:0 auto;
- background:var(--bg);color:var(--text);overflow-y:auto;display:none;
- }
- .fl-header{
- display:flex;justify-content:space-between;align-items:center;
- padding:14px 18px;position:sticky;top:0;z-index:10;
- background:rgba(7,7,11,0.92);backdrop-filter:blur(16px);
- border-bottom:1px solid var(--border);
- }
- body.light .fl-header{background:rgba(248,250,252,0.92)}
- .fl-badge{
- font-size:11px;background:rgba(42,171,238,0.15);color:var(--accent);
- padding:4px 10px;border-radius:999px;font-weight:600;margin-left:8px;
- }
- .fl-btn-premium{
- background:var(--gradient);color:#fff;border:none;
- padding:9px 14px;border-radius:999px;font-size:13px;font-weight:700;cursor:pointer;
- }
- .fl-hero{text-align:center;padding:36px 22px 28px}
- .fl-lock-icon{font-size:48px;margin-bottom:14px}
- .fl-hero h1{font-size:24px;font-weight:800;line-height:1.3;margin-bottom:12px}
- .fl-subtitle{font-size:15px;color:var(--text2);line-height:1.5;margin-bottom:26px}
- .fl-btn-main{
- background:var(--gradient);color:#fff;border:none;
- padding:16px 28px;border-radius:16px;font-size:16px;font-weight:700;
- width:100%;max-width:320px;cursor:pointer;
- box-shadow:0 10px 30px rgba(42,171,238,0.35);
- }
- .fl-secure{font-size:12px;color:var(--text2);margin-top:12px}
- .fl-features{padding:10px 18px 6px}
- .fl-features h2{font-size:15px;font-weight:700;margin-bottom:14px;text-transform:uppercase;letter-spacing:0.6px;color:var(--text2)}
- .fl-features-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
- .fl-feature-card{
- background:var(--card);border:1px solid var(--border);border-radius:18px;
- padding:16px 12px;text-align:center;position:relative;
- }
- .fl-feature-icon{font-size:24px;margin-bottom:8px}
- .fl-feature-text{font-size:13px;color:var(--text2);line-height:1.35}
- .fl-feature-lock{position:absolute;top:10px;right:12px;font-size:12px;opacity:0.55}
- .fl-preview{padding:24px 18px 8px}
- .fl-preview h2{font-size:15px;font-weight:700;margin-bottom:14px;text-transform:uppercase;letter-spacing:0.6px;color:var(--text2)}
- .fl-blurred-feed{position:relative;border-radius:20px;overflow:hidden}
- .fl-code-card{
- background:var(--card);border:1px solid var(--border);border-radius:18px;
- padding:16px;margin-bottom:12px;
- }
- .fl-code-card.blurred{filter:blur(6px);user-select:none;pointer-events:none}
- .fl-code-header{display:flex;justify-content:space-between;margin-bottom:8px}
- .fl-code-brand{font-weight:700;font-size:15px}
- .fl-code-type{font-size:12px;background:rgba(42,171,238,0.15);color:var(--accent);padding:3px 10px;border-radius:999px}
- .fl-code-title{font-size:14px;color:var(--text2);margin-bottom:10px}
- .fl-code-footer{display:flex;justify-content:space-between;font-size:12px;color:var(--text2)}
- .fl-blur-overlay{
- position:absolute;inset:0;background:rgba(7,7,11,0.62);
- display:flex;align-items:center;justify-content:center;cursor:pointer;
- backdrop-filter:blur(2px);
- }
- body.light .fl-blur-overlay{background:rgba(248,250,252,0.72)}
- .fl-blur-text{text-align:center;font-size:15px;line-height:1.5}
- .fl-blur-text strong{display:block;margin-top:4px;font-size:16px;color:var(--accent)}
- .fl-compare{padding:24px 18px 10px}
- .fl-compare h2{font-size:15px;font-weight:700;margin-bottom:14px;text-transform:uppercase;letter-spacing:0.6px;color:var(--text2)}
- .fl-table{background:var(--card);border:1px solid var(--border);border-radius:18px;overflow:hidden}
- .fl-table-row{display:grid;grid-template-columns:1.6fr 0.7fr 0.7fr;padding:14px 16px;font-size:14px;border-bottom:1px solid var(--border)}
- .fl-table-row:last-child{border-bottom:none}
- .fl-table-header{background:rgba(42,171,238,0.08);font-weight:700;font-size:13px;color:var(--text2)}
- .fl-yes{color:var(--green);font-weight:700;text-align:center}
- .fl-no{color:#f87171;text-align:center}
- .fl-footer{text-align:center;padding:32px 18px 40px}
- .fl-footer p{font-size:13px;color:var(--text2);margin-bottom:16px}
- .fl-btn-secondary{
- background:transparent;border:1px solid var(--border);color:var(--text);
- padding:13px 26px;border-radius:14px;font-size:14px;font-weight:600;cursor:pointer;
- }
- </style>
+    /* Stripe pay zone */
+    .pw-pay{position:fixed;inset:0;z-index:120;background:rgba(0,0,0,0.72);display:flex;align-items:flex-end;justify-content:center}
+    .pw-pay-card{width:100%;max-width:430px;background:var(--card);border-radius:24px 24px 0 0;padding:22px 18px 36px;max-height:88vh;overflow-y:auto}
+    .pw-back{background:none;border:none;color:var(--text2);font-size:15px;margin-bottom:14px;cursor:pointer}
+    .sg-error{color:#f87171;font-size:12.5px;text-align:center;margin-top:8px}
+
+    #success-screen{position:fixed;inset:0;z-index:200;max-width:430px;margin:0 auto;background:rgba(0,0,0,.92);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px}
+    .success-check{width:78px;height:78px;border-radius:50%;background:linear-gradient(135deg,#16a34a,#22c55e);display:flex;align-items:center;justify-content:center;font-size:36px;color:#fff}
+  </style>
 </head>
 <body>
 
 <!-- ==================== PAGE GRATUITE VERROUILLÉE ==================== -->
 <div id="free-locked-page">
- <header class="fl-header">
- <div style="display:flex;align-items:center">
- <div class="codia-logo compact">
- <div class="codia-logo-main">
- <span class="codia-logo-text">COD.IA</span>
- <span class="codia-logo-underline"></span>
- <span class="codia-logo-plane"><svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg></span>
- </div>
- </div>
- <span class="fl-badge">Version Gratuite</span>
- </div>
- <button class="fl-btn-premium" onclick="openPremiumFromFree()">Passer Premium – 10 €</button>
- </header>
+  <header class="fl-header">
+    <div style="display:flex;align-items:center">
+      <div class="codia-logo compact">
+        <div class="codia-logo-main">
+          <span class="codia-logo-text">COD.IA</span>
+          <span class="codia-logo-underline"></span>
+          <span class="codia-logo-plane"><svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg></span>
+        </div>
+      </div>
+      <span class="fl-badge">Version Gratuite</span>
+    </div>
+    <button class="fl-btn-premium" onclick="openPremiumFromFree()">Passer Premium – 10 €</button>
+  </header>
 
- <section class="fl-hero">
- <div class="fl-lock-icon">🔒</div>
- <h1>Accès aux codes réservé<br>aux membres Premium</h1>
- <p class="fl-subtitle">
- Découvre des milliers de codes promo & parrainage<br>
- mis à jour en temps réel.
- </p>
- <button class="fl-btn-main" onclick="openPremiumFromFree()">
- Débloquer tout COD.IA – 10 €
- </button>
- <p class="fl-secure">Paiement sécurisé • Accès immédiat</p>
- </section>
+  <section class="fl-hero">
+    <div class="fl-lock-icon">🔒</div>
+    <h1>Accès aux codes réservé<br>aux membres Premium</h1>
+    <p class="fl-subtitle">
+      Découvre des milliers de codes promo & parrainage<br>
+      mis à jour en temps réel.
+    </p>
+    <button class="fl-btn-main" onclick="openPremiumFromFree()">
+      Débloquer tout COD.IA – 10 €
+    </button>
+    <p class="fl-secure">Paiement sécurisé • Accès immédiat</p>
+  </section>
 
- <section class="fl-features">
- <h2>Ce que tu rates</h2>
- <div class="fl-features-grid">
- <div class="fl-feature-card"><div class="fl-feature-icon">📋</div><div class="fl-feature-text">Feed complet des meilleurs codes</div><div class="fl-feature-lock">🔒</div></div>
- <div class="fl-feature-card"><div class="fl-feature-icon">⭐</div><div class="fl-feature-text">Favoris & historique</div><div class="fl-feature-lock">🔒</div></div>
- <div class="fl-feature-card"><div class="fl-feature-icon">🤖</div><div class="fl-feature-text">Recherche intelligente + IA</div><div class="fl-feature-lock">🔒</div></div>
- <div class="fl-feature-card"><div class="fl-feature-icon">🔔</div><div class="fl-feature-text">Notifications Telegram</div><div class="fl-feature-lock">🔒</div></div>
- <div class="fl-feature-card"><div class="fl-feature-icon">📤</div><div class="fl-feature-text">Publier tes propres codes</div><div class="fl-feature-lock">🔒</div></div>
- <div class="fl-feature-card"><div class="fl-feature-icon">🏆</div><div class="fl-feature-text">Classement & badges</div><div class="fl-feature-lock">🔒</div></div>
- </div>
- </section>
+  <section class="fl-features">
+    <h2>Ce que tu rates</h2>
+    <div class="fl-features-grid">
+      <div class="fl-feature-card"><div class="fl-feature-icon">📋</div><div class="fl-feature-text">Feed complet des meilleurs codes</div><div class="fl-feature-lock">🔒</div></div>
+      <div class="fl-feature-card"><div class="fl-feature-icon">⭐</div><div class="fl-feature-text">Favoris & historique</div><div class="fl-feature-lock">🔒</div></div>
+      <div class="fl-feature-card"><div class="fl-feature-icon">🔔</div><div class="fl-feature-text">Notifications Telegram</div><div class="fl-feature-lock">🔒</div></div>
+      <div class="fl-feature-card"><div class="fl-feature-icon">📤</div><div class="fl-feature-text">Publier tes propres codes</div><div class="fl-feature-lock">🔒</div></div>
+      <div class="fl-feature-card"><div class="fl-feature-icon">🏆</div><div class="fl-feature-text">Classement & badges</div><div class="fl-feature-lock">🔒</div></div>
+      <div class="fl-feature-card"><div class="fl-feature-icon">👤</div><div class="fl-feature-text">Profil pro + stats</div><div class="fl-feature-lock">🔒</div></div>
+    </div>
+  </section>
 
- <section class="fl-preview">
- <h2>Aperçu des codes</h2>
- <div class="fl-blurred-feed">
- <div class="fl-code-card blurred">
- <div class="fl-code-header"><span class="fl-code-brand">Amazon</span><span class="fl-code-type">Promo</span></div>
- <div class="fl-code-title">-20% sur tout le site</div>
- <div class="fl-code-footer"><span>Expire dans 2 jours</span><span>★★★★★</span></div>
- </div>
- <div class="fl-code-card blurred">
- <div class="fl-code-header"><span class="fl-code-brand">Uber Eats</span><span class="fl-code-type">Parrainage</span></div>
- <div class="fl-code-title">10€ offerts + 10€ pour toi</div>
- <div class="fl-code-footer"><span>Expire dans 5 jours</span><span>★★★★☆</span></div>
- </div>
- <div class="fl-code-card blurred">
- <div class="fl-code-header"><span class="fl-code-brand">Airbnb</span><span class="fl-code-type">Promo</span></div>
- <div class="fl-code-title">-15% première réservation</div>
- <div class="fl-code-footer"><span>Expire dans 1 jour</span><span>★★★★★</span></div>
- </div>
- <div class="fl-blur-overlay" onclick="openPremiumFromFree()">
- <div class="fl-blur-text">Codes masqués<br><strong>Passe Premium pour les voir</strong></div>
- </div>
- </div>
- </section>
+  <section class="fl-preview">
+    <h2>Aperçu des codes</h2>
+    <div class="fl-blurred-feed">
+      <div class="fl-code-card blurred">
+        <div class="fl-code-header"><span class="fl-code-brand">Amazon</span><span class="fl-code-type">Promo</span></div>
+        <div class="fl-code-title">-20% sur tout le site</div>
+        <div class="fl-code-footer"><span>Expire dans 2 jours</span><span>★★★★★</span></div>
+      </div>
+      <div class="fl-code-card blurred">
+        <div class="fl-code-header"><span class="fl-code-brand">Uber Eats</span><span class="fl-code-type">Parrainage</span></div>
+        <div class="fl-code-title">10€ offerts + 10€ pour toi</div>
+        <div class="fl-code-footer"><span>Expire dans 5 jours</span><span>★★★★☆</span></div>
+      </div>
+      <div class="fl-code-card blurred">
+        <div class="fl-code-header"><span class="fl-code-brand">Airbnb</span><span class="fl-code-type">Promo</span></div>
+        <div class="fl-code-title">-15% première réservation</div>
+        <div class="fl-code-footer"><span>Expire dans 1 jour</span><span>★★★★★</span></div>
+      </div>
+      <div class="fl-blur-overlay" onclick="openPremiumFromFree()">
+        <div class="fl-blur-text">Codes masqués<br><strong>Passe Premium pour les voir</strong></div>
+      </div>
+    </div>
+  </section>
 
- <section class="fl-compare">
- <h2>Gratuit vs Premium</h2>
- <div class="fl-table">
- <div class="fl-table-row fl-table-header"><div>Fonctionnalité</div><div>Gratuit</div><div>Premium</div></div>
- <div class="fl-table-row"><div>Voir les codes</div><div class="fl-no">✗</div><div class="fl-yes">✓</div></div>
- <div class="fl-table-row"><div>Copier / utiliser</div><div class="fl-no">✗</div><div class="fl-yes">✓</div></div>
- <div class="fl-table-row"><div>Publier un code</div><div class="fl-no">✗</div><div class="fl-yes">✓</div></div>
- <div class="fl-table-row"><div>Favoris & IA</div><div class="fl-no">✗</div><div class="fl-yes">✓</div></div>
- <div class="fl-table-row"><div>Notifications</div><div class="fl-no">✗</div><div class="fl-yes">✓</div></div>
- </div>
- </section>
+  <section class="fl-compare">
+    <h2>Gratuit vs Premium</h2>
+    <div class="fl-table">
+      <div class="fl-table-row fl-table-header"><div>Fonctionnalité</div><div>Gratuit</div><div>Premium</div></div>
+      <div class="fl-table-row"><div>Voir les codes</div><div class="fl-no">✗</div><div class="fl-yes">✓</div></div>
+      <div class="fl-table-row"><div>Copier / utiliser</div><div class="fl-no">✗</div><div class="fl-yes">✓</div></div>
+      <div class="fl-table-row"><div>Publier un code</div><div class="fl-no">✗</div><div class="fl-yes">✓</div></div>
+      <div class="fl-table-row"><div>Favoris & notifs</div><div class="fl-no">✗</div><div class="fl-yes">✓</div></div>
+    </div>
+  </section>
 
- <footer class="fl-footer">
- <p>Version gratuite – découverte uniquement</p>
- <button class="fl-btn-secondary" onclick="openPremiumFromFree()">Débloquer Premium – 10 €</button>
- </footer>
+  <footer class="fl-footer">
+    <p>Version gratuite – découverte uniquement</p>
+    <button class="fl-btn-secondary" onclick="openPremiumFromFree()">Débloquer Premium – 10 €</button>
+  </footer>
 </div>
 
 <div id="success-screen" class="hidden"><div class="success-check">✓</div><h2>Bienvenue sur COD.IA</h2><p style="color:#a1a1aa">Ton accès est activé</p></div>
 
+<!-- ==================== PAGE PAIEMENT (même style) ==================== -->
 <div id="paywall" class="hidden">
- <div class="sg-bg">
- <div class="sg-live-app">
- <div class="la-header"><div class="la-logo"></div><span class="la-name">COD.IA</span></div>
- <div class="la-stories"><div class="la-ring"></div><div class="la-ring"></div><div class="la-ring"></div><div class="la-ring"></div></div>
- <div class="la-card"></div><div class="la-card"></div><div class="la-card"></div>
- <div class="la-bottom"></div>
- </div>
- <div class="sg-dim"></div>
- </div>
- <div class="sg-wrap">
- <button class="sg-close" onclick="Telegram.WebApp.close()">×</button>
- <div class="sg-head">
- <div style="display:flex;justify-content:center;margin-bottom:12px">
- <div class="codia-logo">
- <div class="codia-logo-main">
- <span class="codia-logo-text">COD.IA</span>
- <span class="codia-logo-underline"></span>
- <span class="codia-logo-plane"><svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg></span>
- </div>
- <div class="codia-logo-tagline">Un monde tous ensemble</div>
- </div>
- </div>
- <div class="sg-badge">Premium</div>
- <div class="sg-sub">Accède aux meilleurs codes promo &amp; parrainages</div>
- </div>
- <div class="sg-features glass">
- <div class="sg-item"><div class="sg-ic c1">⌂</div><div class="sg-item-text">Feed + Classement</div></div>
- <div class="sg-item"><div class="sg-ic c2">✦</div><div class="sg-item-text">IA + Recherche</div></div>
- <div class="sg-item"><div class="sg-ic c3">✈</div><div class="sg-item-text">Badges & Stats</div></div>
- <div class="sg-item"><div class="sg-ic c5">🔖</div><div class="sg-item-text">Favoris + Signalement</div></div>
- </div>
- <div class="sg-price-card glass"><div class="label">Paiement unique · accès Premium</div><div class="amount">10 €</div></div>
- <div class="sg-social"><b id="pw-members">2.345k</b> members</div>
- <button class="sg-cta" onclick="startPayment()">Passer à COD.IA</button>
- <div class="sg-links"><span>Conditions</span><span>·</span><span>Confidentialité</span></div>
- <div class="sg-error" id="pw-error"></div>
- </div>
- <div class="pw-pay hidden" id="pw-pay">
- <div class="pw-pay-card">
- <button class="pw-back" onclick="backToOffer()">← Retour</button>
- <h2>Finaliser l’accès</h2>
- <p style="color:#8a9ab4;margin-bottom:14px">10 € · accès COD.IA</p>
- <div id="checkout">Chargement…</div>
- <div class="sg-error" id="pw-error-2"></div>
- </div>
- </div>
+  <header class="fl-header">
+    <div style="display:flex;align-items:center">
+      <div class="codia-logo compact">
+        <div class="codia-logo-main">
+          <span class="codia-logo-text">COD.IA</span>
+          <span class="codia-logo-underline"></span>
+          <span class="codia-logo-plane"><svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg></span>
+        </div>
+      </div>
+      <span class="fl-badge">Premium</span>
+    </div>
+    <button class="fl-btn-premium" onclick="Telegram.WebApp.close()">Fermer</button>
+  </header>
+
+  <section class="fl-hero" style="padding-top:28px">
+    <div class="fl-lock-icon">✨</div>
+    <h1>Passe Premium<br>et débloque tout</h1>
+    <p class="fl-subtitle">
+      Accès immédiat à tous les codes promo<br>
+      et parrainages mis à jour en temps réel.
+    </p>
+
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:20px;padding:18px 22px;margin:0 auto 22px;max-width:280px;text-align:center">
+      <div style="font-size:13px;color:var(--text2);margin-bottom:4px">Paiement unique</div>
+      <div style="font-size:36px;font-weight:800;background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent">10 €</div>
+      <div style="font-size:12px;color:var(--text2);margin-top:2px">Accès Premium</div>
+    </div>
+
+    <button class="fl-btn-main" onclick="startPayment()">Débloquer COD.IA – 10 €</button>
+    <p class="fl-secure">Paiement sécurisé Stripe • Accès immédiat</p>
+  </section>
+
+  <section class="fl-features">
+    <h2>Ce que tu débloques</h2>
+    <div class="fl-features-grid">
+      <div class="fl-feature-card"><div class="fl-feature-icon">📋</div><div class="fl-feature-text">Feed complet des meilleurs codes</div></div>
+      <div class="fl-feature-card"><div class="fl-feature-icon">⭐</div><div class="fl-feature-text">Favoris & historique</div></div>
+      <div class="fl-feature-card"><div class="fl-feature-icon">🔔</div><div class="fl-feature-text">Notifications Telegram</div></div>
+      <div class="fl-feature-card"><div class="fl-feature-icon">📤</div><div class="fl-feature-text">Publier tes propres codes</div></div>
+      <div class="fl-feature-card"><div class="fl-feature-icon">🏆</div><div class="fl-feature-text">Classement & badges</div></div>
+      <div class="fl-feature-card"><div class="fl-feature-icon">👤</div><div class="fl-feature-text">Profil pro + stats</div></div>
+    </div>
+  </section>
+
+  <div style="text-align:center;padding:8px 18px 20px;font-size:13.5px;color:var(--text2)">
+    Déjà <b id="pw-members" style="color:var(--text)">2.345k</b> membres
+  </div>
+
+  <section class="fl-compare" style="padding-top:4px">
+    <h2>Gratuit vs Premium</h2>
+    <div class="fl-table">
+      <div class="fl-table-row fl-table-header"><div>Fonctionnalité</div><div>Gratuit</div><div>Premium</div></div>
+      <div class="fl-table-row"><div>Voir les codes</div><div class="fl-no">✗</div><div class="fl-yes">✓</div></div>
+      <div class="fl-table-row"><div>Copier / utiliser</div><div class="fl-no">✗</div><div class="fl-yes">✓</div></div>
+      <div class="fl-table-row"><div>Publier un code</div><div class="fl-no">✗</div><div class="fl-yes">✓</div></div>
+      <div class="fl-table-row"><div>Favoris & notifs</div><div class="fl-no">✗</div><div class="fl-yes">✓</div></div>
+    </div>
+  </section>
+
+  <footer class="fl-footer" style="padding-bottom:50px">
+    <button class="fl-btn-main" onclick="startPayment()" style="max-width:320px">Payer 10 € et accéder</button>
+    <p class="fl-secure" style="margin-top:14px">Paiement unique • Pas d’abonnement</p>
+  </footer>
+
+  <div class="pw-pay hidden" id="pw-pay">
+    <div class="pw-pay-card">
+      <button class="pw-back" onclick="backToOffer()">← Retour</button>
+      <h2 style="margin-bottom:6px">Finaliser le paiement</h2>
+      <p style="color:var(--text2);margin-bottom:16px;font-size:14px">10 € · Accès Premium COD.IA</p>
+      <div id="checkout">Chargement…</div>
+      <div class="sg-error" id="pw-error-2"></div>
+    </div>
+  </div>
 </div>
 
+<!-- ==================== APP PRINCIPALE ==================== -->
 <div class="app hidden" id="main-app">
- <div class="header">
- <div class="brand">
- <div class="codia-logo compact">
- <div class="codia-logo-main">
- <span class="codia-logo-text">COD.IA</span>
- <span class="codia-logo-underline"></span>
- <span class="codia-logo-plane"><svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg></span>
- </div>
- </div>
- <div><div class="sub" id="members-count">2.345k members</div></div>
- </div>
- <div class="header-actions">
- <button class="icon-btn" onclick="toggleNotifModal()">🔔<span id="notif-badge" class="hidden" style="position:absolute;top:2px;right:2px;background:#ef4444;color:#fff;font-size:10px;width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center">0</span></button>
- <button class="icon-btn" onclick="toggleTheme()">◐</button>
- </div>
- </div>
- <div class="stories" id="stories"></div>
+  <div class="header">
+    <div class="brand">
+      <div class="codia-logo compact">
+        <div class="codia-logo-main">
+          <span class="codia-logo-text">COD.IA</span>
+          <span class="codia-logo-underline"></span>
+          <span class="codia-logo-plane"><svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg></span>
+        </div>
+      </div>
+      <div><div class="sub" id="members-count">2.345k members</div></div>
+    </div>
+    <div class="header-actions">
+      <button class="icon-btn" onclick="toggleNotifModal()">🔔<span id="notif-badge" class="hidden" style="position:absolute;top:2px;right:2px;background:#ef4444;color:#fff;font-size:10px;width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center">0</span></button>
+      <button class="icon-btn" onclick="toggleTheme()">◐</button>
+    </div>
+  </div>
+  <div class="stories" id="stories"></div>
 
- <div class="page page-home active" id="page-home">
- <div class="section">Top Codes</div>
- <div id="daily-codes"></div>
- <div class="chips" style="padding:8px 18px 4px;">
- <button class="chip active" id="filter-all" onclick="setFilter('all')">Tous</button>
- <button class="chip" id="filter-promo" onclick="setFilter('promo')">Promo</button>
- <button class="chip" id="filter-parrainage" onclick="setFilter('parrainage')">Parrainage</button>
- </div>
- <div class="section" id="feed-title">À la une</div>
- <div id="codes-list"><div class="empty">Chargement...</div></div>
- </div>
+  <div class="page page-home active" id="page-home">
+    <div class="section">Top Codes</div>
+    <div id="daily-codes"></div>
+    <div class="chips" style="padding:8px 18px 4px;">
+      <button class="chip active" id="filter-all" onclick="setFilter('all')">Tous</button>
+      <button class="chip" id="filter-promo" onclick="setFilter('promo')">Promo</button>
+      <button class="chip" id="filter-parrainage" onclick="setFilter('parrainage')">Parrainage</button>
+    </div>
+    <div class="section" id="feed-title">À la une</div>
+    <div id="codes-list"><div class="empty">Chargement...</div></div>
+  </div>
 
- <div class="page page-search" id="page-search">
- <div class="search-wrap"><div class="search"><span>⌕</span><input id="search-input" placeholder="Uber, Booking, Zara..." oninput="debouncedSearch()" onfocus="showRecentSuggestions()"></div></div>
- <div class="chips" id="recent-suggestions"></div>
- <div class="section">Résultats</div>
- <div id="search-results"><div class="empty">Tape un mot-clé</div></div>
- </div>
+  <div class="page page-search" id="page-search">
+    <div class="search-wrap"><div class="search"><span>⌕</span><input id="search-input" placeholder="Uber, Booking, Zara..." oninput="debouncedSearch()" onfocus="showRecentSuggestions()"></div></div>
+    <div class="chips" id="recent-suggestions"></div>
+    <div class="section">Résultats</div>
+    <div id="search-results"><div class="empty">Tape un mot-clé</div></div>
+  </div>
 
- <div class="page page-codia" id="page-codia">
- <div class="welcome-box">
- <div class="welcome-title">COD.IA</div>
- <div class="welcome-text">
- <b>Bienvenue !</b><br><br>
- • Feed + filtres<br>
- • Swipe droite = favoris<br>
- • <b>Appui long</b> = profil / signaler<br>
- • Classement + badges<br>
- • Assistant IA
- </div>
- </div>
- <div class="section">🏆 Classement de la semaine</div>
- <div id="leaderboard-list" class="card" style="padding:12px 16px"><div class="empty" style="padding:20px">Chargement...</div></div>
- <div class="section">Assistant IA</div>
- <div class="search-wrap"><div class="search"><span>✦</span><input id="ai-input" placeholder="Pose ta question..." onkeypress="if(event.key==='Enter') askAI()"></div></div>
- <div class="ai-box" id="ai-response" style="display:none"></div>
- </div>
+  <div class="page page-codia" id="page-codia">
+    <div class="welcome-box">
+      <div class="welcome-title">COD.IA</div>
+      <div class="welcome-text">
+        <b>Bienvenue !</b><br><br>
+        • Feed + filtres<br>
+        • Swipe droite = favoris<br>
+        • <b>Appui long</b> = profil / signaler<br>
+        • Classement + badges<br>
+        • Assistant IA
+      </div>
+    </div>
+    <div class="section">🏆 Classement de la semaine</div>
+    <div id="leaderboard-list" class="card" style="padding:12px 16px"><div class="empty" style="padding:20px">Chargement...</div></div>
+    <div class="section">Assistant IA</div>
+    <div class="search-wrap"><div class="search"><span>✦</span><input id="ai-input" placeholder="Pose ta question..." onkeypress="if(event.key==='Enter') askAI()"></div></div>
+    <div class="ai-box" id="ai-response" style="display:none"></div>
+  </div>
 
- <div class="page page-profile" id="page-profile">
- <div id="profile-card">Chargement...</div>
- <div id="my-codes"><div class="empty">Aucun code</div></div>
- </div>
+  <div class="page page-profile" id="page-profile">
+    <div id="profile-card">Chargement...</div>
+    <div id="my-codes"><div class="empty">Aucun code</div></div>
+  </div>
 
- <button class="fab" onclick="openShare()">＋ Partager</button>
- <div class="bottom">
- <button class="nav active" onclick="showPage('home')"><div class="ic">⌂</div>Feed</button>
- <button class="nav" onclick="showPage('search')"><div class="ic">⌕</div>Recherche</button>
- <button class="nav" onclick="showPage('codia')"><div class="ic">✦</div>COD.IA</button>
- <button class="nav" onclick="showPage('profile')"><div class="ic">☺</div>Profil</button>
- </div>
+  <button class="fab" onclick="openShare()">＋ Partager</button>
+  <div class="bottom">
+    <button class="nav active" onclick="showPage('home')"><div class="ic">⌂</div>Feed</button>
+    <button class="nav" onclick="showPage('search')"><div class="ic">⌕</div>Recherche</button>
+    <button class="nav" onclick="showPage('codia')"><div class="ic">✦</div>COD.IA</button>
+    <button class="nav" onclick="showPage('profile')"><div class="ic">☺</div>Profil</button>
+  </div>
 </div>
 
 <!-- MODALS -->
 <div class="modal" id="shareModal"><div class="sheet"><div style="text-align:center;font-weight:700;margin-bottom:14px">Partager</div><button onclick="chooseShare('promo')">Code promo</button><button onclick="chooseShare('parrainage')">Code parrainage</button><button onclick="closeShare()">Annuler</button></div></div>
 
 <div class="modal" id="formModal">
- <div class="sheet">
- <div style="text-align:center;font-weight:700;margin-bottom:14px" id="formTitle">Nouveau code</div>
- <div class="quick">
- <button type="button" onclick="fillSite('Uber Eats')">Uber Eats</button>
- <button type="button" onclick="fillSite('Booking')">Booking</button>
- <button type="button" onclick="fillSite('Zara')">Zara</button>
- </div>
- <input id="formSite" placeholder="Site">
- <input id="formCode" placeholder="Code">
- <input id="formDesc" placeholder="Ex: -20% ou +10€">
- <input id="formUrl" placeholder="Lien du site (optionnel)">
- <input id="formExpires" type="date">
- <button onclick="submitCode()">Publier</button>
- <button onclick="closeForm()">Annuler</button>
- </div>
+  <div class="sheet">
+    <div style="text-align:center;font-weight:700;margin-bottom:14px" id="formTitle">Nouveau code</div>
+    <div class="quick">
+      <button type="button" onclick="fillSite('Uber Eats')">Uber Eats</button>
+      <button type="button" onclick="fillSite('Booking')">Booking</button>
+      <button type="button" onclick="fillSite('Zara')">Zara</button>
+    </div>
+    <input id="formSite" placeholder="Site">
+    <input id="formCode" placeholder="Code">
+    <input id="formDesc" placeholder="Ex: -20% ou +10€">
+    <input id="formUrl" placeholder="Lien du site (optionnel)">
+    <input id="formExpires" type="date">
+    <button onclick="submitCode()">Publier</button>
+    <button onclick="closeForm()">Annuler</button>
+  </div>
 </div>
 
 <div class="modal" id="editModal">
- <div class="sheet">
- <div style="text-align:center;font-weight:700;margin-bottom:14px">Modifier le code</div>
- <input id="editSite" placeholder="Site">
- <input id="editCode" placeholder="Code">
- <input id="editDesc" placeholder="Description">
- <input id="editUrl" placeholder="Lien">
- <input id="editExpires" type="date">
- <button onclick="submitEdit()">Enregistrer</button>
- <button onclick="closeEdit()">Annuler</button>
- </div>
+  <div class="sheet">
+    <div style="text-align:center;font-weight:700;margin-bottom:14px">Modifier le code</div>
+    <input id="editSite" placeholder="Site">
+    <input id="editCode" placeholder="Code">
+    <input id="editDesc" placeholder="Description">
+    <input id="editUrl" placeholder="Lien">
+    <input id="editExpires" type="date">
+    <button onclick="submitEdit()">Enregistrer</button>
+    <button onclick="closeEdit()">Annuler</button>
+  </div>
 </div>
 
 <div class="modal" id="longPressModal">
- <div class="sheet">
- <div style="text-align:center;font-weight:700;margin-bottom:14px">Actions</div>
- <button id="lp-profile" onclick="lpVisitProfile()">👤 Visiter le profil</button>
- <button class="danger" onclick="openReportModal()">🚩 Signaler le code</button>
- <button onclick="closeLongPress()">Annuler</button>
- </div>
+  <div class="sheet">
+    <div style="text-align:center;font-weight:700;margin-bottom:14px">Actions</div>
+    <button id="lp-profile" onclick="lpVisitProfile()">👤 Visiter le profil</button>
+    <button class="danger" onclick="openReportModal()">🚩 Signaler le code</button>
+    <button onclick="closeLongPress()">Annuler</button>
+  </div>
 </div>
 
 <div class="modal" id="reportModal">
- <div class="sheet">
- <div style="text-align:center;font-weight:700;margin-bottom:14px">Signaler ce code</div>
- <button onclick="submitReport('invalid')">Code invalide / expiré</button>
- <button onclick="submitReport('spam')">Spam / publicité</button>
- <button onclick="submitReport('inappropriate')">Contenu inapproprié</button>
- <button onclick="submitReport('other')">Autre</button>
- <div class="check-row">
- <input type="checkbox" id="report-hide" checked>
- <label for="report-hide">Ne plus voir ce code</label>
- </div>
- <button onclick="closeReport()">Annuler</button>
- </div>
+  <div class="sheet">
+    <div style="text-align:center;font-weight:700;margin-bottom:14px">Signaler ce code</div>
+    <button onclick="submitReport('invalid')">Code invalide / expiré</button>
+    <button onclick="submitReport('spam')">Spam / publicité</button>
+    <button onclick="submitReport('inappropriate')">Contenu inapproprié</button>
+    <button onclick="submitReport('other')">Autre</button>
+    <div class="check-row">
+      <input type="checkbox" id="report-hide" checked>
+      <label for="report-hide">Ne plus voir ce code</label>
+    </div>
+    <button onclick="closeReport()">Annuler</button>
+  </div>
 </div>
 
 <div class="modal" id="notifModal"><div class="sheet"><div style="text-align:center;font-weight:700;margin-bottom:14px">Notifications</div><div id="notif-list"></div><button onclick="closeNotifModal()">Fermer</button></div></div>
 <div class="modal" id="followListModal"><div class="sheet"><div style="text-align:center;font-weight:700;margin-bottom:14px" id="followListTitle">Abonnés</div><div id="follow-list"></div><button onclick="closeFollowList()">Fermer</button></div></div>
 
 <div class="modal" id="bioModal">
- <div class="sheet">
- <div style="text-align:center;font-weight:700;margin-bottom:14px">Modifier la bio</div>
- <textarea id="bioInput" placeholder="Présente-toi en quelques mots..." maxlength="160" style="width:100%;height:110px;padding:14px;border-radius:16px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:15px;resize:none;margin-bottom:14px;"></textarea>
- <button onclick="saveBioFromModal()">Enregistrer</button>
- <button onclick="closeBioModal()">Annuler</button>
- </div>
+  <div class="sheet">
+    <div style="text-align:center;font-weight:700;margin-bottom:14px">Modifier la bio</div>
+    <textarea id="bioInput" placeholder="Présente-toi en quelques mots..." maxlength="160" style="width:100%;height:110px;padding:14px;border-radius:16px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:15px;resize:none;margin-bottom:14px;"></textarea>
+    <button onclick="saveBioFromModal()">Enregistrer</button>
+    <button onclick="closeBioModal()">Annuler</button>
+  </div>
 </div>
 
 <script>
-
-
-  const tg = window.Telegram?.WebApp;
+const tg = window.Telegram?.WebApp;
 if (tg) {
   tg.ready();
   tg.expand();
@@ -599,7 +591,6 @@ function showApp(){
   document.getElementById('free-locked-page').style.display = 'none';
   document.getElementById('paywall').classList.add('hidden');
   document.getElementById('main-app').classList.remove('hidden');
-
   loadCodes().then(() => {
     setTimeout(() => {
       loadNotifications();
@@ -679,7 +670,7 @@ function backToOffer(){ document.getElementById('pw-pay').classList.add('hidden'
 async function startPayment(){
   const userId = getTgUser()?.id;
   if (!userId) {
-    document.getElementById('pw-error').textContent = 'Ouvre depuis Telegram';
+    alert('Ouvre depuis Telegram');
     return;
   }
   document.getElementById('pw-pay').classList.remove('hidden');
@@ -1139,26 +1130,16 @@ async function showRecentSuggestions(){
 async function doSearch(){
   const q = document.getElementById('search-input').value.trim();
   if (!q) return;
-
   if (searchController) searchController.abort();
   searchController = new AbortController();
-
-  fetch('/search/log', {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({q})
-  });
-
+  fetch('/search/log', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({q})});
   const r = document.getElementById('search-results');
   r.innerHTML = '<div class="empty">...</div>';
-
   try {
     let url = '/codes/search?q=' + encodeURIComponent(q);
     if (currentUserId) url += '&user_id=' + currentUserId;
     const d = await (await fetch(url, { signal: searchController.signal })).json();
-    r.innerHTML = (d.codes || []).length
-      ? (d.codes || []).map(c => renderPost(c)).join('')
-      : '<div class="empty">Aucun</div>';
+    r.innerHTML = (d.codes || []).length ? (d.codes || []).map(c => renderPost(c)).join('') : '<div class="empty">Aucun</div>';
   } catch(e) {
     if (e.name !== 'AbortError') r.innerHTML = '<div class="empty">Erreur</div>';
   }
@@ -1217,12 +1198,10 @@ async function loadProfile(forceId = null, forceName = null) {
   const card = document.getElementById('profile-card');
   const targetId = forceId || currentUserId;
   const isOwn = !forceId || Number(forceId) === Number(currentUserId);
-
   if (!targetId) {
     card.innerHTML = '<div class="empty">Ouvre depuis Telegram</div>';
     return;
   }
-
   let name = forceName || (isOwn ? (u?.username ? '@' + u.username : (u?.first_name || 'Membre')) : 'Membre');
   let displayName = isOwn ? (u?.first_name || name) : name;
   let photo = (isOwn && u?.photo_url)
@@ -1287,36 +1266,25 @@ async function loadProfile(forceId = null, forceName = null) {
       <div class="profile-bio ${!hasBio ? 'profile-bio-empty' : ''}" id="profile-bio-text">${bioText}</div>
       ${fullStats.badge ? `<div class="profile-badge"><span>${getBadgeIcon(fullStats.badge)}</span>${fullStats.badge}</div>` : ''}
     </div>
-
     <div class="profile-level">
-      <div class="profile-level-top">
-        <span>Niveau de contribution</span>
-        <strong>${current.label}</strong>
-      </div>
-      <div class="profile-level-bar">
-        <div class="profile-level-fill" style="width:0%" id="level-fill"></div>
-      </div>
+      <div class="profile-level-top"><span>Niveau de contribution</span><strong>${current.label}</strong></div>
+      <div class="profile-level-bar"><div class="profile-level-fill" style="width:0%" id="level-fill"></div></div>
     </div>
-
     <div class="stats-row">
       <div class="stat-item"><b>${fullStats.total_codes||0}</b><span>Codes</span></div>
       <div class="stat-item"><b>${fullStats.total_likes||0}</b><span>J’aime</span></div>
       <div class="stat-item"><b>${fullStats.total_copies||0}</b><span>Copies</span></div>
       <div class="stat-item"><b>${fullStats.copied_by_me||0}</b><span>Historique</span></div>
     </div>
-
     <div class="follow-stats">
       <div class="clickable" onclick="showFollowList(${targetId},'followers')"><b>${fullStats.followers||0}</b> abonnés</div>
       <div class="clickable" onclick="showFollowList(${targetId},'following')"><b>${fullStats.following||0}</b> abonnements</div>
     </div>
-
     <div class="profile-actions">
       ${followBtn}
       ${isOwn ? `<button onclick="openEditBio()">Modifier bio</button><button onclick="shareMyProfile()">Partager</button>` : ''}
     </div>
-
     ${pushToggle}
-
     <div class="profile-tabs">
       <button class="profile-tab active" id="tab-posts" onclick="showProfileTab('posts',${targetId})">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
@@ -1326,14 +1294,12 @@ async function loadProfile(forceId = null, forceName = null) {
       ${isOwn ? `<button class="profile-tab" id="tab-history" onclick="showProfileTab('history',${targetId})">📋<br>Historique</button>` : ''}
     </div>
   `;
-
   requestAnimationFrame(() => {
     setTimeout(() => {
       const fill = document.getElementById('level-fill');
       if (fill) fill.style.width = progress + '%';
     }, 80);
   });
-
   showProfileTab('posts', targetId);
   if (isOwn) loadPushSetting();
 }
@@ -1409,14 +1375,11 @@ async function showProfileTab(tab, userId) {
   const th = document.getElementById('tab-history');
   const c = document.getElementById('my-codes');
   [tp, ts, th].forEach(el => el && el.classList.remove('active'));
-
   if (tab === 'posts') {
     tp?.classList.add('active');
     try {
       const d = await (await fetch((Number(userId) === Number(currentUserId) ? '/codes/mine' : '/codes/user') + '?user_id=' + userId + (currentUserId ? '&viewer_id=' + currentUserId : ''))).json();
-      c.innerHTML = (d.codes || []).length
-        ? (d.codes || []).map(x => renderPost(x)).join('')
-        : `<div class="empty"><div style="font-size:36px;margin-bottom:12px;opacity:0.6">📦</div><div style="font-weight:600;margin-bottom:4px">Aucun code</div><div style="font-size:13px">Pas encore de publication</div></div>`;
+      c.innerHTML = (d.codes || []).length ? (d.codes || []).map(x => renderPost(x)).join('') : `<div class="empty"><div style="font-size:36px;margin-bottom:12px;opacity:0.6">📦</div><div style="font-weight:600;margin-bottom:4px">Aucun code</div><div style="font-size:13px">Pas encore de publication</div></div>`;
     } catch(e){ c.innerHTML = '<div class="empty">Erreur de chargement</div>'; }
   } else if (tab === 'saved') {
     ts?.classList.add('active');
@@ -1426,17 +1389,13 @@ async function showProfileTab(tab, userId) {
     }
     try {
       const d = await (await fetch('/codes/saved?user_id=' + userId)).json();
-      c.innerHTML = (d.codes || []).length
-        ? (d.codes || []).map(x => renderPost(x, {showUnsave: true})).join('')
-        : `<div class="empty"><div style="font-size:36px;margin-bottom:12px;opacity:0.6">🔖</div><div style="font-weight:600;margin-bottom:4px">Aucun favori</div><div style="font-size:13px">Swipe à droite pour en ajouter</div></div>`;
+      c.innerHTML = (d.codes || []).length ? (d.codes || []).map(x => renderPost(x, {showUnsave: true})).join('') : `<div class="empty"><div style="font-size:36px;margin-bottom:12px;opacity:0.6">🔖</div><div style="font-weight:600;margin-bottom:4px">Aucun favori</div><div style="font-size:13px">Swipe à droite pour en ajouter</div></div>`;
     } catch(e){ c.innerHTML = '<div class="empty">Erreur</div>'; }
   } else if (tab === 'history') {
     th?.classList.add('active');
     try {
       const d = await (await fetch('/codes/copied?user_id=' + userId)).json();
-      c.innerHTML = (d.codes || []).length
-        ? (d.codes || []).map(x => renderPost(x)).join('')
-        : `<div class="empty"><div style="font-size:36px;margin-bottom:12px;opacity:0.6">📋</div><div style="font-weight:600;margin-bottom:4px">Historique vide</div><div style="font-size:13px">Tes codes copiés apparaîtront ici</div></div>`;
+      c.innerHTML = (d.codes || []).length ? (d.codes || []).map(x => renderPost(x)).join('') : `<div class="empty"><div style="font-size:36px;margin-bottom:12px;opacity:0.6">📋</div><div style="font-weight:600;margin-bottom:4px">Historique vide</div><div style="font-size:13px">Tes codes copiés apparaîtront ici</div></div>`;
     } catch(e){ c.innerHTML = '<div class="empty">Erreur</div>'; }
   }
 }
@@ -1488,9 +1447,7 @@ async function loadCodes(){
       }
     } catch(e){ allCodes = []; }
   }
-
   renderStories();
-
   try {
     let topUrl = '/codes/top';
     if (currentUserId) topUrl += '?user_id=' + currentUserId;
@@ -1499,7 +1456,6 @@ async function loadCodes(){
       ? top.map(c => `<div class="card row"><div><strong>${c.site}</strong><div class="muted">${c.type||'promo'} • ${c.code}</div></div><div class="pill">${c.description||'Promo'}</div></div>`).join('')
       : '<div class="empty">Pas de top</div>';
   } catch(e){}
-
   document.getElementById('feed-title').textContent = currentFilter === 'all' ? 'À la une' : (currentFilter === 'promo' ? 'Codes promo' : 'Codes parrainage');
   document.getElementById('codes-list').innerHTML = allCodes.length
     ? allCodes.map(c => renderPost(c)).join('')
