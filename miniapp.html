@@ -69,6 +69,7 @@
     .search input{width:100%;border:none;outline:none;background:transparent;color:var(--text);font-size:15.5px}
     .chips{display:flex;gap:8px;flex-wrap:wrap;padding:0 18px 16px}
     .chip{border:1px solid var(--border);background:var(--card);color:var(--text);border-radius:999px;padding:9px 15px;font-size:13px}
+    .chip.active{background:var(--accent);color:#fff;border-color:var(--accent)}
     .section{padding:16px 18px 10px;font-size:12px;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:0.7px}
 
     .card{margin:0 16px 16px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow);position:relative;animation:fadeInUp 0.4s ease both}
@@ -82,8 +83,9 @@
     .copy-btn{border:1px solid var(--border);background:var(--card);color:var(--text);border-radius:12px;padding:8px 13px;font-size:12.5px;font-weight:600}
     .actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;align-items:center}
     .actions button{border:1px solid var(--border);background:var(--bg);color:var(--text);border-radius:999px;padding:8px 14px;font-size:13px}
+    .expire{font-size:12px;color:var(--orange);margin-top:6px}
 
-    /* SWIPE FAVORIS */
+    /* SWIPE */
     .post-swipe-wrap{position:relative;margin:0 16px 16px;border-radius:var(--radius);overflow:hidden;animation:fadeInUp 0.4s ease both}
     .post-swipe-bg{position:absolute;inset:0;background:linear-gradient(90deg,rgba(42,171,238,0.35),rgba(42,171,238,0.04));display:flex;align-items:center;padding-left:28px;z-index:0}
     .post-swipe-bg .fav-icon{width:44px;height:44px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;color:#fff;transform:scale(0.45);opacity:0.25;transition:transform 0.18s cubic-bezier(0.34,1.56,0.64,1),opacity 0.18s ease;box-shadow:0 6px 20px rgba(42,171,238,0.45)}
@@ -212,7 +214,7 @@
       <div class="sg-item"><div class="sg-ic c1">⌂</div><div class="sg-item-text">Feed communauté<small>Codes en temps réel</small></div></div>
       <div class="sg-item"><div class="sg-ic c2">✦</div><div class="sg-item-text">Recherche + IA<small>Trouve plus vite</small></div></div>
       <div class="sg-item"><div class="sg-ic c3">✈</div><div class="sg-item-text">Voyages &amp; shopping<small>Booking, Uber, Zara…</small></div></div>
-      <div class="sg-item"><div class="sg-ic c5">🔖</div><div class="sg-item-text">Favoris + Ouvrir site<small>Swipe + deep links</small></div></div>
+      <div class="sg-item"><div class="sg-ic c5">🔖</div><div class="sg-item-text">Favoris + Expiration<small>Swipe + dates automatiques</small></div></div>
     </div>
     <div class="sg-price-card glass"><div class="label">Paiement unique · accès à vie</div><div class="amount">10 €</div></div>
     <div class="sg-social"><b id="pw-members">2.345k</b> members</div>
@@ -249,18 +251,29 @@
     </div>
   </div>
   <div class="stories" id="stories"></div>
+
   <div class="page page-home active" id="page-home">
     <div class="section">Top Codes</div>
     <div id="daily-codes"></div>
+
+    <!-- FILTRES -->
+    <div class="chips" style="padding: 8px 18px 4px;">
+      <button class="chip active" id="filter-all" onclick="setFilter('all')">Tous</button>
+      <button class="chip" id="filter-promo" onclick="setFilter('promo')">Promo</button>
+      <button class="chip" id="filter-parrainage" onclick="setFilter('parrainage')">Parrainage</button>
+    </div>
+
     <div class="section" id="feed-title">À la une</div>
     <div id="codes-list"><div class="empty">Chargement...</div></div>
   </div>
+
   <div class="page page-search" id="page-search">
     <div class="search-wrap"><div class="search"><span>⌕</span><input id="search-input" placeholder="Uber, Booking, Zara..." onfocus="showRecentSuggestions()" onkeypress="if(event.key==='Enter') doSearch()"></div></div>
     <div class="chips" id="recent-suggestions"></div>
     <div class="section">Résultats</div>
     <div id="search-results"><div class="empty">Tape un mot-clé</div></div>
   </div>
+
   <div class="page page-codia" id="page-codia">
     <div class="welcome-box">
       <div class="welcome-title">COD.IA</div>
@@ -268,10 +281,11 @@
         <b>Bienvenue !</b><br><br>
         Voici comment fonctionne l’app :<br><br>
         • <b>Feed</b> → codes promo & parrainages<br>
+        • <b>Filtres</b> → Tous / Promo / Parrainage<br>
         • <b>Swipe droite</b> → ajoute aux favoris<br>
         • <b>Ouvrir le site</b> → lance le site + copie le code<br>
-        • <b>Profil</b> → tes codes + tes favoris<br>
-        • <b>Assistant IA</b> → pose ta question ci-dessous<br><br>
+        • <b>Expiration</b> → les codes expirés disparaissent automatiquement<br>
+        • <b>Assistant IA</b> → connaît les codes en ligne<br><br>
         Partage, sauvegarde et économise 🚀
       </div>
     </div>
@@ -279,10 +293,12 @@
     <div class="search-wrap"><div class="search"><span>✦</span><input id="ai-input" placeholder="Pose ta question..." onkeypress="if(event.key==='Enter') askAI()"></div></div>
     <div class="ai-box" id="ai-response" style="display:none"></div>
   </div>
+
   <div class="page page-profile" id="page-profile">
     <div class="card" id="profile-card">Chargement...</div>
     <div id="my-codes"><div class="empty">Aucun code</div></div>
   </div>
+
   <button class="fab" onclick="openShare()">＋ Partager</button>
   <div class="bottom">
     <button class="nav active" onclick="showPage('home')"><div class="ic">⌂</div>Feed</button>
@@ -306,6 +322,7 @@
     <input id="formCode" placeholder="Code">
     <input id="formDesc" placeholder="Ex: -20% ou +10€">
     <input id="formUrl" placeholder="Lien du site (optionnel)">
+    <input id="formExpires" type="date" placeholder="Date d'expiration (optionnel)">
     <button onclick="submitCode()">Publier</button>
     <button onclick="closeForm()">Annuler</button>
   </div>
@@ -317,6 +334,8 @@
 <script>
 Telegram.WebApp.ready(); Telegram.WebApp.expand();
 let allCodes=[], currentShareType="promo", currentUserId=null, currentUserName=null, isAdmin=false, viewingUserId=null;
+let currentFilter = 'all';
+
 const ICON_OUT=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>`;
 const ICON_FILL=`<svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>`;
 
@@ -361,6 +380,15 @@ function toggleNotifModal(){
 }
 function closeNotifModal(){document.getElementById('notifModal').classList.remove('active')}
 function timeAgo(d){if(!d)return 'à l’instant';const x=Math.max(0,(Date.now()-new Date(d).getTime())/1000);if(x<60)return 'à l’instant';if(x<3600)return `il y a ${Math.floor(x/60)} min`;if(x<86400)return `il y a ${Math.floor(x/3600)} h`;return `il y a ${Math.floor(x/86400)} j`}
+
+function formatExpire(dateStr) {
+  if (!dateStr) return '';
+  const d = new Date(dateStr);
+  const now = new Date();
+  if (d < now) return 'Expiré';
+  return 'Expire le ' + d.toLocaleDateString('fr-FR');
+}
+
 function showPage(p){
   document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.nav').forEach(x=>x.classList.remove('active'));
   if(p==='home'){document.getElementById('page-home').classList.add('active');document.querySelectorAll('.nav')[0].classList.add('active');loadCodes()}
@@ -372,13 +400,24 @@ function openShare(){document.getElementById('shareModal').classList.add('active
 function closeShare(){document.getElementById('shareModal').classList.remove('active')}
 function closeForm(){document.getElementById('formModal').classList.remove('active')}
 function fillSite(v){document.getElementById('formSite').value=v}
-function chooseShare(t){currentShareType=t;closeShare();document.getElementById('formTitle').textContent=t==='promo'?'Nouveau code promo':'Nouveau code parrainage';document.getElementById('formSite').value='';document.getElementById('formCode').value='';document.getElementById('formDesc').value='';document.getElementById('formUrl').value='';document.getElementById('formModal').classList.add('active')}
+function chooseShare(t){
+  currentShareType=t;
+  closeShare();
+  document.getElementById('formTitle').textContent=t==='promo'?'Nouveau code promo':'Nouveau code parrainage';
+  document.getElementById('formSite').value='';
+  document.getElementById('formCode').value='';
+  document.getElementById('formDesc').value='';
+  document.getElementById('formUrl').value='';
+  document.getElementById('formExpires').value='';
+  document.getElementById('formModal').classList.add('active');
+}
 
 async function submitCode(){
   const site = document.getElementById('formSite').value.trim();
   const code = document.getElementById('formCode').value.trim();
   const description = document.getElementById('formDesc').value.trim();
   const url = document.getElementById('formUrl').value.trim();
+  const expires = document.getElementById('formExpires').value;
   if(!site || !code){ alert('Site et code obligatoires'); return; }
   const u = getTgUser();
   const added_by = u?.username ? ('@'+u.username) : (u?.first_name || 'Membre');
@@ -390,6 +429,7 @@ async function submitCode(){
         type: currentShareType,
         site, code, description,
         url: url || null,
+        expires_at: expires || null,
         added_by,
         user_id: u?.id,
         photo_url: u?.photo_url
@@ -407,15 +447,10 @@ async function submitCode(){
 function avatarHTML(c){return c.photo_url?`<img class="avatar-img" src="${c.photo_url}">`:`<div class="avatar">${(c.added_by||'C')[0].toUpperCase()}</div>`}
 
 function openSite(url, code) {
-  if (code) {
-    navigator.clipboard.writeText(code).catch(()=>{});
-  }
+  if (code) navigator.clipboard.writeText(code).catch(()=>{});
   if (url) {
-    if (window.Telegram?.WebApp?.openLink) {
-      Telegram.WebApp.openLink(url);
-    } else {
-      window.open(url, '_blank');
-    }
+    if (window.Telegram?.WebApp?.openLink) Telegram.WebApp.openLink(url);
+    else window.open(url, '_blank');
   }
 }
 
@@ -429,6 +464,7 @@ function renderPost(c, options = {}) {
   const canManage = isAdmin || (c.user_id && currentUserId && Number(c.user_id) === Number(currentUserId));
   const isDeleted = c.deleted === true;
   const showUnsave = options.showUnsave === true;
+  const expireText = formatExpire(c.expires_at);
 
   let manage = '';
   if (canManage) {
@@ -459,6 +495,7 @@ function renderPost(c, options = {}) {
           Copier${c.copies ? ' · ' + c.copies : ''}
         </button>
       </div>
+      ${expireText ? `<div class="expire">${expireText}</div>` : ''}
       <div class="actions">
         ${id ? `
           <button onclick="toggleReact(${id},'like',this)">${liked ? '❤️' : '🤍'} <span>${c.likes || 0}</span></button>
@@ -470,6 +507,14 @@ function renderPost(c, options = {}) {
       </div>
     </div>
   </div>`;
+}
+
+function setFilter(type) {
+  currentFilter = type;
+  document.getElementById('filter-all').classList.toggle('active', type === 'all');
+  document.getElementById('filter-promo').classList.toggle('active', type === 'promo');
+  document.getElementById('filter-parrainage').classList.toggle('active', type === 'parrainage');
+  loadCodes();
 }
 
 async function copyCode(id,code,btn){try{await navigator.clipboard.writeText(code)}catch(e){alert(code)}btn.textContent='Copié';
@@ -593,12 +638,23 @@ async function toggleFollow(fid,want){if(!currentUserId)return;try{await fetch(w
 async function showFollowList(uid,type){document.getElementById('followListTitle').textContent=type==='followers'?'Abonnés':'Abonnements';const list=document.getElementById('follow-list');list.innerHTML='...';document.getElementById('followListModal').classList.add('active');
   try{const d=await(await fetch(`/${type}?user_id=`+uid)).json();list.innerHTML=(d.users||[]).length?(d.users||[]).map(u=>`<div class="card row clickable" style="margin-bottom:8px" onclick="closeFollowList();viewProfile(${u.user_id},'${String(u.name||'').replace(/'/g,"\\'")}')"><div style="display:flex;gap:10px;align-items:center">${u.photo_url?`<img class="avatar-img" src="${u.photo_url}">`:`<div class="avatar">${(u.name||'M')[0]}</div>`}<b>${u.name||'Membre'}</b></div></div>`).join(''):'<div class="empty">Aucun</div>'}catch(e){list.innerHTML='Erreur'}}
 function closeFollowList(){document.getElementById('followListModal').classList.remove('active')}
+
 async function loadCodes(){
-  try{allCodes=(await(await fetch('/codes')).json()).codes||[]}catch(e){allCodes=[]}
+  try{
+    const url = currentFilter === 'all' ? '/codes' : `/codes?type=${currentFilter}`;
+    allCodes = (await (await fetch(url)).json()).codes || [];
+  }catch(e){allCodes=[]}
   renderStories();
-  try{const top=(await(await fetch('/codes/top')).json()).codes||[];document.getElementById('daily-codes').innerHTML=top.length?top.map(c=>`<div class="card row"><div><strong>${c.site}</strong><div class="muted">${c.type||'promo'} • ${c.code}</div></div><div class="pill">${c.description||'Promo'}</div></div>`).join(''):'<div class="empty">Pas de top</div>'}catch(e){}
-  document.getElementById('feed-title').textContent='À la une';
-  document.getElementById('codes-list').innerHTML=allCodes.length?allCodes.map(c=>renderPost(c)).join(''):'<div class="empty">Feed vide</div>';
+  try{
+    const top = (await (await fetch('/codes/top')).json()).codes || [];
+    document.getElementById('daily-codes').innerHTML = top.length ? top.map(c => `
+      <div class="card row">
+        <div><strong>${c.site}</strong><div class="muted">${c.type||'promo'} • ${c.code}</div></div>
+        <div class="pill">${c.description||'Promo'}</div>
+      </div>`).join('') : '<div class="empty">Pas de top</div>';
+  }catch(e){}
+  document.getElementById('feed-title').textContent = currentFilter === 'all' ? 'À la une' : (currentFilter === 'promo' ? 'Codes promo' : 'Codes parrainage');
+  document.getElementById('codes-list').innerHTML = allCodes.length ? allCodes.map(c => renderPost(c)).join('') : '<div class="empty">Aucun code</div>';
 }
 
 /* SWIPE */
