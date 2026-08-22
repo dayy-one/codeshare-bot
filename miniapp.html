@@ -83,7 +83,7 @@
     .actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;align-items:center}
     .actions button{border:1px solid var(--border);background:var(--bg);color:var(--text);border-radius:999px;padding:8px 14px;font-size:13px}
 
-    /* SWIPE FAVORIS FLUIDE */
+    /* SWIPE FAVORIS */
     .post-swipe-wrap{position:relative;margin:0 16px 16px;border-radius:var(--radius);overflow:hidden;animation:fadeInUp 0.4s ease both}
     .post-swipe-bg{position:absolute;inset:0;background:linear-gradient(90deg,rgba(42,171,238,0.35),rgba(42,171,238,0.04));display:flex;align-items:center;padding-left:28px;z-index:0}
     .post-swipe-bg .fav-icon{width:44px;height:44px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;color:#fff;transform:scale(0.45);opacity:0.25;transition:transform 0.18s cubic-bezier(0.34,1.56,0.64,1),opacity 0.18s ease;box-shadow:0 6px 20px rgba(42,171,238,0.45)}
@@ -212,7 +212,7 @@
       <div class="sg-item"><div class="sg-ic c1">⌂</div><div class="sg-item-text">Feed communauté<small>Codes en temps réel</small></div></div>
       <div class="sg-item"><div class="sg-ic c2">✦</div><div class="sg-item-text">Recherche + IA<small>Trouve plus vite</small></div></div>
       <div class="sg-item"><div class="sg-ic c3">✈</div><div class="sg-item-text">Voyages &amp; shopping<small>Booking, Uber, Zara…</small></div></div>
-      <div class="sg-item"><div class="sg-ic c5">🔖</div><div class="sg-item-text">Favoris<small>Swipe droite pour sauvegarder</small></div></div>
+      <div class="sg-item"><div class="sg-ic c5">🔖</div><div class="sg-item-text">Favoris + Ouvrir site<small>Swipe + deep links</small></div></div>
     </div>
     <div class="sg-price-card glass"><div class="label">Paiement unique · accès à vie</div><div class="amount">10 €</div></div>
     <div class="sg-social"><b id="pw-members">2.345k</b> members</div>
@@ -267,10 +267,10 @@
       <div class="welcome-text">
         <b>Bienvenue !</b><br><br>
         Voici comment fonctionne l’app :<br><br>
-        • <b>Feed</b> → codes promo & parrainages de la communauté<br>
-        • <b>Swipe droite</b> sur une carte → ajoute aux favoris<br>
-        • <b>Recherche</b> → trouve rapidement un code<br>
-        • <b>Profil</b> → tes codes (pellicule) + tes favoris<br>
+        • <b>Feed</b> → codes promo & parrainages<br>
+        • <b>Swipe droite</b> → ajoute aux favoris<br>
+        • <b>Ouvrir le site</b> → lance le site + copie le code<br>
+        • <b>Profil</b> → tes codes + tes favoris<br>
         • <b>Assistant IA</b> → pose ta question ci-dessous<br><br>
         Partage, sauvegarde et économise 🚀
       </div>
@@ -293,7 +293,24 @@
 </div>
 
 <div class="modal" id="shareModal"><div class="sheet"><div style="text-align:center;font-weight:700;margin-bottom:14px">Partager</div><button onclick="chooseShare('promo')">Code promo</button><button onclick="chooseShare('parrainage')">Code parrainage</button><button onclick="closeShare()">Annuler</button></div></div>
-<div class="modal" id="formModal"><div class="sheet"><div style="text-align:center;font-weight:700;margin-bottom:14px" id="formTitle">Nouveau code</div><div class="quick"><button type="button" onclick="fillSite('Uber Eats')">Uber Eats</button><button type="button" onclick="fillSite('Booking')">Booking</button><button type="button" onclick="fillSite('Zara')">Zara</button></div><input id="formSite" placeholder="Site"><input id="formCode" placeholder="Code"><input id="formDesc" placeholder="Ex: -20%"><button onclick="submitCode()">Publier</button><button onclick="closeForm()">Annuler</button></div></div>
+
+<div class="modal" id="formModal">
+  <div class="sheet">
+    <div style="text-align:center;font-weight:700;margin-bottom:14px" id="formTitle">Nouveau code</div>
+    <div class="quick">
+      <button type="button" onclick="fillSite('Uber Eats')">Uber Eats</button>
+      <button type="button" onclick="fillSite('Booking')">Booking</button>
+      <button type="button" onclick="fillSite('Zara')">Zara</button>
+    </div>
+    <input id="formSite" placeholder="Site (ex: Uber Eats)">
+    <input id="formCode" placeholder="Code">
+    <input id="formDesc" placeholder="Ex: -20% ou +10€">
+    <input id="formUrl" placeholder="Lien du site (optionnel)">
+    <button onclick="submitCode()">Publier</button>
+    <button onclick="closeForm()">Annuler</button>
+  </div>
+</div>
+
 <div class="modal" id="notifModal"><div class="sheet"><div style="text-align:center;font-weight:700;margin-bottom:14px">Notifications</div><div id="notif-list"></div><button onclick="closeNotifModal()">Fermer</button></div></div>
 <div class="modal" id="followListModal"><div class="sheet"><div style="text-align:center;font-weight:700;margin-bottom:14px" id="followListTitle">Abonnés</div><div id="follow-list"></div><button onclick="closeFollowList()">Fermer</button></div></div>
 
@@ -355,15 +372,52 @@ function openShare(){document.getElementById('shareModal').classList.add('active
 function closeShare(){document.getElementById('shareModal').classList.remove('active')}
 function closeForm(){document.getElementById('formModal').classList.remove('active')}
 function fillSite(v){document.getElementById('formSite').value=v}
-function chooseShare(t){currentShareType=t;closeShare();document.getElementById('formTitle').textContent=t==='promo'?'Nouveau code promo':'Nouveau code parrainage';document.getElementById('formSite').value='';document.getElementById('formCode').value='';document.getElementById('formDesc').value='';document.getElementById('formModal').classList.add('active')}
+function chooseShare(t){currentShareType=t;closeShare();document.getElementById('formTitle').textContent=t==='promo'?'Nouveau code promo':'Nouveau code parrainage';document.getElementById('formSite').value='';document.getElementById('formCode').value='';document.getElementById('formDesc').value='';document.getElementById('formUrl').value='';document.getElementById('formModal').classList.add('active')}
+
 async function submitCode(){
-  const site=document.getElementById('formSite').value.trim(),code=document.getElementById('formCode').value.trim(),description=document.getElementById('formDesc').value.trim();
-  if(!site||!code){alert('Site et code obligatoires');return}
-  const u=getTgUser();const added_by=u?.username?('@'+u.username):(u?.first_name||'Membre');
-  try{const d=await(await fetch('/codes/add',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({type:currentShareType,site,code,description,added_by,user_id:u?.id,photo_url:u?.photo_url})})).json();
-    if(d.success){closeForm();alert('Code en ligne ✅');await loadCodes();showPage('home')}else alert('Erreur')}catch(e){alert('Erreur')}
+  const site = document.getElementById('formSite').value.trim();
+  const code = document.getElementById('formCode').value.trim();
+  const description = document.getElementById('formDesc').value.trim();
+  const url = document.getElementById('formUrl').value.trim();
+  if(!site || !code){ alert('Site et code obligatoires'); return; }
+  const u = getTgUser();
+  const added_by = u?.username ? ('@'+u.username) : (u?.first_name || 'Membre');
+  try{
+    const d = await (await fetch('/codes/add', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        type: currentShareType,
+        site, code, description,
+        url: url || null,
+        added_by,
+        user_id: u?.id,
+        photo_url: u?.photo_url
+      })
+    })).json();
+    if(d.success){
+      closeForm();
+      alert('Code en ligne ✅');
+      await loadCodes();
+      showPage('home');
+    } else alert('Erreur');
+  } catch(e){ alert('Erreur'); }
 }
+
 function avatarHTML(c){return c.photo_url?`<img class="avatar-img" src="${c.photo_url}">`:`<div class="avatar">${(c.added_by||'C')[0].toUpperCase()}</div>`}
+
+function openSite(url, code) {
+  if (code) {
+    navigator.clipboard.writeText(code).catch(()=>{});
+  }
+  if (url) {
+    if (window.Telegram?.WebApp?.openLink) {
+      Telegram.WebApp.openLink(url);
+    } else {
+      window.open(url, '_blank');
+    }
+  }
+}
 
 function renderPost(c, options = {}) {
   const id = c.id;
@@ -409,6 +463,7 @@ function renderPost(c, options = {}) {
         ${id ? `
           <button onclick="toggleReact(${id},'like',this)">${liked ? '❤️' : '🤍'} <span>${c.likes || 0}</span></button>
           <button onclick="toggleReact(${id},'dislike',this)">${disliked ? '💔' : '👎'} <span>${c.dislikes || 0}</span></button>
+          ${c.url ? `<button onclick="openSite('${String(c.url).replace(/'/g,"\\'")}', '${String(c.code||'').replace(/'/g,"\\'")}')">Ouvrir le site</button>` : ''}
           ${showUnsave ? `<button onclick="removeFromFavorites(${id}, this)" style="color:#f87171;border-color:rgba(248,113,113,0.4)">Retirer</button>` : ''}
           ${manage}
         ` : ''}
@@ -546,7 +601,7 @@ async function loadCodes(){
   document.getElementById('codes-list').innerHTML=allCodes.length?allCodes.map(c=>renderPost(c)).join(''):'<div class="empty">Feed vide</div>';
 }
 
-/* === SWIPE DROITE FAVORIS === */
+/* SWIPE */
 const SWIPE_THRESHOLD = 85;
 let swipeActive = null;
 
