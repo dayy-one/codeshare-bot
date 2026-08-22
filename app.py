@@ -25,7 +25,7 @@ CHANNEL_ID = os.getenv("CHANNEL_ID", "-1004414166682")
 DATABASE_URL = os.getenv("DATABASE_URL")
 XAI_API_KEY = os.getenv("XAI_API_KEY")
 SERVER_URL = os.getenv("SERVER_URL", "https://codeshare-bot-production.up.railway.app")
-MINIAPP_URL = os.getenv("MINIAPP_URL", f"{SERVER_URL}/miniapp?v=11")
+MINIAPP_URL = os.getenv("MINIAPP_URL", f"{SERVER_URL}/miniapp?v=13")
 PRICE_CENTS = int(os.getenv("PRICE_CENTS", "1000"))
 
 BASE_MEMBERS = 2345
@@ -267,11 +267,25 @@ def grant_access_message(chat_id):
     )
 
 
-# Filtre : cache les codes expirés depuis plus de 4 jours
 ACTIVE_CODES_FILTER = """
     deleted = FALSE
     AND (expires_at IS NULL OR expires_at > NOW() - INTERVAL '4 days')
 """
+
+
+def get_user_badge(total_codes: int, total_likes: int, total_copies: int) -> str:
+    score = total_codes * 2 + total_likes + total_copies
+    if score >= 100:
+        return "Légende COD.IA"
+    if score >= 50:
+        return "Contributeur Or"
+    if score >= 25:
+        return "Chasseur de codes"
+    if score >= 10:
+        return "Explorateur"
+    if score >= 3:
+        return "Débutant motivé"
+    return "Nouveau membre"
 
 
 @app.route("/")
@@ -450,16 +464,49 @@ def top_codes():
 
 @app.route("/codes/search")
 def search_codes():
-    q = (request.args.get("q") or "").strip()
+    q = (request.args.get("q") or "").strip().lower()
+    if not q:
+        return jsonify({"codes": []})
+
+    synonyms = {
+        "uber": ["uber", "uber eats", "ubereats"],
+        "booking": ["booking", "booking.com"],
+        "airbnb": ["airbnb", "air bnb"],
+        "zara": ["zara"],
+        "amazon": ["amazon", "amz"],
+        "deliveroo": ["deliveroo", "delivroo"],
+        "fnac": ["fnac"],
+        "cdiscount": ["cdiscount", "c discount"],
+        "vinted": ["vinted"],
+        "leboncoin": ["leboncoin", "le bon coin", "lbc"],
+    }
+
+    search_terms = [q]
+    for key, values in synonyms.items():
+        if key in q or q in key:
+            search_terms.extend(values)
+
+    search_terms = list(set(search_terms))
+
     try:
         conn = get_conn()
         cur = conn.cursor()
+
+        conditions = []
+        params = []
+        for term in search_terms:
+            conditions.append("(site ILIKE %s OR code ILIKE %s OR description ILIKE %s OR added_by ILIKE %s)")
+            params.extend([f"%{term}%", f"%{term}%", f"%{term}%", f"%{term}%"])
+
+        where_extra = " OR ".join(conditions)
+
         cur.execute(f"""
             SELECT * FROM codes
             WHERE {ACTIVE_CODES_FILTER}
-              AND (site ILIKE %s OR code ILIKE %s OR description ILIKE %s)
+              AND ({where_extra})
             ORDER BY created_at DESC LIMIT 50
-        """, (f"%{q}%", f"%{q}%", f"%{q}%"))
+        """, params)
+
         rows = cur.fetchall()
         cur.close()
         conn.close()
@@ -495,6 +542,34 @@ def user_codes():
             SELECT * FROM codes
             WHERE user_id = %s AND {ACTIVE_CODES_FILTER}
             ORDER BY created_at DESC LIMIT 50
+        """, (int(user_id),))
+        rows = cur.fetchall()
+        cur.close()
+        conn.close()
+        return jsonify({"codes": rows})
+    except Exception as e:
+        logging.error(e)
+        return jsonify({"codes": []})
+
+
+@app.route("/codes/copied")
+def codes_copied():
+    """Historique des codes copiés par l'utilisateur"""
+    user_id = request.args.get("user_id")
+    if not user_id:
+        return jsonify({"codes": []})
+    try:
+        conn = get_conn()
+        cur = conn.cursor()
+        cur.execute("""
+            SELECT c.*, cc.created_at as copied_at
+            FROM codes c
+            INNER JOIN code_copies cc ON cc.code_id = c.id
+            WHERE cc.user_id = %s
+              AND c.deleted = FALSE
+              AND (c.expires_at IS NULL OR c.expires_at > NOW() - INTERVAL '4 days')
+            ORDER BY cc.created_at DESC
+            LIMIT 50
         """, (int(user_id),))
         rows = cur.fetchall()
         cur.close()
@@ -541,6 +616,64 @@ def add_code():
         cur.close()
         conn.close()
         return jsonify({"success": True, "id": new_id})
+    except Exception as e:
+        logging.error(e)
+        return jsonify({"success": False}), 500
+
+
+@app.route("/code/edit", methods=["POST"])
+def edit_code():
+    data = request.json or {}
+    code_id = data.get("id")
+    user_id = data.get("user_id")
+    if not code_id or not user_id:
+        return jsonify({"success": False}), 400
+
+    try:
+        conn = get_conn()
+        cur = conn.cursor()
+        cur.execute("SELECT user_id FROM codes WHERE id = %s", (code_id,))
+        row = cur.fetchone()
+        if not row:
+            cur.close()
+            conn.close()
+            return jsonify({"success": False, "error": "not_found"}), 404
+
+        owner_id = row["user_id"]
+        if not (int(user_id) == ADMIN_ID or (owner_id and int(owner_id) == int(user_id))):
+            cur.close()
+            conn.close()
+            return jsonify({"success": False, "error": "forbidden"}), 403
+
+        expires_at = data.get("expires_at") or None
+        if expires_at:
+            try:
+                expires_at = datetime.fromisoformat(str(expires_at).replace("Z", ""))
+            except Exception:
+                expires_at = None
+
+        cur.execute("""
+            UPDATE codes SET
+                site = COALESCE(%s, site),
+                code = COALESCE(%s, code),
+                description = COALESCE(%s, description),
+                url = COALESCE(%s, url),
+                expires_at = COALESCE(%s, expires_at),
+                type = COALESCE(%s, type)
+            WHERE id = %s
+        """, (
+            data.get("site"),
+            data.get("code"),
+            data.get("description"),
+            data.get("url"),
+            expires_at,
+            data.get("type"),
+            code_id
+        ))
+        conn.commit()
+        cur.close()
+        conn.close()
+        return jsonify({"success": True})
     except Exception as e:
         logging.error(e)
         return jsonify({"success": False}), 500
@@ -739,10 +872,12 @@ def saved_codes():
     try:
         conn = get_conn()
         cur = conn.cursor()
-        cur.execute(f"""
+        cur.execute("""
             SELECT c.* FROM codes c
             INNER JOIN saved_codes s ON s.code_id = c.id
-            WHERE s.user_id = %s AND {ACTIVE_CODES_FILTER}
+            WHERE s.user_id = %s
+              AND c.deleted = FALSE
+              AND (c.expires_at IS NULL OR c.expires_at > NOW() - INTERVAL '4 days')
             ORDER BY s.created_at DESC
             LIMIT 50
         """, (int(user_id),))
@@ -753,6 +888,99 @@ def saved_codes():
     except Exception as e:
         logging.error(e)
         return jsonify({"codes": []})
+
+
+@app.route("/leaderboard")
+def leaderboard():
+    """Top 10 contributeurs de la semaine"""
+    try:
+        conn = get_conn()
+        cur = conn.cursor()
+        cur.execute("""
+            SELECT 
+                user_id,
+                MAX(added_by) as name,
+                MAX(photo_url) as photo_url,
+                COUNT(*) as codes_count,
+                COALESCE(SUM(likes), 0) as total_likes,
+                COALESCE(SUM(copies), 0) as total_copies
+            FROM codes
+            WHERE user_id IS NOT NULL
+              AND created_at > NOW() - INTERVAL '7 days'
+              AND deleted = FALSE
+            GROUP BY user_id
+            ORDER BY codes_count DESC, total_likes DESC
+            LIMIT 10
+        """)
+        rows = cur.fetchall()
+        cur.close()
+        conn.close()
+
+        result = []
+        for i, r in enumerate(rows):
+            badge = get_user_badge(r["codes_count"], r["total_likes"], r["total_copies"])
+            result.append({
+                "rank": i + 1,
+                "user_id": r["user_id"],
+                "name": r["name"] or "Membre",
+                "photo_url": r["photo_url"],
+                "codes_count": r["codes_count"],
+                "total_likes": r["total_likes"],
+                "total_copies": r["total_copies"],
+                "badge": badge
+            })
+        return jsonify({"leaderboard": result})
+    except Exception as e:
+        logging.error(e)
+        return jsonify({"leaderboard": []})
+
+
+@app.route("/profile/full_stats")
+def profile_full_stats():
+    """Statistiques complètes + badge pour un utilisateur"""
+    user_id = request.args.get("user_id")
+    if not user_id:
+        return jsonify({})
+    try:
+        conn = get_conn()
+        cur = conn.cursor()
+
+        cur.execute("SELECT COUNT(*) as c FROM codes WHERE user_id = %s AND deleted = FALSE", (int(user_id),))
+        total_codes = cur.fetchone()["c"] or 0
+
+        cur.execute("""
+            SELECT COALESCE(SUM(likes),0) as likes, COALESCE(SUM(copies),0) as copies
+            FROM codes WHERE user_id = %s AND deleted = FALSE
+        """, (int(user_id),))
+        eng = cur.fetchone()
+        total_likes = eng["likes"] or 0
+        total_copies = eng["copies"] or 0
+
+        cur.execute("SELECT COUNT(*) as c FROM follows WHERE followed_id = %s", (int(user_id),))
+        followers = cur.fetchone()["c"] or 0
+        cur.execute("SELECT COUNT(*) as c FROM follows WHERE follower_id = %s", (int(user_id),))
+        following = cur.fetchone()["c"] or 0
+
+        cur.execute("SELECT COUNT(*) as c FROM code_copies WHERE user_id = %s", (int(user_id),))
+        copied_by_me = cur.fetchone()["c"] or 0
+
+        badge = get_user_badge(total_codes, total_likes, total_copies)
+
+        cur.close()
+        conn.close()
+
+        return jsonify({
+            "total_codes": total_codes,
+            "total_likes": total_likes,
+            "total_copies": total_copies,
+            "followers": followers,
+            "following": following,
+            "copied_by_me": copied_by_me,
+            "badge": badge
+        })
+    except Exception as e:
+        logging.error(e)
+        return jsonify({})
 
 
 @app.route("/follow", methods=["POST"])
