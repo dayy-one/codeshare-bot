@@ -25,10 +25,11 @@ CHANNEL_ID = os.getenv("CHANNEL_ID", "-1004414166682")
 DATABASE_URL = os.getenv("DATABASE_URL")
 XAI_API_KEY = os.getenv("XAI_API_KEY")
 SERVER_URL = os.getenv("SERVER_URL", "https://codeshare-bot-production.up.railway.app")
-MINIAPP_URL = os.getenv("MINIAPP_URL", f"{SERVER_URL}/miniapp?v=13")
+MINIAPP_URL = os.getenv("MINIAPP_URL", f"{SERVER_URL}/miniapp?v=14")
 PRICE_CENTS = int(os.getenv("PRICE_CENTS", "1000"))
 
 BASE_MEMBERS = 2345
+REPORT_THRESHOLD = 10  # suppression auto à 10 signalements
 
 client = None
 if XAI_API_KEY:
@@ -134,6 +135,26 @@ def init_db():
             telegram_id BIGINT PRIMARY KEY,
             push_enabled BOOLEAN DEFAULT TRUE,
             updated_at TIMESTAMP DEFAULT NOW()
+        );
+    """)
+    # Signalements
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS code_reports (
+            id SERIAL PRIMARY KEY,
+            code_id INT NOT NULL,
+            user_id BIGINT NOT NULL,
+            reason VARCHAR(50) NOT NULL,
+            created_at TIMESTAMP DEFAULT NOW(),
+            UNIQUE(code_id, user_id)
+        );
+    """)
+    # Codes cachés par utilisateur
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS hidden_codes (
+            user_id BIGINT NOT NULL,
+            code_id INT NOT NULL,
+            created_at TIMESTAMP DEFAULT NOW(),
+            PRIMARY KEY (user_id, code_id)
         );
     """)
 
@@ -288,6 +309,17 @@ def get_user_badge(total_codes: int, total_likes: int, total_copies: int) -> str
     return "Nouveau membre"
 
 
+def hidden_filter_sql(user_id, alias="codes"):
+    """Exclut les codes cachés par l'utilisateur"""
+    if not user_id:
+        return "TRUE"
+    return f"""
+        {alias}.id NOT IN (
+            SELECT code_id FROM hidden_codes WHERE user_id = {int(user_id)}
+        )
+    """
+
+
 @app.route("/")
 def home():
     return "COD.IA Server is running ✅"
@@ -418,21 +450,28 @@ def stripe_webhook():
 @app.route("/codes")
 def list_codes():
     type_filter = request.args.get("type")
+    user_id = request.args.get("user_id")
     try:
         conn = get_conn()
         cur = conn.cursor()
+        hide = ""
+        params = []
+        if user_id:
+            hide = " AND id NOT IN (SELECT code_id FROM hidden_codes WHERE user_id = %s)"
+            params.append(int(user_id))
+
         if type_filter in ("promo", "parrainage"):
             cur.execute(f"""
                 SELECT * FROM codes
-                WHERE {ACTIVE_CODES_FILTER} AND type = %s
+                WHERE {ACTIVE_CODES_FILTER} AND type = %s {hide}
                 ORDER BY created_at DESC LIMIT 100
-            """, (type_filter,))
+            """, [type_filter] + params)
         else:
             cur.execute(f"""
                 SELECT * FROM codes
-                WHERE {ACTIVE_CODES_FILTER}
+                WHERE {ACTIVE_CODES_FILTER} {hide}
                 ORDER BY created_at DESC LIMIT 100
-            """)
+            """, params)
         rows = cur.fetchall()
         cur.close()
         conn.close()
@@ -444,15 +483,21 @@ def list_codes():
 
 @app.route("/codes/top")
 def top_codes():
+    user_id = request.args.get("user_id")
     try:
         conn = get_conn()
         cur = conn.cursor()
+        hide = ""
+        params = []
+        if user_id:
+            hide = " AND id NOT IN (SELECT code_id FROM hidden_codes WHERE user_id = %s)"
+            params.append(int(user_id))
         cur.execute(f"""
             SELECT * FROM codes
-            WHERE {ACTIVE_CODES_FILTER}
+            WHERE {ACTIVE_CODES_FILTER} {hide}
             ORDER BY (likes + copies) DESC, created_at DESC
             LIMIT 5
-        """)
+        """, params)
         rows = cur.fetchall()
         cur.close()
         conn.close()
@@ -465,6 +510,7 @@ def top_codes():
 @app.route("/codes/search")
 def search_codes():
     q = (request.args.get("q") or "").strip().lower()
+    user_id = request.args.get("user_id")
     if not q:
         return jsonify({"codes": []})
 
@@ -485,7 +531,6 @@ def search_codes():
     for key, values in synonyms.items():
         if key in q or q in key:
             search_terms.extend(values)
-
     search_terms = list(set(search_terms))
 
     try:
@@ -499,11 +544,15 @@ def search_codes():
             params.extend([f"%{term}%", f"%{term}%", f"%{term}%", f"%{term}%"])
 
         where_extra = " OR ".join(conditions)
+        hide = ""
+        if user_id:
+            hide = " AND id NOT IN (SELECT code_id FROM hidden_codes WHERE user_id = %s)"
+            params.append(int(user_id))
 
         cur.execute(f"""
             SELECT * FROM codes
             WHERE {ACTIVE_CODES_FILTER}
-              AND ({where_extra})
+              AND ({where_extra}) {hide}
             ORDER BY created_at DESC LIMIT 50
         """, params)
 
@@ -535,14 +584,20 @@ def my_codes():
 @app.route("/codes/user")
 def user_codes():
     user_id = request.args.get("user_id")
+    viewer_id = request.args.get("viewer_id")
     try:
         conn = get_conn()
         cur = conn.cursor()
+        hide = ""
+        params = [int(user_id)]
+        if viewer_id:
+            hide = " AND id NOT IN (SELECT code_id FROM hidden_codes WHERE user_id = %s)"
+            params.append(int(viewer_id))
         cur.execute(f"""
             SELECT * FROM codes
-            WHERE user_id = %s AND {ACTIVE_CODES_FILTER}
+            WHERE user_id = %s AND {ACTIVE_CODES_FILTER} {hide}
             ORDER BY created_at DESC LIMIT 50
-        """, (int(user_id),))
+        """, params)
         rows = cur.fetchall()
         cur.close()
         conn.close()
@@ -554,7 +609,6 @@ def user_codes():
 
 @app.route("/codes/copied")
 def codes_copied():
-    """Historique des codes copiés par l'utilisateur"""
     user_id = request.args.get("user_id")
     if not user_id:
         return jsonify({"codes": []})
@@ -670,6 +724,94 @@ def edit_code():
             data.get("type"),
             code_id
         ))
+        conn.commit()
+        cur.close()
+        conn.close()
+        return jsonify({"success": True})
+    except Exception as e:
+        logging.error(e)
+        return jsonify({"success": False}), 500
+
+
+@app.route("/code/report", methods=["POST"])
+def report_code():
+    """
+    Signaler un code.
+    reasons: invalid | spam | inappropriate | other
+    hide: true → ne plus afficher ce code pour cet utilisateur
+    """
+    data = request.json or {}
+    code_id = data.get("id")
+    user_id = data.get("user_id")
+    reason = (data.get("reason") or "other").strip().lower()
+    hide = bool(data.get("hide", False))
+
+    if not code_id or not user_id:
+        return jsonify({"success": False, "error": "missing"}), 400
+
+    allowed = {"invalid", "spam", "inappropriate", "other"}
+    if reason not in allowed:
+        reason = "other"
+
+    try:
+        conn = get_conn()
+        cur = conn.cursor()
+
+        # Enregistre le signalement (1 par user)
+        cur.execute("""
+            INSERT INTO code_reports (code_id, user_id, reason)
+            VALUES (%s, %s, %s)
+            ON CONFLICT (code_id, user_id) DO UPDATE SET reason = EXCLUDED.reason
+        """, (int(code_id), int(user_id), reason))
+
+        # Option "ne plus voir"
+        if hide:
+            cur.execute("""
+                INSERT INTO hidden_codes (user_id, code_id)
+                VALUES (%s, %s)
+                ON CONFLICT (user_id, code_id) DO NOTHING
+            """, (int(user_id), int(code_id)))
+
+        # Compte les signalements
+        cur.execute("SELECT COUNT(*) AS c FROM code_reports WHERE code_id = %s", (int(code_id),))
+        count = cur.fetchone()["c"] or 0
+
+        auto_deleted = False
+        if count >= REPORT_THRESHOLD:
+            cur.execute("UPDATE codes SET deleted = TRUE WHERE id = %s", (int(code_id),))
+            auto_deleted = True
+
+        conn.commit()
+        cur.close()
+        conn.close()
+
+        return jsonify({
+            "success": True,
+            "reports": count,
+            "auto_deleted": auto_deleted,
+            "hidden": hide
+        })
+    except Exception as e:
+        logging.error(e)
+        return jsonify({"success": False}), 500
+
+
+@app.route("/code/hide", methods=["POST"])
+def hide_code():
+    """Ne plus voir un code (sans signaler)"""
+    data = request.json or {}
+    code_id = data.get("id")
+    user_id = data.get("user_id")
+    if not code_id or not user_id:
+        return jsonify({"success": False}), 400
+    try:
+        conn = get_conn()
+        cur = conn.cursor()
+        cur.execute("""
+            INSERT INTO hidden_codes (user_id, code_id)
+            VALUES (%s, %s)
+            ON CONFLICT (user_id, code_id) DO NOTHING
+        """, (int(user_id), int(code_id)))
         conn.commit()
         cur.close()
         conn.close()
@@ -892,7 +1034,6 @@ def saved_codes():
 
 @app.route("/leaderboard")
 def leaderboard():
-    """Top 10 contributeurs de la semaine"""
     try:
         conn = get_conn()
         cur = conn.cursor()
@@ -937,7 +1078,6 @@ def leaderboard():
 
 @app.route("/profile/full_stats")
 def profile_full_stats():
-    """Statistiques complètes + badge pour un utilisateur"""
     user_id = request.args.get("user_id")
     if not user_id:
         return jsonify({})
