@@ -25,7 +25,7 @@ CHANNEL_ID = os.getenv("CHANNEL_ID", "-1004414166682")
 DATABASE_URL = os.getenv("DATABASE_URL")
 XAI_API_KEY = os.getenv("XAI_API_KEY")
 SERVER_URL = os.getenv("SERVER_URL", "https://codeshare-bot-production.up.railway.app")
-MINIAPP_URL = os.getenv("MINIAPP_URL", f"{SERVER_URL}/miniapp?v=14")
+MINIAPP_URL = os.getenv("MINIAPP_URL", f"{SERVER_URL}/miniapp?v=15")
 PRICE_CENTS = int(os.getenv("PRICE_CENTS", "1000"))
 
 BASE_MEMBERS = 2345
