@@ -24,7 +24,7 @@ CHANNEL_ID = os.getenv("CHANNEL_ID", "-1004414166682")
 DATABASE_URL = os.getenv("DATABASE_URL")
 XAI_API_KEY = os.getenv("XAI_API_KEY")
 SERVER_URL = os.getenv("SERVER_URL", "https://codeshare-bot-production.up.railway.app")
-MINIAPP_URL = os.getenv("MINIAPP_URL", f"{SERVER_URL}/miniapp?v=9")
+MINIAPP_URL = os.getenv("MINIAPP_URL", f"{SERVER_URL}/miniapp?v=10")
 PRICE_CENTS = int(os.getenv("PRICE_CENTS", "1000"))
 
 BASE_MEMBERS = 2345
@@ -58,6 +58,7 @@ def init_db():
             site VARCHAR(120),
             code VARCHAR(120),
             description TEXT,
+            url TEXT,
             added_by VARCHAR(120),
             user_id BIGINT,
             photo_url TEXT,
@@ -70,6 +71,10 @@ def init_db():
     """)
     try:
         cur.execute("ALTER TABLE codes ADD COLUMN IF NOT EXISTS deleted BOOLEAN DEFAULT FALSE;")
+    except Exception:
+        pass
+    try:
+        cur.execute("ALTER TABLE codes ADD COLUMN IF NOT EXISTS url TEXT;")
     except Exception:
         pass
 
@@ -481,13 +486,14 @@ def add_code():
         conn = get_conn()
         cur = conn.cursor()
         cur.execute("""
-            INSERT INTO codes (type, site, code, description, added_by, user_id, photo_url)
-            VALUES (%s,%s,%s,%s,%s,%s,%s) RETURNING id
+            INSERT INTO codes (type, site, code, description, url, added_by, user_id, photo_url)
+            VALUES (%s,%s,%s,%s,%s,%s,%s,%s) RETURNING id
         """, (
             data.get("type") or "promo",
             data.get("site"),
             data.get("code"),
             data.get("description"),
+            data.get("url") or None,
             data.get("added_by"),
             data.get("user_id"),
             data.get("photo_url"),
@@ -950,7 +956,7 @@ def ask():
         return jsonify({"answer": "IA non configurée (XAI_API_KEY manquante)."})
     system = (
         "Tu es l'assistant COD.IA. Tu aides à trouver des codes promo et parrainages en France. "
-        "Réponds en français, court et utile. Tu peux aussi aider sur les problèmes de l'app."
+        "Réponds en français, court et utile."
     )
     try:
         completion = client.chat.completions.create(
