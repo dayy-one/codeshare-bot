@@ -146,6 +146,160 @@
     .check-row{display:flex;align-items:center;gap:10px;margin:14px 0;font-size:14px}
     .check-row input{width:auto;margin:0}
 
+    /* ===== PROFIL AMÉLIORÉ ===== */
+    #profile-card {
+      background: transparent !important;
+      border: none !important;
+      box-shadow: none !important;
+      padding: 0 !important;
+      margin: 0 !important;
+    }
+    .profile-header {
+      position: relative;
+      margin: 0 16px 20px;
+      border-radius: 24px;
+      overflow: hidden;
+      background: var(--gradient);
+      padding: 28px 20px 24px;
+      text-align: center;
+      box-shadow: var(--shadow);
+    }
+    .profile-header::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(0,0,0,0.15), rgba(0,0,0,0.45));
+      pointer-events: none;
+    }
+    .profile-avatar-wrap {
+      position: relative;
+      width: 92px;
+      height: 92px;
+      margin: 0 auto 14px;
+      z-index: 1;
+    }
+    .profile-avatar-wrap .avatar,
+    .profile-avatar-wrap .avatar-img {
+      width: 92px;
+      height: 92px;
+      border: 3px solid rgba(255,255,255,0.85);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+    }
+    .profile-name {
+      position: relative;
+      z-index: 1;
+      font-size: 22px;
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 4px;
+    }
+    .profile-sub {
+      position: relative;
+      z-index: 1;
+      font-size: 13px;
+      color: rgba(255,255,255,0.8);
+      margin-bottom: 12px;
+    }
+    .profile-badge {
+      position: relative;
+      z-index: 1;
+      display: inline-block;
+      background: rgba(255,255,255,0.18);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255,255,255,0.25);
+      color: #fff;
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 700;
+    }
+    .profile-progress {
+      margin: 16px 16px 8px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 14px 16px;
+    }
+    .profile-progress-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12.5px;
+      margin-bottom: 8px;
+      color: var(--text2);
+    }
+    .profile-progress-bar {
+      height: 8px;
+      background: var(--bg);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .profile-progress-fill {
+      height: 100%;
+      background: var(--gradient);
+      border-radius: 999px;
+      transition: width 0.6s cubic-bezier(0.22,1,0.36,1);
+    }
+    .stats-grid-v2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin: 0 16px 18px;
+    }
+    .stat-box-v2 {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 16px 12px;
+      text-align: center;
+      transition: transform 0.2s;
+    }
+    .stat-box-v2:active { transform: scale(0.97); }
+    .stat-box-v2 .stat-icon {
+      font-size: 18px;
+      margin-bottom: 6px;
+    }
+    .stat-box-v2 b {
+      display: block;
+      font-size: 20px;
+      font-weight: 800;
+      margin-bottom: 2px;
+    }
+    .stat-box-v2 .muted {
+      font-size: 12px;
+    }
+    .profile-actions {
+      display: flex;
+      gap: 10px;
+      margin: 0 16px 18px;
+      flex-wrap: wrap;
+    }
+    .profile-actions button {
+      flex: 1;
+      min-width: 120px;
+      padding: 13px 16px;
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--text);
+      font-weight: 600;
+      font-size: 14px;
+    }
+    .profile-actions .primary {
+      background: var(--gradient);
+      color: #fff;
+      border: none;
+    }
+    .follow-stats {
+      display: flex;
+      justify-content: center;
+      gap: 28px;
+      margin: 4px 0 18px;
+      font-size: 14px;
+    }
+    .follow-stats b {
+      font-weight: 700;
+    }
+
     #paywall{position:fixed;inset:0;z-index:100;max-width:430px;margin:0 auto;background:#03050a;color:#fff;display:flex;flex-direction:column;overflow:hidden}
     .sg-bg{position:absolute;inset:0;background:radial-gradient(ellipse 80% 50% at 50% -10%,rgba(42,171,238,0.35),transparent 55%),#03050a}
     .sg-bg::before{content:"";position:absolute;inset:-20%;background:radial-gradient(circle at 30% 40%,rgba(42,171,238,0.15),transparent 40%);animation:orbFloat 12s ease-in-out infinite alternate}
@@ -155,7 +309,7 @@
     .sg-live-app .la-name{font-weight:700;font-size:14px;color:#f0f4ff;display:inline;margin-left:10px}
     .sg-live-app .la-stories{display:flex;gap:12px;padding:14px 16px}
     .sg-live-app .la-ring{width:48px;height:48px;border-radius:50%;padding:2px;background:linear-gradient(135deg,#2AABEE,#8b5cf6)}
-    .sg-live-app .la-ring::after{content:"";display:block;width:100%;height:100%;border-radius:50%;background:#0c1220}
+    .sg-live-app .la-ring::after{content:"";display:block;width:100%;height:100%;background:#0c1220;border-radius:50%}
     .sg-live-app .la-card{margin:8px 16px;height:72px;border-radius:16px;background:rgba(42,171,238,0.12);border:1px solid rgba(255,255,255,0.08)}
     .sg-live-app .la-bottom{position:absolute;left:0;right:0;bottom:0;height:64px;border-top:1px solid rgba(255,255,255,.06);background:rgba(10,14,24,.95)}
     .sg-dim{position:absolute;inset:0;background:linear-gradient(180deg,rgba(3,5,10,0.3),rgba(3,5,10,0.9));pointer-events:none}
@@ -301,7 +455,7 @@
   </div>
 
   <div class="page page-profile" id="page-profile">
-    <div class="card" id="profile-card">Chargement...</div>
+    <div id="profile-card">Chargement...</div>
     <div id="my-codes"><div class="empty">Aucun code</div></div>
   </div>
 
@@ -616,7 +770,6 @@ async function submitReport(reason){
       if(d.auto_deleted) msg = 'Code retiré automatiquement (10+ signalements)';
       else if(hide) msg = 'Code signalé et masqué pour toi';
       alert(msg);
-      // retire la carte de l'écran
       const wrap = document.querySelector(`.post-swipe-wrap[data-id="${longPressCode.id}"]`);
       if(wrap){
         wrap.classList.add('removing');
@@ -691,72 +844,222 @@ async function loadLeaderboard(){
 
 async function viewProfile(uid,name){viewingUserId=uid;document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.querySelectorAll('.nav').forEach(n=>n.classList.remove('active'));document.getElementById('page-profile').classList.add('active');document.querySelectorAll('.nav')[3].classList.add('active');await loadProfile(uid,name)}
 
-async function loadProfile(forceId=null,forceName=null){
-  const u=getTgUser(),card=document.getElementById('profile-card'),targetId=forceId||currentUserId,isOwn=!forceId||Number(forceId)===Number(currentUserId);
-  if(!targetId){card.innerHTML='Ouvre depuis Telegram';return}
-  let name=forceName||(isOwn?(u?.username?'@'+u.username:(u?.first_name||'Membre')):'Membre');
-  let photo=(isOwn&&u?.photo_url)?`<img class="avatar-img" src="${u.photo_url}">`:`<div class="avatar">${name[0]}</div>`;
+async function loadProfile(forceId = null, forceName = null) {
+  const u = getTgUser();
+  const card = document.getElementById('profile-card');
+  const targetId = forceId || currentUserId;
+  const isOwn = !forceId || Number(forceId) === Number(currentUserId);
 
-  let fullStats={};try{fullStats=await(await fetch('/profile/full_stats?user_id='+targetId)).json()}catch(e){}
-  let followBtn='';
-  if(!isOwn&&currentUserId){
-    let isF=false;try{isF=(await(await fetch(`/is_following?follower=${currentUserId}&followed=${targetId}`)).json()).following}catch(e){}
-    followBtn=isF?`<button class="pill" style="margin-top:10px" onclick="toggleFollow(${targetId},false)">Abonné ✓</button>`:`<button class="pill" style="margin-top:10px" onclick="toggleFollow(${targetId},true)">S’abonner</button>`;
+  if (!targetId) {
+    card.innerHTML = '<div class="empty">Ouvre depuis Telegram</div>';
+    return;
   }
 
-  let pushToggle='';
-  if(isOwn){
-    pushToggle=`<div class="toggle-row"><div><div class="toggle-label">Notifications push</div><div class="toggle-sub">Alertes Telegram</div></div>
-      <label class="switch"><input type="checkbox" id="push-toggle" onchange="togglePush(this.checked)"><span class="slider"></span></label></div>`;
+  let name = forceName || (isOwn ? (u?.username ? '@' + u.username : (u?.first_name || 'Membre')) : 'Membre');
+  let photo = (isOwn && u?.photo_url)
+    ? `<img class="avatar-img" src="${u.photo_url}">`
+    : `<div class="avatar">${(name[0] || 'M').toUpperCase()}</div>`;
+
+  let fullStats = {};
+  try {
+    fullStats = await (await fetch('/profile/full_stats?user_id=' + targetId)).json();
+  } catch (e) {}
+
+  // Progression badge
+  const score = (fullStats.total_codes || 0) * 2 + (fullStats.total_likes || 0) + (fullStats.total_copies || 0);
+  const levels = [
+    { min: 0, name: "Nouveau membre", next: 3 },
+    { min: 3, name: "Débutant motivé", next: 10 },
+    { min: 10, name: "Explorateur", next: 25 },
+    { min: 25, name: "Chasseur de codes", next: 50 },
+    { min: 50, name: "Contributeur Or", next: 100 },
+    { min: 100, name: "Légende COD.IA", next: 100 }
+  ];
+  let currentLevel = levels[0];
+  for (let i = levels.length - 1; i >= 0; i--) {
+    if (score >= levels[i].min) {
+      currentLevel = levels[i];
+      break;
+    }
+  }
+  const progress = currentLevel.next === 100 && score >= 100
+    ? 100
+    : Math.min(100, Math.round(((score - currentLevel.min) / (currentLevel.next - currentLevel.min)) * 100));
+
+  // Bouton follow
+  let followBtn = '';
+  if (!isOwn && currentUserId) {
+    let isF = false;
+    try {
+      isF = (await (await fetch(`/is_following?follower=${currentUserId}&followed=${targetId}`)).json()).following;
+    } catch (e) {}
+    followBtn = isF
+      ? `<button onclick="toggleFollow(${targetId}, false)">Abonné ✓</button>`
+      : `<button class="primary" onclick="toggleFollow(${targetId}, true)">S’abonner</button>`;
   }
 
-  card.innerHTML=`
-    <div class="post-top">${photo}<div>
-      <div style="font-weight:700">${name}</div>
-      <div class="muted">${isOwn?'Mon profil':'Profil'}</div>
-      ${fullStats.badge?`<div style="margin-top:6px"><span class="badge-pill">${fullStats.badge}</span></div>`:''}
-    </div></div>
-    <div class="stats-grid">
-      <div class="stat-box"><b>${fullStats.total_codes||0}</b><span class="muted">Codes</span></div>
-      <div class="stat-box"><b>${fullStats.total_likes||0}</b><span class="muted">Likes reçus</span></div>
-      <div class="stat-box"><b>${fullStats.total_copies||0}</b><span class="muted">Copies reçues</span></div>
-      <div class="stat-box"><b>${fullStats.copied_by_me||0}</b><span class="muted">Codes copiés</span></div>
+  // Toggle push (uniquement profil perso)
+  let pushToggle = '';
+  if (isOwn) {
+    pushToggle = `
+      <div class="toggle-row" style="margin: 0 16px 16px; border-top: none; padding-top: 0;">
+        <div>
+          <div class="toggle-label">Notifications push</div>
+          <div class="toggle-sub">Alertes Telegram</div>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="push-toggle" onchange="togglePush(this.checked)">
+          <span class="slider"></span>
+        </label>
+      </div>`;
+  }
+
+  card.innerHTML = `
+    <!-- Header -->
+    <div class="profile-header">
+      <div class="profile-avatar-wrap">${photo}</div>
+      <div class="profile-name">${name}</div>
+      <div class="profile-sub">${isOwn ? 'Mon profil' : 'Profil'}</div>
+      ${fullStats.badge ? `<div class="profile-badge">${fullStats.badge}</div>` : ''}
     </div>
-    <div style="display:flex;gap:18px;margin:10px 0;font-size:14px">
-      <div class="clickable" onclick="showFollowList(${targetId},'followers')"><b>${fullStats.followers||0}</b> abonnés</div>
-      <div class="clickable" onclick="showFollowList(${targetId},'following')"><b>${fullStats.following||0}</b> abonnements</div>
+
+    <!-- Progression -->
+    <div class="profile-progress">
+      <div class="profile-progress-label">
+        <span>Prochain badge</span>
+        <span>${score} / ${currentLevel.next} pts</span>
+      </div>
+      <div class="profile-progress-bar">
+        <div class="profile-progress-fill" style="width:${progress}%"></div>
+      </div>
     </div>
-    ${followBtn}
+
+    <!-- Stats -->
+    <div class="stats-grid-v2">
+      <div class="stat-box-v2">
+        <div class="stat-icon">📦</div>
+        <b>${fullStats.total_codes || 0}</b>
+        <div class="muted">Codes</div>
+      </div>
+      <div class="stat-box-v2">
+        <div class="stat-icon">❤️</div>
+        <b>${fullStats.total_likes || 0}</b>
+        <div class="muted">Likes reçus</div>
+      </div>
+      <div class="stat-box-v2">
+        <div class="stat-icon">📋</div>
+        <b>${fullStats.total_copies || 0}</b>
+        <div class="muted">Copies reçues</div>
+      </div>
+      <div class="stat-box-v2">
+        <div class="stat-icon">🔖</div>
+        <b>${fullStats.copied_by_me || 0}</b>
+        <div class="muted">Codes copiés</div>
+      </div>
+    </div>
+
+    <!-- Followers -->
+    <div class="follow-stats">
+      <div class="clickable" onclick="showFollowList(${targetId}, 'followers')">
+        <b>${fullStats.followers || 0}</b> abonnés
+      </div>
+      <div class="clickable" onclick="showFollowList(${targetId}, 'following')">
+        <b>${fullStats.following || 0}</b> abonnements
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="profile-actions">
+      ${followBtn}
+      ${isOwn ? `<button onclick="shareMyProfile()">Partager mon profil</button>` : ''}
+    </div>
+
     ${pushToggle}
-    <div class="profile-tabs">
-      <button class="profile-tab active" id="tab-posts" onclick="showProfileTab('posts',${targetId})">
+
+    <!-- Tabs -->
+    <div class="profile-tabs" style="margin: 0 16px;">
+      <button class="profile-tab active" id="tab-posts" onclick="showProfileTab('posts', ${targetId})">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
         Codes
       </button>
-      <button class="profile-tab" id="tab-saved" onclick="showProfileTab('saved',${targetId})">${ICON_OUT}<br>Favoris</button>
-      ${isOwn?`<button class="profile-tab" id="tab-history" onclick="showProfileTab('history',${targetId})">📋<br>Historique</button>`:''}
-    </div>`;
-  showProfileTab('posts',targetId);
-  if(isOwn)loadPushSetting();
+      <button class="profile-tab" id="tab-saved" onclick="showProfileTab('saved', ${targetId})">
+        ${ICON_OUT}<br>Favoris
+      </button>
+      ${isOwn ? `<button class="profile-tab" id="tab-history" onclick="showProfileTab('history', ${targetId})">📋<br>Historique</button>` : ''}
+    </div>
+  `;
+
+  showProfileTab('posts', targetId);
+  if (isOwn) loadPushSetting();
+}
+
+function shareMyProfile() {
+  const url = window.location.origin + '/miniapp?v=15';
+  if (window.Telegram?.WebApp?.openTelegramLink) {
+    Telegram.WebApp.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent('Rejoins-moi sur COD.IA 🔥')}`);
+  } else {
+    navigator.clipboard.writeText(url).then(() => alert('Lien copié !'));
+  }
 }
 
 async function loadPushSetting(){if(!currentUserId)return;try{const d=await(await fetch('/settings/push?user_id='+currentUserId)).json();const t=document.getElementById('push-toggle');if(t)t.checked=d.enabled!==false}catch(e){}}
 async function togglePush(enabled){try{await fetch('/settings/push',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:currentUserId,enabled})});if(window.Telegram?.WebApp?.HapticFeedback)Telegram.WebApp.HapticFeedback.selectionChanged()}catch(e){}}
 
-async function showProfileTab(tab,userId){
-  const tp=document.getElementById('tab-posts'),ts=document.getElementById('tab-saved'),th=document.getElementById('tab-history');
-  const c=document.getElementById('my-codes');
-  [tp,ts,th].forEach(el=>el&&el.classList.remove('active'));
-  if(tab==='posts'){tp?.classList.add('active');
-    try{const d=await(await fetch((Number(userId)===Number(currentUserId)?'/codes/mine':'/codes/user')+'?user_id='+userId+(currentUserId?'&viewer_id='+currentUserId:''))).json();
-      c.innerHTML=(d.codes||[]).length?(d.codes||[]).map(x=>renderPost(x)).join(''):'<div class="empty">Aucun code</div>'}catch(e){c.innerHTML='<div class="empty">Erreur</div>'}
-  }else if(tab==='saved'){ts?.classList.add('active');
-    if(Number(userId)!==Number(currentUserId)){c.innerHTML='<div class="empty">Privé</div>';return}
-    try{const d=await(await fetch('/codes/saved?user_id='+userId)).json();
-      c.innerHTML=(d.codes||[]).length?(d.codes||[]).map(x=>renderPost(x,{showUnsave:true})).join(''):'<div class="empty">Aucun favori</div>'}catch(e){c.innerHTML='<div class="empty">Erreur</div>'}
-  }else if(tab==='history'){th?.classList.add('active');
-    try{const d=await(await fetch('/codes/copied?user_id='+userId)).json();
-      c.innerHTML=(d.codes||[]).length?(d.codes||[]).map(x=>renderPost(x)).join(''):'<div class="empty">Aucun code copié</div>'}catch(e){c.innerHTML='<div class="empty">Erreur</div>'}
+async function showProfileTab(tab, userId) {
+  const tp = document.getElementById('tab-posts'), ts = document.getElementById('tab-saved'), th = document.getElementById('tab-history');
+  const c = document.getElementById('my-codes');
+  [tp, ts, th].forEach(el => el && el.classList.remove('active'));
+
+  if (tab === 'posts') {
+    tp?.classList.add('active');
+    try {
+      const d = await (await fetch((Number(userId) === Number(currentUserId) ? '/codes/mine' : '/codes/user') + '?user_id=' + userId + (currentUserId ? '&viewer_id=' + currentUserId : ''))).json();
+      c.innerHTML = (d.codes || []).length
+        ? (d.codes || []).map(x => renderPost(x)).join('')
+        : `<div class="empty">
+            <div style="font-size:42px;margin-bottom:14px">📦</div>
+            <div style="font-weight:600;margin-bottom:6px">Aucun code</div>
+            <div style="font-size:13.5px">Cet utilisateur n’a pas encore partagé de code</div>
+          </div>`;
+    } catch (e) {
+      c.innerHTML = '<div class="empty">Erreur de chargement</div>';
+    }
+  } else if (tab === 'saved') {
+    ts?.classList.add('active');
+    if (Number(userId) !== Number(currentUserId)) {
+      c.innerHTML = `<div class="empty">
+        <div style="font-size:42px;margin-bottom:14px">🔒</div>
+        <div style="font-weight:600">Privé</div>
+        <div style="font-size:13.5px;margin-top:6px">Les favoris sont privés</div>
+      </div>`;
+      return;
+    }
+    try {
+      const d = await (await fetch('/codes/saved?user_id=' + userId)).json();
+      c.innerHTML = (d.codes || []).length
+        ? (d.codes || []).map(x => renderPost(x, { showUnsave: true })).join('')
+        : `<div class="empty">
+            <div style="font-size:42px;margin-bottom:14px">🔖</div>
+            <div style="font-weight:600;margin-bottom:6px">Aucun favori</div>
+            <div style="font-size:13.5px">Swipe à droite sur un code pour l’ajouter</div>
+          </div>`;
+    } catch (e) {
+      c.innerHTML = '<div class="empty">Erreur</div>';
+    }
+  } else if (tab === 'history') {
+    th?.classList.add('active');
+    try {
+      const d = await (await fetch('/codes/copied?user_id=' + userId)).json();
+      c.innerHTML = (d.codes || []).length
+        ? (d.codes || []).map(x => renderPost(x)).join('')
+        : `<div class="empty">
+            <div style="font-size:42px;margin-bottom:14px">📋</div>
+            <div style="font-weight:600;margin-bottom:6px">Historique vide</div>
+            <div style="font-size:13.5px">Les codes que tu copies apparaîtront ici</div>
+          </div>`;
+    } catch (e) {
+      c.innerHTML = '<div class="empty">Erreur</div>';
+    }
   }
 }
 
