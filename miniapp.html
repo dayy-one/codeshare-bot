@@ -76,6 +76,7 @@
     .row{display:flex;justify-content:space-between;align-items:center;gap:12px}
     .muted{color:var(--text2);font-size:12.5px}
     .pill{background:rgba(34,197,94,0.15);color:var(--green);padding:6px 12px;border-radius:999px;font-size:12px;font-weight:700}
+    .badge-pill{background:linear-gradient(135deg,#f59e0b,#ef4444);color:#fff;padding:5px 12px;border-radius:999px;font-size:12px;font-weight:700}
     .post-top{display:flex;align-items:center;gap:12px;margin-bottom:12px}
     .avatar,.avatar-img{width:46px;height:46px;border-radius:50%;object-fit:cover}
     .avatar{background:var(--gradient);display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;font-size:17px}
@@ -85,7 +86,6 @@
     .actions button{border:1px solid var(--border);background:var(--bg);color:var(--text);border-radius:999px;padding:8px 14px;font-size:13px}
     .expire{font-size:12px;color:var(--orange);margin-top:6px}
 
-    /* SWIPE */
     .post-swipe-wrap{position:relative;margin:0 16px 16px;border-radius:var(--radius);overflow:hidden;animation:fadeInUp 0.4s ease both}
     .post-swipe-bg{position:absolute;inset:0;background:linear-gradient(90deg,rgba(42,171,238,0.35),rgba(42,171,238,0.04));display:flex;align-items:center;padding-left:28px;z-index:0}
     .post-swipe-bg .fav-icon{width:44px;height:44px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;color:#fff;transform:scale(0.45);opacity:0.25;transition:transform 0.18s cubic-bezier(0.34,1.56,0.64,1),opacity 0.18s ease;box-shadow:0 6px 20px rgba(42,171,238,0.45)}
@@ -108,7 +108,7 @@
 
     .modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.65);backdrop-filter:blur(8px);z-index:50;align-items:flex-end;justify-content:center}
     .modal.active{display:flex}
-    .sheet{width:100%;max-width:430px;background:var(--card);border-radius:28px 28px 0 0;padding:26px 20px 42px}
+    .sheet{width:100%;max-width:430px;background:var(--card);border-radius:28px 28px 0 0;padding:26px 20px 42px;max-height:90vh;overflow-y:auto}
     .sheet button,.sheet input{width:100%;margin-bottom:12px;padding:16px;border-radius:16px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:15.5px}
     .sheet button{font-weight:600}
     .quick{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
@@ -122,9 +122,9 @@
     .empty{text-align:center;color:var(--text2);padding:48px 24px;font-size:14.5px}
     .clickable{cursor:pointer}
     .profile-tabs{display:flex;margin-top:18px;border-top:1px solid var(--border);padding-top:4px}
-    .profile-tab{flex:1;background:none;border:none;color:var(--text2);padding:14px 8px;border-bottom:2px solid transparent}
+    .profile-tab{flex:1;background:none;border:none;color:var(--text2);padding:14px 8px;border-bottom:2px solid transparent;font-size:12px}
     .profile-tab.active{color:var(--text);border-bottom-color:var(--accent)}
-    .profile-tab svg{width:24px;height:24px;display:block;margin:0 auto}
+    .profile-tab svg{width:22px;height:22px;display:block;margin:0 auto 4px}
 
     .toggle-row{display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-top:1px solid var(--border);margin-top:10px}
     .toggle-label{font-size:14px;font-weight:600}
@@ -135,6 +135,12 @@
     .slider:before{position:absolute;content:"";height:22px;width:22px;left:3px;bottom:3px;background:white;border-radius:50%;transition:.3s}
     input:checked + .slider{background:var(--accent)}
     input:checked + .slider:before{transform:translateX(20px)}
+
+    .leader-item{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)}
+    .leader-rank{width:28px;height:28px;border-radius:50%;background:var(--gradient);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px}
+    .stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:14px 0}
+    .stat-box{background:var(--bg);border:1px solid var(--border);border-radius:14px;padding:12px;text-align:center}
+    .stat-box b{display:block;font-size:18px;margin-bottom:2px}
 
     #paywall{position:fixed;inset:0;z-index:100;max-width:430px;margin:0 auto;background:#03050a;color:#fff;display:flex;flex-direction:column;overflow:hidden}
     .sg-bg{position:absolute;inset:0;background:radial-gradient(ellipse 80% 50% at 50% -10%,rgba(42,171,238,0.35),transparent 55%),#03050a}
@@ -211,10 +217,10 @@
       <div class="sg-sub">Accède aux meilleurs codes promo &amp; parrainages</div>
     </div>
     <div class="sg-features glass">
-      <div class="sg-item"><div class="sg-ic c1">⌂</div><div class="sg-item-text">Feed communauté<small>Codes en temps réel</small></div></div>
-      <div class="sg-item"><div class="sg-ic c2">✦</div><div class="sg-item-text">Recherche + IA<small>Trouve plus vite</small></div></div>
-      <div class="sg-item"><div class="sg-ic c3">✈</div><div class="sg-item-text">Voyages &amp; shopping<small>Booking, Uber, Zara…</small></div></div>
-      <div class="sg-item"><div class="sg-ic c5">🔖</div><div class="sg-item-text">Favoris + Expiration<small>Swipe + dates automatiques</small></div></div>
+      <div class="sg-item"><div class="sg-ic c1">⌂</div><div class="sg-item-text">Feed + Classement<small>Top contributeurs</small></div></div>
+      <div class="sg-item"><div class="sg-ic c2">✦</div><div class="sg-item-text">IA + Recherche<small>Intelligente</small></div></div>
+      <div class="sg-item"><div class="sg-ic c3">✈</div><div class="sg-item-text">Badges & Stats<small>Niveaux et historique</small></div></div>
+      <div class="sg-item"><div class="sg-ic c5">🔖</div><div class="sg-item-text">Favoris + Expiration<small>Swipe + dates</small></div></div>
     </div>
     <div class="sg-price-card glass"><div class="label">Paiement unique · accès à vie</div><div class="amount">10 €</div></div>
     <div class="sg-social"><b id="pw-members">2.345k</b> members</div>
@@ -255,14 +261,11 @@
   <div class="page page-home active" id="page-home">
     <div class="section">Top Codes</div>
     <div id="daily-codes"></div>
-
-    <!-- FILTRES -->
-    <div class="chips" style="padding: 8px 18px 4px;">
+    <div class="chips" style="padding:8px 18px 4px;">
       <button class="chip active" id="filter-all" onclick="setFilter('all')">Tous</button>
       <button class="chip" id="filter-promo" onclick="setFilter('promo')">Promo</button>
       <button class="chip" id="filter-parrainage" onclick="setFilter('parrainage')">Parrainage</button>
     </div>
-
     <div class="section" id="feed-title">À la une</div>
     <div id="codes-list"><div class="empty">Chargement...</div></div>
   </div>
@@ -279,17 +282,19 @@
       <div class="welcome-title">COD.IA</div>
       <div class="welcome-text">
         <b>Bienvenue !</b><br><br>
-        Voici comment fonctionne l’app :<br><br>
-        • <b>Feed</b> → codes promo & parrainages<br>
-        • <b>Filtres</b> → Tous / Promo / Parrainage<br>
-        • <b>Swipe droite</b> → ajoute aux favoris<br>
-        • <b>Ouvrir le site</b> → lance le site + copie le code<br>
-        • <b>Expiration</b> → les codes expirés disparaissent automatiquement<br>
-        • <b>Assistant IA</b> → connaît les codes en ligne<br><br>
-        Partage, sauvegarde et économise 🚀
+        • Feed + filtres<br>
+        • Swipe droite = favoris<br>
+        • Classement des contributeurs<br>
+        • Badges & statistiques<br>
+        • Historique de tes copies<br>
+        • Assistant IA intelligent
       </div>
     </div>
-    <div class="section">Assistant</div>
+
+    <div class="section">🏆 Classement de la semaine</div>
+    <div id="leaderboard-list" class="card" style="padding:12px 16px"><div class="empty" style="padding:20px">Chargement...</div></div>
+
+    <div class="section">Assistant IA</div>
     <div class="search-wrap"><div class="search"><span>✦</span><input id="ai-input" placeholder="Pose ta question..." onkeypress="if(event.key==='Enter') askAI()"></div></div>
     <div class="ai-box" id="ai-response" style="display:none"></div>
   </div>
@@ -308,6 +313,7 @@
   </div>
 </div>
 
+<!-- MODALS -->
 <div class="modal" id="shareModal"><div class="sheet"><div style="text-align:center;font-weight:700;margin-bottom:14px">Partager</div><button onclick="chooseShare('promo')">Code promo</button><button onclick="chooseShare('parrainage')">Code parrainage</button><button onclick="closeShare()">Annuler</button></div></div>
 
 <div class="modal" id="formModal">
@@ -318,13 +324,26 @@
       <button type="button" onclick="fillSite('Booking')">Booking</button>
       <button type="button" onclick="fillSite('Zara')">Zara</button>
     </div>
-    <input id="formSite" placeholder="Site (ex: Uber Eats)">
+    <input id="formSite" placeholder="Site">
     <input id="formCode" placeholder="Code">
     <input id="formDesc" placeholder="Ex: -20% ou +10€">
     <input id="formUrl" placeholder="Lien du site (optionnel)">
-    <input id="formExpires" type="date" placeholder="Date d'expiration (optionnel)">
+    <input id="formExpires" type="date">
     <button onclick="submitCode()">Publier</button>
     <button onclick="closeForm()">Annuler</button>
+  </div>
+</div>
+
+<div class="modal" id="editModal">
+  <div class="sheet">
+    <div style="text-align:center;font-weight:700;margin-bottom:14px">Modifier le code</div>
+    <input id="editSite" placeholder="Site">
+    <input id="editCode" placeholder="Code">
+    <input id="editDesc" placeholder="Description">
+    <input id="editUrl" placeholder="Lien">
+    <input id="editExpires" type="date">
+    <button onclick="submitEdit()">Enregistrer</button>
+    <button onclick="closeEdit()">Annuler</button>
   </div>
 </div>
 
@@ -335,8 +354,9 @@
 Telegram.WebApp.ready(); Telegram.WebApp.expand();
 let allCodes=[], currentShareType="promo", currentUserId=null, currentUserName=null, isAdmin=false, viewingUserId=null;
 let currentFilter = 'all';
+let editingCodeId = null;
 
-const ICON_OUT=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>`;
+const ICON_OUT=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>`;
 const ICON_FILL=`<svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>`;
 
 function getTgUser(){return window.Telegram?.WebApp?.initDataUnsafe?.user||null}
@@ -350,7 +370,7 @@ async function boot(){
   try{const d=await(await fetch('/access?user_id='+userId)).json();if(d.paid){isAdmin=!!d.is_admin;showApp()}else showPaywall()}catch(e){showPaywall()}
 }
 function showPaywall(){document.getElementById('paywall').classList.remove('hidden');document.getElementById('main-app').classList.add('hidden');loadStats()}
-function showApp(){document.getElementById('paywall').classList.add('hidden');document.getElementById('main-app').classList.remove('hidden');loadStats();loadCodes();loadNotifications()}
+function showApp(){document.getElementById('paywall').classList.add('hidden');document.getElementById('main-app').classList.remove('hidden');loadStats();loadCodes();loadNotifications();loadLeaderboard()}
 function backToOffer(){document.getElementById('pw-pay').classList.add('hidden')}
 async function startPayment(){
   const userId=getTgUser()?.id;if(!userId){document.getElementById('pw-error').textContent='Ouvre depuis Telegram';return}
@@ -380,107 +400,94 @@ function toggleNotifModal(){
 }
 function closeNotifModal(){document.getElementById('notifModal').classList.remove('active')}
 function timeAgo(d){if(!d)return 'à l’instant';const x=Math.max(0,(Date.now()-new Date(d).getTime())/1000);if(x<60)return 'à l’instant';if(x<3600)return `il y a ${Math.floor(x/60)} min`;if(x<86400)return `il y a ${Math.floor(x/3600)} h`;return `il y a ${Math.floor(x/86400)} j`}
-
-function formatExpire(dateStr) {
-  if (!dateStr) return '';
-  const d = new Date(dateStr);
-  const now = new Date();
-  if (d < now) return 'Expiré';
-  return 'Expire le ' + d.toLocaleDateString('fr-FR');
-}
+function formatExpire(dateStr){if(!dateStr)return '';const d=new Date(dateStr);if(d<new Date())return 'Expiré';return 'Expire le '+d.toLocaleDateString('fr-FR')}
 
 function showPage(p){
   document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.nav').forEach(x=>x.classList.remove('active'));
   if(p==='home'){document.getElementById('page-home').classList.add('active');document.querySelectorAll('.nav')[0].classList.add('active');loadCodes()}
   else if(p==='search'){document.getElementById('page-search').classList.add('active');document.querySelectorAll('.nav')[1].classList.add('active')}
-  else if(p==='codia'){document.getElementById('page-codia').classList.add('active');document.querySelectorAll('.nav')[2].classList.add('active')}
+  else if(p==='codia'){document.getElementById('page-codia').classList.add('active');document.querySelectorAll('.nav')[2].classList.add('active');loadLeaderboard()}
   else{document.getElementById('page-profile').classList.add('active');document.querySelectorAll('.nav')[3].classList.add('active');viewingUserId=null;loadProfile()}
 }
 function openShare(){document.getElementById('shareModal').classList.add('active')}
 function closeShare(){document.getElementById('shareModal').classList.remove('active')}
 function closeForm(){document.getElementById('formModal').classList.remove('active')}
 function fillSite(v){document.getElementById('formSite').value=v}
-function chooseShare(t){
-  currentShareType=t;
-  closeShare();
-  document.getElementById('formTitle').textContent=t==='promo'?'Nouveau code promo':'Nouveau code parrainage';
-  document.getElementById('formSite').value='';
-  document.getElementById('formCode').value='';
-  document.getElementById('formDesc').value='';
-  document.getElementById('formUrl').value='';
-  document.getElementById('formExpires').value='';
-  document.getElementById('formModal').classList.add('active');
-}
+function chooseShare(t){currentShareType=t;closeShare();document.getElementById('formTitle').textContent=t==='promo'?'Nouveau code promo':'Nouveau code parrainage';
+  document.getElementById('formSite').value='';document.getElementById('formCode').value='';document.getElementById('formDesc').value='';document.getElementById('formUrl').value='';document.getElementById('formExpires').value='';
+  document.getElementById('formModal').classList.add('active')}
 
 async function submitCode(){
-  const site = document.getElementById('formSite').value.trim();
-  const code = document.getElementById('formCode').value.trim();
-  const description = document.getElementById('formDesc').value.trim();
-  const url = document.getElementById('formUrl').value.trim();
-  const expires = document.getElementById('formExpires').value;
-  if(!site || !code){ alert('Site et code obligatoires'); return; }
-  const u = getTgUser();
-  const added_by = u?.username ? ('@'+u.username) : (u?.first_name || 'Membre');
+  const site=document.getElementById('formSite').value.trim(),code=document.getElementById('formCode').value.trim();
+  const description=document.getElementById('formDesc').value.trim(),url=document.getElementById('formUrl').value.trim();
+  const expires=document.getElementById('formExpires').value;
+  if(!site||!code){alert('Site et code obligatoires');return}
+  const u=getTgUser();const added_by=u?.username?('@'+u.username):(u?.first_name||'Membre');
   try{
-    const d = await (await fetch('/codes/add', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({
-        type: currentShareType,
-        site, code, description,
-        url: url || null,
-        expires_at: expires || null,
-        added_by,
-        user_id: u?.id,
-        photo_url: u?.photo_url
-      })
-    })).json();
-    if(d.success){
-      closeForm();
-      alert('Code en ligne ✅');
-      await loadCodes();
-      showPage('home');
-    } else alert('Erreur');
-  } catch(e){ alert('Erreur'); }
+    const d=await(await fetch('/codes/add',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+      type:currentShareType,site,code,description,url:url||null,expires_at:expires||null,added_by,user_id:u?.id,photo_url:u?.photo_url
+    })})).json();
+    if(d.success){closeForm();alert('Code en ligne ✅');await loadCodes();showPage('home')}else alert('Erreur')
+  }catch(e){alert('Erreur')}
+}
+
+function openEdit(c){
+  editingCodeId = c.id;
+  document.getElementById('editSite').value = c.site || '';
+  document.getElementById('editCode').value = c.code || '';
+  document.getElementById('editDesc').value = c.description || '';
+  document.getElementById('editUrl').value = c.url || '';
+  document.getElementById('editExpires').value = c.expires_at ? c.expires_at.substring(0,10) : '';
+  document.getElementById('editModal').classList.add('active');
+}
+function closeEdit(){document.getElementById('editModal').classList.remove('active');editingCodeId=null}
+
+async function submitEdit(){
+  if(!editingCodeId)return;
+  try{
+    const d=await(await fetch('/code/edit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+      id:editingCodeId,
+      user_id:currentUserId,
+      site:document.getElementById('editSite').value.trim(),
+      code:document.getElementById('editCode').value.trim(),
+      description:document.getElementById('editDesc').value.trim(),
+      url:document.getElementById('editUrl').value.trim()||null,
+      expires_at:document.getElementById('editExpires').value||null
+    })})).json();
+    if(d.success){closeEdit();alert('Code modifié ✅');loadCodes();loadProfile()}
+    else alert('Erreur')
+  }catch(e){alert('Erreur')}
 }
 
 function avatarHTML(c){return c.photo_url?`<img class="avatar-img" src="${c.photo_url}">`:`<div class="avatar">${(c.added_by||'C')[0].toUpperCase()}</div>`}
-
-function openSite(url, code) {
-  if (code) navigator.clipboard.writeText(code).catch(()=>{});
-  if (url) {
-    if (window.Telegram?.WebApp?.openLink) Telegram.WebApp.openLink(url);
-    else window.open(url, '_blank');
-  }
-}
+function openSite(url,code){if(code)navigator.clipboard.writeText(code).catch(()=>{});if(url){if(window.Telegram?.WebApp?.openLink)Telegram.WebApp.openLink(url);else window.open(url,'_blank')}}
 
 function renderPost(c, options = {}) {
   const id = c.id;
-  const liked = localStorage.getItem('like_' + id) === '1';
-  const disliked = localStorage.getItem('dislike_' + id) === '1';
-  const saved = localStorage.getItem('saved_' + id) === '1';
+  const liked = localStorage.getItem('like_'+id)==='1';
+  const disliked = localStorage.getItem('dislike_'+id)==='1';
+  const saved = localStorage.getItem('saved_'+id)==='1';
   const who = c.added_by || 'Membre COD.IA';
-  const actionText = c.type === 'parrainage' ? 'a partagé un code parrainage' : 'a partagé un code promo';
-  const canManage = isAdmin || (c.user_id && currentUserId && Number(c.user_id) === Number(currentUserId));
-  const isDeleted = c.deleted === true;
-  const showUnsave = options.showUnsave === true;
+  const actionText = c.type==='parrainage'?'a partagé un code parrainage':'a partagé un code promo';
+  const canManage = isAdmin || (c.user_id && currentUserId && Number(c.user_id)===Number(currentUserId));
+  const isDeleted = c.deleted===true;
+  const showUnsave = options.showUnsave===true;
   const expireText = formatExpire(c.expires_at);
 
   let manage = '';
-  if (canManage) {
+  if(canManage){
     manage = isDeleted
       ? `<button onclick="restoreCode(${id})" style="color:var(--green)">Remettre</button>`
-      : `<button onclick="deleteCode(${id})" style="color:#f87171">Supprimer</button>`;
+      : `<button onclick='openEdit(${JSON.stringify(c).replace(/'/g,"&#39;")})'>Modifier</button>
+         <button onclick="deleteCode(${id})" style="color:#f87171">Supprimer</button>`;
   }
 
-  const click = c.user_id ? `onclick="viewProfile(${c.user_id},'${String(who).replace(/'/g, "\\'")}')"` : '';
+  const click = c.user_id ? `onclick="viewProfile(${c.user_id},'${String(who).replace(/'/g,"\\'")}')"` : '';
 
   return `
-  <div class="post-swipe-wrap" data-id="${id || ''}">
-    <div class="post-swipe-bg">
-      <div class="fav-icon">${saved ? ICON_FILL : ICON_OUT}</div>
-    </div>
-    <div class="post-swipe-content" style="${isDeleted ? 'opacity:0.55' : ''}">
+  <div class="post-swipe-wrap" data-id="${id||''}">
+    <div class="post-swipe-bg"><div class="fav-icon">${saved?ICON_FILL:ICON_OUT}</div></div>
+    <div class="post-swipe-content" style="${isDeleted?'opacity:0.55':''}">
       <div class="post-top">
         <div ${click}>${avatarHTML(c)}</div>
         <div style="flex:1" ${click} class="clickable">
@@ -488,32 +495,30 @@ function renderPost(c, options = {}) {
           <div class="muted">${actionText} • ${timeAgo(c.created_at)}</div>
         </div>
       </div>
-      <div class="muted">${c.site || ''}</div>
+      <div class="muted">${c.site||''}</div>
       <div class="code">
-        <span>${c.code || ''} <span style="color:var(--green)">${c.description || ''}</span></span>
-        <button class="copy-btn" onclick="copyCode(${id || 0},'${String(c.code || '').replace(/'/g, "\\'")}',this)">
-          Copier${c.copies ? ' · ' + c.copies : ''}
-        </button>
+        <span>${c.code||''} <span style="color:var(--green)">${c.description||''}</span></span>
+        <button class="copy-btn" onclick="copyCode(${id||0},'${String(c.code||'').replace(/'/g,"\\'")}',this)">Copier${c.copies?' · '+c.copies:''}</button>
       </div>
-      ${expireText ? `<div class="expire">${expireText}</div>` : ''}
+      ${expireText?`<div class="expire">${expireText}</div>`:''}
       <div class="actions">
-        ${id ? `
-          <button onclick="toggleReact(${id},'like',this)">${liked ? '❤️' : '🤍'} <span>${c.likes || 0}</span></button>
-          <button onclick="toggleReact(${id},'dislike',this)">${disliked ? '💔' : '👎'} <span>${c.dislikes || 0}</span></button>
-          ${c.url ? `<button onclick="openSite('${String(c.url).replace(/'/g,"\\'")}', '${String(c.code||'').replace(/'/g,"\\'")}')">Ouvrir le site</button>` : ''}
-          ${showUnsave ? `<button onclick="removeFromFavorites(${id}, this)" style="color:#f87171;border-color:rgba(248,113,113,0.4)">Retirer</button>` : ''}
+        ${id?`
+          <button onclick="toggleReact(${id},'like',this)">${liked?'❤️':'🤍'} <span>${c.likes||0}</span></button>
+          <button onclick="toggleReact(${id},'dislike',this)">${disliked?'💔':'👎'} <span>${c.dislikes||0}</span></button>
+          ${c.url?`<button onclick="openSite('${String(c.url).replace(/'/g,"\\'")}','${String(c.code||'').replace(/'/g,"\\'")}')">Ouvrir</button>`:''}
+          ${showUnsave?`<button onclick="removeFromFavorites(${id},this)" style="color:#f87171">Retirer</button>`:''}
           ${manage}
-        ` : ''}
+        `:''}
       </div>
     </div>
   </div>`;
 }
 
-function setFilter(type) {
-  currentFilter = type;
-  document.getElementById('filter-all').classList.toggle('active', type === 'all');
-  document.getElementById('filter-promo').classList.toggle('active', type === 'promo');
-  document.getElementById('filter-parrainage').classList.toggle('active', type === 'parrainage');
+function setFilter(type){
+  currentFilter=type;
+  document.getElementById('filter-all').classList.toggle('active',type==='all');
+  document.getElementById('filter-promo').classList.toggle('active',type==='promo');
+  document.getElementById('filter-parrainage').classList.toggle('active',type==='parrainage');
   loadCodes();
 }
 
@@ -526,222 +531,136 @@ async function toggleReact(id,reaction,btn){
   try{const d=await(await fetch('/code/react',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,reaction,action,user_id:currentUserId,actor_name:currentUserName})})).json();
     btn.innerHTML=reaction==='like'?`${action==='add'?'❤️':'🤍'} <span>${d.value??0}</span>`:`${action==='add'?'💔':'👎'} <span>${d.value??0}</span>`}catch(e){}
 }
-
-async function removeFromFavorites(id, btn) {
-  if (!currentUserId || !id) return;
-  try {
-    await fetch('/code/unsave', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id, user_id: currentUserId })
-    });
-    localStorage.setItem('saved_' + id, '0');
-    const wrap = btn.closest('.post-swipe-wrap');
-    if (wrap) {
-      wrap.classList.add('removing');
-      setTimeout(() => wrap.remove(), 360);
-    }
-    if (window.Telegram?.WebApp?.HapticFeedback) Telegram.WebApp.HapticFeedback.impactOccurred('light');
-  } catch (e) {}
+async function removeFromFavorites(id,btn){
+  if(!currentUserId||!id)return;
+  try{await fetch('/code/unsave',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,user_id:currentUserId})});
+    localStorage.setItem('saved_'+id,'0');const wrap=btn.closest('.post-swipe-wrap');
+    if(wrap){wrap.classList.add('removing');setTimeout(()=>wrap.remove(),360)}
+    if(window.Telegram?.WebApp?.HapticFeedback)Telegram.WebApp.HapticFeedback.impactOccurred('light');
+  }catch(e){}
 }
+async function deleteCode(id){if(!confirm('Supprimer ?'))return;try{const d=await(await fetch('/code/delete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,user_id:currentUserId})})).json();if(d.success){loadCodes();loadProfile()}}catch(e){}}
+async function restoreCode(id){try{const d=await(await fetch('/code/restore',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,user_id:currentUserId})})).json();if(d.success){loadCodes();loadProfile()}}catch(e){}}
 
-async function deleteCode(id){if(!confirm('Supprimer ?'))return;try{const d=await(await fetch('/code/delete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,user_id:currentUserId})})).json();if(d.success){await loadCodes();loadProfile()}}catch(e){}}
-async function restoreCode(id){try{const d=await(await fetch('/code/restore',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,user_id:currentUserId})})).json();if(d.success){await loadCodes();loadProfile()}}catch(e){}}
 function renderStories(){const base=["Top","Uber Eats","Booking","Airbnb","Zara"];const dyn=[...new Set(allCodes.map(c=>c.site).filter(Boolean))];const names=["+ Partager",...base,...dyn.filter(s=>!base.includes(s)).slice(0,4)];
   document.getElementById('stories').innerHTML=names.map(n=>`<div class="story clickable" onclick="onStoryClick('${n.replace(/'/g,"\\'")}')"><div class="story-ring"><div>${n==="+ Partager"?"+":n[0]}</div></div>${n.length>10?n.slice(0,9)+'…':n}</div>`).join('')}
-function onStoryClick(name){if(name==="+ Partager"){openShare();return}showPage('home');const f=allCodes.filter(c=>(c.site||'').toLowerCase().includes(name.toLowerCase())||name==='Top');document.getElementById('feed-title').textContent=name==='Top'?'À la une':name;document.getElementById('codes-list').innerHTML=f.length?f.map(c=>renderPost(c)).join(''):`<div class="empty">Pas de code</div>`}
+function onStoryClick(name){if(name==="+ Partager"){openShare();return}showPage('home');const f=allCodes.filter(c=>(c.site||'').toLowerCase().includes(name.toLowerCase())||name==='Top');document.getElementById('feed-title').textContent=name==='Top'?'À la une':name;document.getElementById('codes-list').innerHTML=f.length?f.map(c=>renderPost(c)).join(''):'<div class="empty">Pas de code</div>'}
 async function showRecentSuggestions(){try{const d=await(await fetch('/search/recent')).json();document.getElementById('recent-suggestions').innerHTML=(d.queries||[]).map(q=>`<button class="chip" onclick="document.getElementById('search-input').value='${q.replace(/'/g,"\\'")}';doSearch()">${q}</button>`).join('')}catch(e){}}
 async function doSearch(){const q=document.getElementById('search-input').value.trim();if(!q)return;fetch('/search/log',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({q})});const r=document.getElementById('search-results');r.innerHTML='<div class="empty">...</div>';
   try{const d=await(await fetch('/codes/search?q='+encodeURIComponent(q))).json();r.innerHTML=(d.codes||[]).length?(d.codes||[]).map(c=>renderPost(c)).join(''):'<div class="empty">Aucun</div>'}catch(e){r.innerHTML='<div class="empty">Erreur</div>'}}
 async function askAI(){const q=document.getElementById('ai-input').value.trim();if(!q)return;const b=document.getElementById('ai-response');b.style.display='block';b.innerHTML='...';try{const d=await(await fetch('/ask',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question:q})})).json();b.innerHTML=d.answer||'—'}catch(e){b.innerHTML='Erreur'}}
+
+async function loadLeaderboard(){
+  try{
+    const d=await(await fetch('/leaderboard')).json();
+    const list=document.getElementById('leaderboard-list');
+    if(!d.leaderboard||!d.leaderboard.length){list.innerHTML='<div class="empty" style="padding:20px">Aucun classement pour le moment</div>';return}
+    list.innerHTML=d.leaderboard.map(u=>`
+      <div class="leader-item clickable" onclick="viewProfile(${u.user_id},'${String(u.name||'').replace(/'/g,"\\'")}')">
+        <div class="leader-rank">${u.rank}</div>
+        ${u.photo_url?`<img class="avatar-img" src="${u.photo_url}" style="width:40px;height:40px">`:`<div class="avatar" style="width:40px;height:40px;font-size:14px">${(u.name||'M')[0]}</div>`}
+        <div style="flex:1">
+          <div style="font-weight:600">${u.name||'Membre'}</div>
+          <div class="muted">${u.codes_count} codes • ${u.badge}</div>
+        </div>
+      </div>
+    `).join('');
+  }catch(e){document.getElementById('leaderboard-list').innerHTML='<div class="empty">Erreur</div>'}
+}
+
 async function viewProfile(uid,name){viewingUserId=uid;document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.querySelectorAll('.nav').forEach(n=>n.classList.remove('active'));document.getElementById('page-profile').classList.add('active');document.querySelectorAll('.nav')[3].classList.add('active');await loadProfile(uid,name)}
+
 async function loadProfile(forceId=null,forceName=null){
   const u=getTgUser(),card=document.getElementById('profile-card'),targetId=forceId||currentUserId,isOwn=!forceId||Number(forceId)===Number(currentUserId);
   if(!targetId){card.innerHTML='Ouvre depuis Telegram';return}
   let name=forceName||(isOwn?(u?.username?'@'+u.username:(u?.first_name||'Membre')):'Membre');
   let photo=(isOwn&&u?.photo_url)?`<img class="avatar-img" src="${u.photo_url}">`:`<div class="avatar">${name[0]}</div>`;
-  let followers=0,following=0;try{const st=await(await fetch('/profile_stats?user_id='+targetId)).json();followers=st.followers||0;following=st.following||0}catch(e){}
-  let followBtn='';if(!isOwn&&currentUserId){let isF=false;try{isF=(await(await fetch(`/is_following?follower=${currentUserId}&followed=${targetId}`)).json()).following}catch(e){}
-    followBtn=isF?`<button class="pill" style="margin-top:10px" onclick="toggleFollow(${targetId},false)">Abonné ✓</button>`:`<button class="pill" style="margin-top:10px" onclick="toggleFollow(${targetId},true)">S’abonner</button>`}
 
-  let pushToggle = '';
-  if (isOwn) {
-    pushToggle = `
-      <div class="toggle-row">
-        <div>
-          <div class="toggle-label">Notifications push</div>
-          <div class="toggle-sub">Recevoir les alertes Telegram</div>
-        </div>
-        <label class="switch">
-          <input type="checkbox" id="push-toggle" onchange="togglePush(this.checked)">
-          <span class="slider"></span>
-        </label>
-      </div>`;
+  let fullStats={};try{fullStats=await(await fetch('/profile/full_stats?user_id='+targetId)).json()}catch(e){}
+  let followBtn='';
+  if(!isOwn&&currentUserId){
+    let isF=false;try{isF=(await(await fetch(`/is_following?follower=${currentUserId}&followed=${targetId}`)).json()).following}catch(e){}
+    followBtn=isF?`<button class="pill" style="margin-top:10px" onclick="toggleFollow(${targetId},false)">Abonné ✓</button>`:`<button class="pill" style="margin-top:10px" onclick="toggleFollow(${targetId},true)">S’abonner</button>`;
   }
 
-  card.innerHTML=`<div class="post-top">${photo}<div><div style="font-weight:700">${name}</div><div class="muted">${isOwn?'Mon profil':'Profil'}</div></div></div>
-    <div style="display:flex;gap:18px;margin:14px 0;font-size:14px"><div class="clickable" onclick="showFollowList(${targetId},'followers')"><b>${followers}</b> abonnés</div><div class="clickable" onclick="showFollowList(${targetId},'following')"><b>${following}</b> abonnements</div></div>${followBtn}
+  let pushToggle='';
+  if(isOwn){
+    pushToggle=`<div class="toggle-row"><div><div class="toggle-label">Notifications push</div><div class="toggle-sub">Alertes Telegram</div></div>
+      <label class="switch"><input type="checkbox" id="push-toggle" onchange="togglePush(this.checked)"><span class="slider"></span></label></div>`;
+  }
+
+  card.innerHTML=`
+    <div class="post-top">${photo}<div>
+      <div style="font-weight:700">${name}</div>
+      <div class="muted">${isOwn?'Mon profil':'Profil'}</div>
+      ${fullStats.badge?`<div style="margin-top:6px"><span class="badge-pill">${fullStats.badge}</span></div>`:''}
+    </div></div>
+
+    <div class="stats-grid">
+      <div class="stat-box"><b>${fullStats.total_codes||0}</b><span class="muted">Codes</span></div>
+      <div class="stat-box"><b>${fullStats.total_likes||0}</b><span class="muted">Likes reçus</span></div>
+      <div class="stat-box"><b>${fullStats.total_copies||0}</b><span class="muted">Copies reçues</span></div>
+      <div class="stat-box"><b>${fullStats.copied_by_me||0}</b><span class="muted">Codes copiés</span></div>
+    </div>
+
+    <div style="display:flex;gap:18px;margin:10px 0;font-size:14px">
+      <div class="clickable" onclick="showFollowList(${targetId},'followers')"><b>${fullStats.followers||0}</b> abonnés</div>
+      <div class="clickable" onclick="showFollowList(${targetId},'following')"><b>${fullStats.following||0}</b> abonnements</div>
+    </div>
+    ${followBtn}
     ${pushToggle}
+
     <div class="profile-tabs">
       <button class="profile-tab active" id="tab-posts" onclick="showProfileTab('posts',${targetId})">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-          <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
-          <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
-        </svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        Codes
       </button>
-      <button class="profile-tab" id="tab-saved" onclick="showProfileTab('saved',${targetId})">${ICON_OUT}</button>
+      <button class="profile-tab" id="tab-saved" onclick="showProfileTab('saved',${targetId})">${ICON_OUT}<br>Favoris</button>
+      ${isOwn?`<button class="profile-tab" id="tab-history" onclick="showProfileTab('history',${targetId})">📋<br>Historique</button>`:''}
     </div>`;
   showProfileTab('posts',targetId);
-  if (isOwn) loadPushSetting();
+  if(isOwn)loadPushSetting();
 }
 
-async function loadPushSetting() {
-  if (!currentUserId) return;
-  try {
-    const d = await (await fetch('/settings/push?user_id=' + currentUserId)).json();
-    const toggle = document.getElementById('push-toggle');
-    if (toggle) toggle.checked = d.enabled !== false;
-  } catch (e) {}
-}
+async function loadPushSetting(){if(!currentUserId)return;try{const d=await(await fetch('/settings/push?user_id='+currentUserId)).json();const t=document.getElementById('push-toggle');if(t)t.checked=d.enabled!==false}catch(e){}}
+async function togglePush(enabled){try{await fetch('/settings/push',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:currentUserId,enabled})});if(window.Telegram?.WebApp?.HapticFeedback)Telegram.WebApp.HapticFeedback.selectionChanged()}catch(e){}}
 
-async function togglePush(enabled) {
-  try {
-    await fetch('/settings/push', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ user_id: currentUserId, enabled })
-    });
-    if (window.Telegram?.WebApp?.HapticFeedback) Telegram.WebApp.HapticFeedback.selectionChanged();
-  } catch (e) {}
-}
-
-async function showProfileTab(tab, userId) {
-  const tp = document.getElementById('tab-posts');
-  const ts = document.getElementById('tab-saved');
-  const c = document.getElementById('my-codes');
-  if (tab === 'posts') {
-    tp?.classList.add('active'); ts?.classList.remove('active');
-    try {
-      const d = await (await fetch((Number(userId) === Number(currentUserId) ? '/codes/mine' : '/codes/user') + '?user_id=' + userId)).json();
-      c.innerHTML = (d.codes || []).length ? (d.codes || []).map(x => renderPost(x)).join('') : '<div class="empty">Aucun code</div>';
-    } catch (e) { c.innerHTML = '<div class="empty">Erreur</div>'; }
-  } else {
-    ts?.classList.add('active'); tp?.classList.remove('active');
-    if (Number(userId) !== Number(currentUserId)) { c.innerHTML = '<div class="empty">Privé</div>'; return; }
-    try {
-      const d = await (await fetch('/codes/saved?user_id=' + userId)).json();
-      c.innerHTML = (d.codes || []).length ? (d.codes || []).map(x => renderPost(x, { showUnsave: true })).join('') : '<div class="empty">Aucun favori</div>';
-    } catch (e) { c.innerHTML = '<div class="empty">Erreur</div>'; }
+async function showProfileTab(tab,userId){
+  const tp=document.getElementById('tab-posts'),ts=document.getElementById('tab-saved'),th=document.getElementById('tab-history');
+  const c=document.getElementById('my-codes');
+  [tp,ts,th].forEach(el=>el&&el.classList.remove('active'));
+  if(tab==='posts'){tp?.classList.add('active');
+    try{const d=await(await fetch((Number(userId)===Number(currentUserId)?'/codes/mine':'/codes/user')+'?user_id='+userId)).json();
+      c.innerHTML=(d.codes||[]).length?(d.codes||[]).map(x=>renderPost(x)).join(''):'<div class="empty">Aucun code</div>'}catch(e){c.innerHTML='<div class="empty">Erreur</div>'}
+  }else if(tab==='saved'){ts?.classList.add('active');
+    if(Number(userId)!==Number(currentUserId)){c.innerHTML='<div class="empty">Privé</div>';return}
+    try{const d=await(await fetch('/codes/saved?user_id='+userId)).json();
+      c.innerHTML=(d.codes||[]).length?(d.codes||[]).map(x=>renderPost(x,{showUnsave:true})).join(''):'<div class="empty">Aucun favori</div>'}catch(e){c.innerHTML='<div class="empty">Erreur</div>'}
+  }else if(tab==='history'){th?.classList.add('active');
+    try{const d=await(await fetch('/codes/copied?user_id='+userId)).json();
+      c.innerHTML=(d.codes||[]).length?(d.codes||[]).map(x=>renderPost(x)).join(''):'<div class="empty">Aucun code copié</div>'}catch(e){c.innerHTML='<div class="empty">Erreur</div>'}
   }
 }
+
 async function toggleFollow(fid,want){if(!currentUserId)return;try{await fetch(want?'/follow':'/unfollow',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({follower_id:currentUserId,followed_id:fid,actor_name:currentUserName})});loadProfile(fid)}catch(e){}}
 async function showFollowList(uid,type){document.getElementById('followListTitle').textContent=type==='followers'?'Abonnés':'Abonnements';const list=document.getElementById('follow-list');list.innerHTML='...';document.getElementById('followListModal').classList.add('active');
   try{const d=await(await fetch(`/${type}?user_id=`+uid)).json();list.innerHTML=(d.users||[]).length?(d.users||[]).map(u=>`<div class="card row clickable" style="margin-bottom:8px" onclick="closeFollowList();viewProfile(${u.user_id},'${String(u.name||'').replace(/'/g,"\\'")}')"><div style="display:flex;gap:10px;align-items:center">${u.photo_url?`<img class="avatar-img" src="${u.photo_url}">`:`<div class="avatar">${(u.name||'M')[0]}</div>`}<b>${u.name||'Membre'}</b></div></div>`).join(''):'<div class="empty">Aucun</div>'}catch(e){list.innerHTML='Erreur'}}
 function closeFollowList(){document.getElementById('followListModal').classList.remove('active')}
 
 async function loadCodes(){
-  try{
-    const url = currentFilter === 'all' ? '/codes' : `/codes?type=${currentFilter}`;
-    allCodes = (await (await fetch(url)).json()).codes || [];
-  }catch(e){allCodes=[]}
+  try{const url=currentFilter==='all'?'/codes':`/codes?type=${currentFilter}`;allCodes=(await(await fetch(url)).json()).codes||[]}catch(e){allCodes=[]}
   renderStories();
-  try{
-    const top = (await (await fetch('/codes/top')).json()).codes || [];
-    document.getElementById('daily-codes').innerHTML = top.length ? top.map(c => `
-      <div class="card row">
-        <div><strong>${c.site}</strong><div class="muted">${c.type||'promo'} • ${c.code}</div></div>
-        <div class="pill">${c.description||'Promo'}</div>
-      </div>`).join('') : '<div class="empty">Pas de top</div>';
-  }catch(e){}
-  document.getElementById('feed-title').textContent = currentFilter === 'all' ? 'À la une' : (currentFilter === 'promo' ? 'Codes promo' : 'Codes parrainage');
-  document.getElementById('codes-list').innerHTML = allCodes.length ? allCodes.map(c => renderPost(c)).join('') : '<div class="empty">Aucun code</div>';
+  try{const top=(await(await fetch('/codes/top')).json()).codes||[];document.getElementById('daily-codes').innerHTML=top.length?top.map(c=>`<div class="card row"><div><strong>${c.site}</strong><div class="muted">${c.type||'promo'} • ${c.code}</div></div><div class="pill">${c.description||'Promo'}</div></div>`).join(''):'<div class="empty">Pas de top</div>'}catch(e){}
+  document.getElementById('feed-title').textContent=currentFilter==='all'?'À la une':(currentFilter==='promo'?'Codes promo':'Codes parrainage');
+  document.getElementById('codes-list').innerHTML=allCodes.length?allCodes.map(c=>renderPost(c)).join(''):'<div class="empty">Aucun code</div>';
 }
 
 /* SWIPE */
-const SWIPE_THRESHOLD = 85;
-let swipeActive = null;
-
-function initSwipe() {
-  document.addEventListener('touchstart', onSwipeStart, { passive: true });
-  document.addEventListener('touchmove', onSwipeMove, { passive: false });
-  document.addEventListener('touchend', onSwipeEnd, { passive: true });
-  document.addEventListener('touchcancel', onSwipeEnd, { passive: true });
-}
-
-function onSwipeStart(e) {
-  if (e.target.closest('button') || e.target.closest('a') || e.target.closest('.copy-btn')) return;
-  const wrap = e.target.closest('.post-swipe-wrap');
-  if (!wrap || !wrap.dataset.id) return;
-  const content = wrap.querySelector('.post-swipe-content');
-  if (!content) return;
-  const touch = e.touches[0];
-  swipeActive = {
-    wrap, content,
-    bg: wrap.querySelector('.post-swipe-bg'),
-    startX: touch.clientX, startY: touch.clientY,
-    currentX: 0, isHorizontal: null
-  };
-  content.classList.add('swiping');
-}
-
-function onSwipeMove(e) {
-  if (!swipeActive) return;
-  const touch = e.touches[0];
-  const dx = touch.clientX - swipeActive.startX;
-  const dy = touch.clientY - swipeActive.startY;
-  if (swipeActive.isHorizontal === null) {
-    if (Math.abs(dx) > 6 || Math.abs(dy) > 6) {
-      swipeActive.isHorizontal = Math.abs(dx) > Math.abs(dy) * 1.1;
-    }
-  }
-  if (!swipeActive.isHorizontal) return;
-  e.preventDefault();
-  const x = Math.max(0, Math.min(dx, 160));
-  swipeActive.currentX = x;
-  swipeActive.content.style.transform = `translateX(${x}px)`;
-  const progress = Math.min(x / SWIPE_THRESHOLD, 1);
-  const icon = swipeActive.bg.querySelector('.fav-icon');
-  if (icon) {
-    icon.style.transform = `scale(${0.45 + progress * 0.67})`;
-    icon.style.opacity = 0.25 + progress * 0.75;
-  }
-  if (x >= SWIPE_THRESHOLD * 0.6) swipeActive.bg.classList.add('active');
-  else swipeActive.bg.classList.remove('active');
-}
-
-async function onSwipeEnd() {
-  if (!swipeActive) return;
-  const { content, currentX, wrap, bg } = swipeActive;
-  content.classList.remove('swiping');
-  if (currentX >= SWIPE_THRESHOLD) {
-    const id = parseInt(wrap.dataset.id, 10);
-    if (id && currentUserId) {
-      const isSaved = localStorage.getItem('saved_' + id) === '1';
-      try {
-        await fetch(isSaved ? '/code/unsave' : '/code/save', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ id, user_id: currentUserId, actor_name: currentUserName })
-        });
-        localStorage.setItem('saved_' + id, isSaved ? '0' : '1');
-        const favIcon = bg.querySelector('.fav-icon');
-        if (favIcon) favIcon.innerHTML = isSaved ? ICON_OUT : ICON_FILL;
-        content.classList.add('saved-flash');
-        setTimeout(() => content.classList.remove('saved-flash'), 550);
-        if (window.Telegram?.WebApp?.HapticFeedback) Telegram.WebApp.HapticFeedback.impactOccurred('medium');
-        if (isSaved && document.getElementById('tab-saved')?.classList.contains('active')) {
-          wrap.classList.add('removing');
-          setTimeout(() => wrap.remove(), 360);
-        }
-      } catch (err) {}
-    }
-  }
-  content.style.transform = 'translateX(0)';
-  bg.classList.remove('active');
-  const icon = bg.querySelector('.fav-icon');
-  if (icon) { icon.style.transform = ''; icon.style.opacity = ''; }
-  swipeActive = null;
-}
+const SWIPE_THRESHOLD=85;let swipeActive=null;
+function initSwipe(){document.addEventListener('touchstart',onSwipeStart,{passive:true});document.addEventListener('touchmove',onSwipeMove,{passive:false});document.addEventListener('touchend',onSwipeEnd,{passive:true});document.addEventListener('touchcancel',onSwipeEnd,{passive:true})}
+function onSwipeStart(e){if(e.target.closest('button')||e.target.closest('a')||e.target.closest('.copy-btn'))return;const wrap=e.target.closest('.post-swipe-wrap');if(!wrap||!wrap.dataset.id)return;const content=wrap.querySelector('.post-swipe-content');if(!content)return;const touch=e.touches[0];swipeActive={wrap,content,bg:wrap.querySelector('.post-swipe-bg'),startX:touch.clientX,startY:touch.clientY,currentX:0,isHorizontal:null};content.classList.add('swiping')}
+function onSwipeMove(e){if(!swipeActive)return;const touch=e.touches[0];const dx=touch.clientX-swipeActive.startX;const dy=touch.clientY-swipeActive.startY;if(swipeActive.isHorizontal===null){if(Math.abs(dx)>6||Math.abs(dy)>6)swipeActive.isHorizontal=Math.abs(dx)>Math.abs(dy)*1.1}if(!swipeActive.isHorizontal)return;e.preventDefault();const x=Math.max(0,Math.min(dx,160));swipeActive.currentX=x;swipeActive.content.style.transform=`translateX(${x}px)`;const progress=Math.min(x/SWIPE_THRESHOLD,1);const icon=swipeActive.bg.querySelector('.fav-icon');if(icon){icon.style.transform=`scale(${0.45+progress*0.67})`;icon.style.opacity=0.25+progress*0.75}if(x>=SWIPE_THRESHOLD*0.6)swipeActive.bg.classList.add('active');else swipeActive.bg.classList.remove('active')}
+async function onSwipeEnd(){if(!swipeActive)return;const{content,currentX,wrap,bg}=swipeActive;content.classList.remove('swiping');if(currentX>=SWIPE_THRESHOLD){const id=parseInt(wrap.dataset.id,10);if(id&&currentUserId){const isSaved=localStorage.getItem('saved_'+id)==='1';try{await fetch(isSaved?'/code/unsave':'/code/save',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,user_id:currentUserId,actor_name:currentUserName})});localStorage.setItem('saved_'+id,isSaved?'0':'1');const favIcon=bg.querySelector('.fav-icon');if(favIcon)favIcon.innerHTML=isSaved?ICON_OUT:ICON_FILL;content.classList.add('saved-flash');setTimeout(()=>content.classList.remove('saved-flash'),550);if(window.Telegram?.WebApp?.HapticFeedback)Telegram.WebApp.HapticFeedback.impactOccurred('medium');if(isSaved&&document.getElementById('tab-saved')?.classList.contains('active')){wrap.classList.add('removing');setTimeout(()=>wrap.remove(),360)}}catch(err){}}}content.style.transform='translateX(0)';bg.classList.remove('active');const icon=bg.querySelector('.fav-icon');if(icon){icon.style.transform='';icon.style.opacity=''}swipeActive=null}
 
 initSwipe();
 setInterval(loadNotifications,45000);
