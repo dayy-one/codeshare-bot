@@ -29,7 +29,7 @@ MINIAPP_URL = os.getenv("MINIAPP_URL", f"{SERVER_URL}/miniapp?v=15")
 PRICE_CENTS = int(os.getenv("PRICE_CENTS", "1000"))
 
 BASE_MEMBERS = 2345
-REPORT_THRESHOLD = 10  # suppression auto à 10 signalements
+REPORT_THRESHOLD = 10
 
 client = None
 if XAI_API_KEY:
@@ -137,7 +137,11 @@ def init_db():
             updated_at TIMESTAMP DEFAULT NOW()
         );
     """)
-    # Signalements
+    try:
+        cur.execute("ALTER TABLE user_settings ADD COLUMN IF NOT EXISTS bio TEXT DEFAULT '';")
+    except Exception:
+        pass
+
     cur.execute("""
         CREATE TABLE IF NOT EXISTS code_reports (
             id SERIAL PRIMARY KEY,
@@ -148,7 +152,6 @@ def init_db():
             UNIQUE(code_id, user_id)
         );
     """)
-    # Codes cachés par utilisateur
     cur.execute("""
         CREATE TABLE IF NOT EXISTS hidden_codes (
             user_id BIGINT NOT NULL,
@@ -297,20 +300,19 @@ ACTIVE_CODES_FILTER = """
 def get_user_badge(total_codes: int, total_likes: int, total_copies: int) -> str:
     score = total_codes * 2 + total_likes + total_copies
     if score >= 100:
-        return "Légende COD.IA"
+        return "Ambassadeur"
     if score >= 50:
-        return "Contributeur Or"
+        return "Référent"
     if score >= 25:
-        return "Chasseur de codes"
+        return "Expert"
     if score >= 10:
-        return "Explorateur"
+        return "Contributeur"
     if score >= 3:
-        return "Débutant motivé"
-    return "Nouveau membre"
+        return "Actif"
+    return "Membre"
 
 
 def hidden_filter_sql(user_id, alias="codes"):
-    """Exclut les codes cachés par l'utilisateur"""
     if not user_id:
         return "TRUE"
     return f"""
@@ -735,11 +737,6 @@ def edit_code():
 
 @app.route("/code/report", methods=["POST"])
 def report_code():
-    """
-    Signaler un code.
-    reasons: invalid | spam | inappropriate | other
-    hide: true → ne plus afficher ce code pour cet utilisateur
-    """
     data = request.json or {}
     code_id = data.get("id")
     user_id = data.get("user_id")
@@ -757,14 +754,12 @@ def report_code():
         conn = get_conn()
         cur = conn.cursor()
 
-        # Enregistre le signalement (1 par user)
         cur.execute("""
             INSERT INTO code_reports (code_id, user_id, reason)
             VALUES (%s, %s, %s)
             ON CONFLICT (code_id, user_id) DO UPDATE SET reason = EXCLUDED.reason
         """, (int(code_id), int(user_id), reason))
 
-        # Option "ne plus voir"
         if hide:
             cur.execute("""
                 INSERT INTO hidden_codes (user_id, code_id)
@@ -772,7 +767,6 @@ def report_code():
                 ON CONFLICT (user_id, code_id) DO NOTHING
             """, (int(user_id), int(code_id)))
 
-        # Compte les signalements
         cur.execute("SELECT COUNT(*) AS c FROM code_reports WHERE code_id = %s", (int(code_id),))
         count = cur.fetchone()["c"] or 0
 
@@ -798,7 +792,6 @@ def report_code():
 
 @app.route("/code/hide", methods=["POST"])
 def hide_code():
-    """Ne plus voir un code (sans signaler)"""
     data = request.json or {}
     code_id = data.get("id")
     user_id = data.get("user_id")
@@ -1104,6 +1097,10 @@ def profile_full_stats():
         cur.execute("SELECT COUNT(*) as c FROM code_copies WHERE user_id = %s", (int(user_id),))
         copied_by_me = cur.fetchone()["c"] or 0
 
+        cur.execute("SELECT bio FROM user_settings WHERE telegram_id = %s", (int(user_id),))
+        bio_row = cur.fetchone()
+        bio = bio_row["bio"] if bio_row and bio_row["bio"] else ""
+
         badge = get_user_badge(total_codes, total_likes, total_copies)
 
         cur.close()
@@ -1116,11 +1113,51 @@ def profile_full_stats():
             "followers": followers,
             "following": following,
             "copied_by_me": copied_by_me,
-            "badge": badge
+            "badge": badge,
+            "bio": bio
         })
     except Exception as e:
         logging.error(e)
         return jsonify({})
+
+
+@app.route("/profile/bio", methods=["GET", "POST"])
+def profile_bio():
+    if request.method == "GET":
+        user_id = request.args.get("user_id")
+        if not user_id:
+            return jsonify({"bio": ""})
+        try:
+            conn = get_conn()
+            cur = conn.cursor()
+            cur.execute("SELECT bio FROM user_settings WHERE telegram_id = %s", (int(user_id),))
+            row = cur.fetchone()
+            cur.close()
+            conn.close()
+            return jsonify({"bio": row["bio"] if row and row["bio"] else ""})
+        except Exception:
+            return jsonify({"bio": ""})
+
+    data = request.json or {}
+    user_id = data.get("user_id")
+    bio = (data.get("bio") or "").strip()[:160]
+    if not user_id:
+        return jsonify({"success": False}), 400
+    try:
+        conn = get_conn()
+        cur = conn.cursor()
+        cur.execute("""
+            INSERT INTO user_settings (telegram_id, bio)
+            VALUES (%s, %s)
+            ON CONFLICT (telegram_id) DO UPDATE SET bio = EXCLUDED.bio, updated_at = NOW()
+        """, (int(user_id), bio))
+        conn.commit()
+        cur.close()
+        conn.close()
+        return jsonify({"success": True, "bio": bio})
+    except Exception as e:
+        logging.error(e)
+        return jsonify({"success": False}), 500
 
 
 @app.route("/follow", methods=["POST"])
