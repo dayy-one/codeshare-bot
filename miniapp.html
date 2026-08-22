@@ -111,6 +111,7 @@
     .sheet{width:100%;max-width:430px;background:var(--card);border-radius:28px 28px 0 0;padding:26px 20px 42px;max-height:90vh;overflow-y:auto}
     .sheet button,.sheet input{width:100%;margin-bottom:12px;padding:16px;border-radius:16px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:15.5px}
     .sheet button{font-weight:600}
+    .sheet .danger{color:#f87171;border-color:rgba(248,113,113,0.4)}
     .quick{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
     .quick button{width:auto;padding:9px 14px;margin:0;font-size:13px;border-radius:999px}
 
@@ -141,6 +142,9 @@
     .stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:14px 0}
     .stat-box{background:var(--bg);border:1px solid var(--border);border-radius:14px;padding:12px;text-align:center}
     .stat-box b{display:block;font-size:18px;margin-bottom:2px}
+
+    .check-row{display:flex;align-items:center;gap:10px;margin:14px 0;font-size:14px}
+    .check-row input{width:auto;margin:0}
 
     #paywall{position:fixed;inset:0;z-index:100;max-width:430px;margin:0 auto;background:#03050a;color:#fff;display:flex;flex-direction:column;overflow:hidden}
     .sg-bg{position:absolute;inset:0;background:radial-gradient(ellipse 80% 50% at 50% -10%,rgba(42,171,238,0.35),transparent 55%),#03050a}
@@ -217,10 +221,10 @@
       <div class="sg-sub">Accède aux meilleurs codes promo &amp; parrainages</div>
     </div>
     <div class="sg-features glass">
-      <div class="sg-item"><div class="sg-ic c1">⌂</div><div class="sg-item-text">Feed + Classement<small>Top contributeurs</small></div></div>
-      <div class="sg-item"><div class="sg-ic c2">✦</div><div class="sg-item-text">IA + Recherche<small>Intelligente</small></div></div>
-      <div class="sg-item"><div class="sg-ic c3">✈</div><div class="sg-item-text">Badges & Stats<small>Niveaux et historique</small></div></div>
-      <div class="sg-item"><div class="sg-ic c5">🔖</div><div class="sg-item-text">Favoris + Expiration<small>Swipe + dates</small></div></div>
+      <div class="sg-item"><div class="sg-ic c1">⌂</div><div class="sg-item-text">Feed + Classement</div></div>
+      <div class="sg-item"><div class="sg-ic c2">✦</div><div class="sg-item-text">IA + Recherche</div></div>
+      <div class="sg-item"><div class="sg-ic c3">✈</div><div class="sg-item-text">Badges & Stats</div></div>
+      <div class="sg-item"><div class="sg-ic c5">🔖</div><div class="sg-item-text">Favoris + Signalement</div></div>
     </div>
     <div class="sg-price-card glass"><div class="label">Paiement unique · accès à vie</div><div class="amount">10 €</div></div>
     <div class="sg-social"><b id="pw-members">2.345k</b> members</div>
@@ -284,16 +288,13 @@
         <b>Bienvenue !</b><br><br>
         • Feed + filtres<br>
         • Swipe droite = favoris<br>
-        • Classement des contributeurs<br>
-        • Badges & statistiques<br>
-        • Historique de tes copies<br>
-        • Assistant IA intelligent
+        • <b>Appui long</b> = profil / signaler<br>
+        • Classement + badges<br>
+        • Assistant IA
       </div>
     </div>
-
     <div class="section">🏆 Classement de la semaine</div>
     <div id="leaderboard-list" class="card" style="padding:12px 16px"><div class="empty" style="padding:20px">Chargement...</div></div>
-
     <div class="section">Assistant IA</div>
     <div class="search-wrap"><div class="search"><span>✦</span><input id="ai-input" placeholder="Pose ta question..." onkeypress="if(event.key==='Enter') askAI()"></div></div>
     <div class="ai-box" id="ai-response" style="display:none"></div>
@@ -347,6 +348,32 @@
   </div>
 </div>
 
+<!-- LONG PRESS MENU -->
+<div class="modal" id="longPressModal">
+  <div class="sheet">
+    <div style="text-align:center;font-weight:700;margin-bottom:14px">Actions</div>
+    <button id="lp-profile" onclick="lpVisitProfile()">👤 Visiter le profil</button>
+    <button class="danger" onclick="openReportModal()">🚩 Signaler le code</button>
+    <button onclick="closeLongPress()">Annuler</button>
+  </div>
+</div>
+
+<!-- REPORT MODAL -->
+<div class="modal" id="reportModal">
+  <div class="sheet">
+    <div style="text-align:center;font-weight:700;margin-bottom:14px">Signaler ce code</div>
+    <button onclick="submitReport('invalid')">Code invalide / expiré</button>
+    <button onclick="submitReport('spam')">Spam / publicité</button>
+    <button onclick="submitReport('inappropriate')">Contenu inapproprié</button>
+    <button onclick="submitReport('other')">Autre</button>
+    <div class="check-row">
+      <input type="checkbox" id="report-hide" checked>
+      <label for="report-hide">Ne plus voir ce code</label>
+    </div>
+    <button onclick="closeReport()">Annuler</button>
+  </div>
+</div>
+
 <div class="modal" id="notifModal"><div class="sheet"><div style="text-align:center;font-weight:700;margin-bottom:14px">Notifications</div><div id="notif-list"></div><button onclick="closeNotifModal()">Fermer</button></div></div>
 <div class="modal" id="followListModal"><div class="sheet"><div style="text-align:center;font-weight:700;margin-bottom:14px" id="followListTitle">Abonnés</div><div id="follow-list"></div><button onclick="closeFollowList()">Fermer</button></div></div>
 
@@ -355,6 +382,9 @@ Telegram.WebApp.ready(); Telegram.WebApp.expand();
 let allCodes=[], currentShareType="promo", currentUserId=null, currentUserName=null, isAdmin=false, viewingUserId=null;
 let currentFilter = 'all';
 let editingCodeId = null;
+let longPressCode = null;
+let longPressTimer = null;
+let longPressMoved = false;
 
 const ICON_OUT=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>`;
 const ICON_FILL=`<svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>`;
@@ -446,8 +476,7 @@ async function submitEdit(){
   if(!editingCodeId)return;
   try{
     const d=await(await fetch('/code/edit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
-      id:editingCodeId,
-      user_id:currentUserId,
+      id:editingCodeId,user_id:currentUserId,
       site:document.getElementById('editSite').value.trim(),
       code:document.getElementById('editCode').value.trim(),
       description:document.getElementById('editDesc').value.trim(),
@@ -485,7 +514,7 @@ function renderPost(c, options = {}) {
   const click = c.user_id ? `onclick="viewProfile(${c.user_id},'${String(who).replace(/'/g,"\\'")}')"` : '';
 
   return `
-  <div class="post-swipe-wrap" data-id="${id||''}">
+  <div class="post-swipe-wrap" data-id="${id||''}" data-user-id="${c.user_id||''}" data-user-name="${String(who).replace(/"/g,'&quot;')}">
     <div class="post-swipe-bg"><div class="fav-icon">${saved?ICON_FILL:ICON_OUT}</div></div>
     <div class="post-swipe-content" style="${isDeleted?'opacity:0.55':''}">
       <div class="post-top">
@@ -512,6 +541,89 @@ function renderPost(c, options = {}) {
       </div>
     </div>
   </div>`;
+}
+
+/* LONG PRESS */
+function setupLongPress(){
+  document.addEventListener('touchstart', (e) => {
+    const wrap = e.target.closest('.post-swipe-wrap');
+    if(!wrap || e.target.closest('button')) return;
+    longPressMoved = false;
+    longPressCode = {
+      id: parseInt(wrap.dataset.id, 10),
+      userId: wrap.dataset.userId ? parseInt(wrap.dataset.userId, 10) : null,
+      userName: wrap.dataset.userName || 'Membre'
+    };
+    longPressTimer = setTimeout(() => {
+      if(!longPressMoved && longPressCode && longPressCode.id){
+        if(window.Telegram?.WebApp?.HapticFeedback) Telegram.WebApp.HapticFeedback.impactOccurred('medium');
+        openLongPressMenu();
+      }
+    }, 550);
+  }, {passive:true});
+
+  document.addEventListener('touchmove', () => {
+    longPressMoved = true;
+    if(longPressTimer){ clearTimeout(longPressTimer); longPressTimer=null; }
+  }, {passive:true});
+
+  document.addEventListener('touchend', () => {
+    if(longPressTimer){ clearTimeout(longPressTimer); longPressTimer=null; }
+  }, {passive:true});
+}
+
+function openLongPressMenu(){
+  const btn = document.getElementById('lp-profile');
+  if(longPressCode && longPressCode.userId){
+    btn.style.display = 'block';
+  } else {
+    btn.style.display = 'none';
+  }
+  document.getElementById('longPressModal').classList.add('active');
+}
+function closeLongPress(){ document.getElementById('longPressModal').classList.remove('active'); }
+function lpVisitProfile(){
+  closeLongPress();
+  if(longPressCode && longPressCode.userId){
+    viewProfile(longPressCode.userId, longPressCode.userName);
+  }
+}
+function openReportModal(){
+  closeLongPress();
+  document.getElementById('report-hide').checked = true;
+  document.getElementById('reportModal').classList.add('active');
+}
+function closeReport(){ document.getElementById('reportModal').classList.remove('active'); }
+
+async function submitReport(reason){
+  if(!longPressCode || !longPressCode.id || !currentUserId) return;
+  const hide = document.getElementById('report-hide').checked;
+  try{
+    const d = await (await fetch('/code/report', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        id: longPressCode.id,
+        user_id: currentUserId,
+        reason,
+        hide
+      })
+    })).json();
+    closeReport();
+    if(d.success){
+      if(window.Telegram?.WebApp?.HapticFeedback) Telegram.WebApp.HapticFeedback.notificationOccurred('success');
+      let msg = 'Signalement envoyé ✅';
+      if(d.auto_deleted) msg = 'Code retiré automatiquement (10+ signalements)';
+      else if(hide) msg = 'Code signalé et masqué pour toi';
+      alert(msg);
+      // retire la carte de l'écran
+      const wrap = document.querySelector(`.post-swipe-wrap[data-id="${longPressCode.id}"]`);
+      if(wrap){
+        wrap.classList.add('removing');
+        setTimeout(() => wrap.remove(), 360);
+      }
+    } else alert('Erreur');
+  }catch(e){ alert('Erreur'); }
 }
 
 function setFilter(type){
@@ -546,8 +658,17 @@ function renderStories(){const base=["Top","Uber Eats","Booking","Airbnb","Zara"
   document.getElementById('stories').innerHTML=names.map(n=>`<div class="story clickable" onclick="onStoryClick('${n.replace(/'/g,"\\'")}')"><div class="story-ring"><div>${n==="+ Partager"?"+":n[0]}</div></div>${n.length>10?n.slice(0,9)+'…':n}</div>`).join('')}
 function onStoryClick(name){if(name==="+ Partager"){openShare();return}showPage('home');const f=allCodes.filter(c=>(c.site||'').toLowerCase().includes(name.toLowerCase())||name==='Top');document.getElementById('feed-title').textContent=name==='Top'?'À la une':name;document.getElementById('codes-list').innerHTML=f.length?f.map(c=>renderPost(c)).join(''):'<div class="empty">Pas de code</div>'}
 async function showRecentSuggestions(){try{const d=await(await fetch('/search/recent')).json();document.getElementById('recent-suggestions').innerHTML=(d.queries||[]).map(q=>`<button class="chip" onclick="document.getElementById('search-input').value='${q.replace(/'/g,"\\'")}';doSearch()">${q}</button>`).join('')}catch(e){}}
-async function doSearch(){const q=document.getElementById('search-input').value.trim();if(!q)return;fetch('/search/log',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({q})});const r=document.getElementById('search-results');r.innerHTML='<div class="empty">...</div>';
-  try{const d=await(await fetch('/codes/search?q='+encodeURIComponent(q))).json();r.innerHTML=(d.codes||[]).length?(d.codes||[]).map(c=>renderPost(c)).join(''):'<div class="empty">Aucun</div>'}catch(e){r.innerHTML='<div class="empty">Erreur</div>'}}
+async function doSearch(){
+  const q=document.getElementById('search-input').value.trim();if(!q)return;
+  fetch('/search/log',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({q})});
+  const r=document.getElementById('search-results');r.innerHTML='<div class="empty">...</div>';
+  try{
+    let url='/codes/search?q='+encodeURIComponent(q);
+    if(currentUserId) url+='&user_id='+currentUserId;
+    const d=await(await fetch(url)).json();
+    r.innerHTML=(d.codes||[]).length?(d.codes||[]).map(c=>renderPost(c)).join(''):'<div class="empty">Aucun</div>';
+  }catch(e){r.innerHTML='<div class="empty">Erreur</div>'}
+}
 async function askAI(){const q=document.getElementById('ai-input').value.trim();if(!q)return;const b=document.getElementById('ai-response');b.style.display='block';b.innerHTML='...';try{const d=await(await fetch('/ask',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question:q})})).json();b.innerHTML=d.answer||'—'}catch(e){b.innerHTML='Erreur'}}
 
 async function loadLeaderboard(){
@@ -595,21 +716,18 @@ async function loadProfile(forceId=null,forceName=null){
       <div class="muted">${isOwn?'Mon profil':'Profil'}</div>
       ${fullStats.badge?`<div style="margin-top:6px"><span class="badge-pill">${fullStats.badge}</span></div>`:''}
     </div></div>
-
     <div class="stats-grid">
       <div class="stat-box"><b>${fullStats.total_codes||0}</b><span class="muted">Codes</span></div>
       <div class="stat-box"><b>${fullStats.total_likes||0}</b><span class="muted">Likes reçus</span></div>
       <div class="stat-box"><b>${fullStats.total_copies||0}</b><span class="muted">Copies reçues</span></div>
       <div class="stat-box"><b>${fullStats.copied_by_me||0}</b><span class="muted">Codes copiés</span></div>
     </div>
-
     <div style="display:flex;gap:18px;margin:10px 0;font-size:14px">
       <div class="clickable" onclick="showFollowList(${targetId},'followers')"><b>${fullStats.followers||0}</b> abonnés</div>
       <div class="clickable" onclick="showFollowList(${targetId},'following')"><b>${fullStats.following||0}</b> abonnements</div>
     </div>
     ${followBtn}
     ${pushToggle}
-
     <div class="profile-tabs">
       <button class="profile-tab active" id="tab-posts" onclick="showProfileTab('posts',${targetId})">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
@@ -630,7 +748,7 @@ async function showProfileTab(tab,userId){
   const c=document.getElementById('my-codes');
   [tp,ts,th].forEach(el=>el&&el.classList.remove('active'));
   if(tab==='posts'){tp?.classList.add('active');
-    try{const d=await(await fetch((Number(userId)===Number(currentUserId)?'/codes/mine':'/codes/user')+'?user_id='+userId)).json();
+    try{const d=await(await fetch((Number(userId)===Number(currentUserId)?'/codes/mine':'/codes/user')+'?user_id='+userId+(currentUserId?'&viewer_id='+currentUserId:''))).json();
       c.innerHTML=(d.codes||[]).length?(d.codes||[]).map(x=>renderPost(x)).join(''):'<div class="empty">Aucun code</div>'}catch(e){c.innerHTML='<div class="empty">Erreur</div>'}
   }else if(tab==='saved'){ts?.classList.add('active');
     if(Number(userId)!==Number(currentUserId)){c.innerHTML='<div class="empty">Privé</div>';return}
@@ -648,9 +766,18 @@ async function showFollowList(uid,type){document.getElementById('followListTitle
 function closeFollowList(){document.getElementById('followListModal').classList.remove('active')}
 
 async function loadCodes(){
-  try{const url=currentFilter==='all'?'/codes':`/codes?type=${currentFilter}`;allCodes=(await(await fetch(url)).json()).codes||[]}catch(e){allCodes=[]}
+  try{
+    let url = currentFilter==='all' ? '/codes' : `/codes?type=${currentFilter}`;
+    if(currentUserId) url += (url.includes('?')?'&':'?') + 'user_id=' + currentUserId;
+    allCodes=(await(await fetch(url)).json()).codes||[];
+  }catch(e){allCodes=[]}
   renderStories();
-  try{const top=(await(await fetch('/codes/top')).json()).codes||[];document.getElementById('daily-codes').innerHTML=top.length?top.map(c=>`<div class="card row"><div><strong>${c.site}</strong><div class="muted">${c.type||'promo'} • ${c.code}</div></div><div class="pill">${c.description||'Promo'}</div></div>`).join(''):'<div class="empty">Pas de top</div>'}catch(e){}
+  try{
+    let topUrl = '/codes/top';
+    if(currentUserId) topUrl += '?user_id=' + currentUserId;
+    const top=(await(await fetch(topUrl)).json()).codes||[];
+    document.getElementById('daily-codes').innerHTML=top.length?top.map(c=>`<div class="card row"><div><strong>${c.site}</strong><div class="muted">${c.type||'promo'} • ${c.code}</div></div><div class="pill">${c.description||'Promo'}</div></div>`).join(''):'<div class="empty">Pas de top</div>';
+  }catch(e){}
   document.getElementById('feed-title').textContent=currentFilter==='all'?'À la une':(currentFilter==='promo'?'Codes promo':'Codes parrainage');
   document.getElementById('codes-list').innerHTML=allCodes.length?allCodes.map(c=>renderPost(c)).join(''):'<div class="empty">Aucun code</div>';
 }
@@ -663,6 +790,7 @@ function onSwipeMove(e){if(!swipeActive)return;const touch=e.touches[0];const dx
 async function onSwipeEnd(){if(!swipeActive)return;const{content,currentX,wrap,bg}=swipeActive;content.classList.remove('swiping');if(currentX>=SWIPE_THRESHOLD){const id=parseInt(wrap.dataset.id,10);if(id&&currentUserId){const isSaved=localStorage.getItem('saved_'+id)==='1';try{await fetch(isSaved?'/code/unsave':'/code/save',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,user_id:currentUserId,actor_name:currentUserName})});localStorage.setItem('saved_'+id,isSaved?'0':'1');const favIcon=bg.querySelector('.fav-icon');if(favIcon)favIcon.innerHTML=isSaved?ICON_OUT:ICON_FILL;content.classList.add('saved-flash');setTimeout(()=>content.classList.remove('saved-flash'),550);if(window.Telegram?.WebApp?.HapticFeedback)Telegram.WebApp.HapticFeedback.impactOccurred('medium');if(isSaved&&document.getElementById('tab-saved')?.classList.contains('active')){wrap.classList.add('removing');setTimeout(()=>wrap.remove(),360)}}catch(err){}}}content.style.transform='translateX(0)';bg.classList.remove('active');const icon=bg.querySelector('.fav-icon');if(icon){icon.style.transform='';icon.style.opacity=''}swipeActive=null}
 
 initSwipe();
+setupLongPress();
 setInterval(loadNotifications,45000);
 setInterval(loadStats,60000);
 boot();
