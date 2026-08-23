@@ -180,8 +180,7 @@ def send_telegram_message(chat_id, text, reply_markup=None, parse_mode="HTML"):
 
 
 def discover_keyboard(paid: bool):
-    """Bouton Découvrir → Ouvrir une fois payé"""
-    btn_text = "🚀 Ouvrir COD.IA" if paid else "✨ Découvrir COD.IA"
+    btn_text = "Ouvrir COD.IA" if paid else "Decouvrir COD.IA"
     return {
         "inline_keyboard": [[{
             "text": btn_text,
@@ -193,7 +192,7 @@ def discover_keyboard(paid: bool):
 def channel_keyboard():
     return {
         "inline_keyboard": [[{
-            "text": "📢 Rejoindre le canal",
+            "text": "Rejoindre le canal",
             "url": CHANNEL_LINK
         }]]
     }
@@ -258,7 +257,7 @@ def create_embedded_checkout():
 
     try:
         session = stripe.checkout.Session.create(
-            ui_mode="embedded",
+            ui_mode="embedded_page",
             mode="payment",
             line_items=[{
                 "price_data": {
@@ -308,13 +307,12 @@ def stripe_webhook():
                 cur.close()
                 conn.close()
 
-                # Message de confirmation + bouton Ouvrir
                 send_telegram_message(
                     int(telegram_id),
-                    "✅ <b>Paiement reçu !</b>\n\n"
-                    "Bienvenue sur <b>COD.IA</b> 🎉\n"
+                    "Paiement reçu.\n\n"
+                    "Bienvenue sur COD.IA.\n"
                     "Ton accès est maintenant actif.\n\n"
-                    "Tu peux ouvrir l’application et découvrir tous les codes.",
+                    "Tu peux ouvrir l'application et découvrir tous les codes.",
                     reply_markup=discover_keyboard(paid=True)
                 )
             except Exception as e:
@@ -541,18 +539,35 @@ def code_copy():
     try:
         conn = get_conn()
         cur = conn.cursor()
-        cur.execute("UPDATE codes SET copies = copies + 1 WHERE id = %s RETURNING copies", (code_id,))
-        row = cur.fetchone()
+
         if user_id:
+            cur.execute(
+                "SELECT 1 FROM copied_codes WHERE user_id = %s AND code_id = %s",
+                (user_id, code_id)
+            )
+            if cur.fetchone():
+                cur.execute("SELECT copies FROM codes WHERE id = %s", (code_id,))
+                row = cur.fetchone()
+                cur.close()
+                conn.close()
+                return jsonify({"copies": row["copies"] if row else 0})
+
             cur.execute("""
                 INSERT INTO copied_codes (user_id, code_id) VALUES (%s, %s)
                 ON CONFLICT DO NOTHING
             """, (user_id, code_id))
+
+        cur.execute(
+            "UPDATE codes SET copies = copies + 1 WHERE id = %s RETURNING copies",
+            (code_id,)
+        )
+        row = cur.fetchone()
         conn.commit()
         cur.close()
         conn.close()
         return jsonify({"copies": row["copies"] if row else 0})
     except Exception as e:
+        logging.error(e)
         return jsonify({"copies": 0})
 
 
@@ -596,20 +611,59 @@ def code_react():
     code_id = data.get("id")
     reaction = data.get("reaction")
     action = data.get("action")
+    user_id = data.get("user_id")
+
+    if reaction not in ("like", "dislike") or action not in ("add", "remove"):
+        return jsonify({"value": 0})
+
     try:
         conn = get_conn()
         cur = conn.cursor()
         col = "likes" if reaction == "like" else "dislikes"
-        if action == "add":
-            cur.execute(f"UPDATE codes SET {col} = {col} + 1 WHERE id = %s RETURNING {col} as value", (code_id,))
+        opposite = "dislike" if reaction == "like" else "like"
+        opposite_col = "dislikes" if reaction == "like" else "likes"
+
+        if action == "add" and user_id:
+            cur.execute("""
+                DELETE FROM reactions
+                WHERE user_id = %s AND code_id = %s AND reaction = %s
+            """, (user_id, code_id, opposite))
+            if cur.rowcount > 0:
+                cur.execute(
+                    f"UPDATE codes SET {opposite_col} = GREATEST({opposite_col} - 1, 0) WHERE id = %s",
+                    (code_id,)
+                )
+
+            cur.execute("""
+                INSERT INTO reactions (user_id, code_id, reaction)
+                VALUES (%s, %s, %s)
+                ON CONFLICT DO NOTHING
+            """, (user_id, code_id, reaction))
+            if cur.rowcount > 0:
+                cur.execute(
+                    f"UPDATE codes SET {col} = {col} + 1 WHERE id = %s RETURNING {col} as value",
+                    (code_id,)
+                )
+            else:
+                cur.execute(f"SELECT {col} as value FROM codes WHERE id = %s", (code_id,))
         else:
-            cur.execute(f"UPDATE codes SET {col} = GREATEST({col} - 1, 0) WHERE id = %s RETURNING {col} as value", (code_id,))
+            if user_id:
+                cur.execute("""
+                    DELETE FROM reactions
+                    WHERE user_id = %s AND code_id = %s AND reaction = %s
+                """, (user_id, code_id, reaction))
+            cur.execute(
+                f"UPDATE codes SET {col} = GREATEST({col} - 1, 0) WHERE id = %s RETURNING {col} as value",
+                (code_id,)
+            )
+
         row = cur.fetchone()
         conn.commit()
         cur.close()
         conn.close()
         return jsonify({"value": row["value"] if row else 0})
     except Exception as e:
+        logging.error(e)
         return jsonify({"value": 0})
 
 
@@ -1020,11 +1074,10 @@ def ask():
     data = request.json or {}
     question = data.get("question", "").strip()
     if not question:
-        return jsonify({"answer": "Pose-moi une question !"})
+        return jsonify({"answer": "Pose-moi une question sur un code !"})
     if not client:
-        return jsonify({"answer": "L’assistant IA n’est pas configuré pour le moment."})
+        return jsonify({"answer": "L'assistant IA n'est pas configure pour le moment."})
 
-    # Récupérer quelques codes actifs pour le contexte
     codes_context = ""
     try:
         conn = get_conn()
@@ -1032,7 +1085,7 @@ def ask():
         cur.execute("""
             SELECT site, code, description, type FROM codes
             WHERE deleted = FALSE AND (expires_at IS NULL OR expires_at > NOW())
-            ORDER BY created_at DESC LIMIT 30
+            ORDER BY created_at DESC LIMIT 40
         """)
         rows = cur.fetchall()
         cur.close()
@@ -1044,13 +1097,17 @@ def ask():
     except Exception:
         pass
 
-    system_prompt = f"""Tu es l'assistant de COD.IA, une application de partage de codes promo et parrainages.
-Réponds toujours en français, de façon claire, utile et concise.
-Voici les codes actuellement actifs dans l'application :
-{codes_context}
+    system_prompt = f"""Tu es l'assistant de COD.IA.
+Tu sers UNIQUEMENT a aider les utilisateurs a trouver des codes promo ou de parrainage partages par la communaute.
 
-Si l'utilisateur cherche un code, propose-lui ceux qui correspondent.
-Si tu ne trouves pas, dis-le poliment."""
+Regles strictes :
+- Reponds uniquement en francais.
+- Si la question n'est pas liee a la recherche d'un code, reponds poliment : "Je peux uniquement t'aider a trouver des codes partages par la communaute COD.IA."
+- Propose uniquement les codes qui existent dans la liste ci-dessous.
+- Sois concis et utile.
+
+Codes actuellement actifs :
+{codes_context}"""
 
     try:
         resp = client.chat.completions.create(
@@ -1059,13 +1116,13 @@ Si tu ne trouves pas, dis-le poliment."""
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": question}
             ],
-            max_tokens=500
+            max_tokens=400
         )
         answer = resp.choices[0].message.content
         return jsonify({"answer": answer})
     except Exception as e:
         logging.error(e)
-        return jsonify({"answer": "Désolé, je n’ai pas pu répondre pour le moment."})
+        return jsonify({"answer": "Desole, je n'ai pas pu repondre pour le moment."})
 
 
 # ==================== TELEGRAM WEBHOOK ====================
@@ -1082,65 +1139,50 @@ def telegram_webhook():
     user_id = user.get("id")
     text = (message.get("text") or "").strip()
 
-    # ===== /start — Message amélioré =====
     if text.startswith("/start"):
         paid = is_paid(user_id)
         first_name = user.get("first_name") or "toi"
 
         if paid:
             welcome = (
-                f"👋 Salut <b>{first_name}</b> !\n\n"
-                f"Tu as déjà accès à <b>COD.IA</b> ✅\n\n"
-                f"🚀 Clique sur le bouton ci-dessous pour ouvrir l’application et retrouver tous les codes promo & parrainages."
+                f"Salut {first_name}.\n\n"
+                f"Tu as deja acces a COD.IA.\n\n"
+                f"Clique sur le bouton ci-dessous pour ouvrir l'application."
             )
             send_telegram_message(chat_id, welcome, reply_markup=discover_keyboard(paid=True))
         else:
             welcome = (
-                f"👋 Bienvenue <b>{first_name}</b> !\n\n"
-                f"<b>COD.IA</b> est la communauté n°1 des codes promo & parrainages.\n\n"
-                f"✅ Codes mis à jour en temps réel\n"
-                f"✅ Favoris, notifications & classement\n"
-                f"✅ Publie tes propres codes\n"
-                f"✅ Assistant IA pour trouver un code en 2 secondes\n\n"
-                f"🔓 Accès complet : <b>10 €</b> (paiement unique)\n\n"
-                f"Clique sur <b>Découvrir</b> pour voir l’aperçu gratuit."
+                f"Bienvenue {first_name}.\n\n"
+                f"COD.IA est la communaute des codes promo et parrainages.\n\n"
+                f"Acces complet : 10 euros (paiement unique).\n\n"
+                f"Clique sur Decouvrir pour voir l'apercu gratuit."
             )
             send_telegram_message(chat_id, welcome, reply_markup=discover_keyboard(paid=False))
-
-            # Proposition de rejoindre le canal
-            send_telegram_message(
-                chat_id,
-                "📢 Rejoins aussi le canal officiel pour ne rien rater des nouveaux codes :",
-                reply_markup=channel_keyboard()
-            )
         return jsonify(success=True)
 
-    # ===== /free — Version gratuite forcée =====
     if text.lower() in ("/free", "/gratuit"):
         free_url = f"{SERVER_URL}/miniapp?force_free=1&v=17"
         keyboard = {
             "inline_keyboard": [[{
-                "text": "👀 Voir la version Gratuite",
+                "text": "Voir la version Gratuite",
                 "web_app": {"url": free_url}
             }]]
         }
         send_telegram_message(
             chat_id,
-            "Voici la <b>version gratuite</b> (aperçu verrouillé).\n\n"
-            "Tu peux tester l’interface sans accéder aux codes.",
+            "Voici la version gratuite (apercu verrouille).\n\n"
+            "Tu peux tester l'interface sans acceder aux codes.",
             reply_markup=keyboard
         )
         return jsonify(success=True)
 
-    # ===== /payadmin (admin only) =====
     if text.lower() == "/payadmin" and user_id == ADMIN_ID:
-        send_telegram_message(chat_id, "Admin OK ✅ Tu as déjà l’accès.")
+        send_telegram_message(chat_id, "Admin OK. Tu as deja l'acces.")
         return jsonify(success=True)
 
-    # Autres commandes éventuelles (parrainage via bot, etc.)
     if text.lower().startswith("/parrainage"):
         if not is_paid(user_id):
-            send_telegram_message(chat_id, "Cette commande est réservée aux membres COD.IA.")
+            send_telegram_message(chat_id, "Cette commande est reservee aux membres COD.IA.")
             return jsonify(success=True)
         parts = text.split()
         if len(parts) >= 4:
@@ -1162,9 +1204,9 @@ def telegram_webhook():
                 logging.error(e)
             send_telegram_message(
                 CHANNEL_ID,
-                f"🔗 <b>CODE DE PARRAINAGE</b>\n\nDe : {display}\nSite : {site}\nBonus : <b>+{montant}€</b>\nCode : <code>{code}</code>"
+                f"CODE DE PARRAINAGE\n\nDe : {display}\nSite : {site}\nBonus : +{montant}€\nCode : {code}"
             )
-            send_telegram_message(chat_id, f"✅ Parrainage publié : {site} | {code}")
+            send_telegram_message(chat_id, f"Parrainage publie : {site} | {code}")
         else:
             send_telegram_message(chat_id, "Format : /parrainage Site 20 CODE")
         return jsonify(success=True)
@@ -1177,7 +1219,7 @@ def notify_daily():
     data = request.json or {}
     if int(data.get("admin_id") or 0) != ADMIN_ID:
         return jsonify({"error": "unauthorized"}), 403
-    send_telegram_message(ADMIN_ID, "Cron daily reçu ✅")
+    send_telegram_message(ADMIN_ID, "Cron daily reçu")
     return jsonify({"ok": True})
 
 
