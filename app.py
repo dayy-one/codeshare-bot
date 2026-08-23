@@ -1,7 +1,6 @@
 import os
 import json
 import logging
-import random
 from datetime import datetime, timedelta
 
 from flask import Flask, request, jsonify, send_from_directory
@@ -1139,6 +1138,7 @@ def telegram_webhook():
     user_id = user.get("id")
     text = (message.get("text") or "").strip()
 
+    # ===== /start (message clair sans emoji) =====
     if text.startswith("/start"):
         paid = is_paid(user_id)
         first_name = user.get("first_name") or "toi"
@@ -1146,20 +1146,25 @@ def telegram_webhook():
         if paid:
             welcome = (
                 f"Salut {first_name}.\n\n"
-                f"Tu as deja acces a COD.IA.\n\n"
-                f"Clique sur le bouton ci-dessous pour ouvrir l'application."
+                f"Tu as déjà accès à COD.IA.\n\n"
+                f"Clique sur le bouton ci-dessous pour ouvrir l'application et retrouver tous les codes promo & parrainages."
             )
             send_telegram_message(chat_id, welcome, reply_markup=discover_keyboard(paid=True))
         else:
             welcome = (
                 f"Bienvenue {first_name}.\n\n"
-                f"COD.IA est la communaute des codes promo et parrainages.\n\n"
-                f"Acces complet : 10 euros (paiement unique).\n\n"
-                f"Clique sur Decouvrir pour voir l'apercu gratuit."
+                f"COD.IA est la communauté des codes promo et parrainages mis à jour en temps réel.\n\n"
+                f"• Feed complet\n"
+                f"• Favoris & notifications\n"
+                f"• Assistant IA pour trouver un code rapidement\n"
+                f"• Publie tes propres codes\n\n"
+                f"Accès complet : 10 euros (paiement unique).\n\n"
+                f"Clique sur « Decouvrir COD.IA » pour voir l'aperçu gratuit."
             )
             send_telegram_message(chat_id, welcome, reply_markup=discover_keyboard(paid=False))
         return jsonify(success=True)
 
+    # ===== /free =====
     if text.lower() in ("/free", "/gratuit"):
         free_url = f"{SERVER_URL}/miniapp?force_free=1&v=17"
         keyboard = {
@@ -1170,19 +1175,21 @@ def telegram_webhook():
         }
         send_telegram_message(
             chat_id,
-            "Voici la version gratuite (apercu verrouille).\n\n"
-            "Tu peux tester l'interface sans acceder aux codes.",
+            "Voici la version gratuite (aperçu verrouillé).\n\n"
+            "Tu peux tester l'interface sans accéder aux codes.",
             reply_markup=keyboard
         )
         return jsonify(success=True)
 
+    # ===== /payadmin =====
     if text.lower() == "/payadmin" and user_id == ADMIN_ID:
-        send_telegram_message(chat_id, "Admin OK. Tu as deja l'acces.")
+        send_telegram_message(chat_id, "Admin OK. Tu as déjà l'accès.")
         return jsonify(success=True)
 
+    # ===== /parrainage =====
     if text.lower().startswith("/parrainage"):
         if not is_paid(user_id):
-            send_telegram_message(chat_id, "Cette commande est reservee aux membres COD.IA.")
+            send_telegram_message(chat_id, "Cette commande est réservée aux membres COD.IA.")
             return jsonify(success=True)
         parts = text.split()
         if len(parts) >= 4:
@@ -1206,7 +1213,7 @@ def telegram_webhook():
                 CHANNEL_ID,
                 f"CODE DE PARRAINAGE\n\nDe : {display}\nSite : {site}\nBonus : +{montant}€\nCode : {code}"
             )
-            send_telegram_message(chat_id, f"Parrainage publie : {site} | {code}")
+            send_telegram_message(chat_id, f"Parrainage publié : {site} | {code}")
         else:
             send_telegram_message(chat_id, "Format : /parrainage Site 20 CODE")
         return jsonify(success=True)
