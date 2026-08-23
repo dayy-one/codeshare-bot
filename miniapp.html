@@ -354,11 +354,6 @@
       <div>👤 Profil pro + stats</div>
     </div>
 
-    <button class="fl-btn-main" style="width:100%;max-width:none" onclick="startPayment()">
-      Payer 10 € et accéder
-    </button>
-    <p class="fl-secure" style="text-align:center">Paiement sécurisé Stripe • Accès immédiat</p>
-
     <div id="checkout" style="margin-top:18px"></div>
     <div class="sg-error" id="pw-error-2"></div>
   </div>
@@ -419,14 +414,15 @@
         • <b>Feed</b> → découvre les codes à la une<br>
         • <b>Swipe droite</b> → ajoute en favoris<br>
         • <b>Appui long</b> → visiter un profil ou signaler<br>
-        • <b>Recherche + IA</b> → trouve un code en quelques secondes<br>
-        • <b>Publie</b> tes propres codes et grimpe au classement
+        • <b>Recherche classique</b> → trouve un code rapidement<br>
+        • <b>Assistant IA</b> → trouve un code partagé par la communauté en quelques secondes<br>
+        • <b>Publie</b> tes propres codes et grimpe au classement<br><br>
+        L'IA sert uniquement à rechercher les codes déjà partagés par les membres. Elle ne répond à aucune autre question.
       </div>
     </div>
-    <div class="section">🏆 Classement de la semaine</div>
-    <div id="leaderboard-list" class="card" style="padding:12px 16px"><div class="empty" style="padding:20px">Chargement...</div></div>
+
     <div class="section">Assistant IA</div>
-    <div class="search-wrap"><div class="search"><span>✦</span><input id="ai-input" placeholder="Pose ta question..." onkeypress="if(event.key==='Enter') askAI()"></div></div>
+    <div class="search-wrap"><div class="search"><span>✦</span><input id="ai-input" placeholder="Ex: code Uber Eats, Booking..." onkeypress="if(event.key==='Enter') askAI()"></div></div>
     <div class="ai-box" id="ai-response" style="display:none"></div>
   </div>
 
@@ -453,6 +449,13 @@
 <div class="modal" id="notifModal"><div class="sheet"><div style="text-align:center;font-weight:700;margin-bottom:14px">Notifications</div><div id="notif-list"></div><button onclick="closeNotifModal()">Fermer</button></div></div>
 <div class="modal" id="followListModal"><div class="sheet"><div style="text-align:center;font-weight:700;margin-bottom:14px" id="followListTitle">Abonnés</div><div id="follow-list"></div><button onclick="closeFollowList()">Fermer</button></div></div>
 <div class="modal" id="bioModal"><div class="sheet"><div style="text-align:center;font-weight:700;margin-bottom:14px">Modifier la bio</div><textarea id="bioInput" placeholder="Présente-toi en quelques mots..." maxlength="160" style="width:100%;height:110px;padding:14px;border-radius:16px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:15px;resize:none;margin-bottom:14px;"></textarea><button onclick="saveBioFromModal()">Enregistrer</button><button onclick="closeBioModal()">Annuler</button></div></div>
+<div class="modal" id="leaderboardModal">
+  <div class="sheet">
+    <div style="text-align:center;font-weight:700;margin-bottom:14px">Classement de la semaine</div>
+    <div id="leaderboard-modal-list"></div>
+    <button onclick="closeLeaderboardModal()">Fermer</button>
+  </div>
+</div>
 
 <script>
 const tg = window.Telegram?.WebApp;
@@ -460,7 +463,6 @@ if (tg) {
   tg.ready();
   tg.expand();
   try { tg.disableVerticalSwipes(); } catch(e){}
-  try { tg.enableClosingConfirmation(); } catch(e){}
 }
 
 const cache = { codes: null, codesTime: 0, profile: {}, TTL: 25000 };
@@ -487,7 +489,6 @@ function showApp(){
   loadCodes().then(() => {
     setTimeout(() => {
       loadNotifications();
-      loadLeaderboard();
     }, 350);
   });
 }
@@ -497,6 +498,7 @@ function openPaymentOverlay(){
   document.getElementById('payment-overlay').classList.add('active');
   document.getElementById('checkout').innerHTML = '';
   document.getElementById('pw-error-2').textContent = '';
+  startPayment();
 }
 
 function closePaymentOverlay(){
@@ -601,9 +603,6 @@ function toggleTheme(){
   localStorage.setItem('theme', document.body.classList.contains('light') ? 'light' : 'dark');
 }
 
-/* ========== TOUT LE RESTE DU JS (notifications, feed, swipe, profil, etc.) ========== */
-/* Je mets les fonctions essentielles ci-dessous. Le code est complet et fonctionnel. */
-
 async function loadNotifications(){
   if (!currentUserId) return;
   try {
@@ -663,7 +662,6 @@ function showPage(p){
   } else if (p === 'codia') {
     document.getElementById('page-codia').classList.add('active');
     document.querySelectorAll('.nav')[2].classList.add('active');
-    loadLeaderboard();
   } else {
     document.getElementById('page-profile').classList.add('active');
     document.querySelectorAll('.nav')[3].classList.add('active');
@@ -1061,16 +1059,24 @@ async function askAI(){
   } catch(e){ b.innerHTML = 'Erreur'; }
 }
 
-async function loadLeaderboard(){
+function openLeaderboardModal(){
+  document.getElementById('leaderboardModal').classList.add('active');
+  loadLeaderboardModal();
+}
+function closeLeaderboardModal(){
+  document.getElementById('leaderboardModal').classList.remove('active');
+}
+async function loadLeaderboardModal(){
+  const list = document.getElementById('leaderboard-modal-list');
+  list.innerHTML = '<div class="empty">Chargement...</div>';
   try {
     const d = await (await fetch('/leaderboard')).json();
-    const list = document.getElementById('leaderboard-list');
     if (!d.leaderboard?.length) {
-      list.innerHTML = '<div class="empty" style="padding:20px">Aucun classement pour le moment</div>';
+      list.innerHTML = '<div class="empty">Aucun classement pour le moment</div>';
       return;
     }
     list.innerHTML = d.leaderboard.map(u => `
-      <div class="leader-item clickable" onclick="viewProfile(${u.user_id},'${String(u.name||'').replace(/'/g,"\\'")}')">
+      <div class="leader-item clickable" onclick="closeLeaderboardModal();viewProfile(${u.user_id},'${String(u.name||'').replace(/'/g,"\\'")}')">
         <div class="leader-rank">${u.rank}</div>
         ${u.photo_url ? `<img class="avatar-img" src="${u.photo_url}" style="width:40px;height:40px" loading="lazy">` : `<div class="avatar" style="width:40px;height:40px;font-size:14px">${(u.name||'M')[0]}</div>`}
         <div style="flex:1">
@@ -1080,7 +1086,7 @@ async function loadLeaderboard(){
       </div>
     `).join('');
   } catch(e){
-    document.getElementById('leaderboard-list').innerHTML = '<div class="empty">Erreur</div>';
+    list.innerHTML = '<div class="empty">Erreur</div>';
   }
 }
 
@@ -1166,7 +1172,7 @@ async function loadProfile(forceId = null, forceName = null) {
       <div class="profile-bio ${!hasBio ? 'profile-bio-empty' : ''}" id="profile-bio-text">${bioText}</div>
       ${fullStats.badge ? `<div class="profile-badge"><span>${getBadgeIcon(fullStats.badge)}</span>${fullStats.badge}</div>` : ''}
     </div>
-    <div class="profile-level">
+    <div class="profile-level clickable" onclick="openLeaderboardModal()">
       <div class="profile-level-top">
         <span>Niveau de contribution</span>
         <strong>${current.label}</strong>
