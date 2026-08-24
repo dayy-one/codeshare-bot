@@ -379,7 +379,7 @@
   <div class="stories" id="stories"></div>
 
   <div class="page page-home active" id="page-home">
-    <div class="section">Top Codes</div>
+    <div class="section" id="top-codes-section">Top Codes</div>
     <div id="daily-codes"></div>
     <div class="chips" style="padding:8px 18px 4px;">
       <button class="chip active" id="filter-all" onclick="setFilter('all')">Tous</button>
@@ -712,8 +712,7 @@ async function loadNotifications(){
   try {
     const d = await (await fetch('/notifications?user_id=' + currentUserId)).json();
     const b = document.getElementById('notif-badge');
-    // On ajoute +1 pour la notif spéciale offre de lancement
-    const totalUnread = (d.unread || 0) + 1;
+    const totalUnread = (d.unread || 0) + 2; // +2 pour les 2 offres
     if (totalUnread > 0) {
       b.textContent = totalUnread > 9 ? '9+' : totalUnread;
       b.classList.remove('hidden');
@@ -727,15 +726,27 @@ function toggleNotifModal(){
   const list = document.getElementById('notif-list');
   const n = window._lastNotifs || [];
 
-  // Notification spéciale Offre de Lancement (toujours en premier)
   let html = `
+    <!-- Offre de Lancement -->
     <div class="card" style="margin-bottom:10px;cursor:pointer;border:1px solid #f59e0b55;background:linear-gradient(135deg,#f59e0b15,#fbbf2410)" 
          onclick="closeNotifModal();openLeaderboardModal()">
       <div style="display:flex;align-items:center;gap:10px;">
         <div style="width:36px;height:36px;border-radius:50%;background:var(--orange);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;">🏆</div>
         <div>
           <div style="font-weight:700;font-size:14px;">Offre de Lancement</div>
-          <div class="muted" style="font-size:12.5px;">Gagne jusqu’à 1 500 € • Clique pour voir</div>
+          <div class="muted" style="font-size:12.5px;">Jusqu’à 1 500 € • Clique pour voir</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Offre Codes/Parrainage -->
+    <div class="card" style="margin-bottom:10px;cursor:pointer;border:1px solid #22c55e55;background:linear-gradient(135deg,#22c55e12,#16a34a10)" 
+         onclick="closeNotifModal();alert('Offre Codes / Parrainage\\n\\nAtteins 250 copies sur un de tes codes → 100 € de récompense.\\n\\nLe premier qui y arrive sera notifié.')">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div style="width:36px;height:36px;border-radius:50%;background:#22c55e;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;">💰</div>
+        <div>
+          <div style="font-weight:700;font-size:14px;">Offre Codes / Parrainage</div>
+          <div class="muted" style="font-size:12.5px;">250 copies = 100 € • Clique pour info</div>
         </div>
       </div>
     </div>
@@ -879,13 +890,6 @@ function avatarHTML(c){
   return c.photo_url
     ? `<img class="avatar-img" src="${c.photo_url}" loading="lazy">`
     : `<div class="avatar">${(c.added_by||'C')[0].toUpperCase()}</div>`;
-}
-function openSite(url, code){
-  if (code) navigator.clipboard.writeText(code).catch(()=>{});
-  if (url) {
-    if (tg?.openLink) tg.openLink(url);
-    else window.open(url, '_blank');
-  }
 }
 
 async function copyAndOpen(id, code, url, btn) {
@@ -1306,20 +1310,47 @@ async function loadLeaderboardModal(){
 
   try {
     const d = await (await fetch('/leaderboard')).json();
-    if (!d.leaderboard?.length) {
-      list.innerHTML = '<div class="empty">Aucun classement pour le moment</div>';
-      return;
-    }
-    list.innerHTML = d.leaderboard.map(u => `
-      <div class="leader-item clickable" onclick="closeLeaderboardModal();viewProfile(${u.user_id},'${String(u.name||'').replace(/'/g,"\\'")}')">
-        <div class="leader-rank">${u.rank}</div>
-        ${u.photo_url ? `<img class="avatar-img" src="${u.photo_url}" style="width:40px;height:40px" loading="lazy">` : `<div class="avatar" style="width:40px;height:40px;font-size:14px">${(u.name||'M')[0]}</div>`}
-        <div style="flex:1">
-          <div style="font-weight:600">${u.name||'Membre'}</div>
-          <div class="muted">${u.codes_count} codes • ${u.badge}</div>
+    let html = '';
+    if (d.leaderboard?.length) {
+      html = d.leaderboard.map(u => `
+        <div class="leader-item clickable" onclick="closeLeaderboardModal();viewProfile(${u.user_id},'${String(u.name||'').replace(/'/g,"\\'")}')">
+          <div class="leader-rank">${u.rank}</div>
+          ${u.photo_url ? `<img class="avatar-img" src="${u.photo_url}" style="width:40px;height:40px" loading="lazy">` : `<div class="avatar" style="width:40px;height:40px;font-size:14px">${(u.name||'M')[0]}</div>`}
+          <div style="flex:1">
+            <div style="font-weight:600">${u.name||'Membre'}</div>
+            <div class="muted">${u.codes_count} codes • ${u.badge}</div>
+          </div>
         </div>
-      </div>
-    `).join('');
+      `).join('');
+    } else {
+      html = '<div class="empty">Aucun classement pour le moment</div>';
+    }
+
+    // Classement Offre de Lancement (parrains)
+    try {
+      const refData = await (await fetch('/referral/leaderboard')).json();
+      if (refData.leaderboard && refData.leaderboard.length > 0) {
+        html += `
+          <div style="margin-top:28px;padding-top:18px;border-top:1px solid var(--border);">
+            <div style="font-weight:700;margin-bottom:12px;font-size:15px;">Classement Offre de Lancement</div>
+            <div class="muted" style="font-size:12px;margin-bottom:14px;">Personnes qui ont rejoint grâce à leur code</div>
+            ${refData.leaderboard.map(u => `
+              <div class="leader-item clickable" onclick="closeLeaderboardModal();viewProfile(${u.user_id},'${String(u.name||'').replace(/'/g,"\\'")}')">
+                <div class="leader-rank">${u.rank}</div>
+                ${u.photo_url 
+                  ? `<img class="avatar-img" src="${u.photo_url}" style="width:40px;height:40px" loading="lazy">` 
+                  : `<div class="avatar" style="width:40px;height:40px;font-size:14px">${(u.name||'M')[0]}</div>`}
+                <div style="flex:1">
+                  <div style="font-weight:600">${u.name||'Membre'}</div>
+                  <div class="muted">${u.referrals_count} personne${u.referrals_count > 1 ? 's' : ''} via son code</div>
+                </div>
+              </div>
+            `).join('')}
+          </div>`;
+      }
+    } catch(e){}
+
+    list.innerHTML = html;
   } catch(e){
     list.innerHTML = '<div class="empty">Erreur</div>';
   }
@@ -1468,7 +1499,6 @@ async function loadProfile(forceId = null, forceName = null) {
         Codes
       </button>
       <button class="profile-tab" id="tab-saved" onclick="showProfileTab('saved',${targetId})">${ICON_OUT}<br>Favoris</button>
-      ${isOwn ? `<button class="profile-tab" id="tab-history" onclick="showProfileTab('history',${targetId})">📋<br>Historique</button>` : ''}
     </div>
   `;
   requestAnimationFrame(() => {
@@ -1549,13 +1579,12 @@ async function togglePush(enabled){
 async function showProfileTab(tab, userId) {
   const tp = document.getElementById('tab-posts');
   const ts = document.getElementById('tab-saved');
-  const th = document.getElementById('tab-history');
   const c = document.getElementById('my-codes');
-  [tp, ts, th].forEach(el => el && el.classList.remove('active'));
+  [tp, ts].forEach(el => el && el.classList.remove('active'));
   if (tab === 'posts') {
     tp?.classList.add('active');
     try {
-      const d = await (await fetch((Number(userId) === Number(currentUserId) ? '/codes/mine' : '/codes/user') + '?user_id=' + userId + (currentUserId ? '&viewer_id=' + currentUserId : ''))).json();
+      const d = await (await fetch((Number(userId) === Number(currentUserId) ? '/codes/mine' : '/codes/user') + '?user_id=' + userId)).json();
       c.innerHTML = (d.codes || []).length
         ? (d.codes || []).map(x => renderPost(x)).join('')
         : `<div class="empty"><div style="font-size:36px;margin-bottom:12px;opacity:0.6">📦</div><div style="font-weight:600;margin-bottom:4px">Aucun code</div><div style="font-size:13px">Pas encore de publication</div></div>`;
@@ -1571,14 +1600,6 @@ async function showProfileTab(tab, userId) {
       c.innerHTML = (d.codes || []).length
         ? (d.codes || []).map(x => renderPost(x, {showUnsave: true})).join('')
         : `<div class="empty"><div style="font-size:36px;margin-bottom:12px;opacity:0.6">🔖</div><div style="font-weight:600;margin-bottom:4px">Aucun favori</div><div style="font-size:13px">Swipe à droite pour en ajouter</div></div>`;
-    } catch(e){ c.innerHTML = '<div class="empty">Erreur</div>'; }
-  } else if (tab === 'history') {
-    th?.classList.add('active');
-    try {
-      const d = await (await fetch('/codes/copied?user_id=' + userId)).json();
-      c.innerHTML = (d.codes || []).length
-        ? (d.codes || []).map(x => renderPost(x)).join('')
-        : `<div class="empty"><div style="font-size:36px;margin-bottom:12px;opacity:0.6">📋</div><div style="font-weight:600;margin-bottom:4px">Historique vide</div><div style="font-size:13px">Tes codes copiés apparaîtront ici</div></div>`;
     } catch(e){ c.innerHTML = '<div class="empty">Erreur</div>'; }
   }
 }
@@ -1632,22 +1653,61 @@ async function loadCodes(){
       }
     } catch(e){ allCodes = []; }
   }
+
   renderStories();
+
+  // ===== TOP CODES (seulement si ≥ 100 likes ou copies) =====
+  const topContainer = document.getElementById('daily-codes');
+  const topSection = document.getElementById('top-codes-section');
+
   try {
     let topUrl = '/codes/top';
     if (currentUserId) topUrl += '?user_id=' + currentUserId;
     const top = (await (await fetch(topUrl)).json()).codes || [];
-    document.getElementById('daily-codes').innerHTML = top.length
-      ? top.map(c => `<div class="card row"><div><strong>${c.site}</strong><div class="muted">${c.type||'promo'} • ${c.code}</div></div><div class="pill">${c.description||'Promo'}</div></div>`).join('')
-      : '<div class="empty">Pas de top</div>';
-  } catch(e){}
-  document.getElementById('feed-title').textContent = 
-    currentFilter === 'all' ? 'À la une' : 
-    currentFilter === 'promo' ? 'Codes promo' : 
-    currentFilter === 'parrainage' ? 'Codes parrainage' : 'Expirent bientôt';
-  document.getElementById('codes-list').innerHTML = allCodes.length
-    ? allCodes.map(c => renderPost(c)).join('')
-    : '<div class="empty">Aucun code</div>';
+
+    if (top.length > 0) {
+      topSection.style.display = 'block';
+      topContainer.style.display = 'block';
+      topContainer.innerHTML = top.map(c => `
+        <div class="card row">
+          <div>
+            <strong>${c.site}</strong>
+            <div class="muted">${c.type||'promo'} • ${c.code}</div>
+          </div>
+          <div class="pill">${c.description||'Promo'}</div>
+        </div>`).join('');
+    } else {
+      topSection.style.display = 'none';
+      topContainer.style.display = 'none';
+      topContainer.innerHTML = '';
+    }
+  } catch(e){
+    topSection.style.display = 'none';
+    topContainer.style.display = 'none';
+  }
+
+  // ===== À LA UNE / FEED =====
+  const feedTitle = document.getElementById('feed-title');
+  const codesList = document.getElementById('codes-list');
+
+  if (allCodes.length === 0) {
+    feedTitle.style.display = 'none';
+    codesList.innerHTML = `
+      <div style="text-align:center;padding:80px 30px 40px;color:var(--text2);">
+        <div style="font-size:18px;font-weight:700;color:var(--text);margin-bottom:8px;">
+          Sois le premier a poster TO DAY !
+        </div>
+        <div style="font-size:14px;">Personne n’a encore partagé de code aujourd’hui.</div>
+      </div>`;
+  } else {
+    feedTitle.style.display = 'block';
+    feedTitle.textContent = 
+      currentFilter === 'all' ? 'À la une' : 
+      currentFilter === 'promo' ? 'Codes promo' : 
+      currentFilter === 'parrainage' ? 'Codes parrainage' : 'Expirent bientôt';
+    
+    codesList.innerHTML = allCodes.map(c => renderPost(c)).join('');
+  }
 }
 
 const SWIPE_THRESHOLD = 85;
