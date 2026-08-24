@@ -34,7 +34,7 @@
     @keyframes saveFlash{0%{box-shadow:0 0 0 0 rgba(42,171,238,0.6);transform:scale(1)}40%{box-shadow:0 0 0 16px rgba(42,171,238,0);transform:scale(1.015)}100%{box-shadow:var(--shadow);transform:scale(1)}}
     @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
 
-    .codia-logo{display:inline-flex;flex-direction:column;align-items:flex-start;line-height:1}
+    .codia-logo{display:inline-flex;flex-direction:column;align-items:flex-start;line-height:1;cursor:pointer}
     .codia-logo-main{display:flex;align-items:center;gap:2px;position:relative}
     .codia-logo-text{font-weight:900;font-size:28px;letter-spacing:-0.04em;color:#0a0a0a;position:relative;z-index:1}
     body:not(.light) .codia-logo-text,#free-locked-page .codia-logo-text{color:#fff}
@@ -362,7 +362,7 @@
 <div class="app hidden" id="main-app">
   <div class="header">
     <div class="brand">
-      <div class="codia-logo compact">
+      <div class="codia-logo compact" onclick="showPage('home')">
         <div class="codia-logo-main">
           <span class="codia-logo-text">COD.IA</span>
           <span class="codia-logo-underline"></span>
@@ -381,7 +381,7 @@
   <div class="page page-home active" id="page-home">
     <div class="section" id="top-codes-section">Top Codes</div>
     <div id="daily-codes"></div>
-    <div class="chips" style="padding:8px 18px 4px;">
+    <div class="chips" id="filter-chips" style="padding:8px 18px 4px;">
       <button class="chip active" id="filter-all" onclick="setFilter('all')">Tous</button>
       <button class="chip" id="filter-promo" onclick="setFilter('promo')">Promo</button>
       <button class="chip" id="filter-parrainage" onclick="setFilter('parrainage')">Parrainage</button>
@@ -471,12 +471,29 @@
     <div style="text-align:center;font-weight:700;margin-bottom:16px;font-size:17px;">Offre de Lancement</div>
     
     <div style="font-size:14.5px;line-height:1.65;color:var(--text);">
-      <p style="margin-bottom:14px;">
-        Génère ton <b>code de parrainage</b> et partage-le autour de toi.
-      </p>
       
       <p style="margin-bottom:14px;">
-        Chaque personne qui rejoint COD.IA grâce à ton code compte pour toi.
+        <b>Comment ça marche ?</b>
+      </p>
+
+      <p style="margin-bottom:12px;">
+        1. Génère ton <b>code de parrainage</b> (bouton ci-dessous).<br>
+        2. Partage-le à tes amis / contacts.
+      </p>
+
+      <p style="margin-bottom:12px;">
+        3. Quand une personne vient de ta part et <b>paie l’accès</b> :
+      </p>
+
+      <div style="background:var(--bg);border:1px solid var(--border);border-radius:14px;padding:14px;margin:12px 0;font-size:13.5px;line-height:1.6;">
+        → Elle doit aller dans son <b>Profil</b><br>
+        → Cliquer sur <b>« Niveau de contribution »</b><br>
+        → Coller le code que tu lui as communiqué dans la case <b>« Intégrer un code »</b><br>
+        → Valider
+      </div>
+
+      <p style="margin-bottom:14px;">
+        Une fois le code validé → <b>1 point</b> est comptabilisé pour toi.
       </p>
 
       <div style="background:var(--bg);border:1px solid var(--border);border-radius:14px;padding:14px;margin:16px 0;">
@@ -494,7 +511,7 @@
       </div>
 
       <p style="font-size:13px;color:var(--text2);margin-top:14px;">
-        Le classement est basé sur le nombre de personnes qui ont payé grâce à ton code de parrainage.
+        Le classement est basé uniquement sur le nombre de personnes qui ont payé grâce à ton code de parrainage.
       </p>
     </div>
 
@@ -514,6 +531,7 @@ const cache = { codes: null, codesTime: 0, profile: {}, TTL: 25000 };
 let allCodes = [], currentShareType = "promo", currentUserId = null, currentUserName = null, isAdmin = false, viewingUserId = null;
 let currentFilter = 'all', editingCodeId = null, longPressCode = null, longPressTimer = null, longPressMoved = false;
 let searchController = null, searchTimeout = null;
+let notifsOpened = false; // pour enlever le badge une fois lu
 
 const ICON_OUT = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>`;
 const ICON_FILL = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>`;
@@ -712,12 +730,17 @@ async function loadNotifications(){
   try {
     const d = await (await fetch('/notifications?user_id=' + currentUserId)).json();
     const b = document.getElementById('notif-badge');
-    const totalUnread = (d.unread || 0) + 2; // +2 pour les 2 offres
-    if (totalUnread > 0) {
-      b.textContent = totalUnread > 9 ? '9+' : totalUnread;
+    const unread = d.unread || 0;
+
+    // Badge uniquement si pas encore ouvert + il y a des non-lus
+    if (!notifsOpened && unread > 0) {
+      b.textContent = unread > 9 ? '9+' : unread;
       b.classList.remove('hidden');
       b.style.display = 'flex';
-    } else b.classList.add('hidden');
+    } else {
+      b.classList.add('hidden');
+      b.style.display = 'none';
+    }
     window._lastNotifs = d.notifications || [];
   } catch(e){}
 }
@@ -763,12 +786,18 @@ function toggleNotifModal(){
   list.innerHTML = html;
   document.getElementById('notifModal').classList.add('active');
 
+  // Une fois ouvert → on considère comme lu
+  notifsOpened = true;
+  const b = document.getElementById('notif-badge');
+  b.classList.add('hidden');
+  b.style.display = 'none';
+
   if (currentUserId) {
     fetch('/notifications/read', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({user_id: currentUserId})
-    }).then(() => loadNotifications());
+    });
   }
 }
 function closeNotifModal(){ document.getElementById('notifModal').classList.remove('active'); }
@@ -1299,6 +1328,10 @@ async function loadLeaderboardModal(){
             <div style="font-size:13px;margin-bottom:6px">Tu as un code de parrainage ?</div>
             <input id="ref-input" placeholder="Ex: CODIAXXXXXX" style="width:100%;padding:12px;border-radius:10px;border:1px solid var(--border);background:var(--card);color:var(--text);margin-bottom:8px;">
             <button onclick="integrateReferralCode()" style="width:100%;padding:10px;border-radius:10px;border:1px solid var(--border);background:var(--card);color:var(--text);font-weight:600;margin-bottom:0;">Intégrer le code</button>
+            <div style="font-size:12px;color:var(--text2);margin-top:10px;line-height:1.5;">
+              Une fois que ton filleul a payé, il doit aller dans <b>Profil → Niveau de contribution</b> et coller ton code.<br>
+              1 code validé = 1 point pour toi.
+            </div>
           </div>`;
       } else {
         html += `<div class="muted" style="margin-top:10px;font-size:12px">Tu as déjà intégré un code de parrainage</div>`;
@@ -1412,25 +1445,33 @@ async function loadProfile(forceId = null, forceName = null) {
     : `<div class="avatar">${(displayName[0] || 'M').toUpperCase()}</div>`;
 
   let fullStats = {};
+  let referralsCount = 0;
   try {
     fullStats = await (await fetch('/profile/full_stats?user_id=' + targetId)).json();
   } catch(e){}
 
-  const score = (fullStats.total_codes || 0) * 2 + (fullStats.total_likes || 0) + (fullStats.total_copies || 0) + (fullStats.points || 0);
+  // Points = uniquement ceux de l'offre de lancement (parrainages)
+  try {
+    const st = await (await fetch('/referral/status?user_id=' + targetId)).json();
+    referralsCount = st.referrals_count || 0;
+  } catch(e){}
+
+  // Niveau de contribution basé UNIQUEMENT sur l'offre de lancement
+  const points = referralsCount; // 1 filleul = 1 point
   const levels = [
-    { min: 0, label: "Membre", next: 3 },
-    { min: 3, label: "Actif", next: 10 },
-    { min: 10, label: "Contributeur", next: 25 },
-    { min: 25, label: "Expert", next: 50 },
-    { min: 50, label: "Référent", next: 100 },
-    { min: 100, label: "Ambassadeur", next: 100 }
+    { min: 0, label: "Membre", next: 5 },
+    { min: 5, label: "Actif", next: 15 },
+    { min: 15, label: "Contributeur", next: 40 },
+    { min: 40, label: "Expert", next: 80 },
+    { min: 80, label: "Référent", next: 150 },
+    { min: 150, label: "Ambassadeur", next: 150 }
   ];
   let current = levels[0];
   for (let i = levels.length - 1; i >= 0; i--) {
-    if (score >= levels[i].min) { current = levels[i]; break; }
+    if (points >= levels[i].min) { current = levels[i]; break; }
   }
-  const progress = current.next === 100 && score >= 100 ? 100 :
-    Math.min(100, Math.round(((score - current.min) / (current.next - current.min)) * 100));
+  const progress = current.next === 150 && points >= 150 ? 100 :
+    Math.min(100, Math.round(((points - current.min) / (current.next - current.min)) * 100));
 
   let followBtn = '';
   if (!isOwn && currentUserId) {
@@ -1471,8 +1512,8 @@ async function loadProfile(forceId = null, forceName = null) {
     </div>
     <div class="profile-level clickable" onclick="openLeaderboardModal()">
       <div class="profile-level-top">
-        <span>Niveau de contribution</span>
-        <strong>${current.label} • ${fullStats.points||0} pts</strong>
+        <span>Niveau de contribution (Offre de Lancement)</span>
+        <strong>${current.label} • ${points} pts</strong>
       </div>
       <div class="profile-level-bar">
         <div class="profile-level-fill" style="width:0%" id="level-fill"></div>
@@ -1482,7 +1523,7 @@ async function loadProfile(forceId = null, forceName = null) {
       <div class="stat-item"><b>${fullStats.total_codes||0}</b><span>Codes</span></div>
       <div class="stat-item"><b>${fullStats.total_likes||0}</b><span>J’aime</span></div>
       <div class="stat-item"><b>${fullStats.total_copies||0}</b><span>Copies</span></div>
-      <div class="stat-item"><b>${fullStats.copied_by_me||0}</b><span>Historique</span></div>
+      <div class="stat-item"><b>${referralsCount}</b><span>Filleuls</span></div>
     </div>
     <div class="follow-stats">
       <div class="clickable" onclick="showFollowList(${targetId},'followers')"><b>${fullStats.followers||0}</b> abonnés</div>
@@ -1684,6 +1725,14 @@ async function loadCodes(){
   } catch(e){
     topSection.style.display = 'none';
     topContainer.style.display = 'none';
+  }
+
+  // ===== FILTRES : cachés s'il n'y a aucun code =====
+  const chips = document.getElementById('filter-chips');
+  if (allCodes.length === 0 && currentFilter === 'all') {
+    chips.style.display = 'none';
+  } else {
+    chips.style.display = 'flex';
   }
 
   // ===== À LA UNE / FEED =====
