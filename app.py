@@ -348,18 +348,18 @@ def stripe_webhook():
                     (int(telegram_id), session.get("id"))
                 )
 
-                # Crédite le parrain
+                # Crédite le parrain (+1 point = +1 filleul)
                 cur.execute("SELECT referrer_id FROM referrals WHERE referred_id = %s", (int(telegram_id),))
                 ref = cur.fetchone()
                 if ref:
                     referrer = ref["referrer_id"]
                     cur.execute("""
-                        INSERT INTO user_profiles (user_id, points) VALUES (%s, 100)
-                        ON CONFLICT (user_id) DO UPDATE SET points = COALESCE(user_profiles.points, 0) + 100
+                        INSERT INTO user_profiles (user_id, points) VALUES (%s, 1)
+                        ON CONFLICT (user_id) DO UPDATE SET points = COALESCE(user_profiles.points, 0) + 1
                     """, (referrer,))
                     send_telegram_message(
                         referrer,
-                        "Félicitations ! Quelqu'un a utilisé ton code de parrainage et a rejoint COD.IA.\nTu as gagné 100 points."
+                        "Félicitations ! Quelqu'un a utilisé ton code de parrainage et a rejoint COD.IA.\nTu as gagné +1 point (Offre de Lancement)."
                     )
 
                 conn.commit()
