@@ -19,7 +19,6 @@ STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET", "")
 STRIPE_PUBLISHABLE_KEY = os.getenv("STRIPE_PUBLISHABLE_KEY", "")
 
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
-ADMIN_ID = int(os.getenv("ADMIN_ID", "8091031583", "6886937.51"))
 CHANNEL_LINK = os.getenv("CHANNEL_LINK", "https://t.me/+ODE8T52A5yEzMTZk")
 CHANNEL_ID = os.getenv("CHANNEL_ID", "-1004414166682")
 DATABASE_URL = os.getenv("DATABASE_URL")
@@ -30,6 +29,26 @@ PRICE_CENTS = int(os.getenv("PRICE_CENTS", "1000"))
 
 BASE_MEMBERS = 2345
 REPORT_THRESHOLD = 10
+
+# ==================== MULTI-ADMIN ====================
+ADMIN_IDS = set()
+_raw_admins = os.getenv("ADMIN_IDS", os.getenv("ADMIN_ID", "8091031583"))
+for _id in _raw_admins.replace(" ", "").split(","):
+    if _id.isdigit():
+        ADMIN_IDS.add(int(_id))
+
+# Compatibilité
+ADMIN_ID = next(iter(ADMIN_IDS)) if ADMIN_IDS else 8091031583
+
+
+def is_admin(user_id):
+    if not user_id:
+        return False
+    try:
+        return int(user_id) in ADMIN_IDS
+    except Exception:
+        return False
+
 
 client = None
 if XAI_API_KEY:
@@ -155,7 +174,6 @@ def init_db():
         )
     """)
 
-    # Colonnes supplémentaires (sécurité si table déjà existante)
     try:
         cur.execute("ALTER TABLE codes ADD COLUMN IF NOT EXISTS verified BOOLEAN DEFAULT FALSE")
         cur.execute("ALTER TABLE codes ADD COLUMN IF NOT EXISTS tested_at TIMESTAMP")
@@ -173,7 +191,7 @@ def init_db():
 def is_paid(user_id):
     if not user_id:
         return False
-    if int(user_id) == ADMIN_ID:
+    if is_admin(user_id):
         return True
     try:
         conn = get_conn()
@@ -269,7 +287,7 @@ def access():
     paid = is_paid(user_id)
     return jsonify({
         "paid": paid,
-        "is_admin": user_id == ADMIN_ID if user_id else False
+        "is_admin": is_admin(user_id)
     })
 
 
@@ -519,7 +537,6 @@ def codes_mine():
 @app.route("/codes/user")
 def codes_user():
     user_id = request.args.get("user_id", type=int)
-    viewer_id = request.args.get("viewer_id", type=int)
     try:
         conn = get_conn()
         cur = conn.cursor()
@@ -715,16 +732,17 @@ def code_react():
 @app.route("/code/edit", methods=["POST"])
 def code_edit():
     data = request.json or {}
+    user_id = data.get("user_id")
     try:
         conn = get_conn()
         cur = conn.cursor()
         cur.execute("""
             UPDATE codes SET site = %s, code = %s, description = %s, url = %s, expires_at = %s
-            WHERE id = %s AND (user_id = %s OR %s = %s)
+            WHERE id = %s AND (user_id = %s OR %s = TRUE)
         """, (
             data.get("site"), data.get("code"), data.get("description"),
             data.get("url"), data.get("expires_at") or None,
-            data.get("id"), data.get("user_id"), data.get("user_id"), ADMIN_ID
+            data.get("id"), user_id, is_admin(user_id)
         ))
         conn.commit()
         cur.close()
@@ -737,13 +755,14 @@ def code_edit():
 @app.route("/code/delete", methods=["POST"])
 def code_delete():
     data = request.json or {}
+    user_id = data.get("user_id")
     try:
         conn = get_conn()
         cur = conn.cursor()
         cur.execute("""
             UPDATE codes SET deleted = TRUE
-            WHERE id = %s AND (user_id = %s OR %s = %s)
-        """, (data.get("id"), data.get("user_id"), data.get("user_id"), ADMIN_ID))
+            WHERE id = %s AND (user_id = %s OR %s = TRUE)
+        """, (data.get("id"), user_id, is_admin(user_id)))
         conn.commit()
         cur.close()
         conn.close()
@@ -755,13 +774,14 @@ def code_delete():
 @app.route("/code/restore", methods=["POST"])
 def code_restore():
     data = request.json or {}
+    user_id = data.get("user_id")
     try:
         conn = get_conn()
         cur = conn.cursor()
         cur.execute("""
             UPDATE codes SET deleted = FALSE
-            WHERE id = %s AND (user_id = %s OR %s = %s)
-        """, (data.get("id"), data.get("user_id"), data.get("user_id"), ADMIN_ID))
+            WHERE id = %s AND (user_id = %s OR %s = TRUE)
+        """, (data.get("id"), user_id, is_admin(user_id)))
         conn.commit()
         cur.close()
         conn.close()
@@ -1338,14 +1358,17 @@ def telegram_webhook():
         return jsonify(success=True)
 
     # ===== /payadmin =====
-    if text.lower() == "/payadmin" and user_id == ADMIN_ID:
+    if text.lower() == "/payadmin":
+        if not is_admin(user_id):
+            send_telegram_message(chat_id, "Commande réservée aux admins.")
+            return jsonify(success=True)
         send_telegram_message(chat_id, "Admin OK. Tu as déjà l'accès.")
         return jsonify(success=True)
 
-    # ===== /stat (admin only) =====
+    # ===== /stat (admins only) =====
     if text.lower() in ("/stat", "/stats"):
-        if user_id != ADMIN_ID:
-            send_telegram_message(chat_id, "Commande réservée à l'admin.")
+        if not is_admin(user_id):
+            send_telegram_message(chat_id, "Commande réservée aux admins.")
             return jsonify(success=True)
         try:
             conn = get_conn()
@@ -1412,7 +1435,7 @@ def telegram_webhook():
 @app.route("/notify/daily", methods=["POST"])
 def notify_daily():
     data = request.json or {}
-    if int(data.get("admin_id") or 0) != ADMIN_ID:
+    if not is_admin(data.get("admin_id")):
         return jsonify({"error": "unauthorized"}), 403
     send_telegram_message(ADMIN_ID, "Cron daily reçu")
     return jsonify({"ok": True})
