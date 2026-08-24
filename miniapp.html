@@ -232,8 +232,6 @@
 </head>
 <body>
 
-<!-- COD.IA - Codes promo et parrainages communauté -->
-
 <!-- PAGE GRATUITE -->
 <div id="free-locked-page">
   <header class="fl-header">
@@ -450,16 +448,57 @@
   <div class="sheet">
     <div style="text-align:center;font-weight:700;margin-bottom:10px">Classement de la semaine</div>
     
-    <div style="background:linear-gradient(135deg,#f59e0b22,#fbbf2422);border:1px solid #f59e0b55;border-radius:16px;padding:14px;margin-bottom:16px;font-size:13px;line-height:1.5;">
-      <strong style="color:var(--orange)">OFFRE DE LANCEMENT</strong><br>
-      🥇 OR → 1500 Membres COD.IA<br>
-      🥈 ARGENT → 1000 Membres COD.IA<br>
-      🥉 BRONZE → 500 Membres COD.IA
+    <div style="background:linear-gradient(135deg,#f59e0b22,#fbbf2422);border:1px solid #f59e0b55;border-radius:16px;padding:14px;margin-bottom:16px;font-size:13px;line-height:1.5;position:relative;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+        <strong style="color:var(--orange)">OFFRE DE LANCEMENT</strong>
+        <button onclick="openLaunchInfo()" style="width:22px;height:22px;border-radius:50%;border:1.5px solid var(--orange);background:transparent;color:var(--orange);font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;">i</button>
+      </div>
+      🥇 OR → 1500 Membres<br>
+      🥈 ARGENT → 1000 Membres<br>
+      🥉 BRONZE → 500 Membres<br>
+      <div style="margin-top:8px;font-size:12px;color:#f87171;">Se termine dans 3 semaines</div>
     </div>
 
     <div id="referral-box" style="margin-bottom:16px;"></div>
     <div id="leaderboard-modal-list"></div>
     <button onclick="closeLeaderboardModal()">Fermer</button>
+  </div>
+</div>
+
+<!-- MODAL EXPLICATION OFFRE DE LANCEMENT -->
+<div class="modal" id="launchInfoModal">
+  <div class="sheet">
+    <div style="text-align:center;font-weight:700;margin-bottom:16px;font-size:17px;">Offre de Lancement</div>
+    
+    <div style="font-size:14.5px;line-height:1.65;color:var(--text);">
+      <p style="margin-bottom:14px;">
+        Génère ton <b>code de parrainage</b> et partage-le autour de toi.
+      </p>
+      
+      <p style="margin-bottom:14px;">
+        Chaque personne qui rejoint COD.IA grâce à ton code compte pour toi.
+      </p>
+
+      <div style="background:var(--bg);border:1px solid var(--border);border-radius:14px;padding:14px;margin:16px 0;">
+        <div style="font-weight:700;margin-bottom:8px;color:var(--orange);">Récompenses finales</div>
+        <div>Quand la communauté atteindra <b>1500 membres (OR)</b> :</div>
+        <div style="margin-top:10px;line-height:1.8;">
+          🥇 <b>1er</b> → <b>1 500 €</b><br>
+          🥈 <b>2ème</b> → <b>1 000 €</b><br>
+          🥉 <b>3ème</b> → <b>500 €</b>
+        </div>
+      </div>
+
+      <div style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:12px;padding:12px;font-size:13.5px;color:#f87171;text-align:center;">
+        ⏳ L’offre se termine dans <b>3 semaines</b>
+      </div>
+
+      <p style="font-size:13px;color:var(--text2);margin-top:14px;">
+        Le classement est basé sur le nombre de personnes qui ont payé grâce à ton code de parrainage.
+      </p>
+    </div>
+
+    <button onclick="closeLaunchInfo()" style="margin-top:20px;">Compris</button>
   </div>
 </div>
 
@@ -517,10 +556,26 @@ function showSuccessThenApp(){
 /* ========== ONBOARDING ========== */
 let obStep = 0;
 const obSlides = [
-  { title: "1. Le Feed", text: "Découvre les meilleurs codes promo & parrainages mis à jour en temps réel par la communauté." },
-  { title: "2. Swipe & Favoris", text: "Swipe à droite pour sauvegarder un code. Retrouve-les dans ton profil → Favoris." },
-  { title: "3. Recherche + IA", text: "Utilise la recherche classique ou l’assistant IA pour trouver un code en quelques secondes." },
-  { title: "4. Publie & grimpe", text: "Partage tes propres codes, gagne des points et monte dans le classement de la semaine !" }
+  {
+    title: "Le Feed",
+    text: "Découvre les meilleurs codes promo et parrainages mis à jour en temps réel par la communauté.",
+    icon: "📋"
+  },
+  {
+    title: "Swipe & Favoris",
+    text: "Swipe à droite sur un code pour l’ajouter à tes favoris. Retrouve-les facilement dans ton profil.",
+    icon: "⭐"
+  },
+  {
+    title: "Recherche + IA",
+    text: "Utilise la recherche classique ou l’assistant IA pour trouver un code en quelques secondes.",
+    icon: "✦"
+  },
+  {
+    title: "Publie & gagne",
+    text: "Partage tes propres codes, génère ton code de parrainage et grimpe dans le classement pour gagner jusqu’à 1 500 €.",
+    icon: "🏆"
+  }
 ];
 
 function startOnboarding() {
@@ -533,9 +588,12 @@ function startOnboarding() {
 function renderObSlide() {
   const s = obSlides[obStep];
   document.getElementById('onboarding-slides').innerHTML = `
-    <div style="font-size:22px;font-weight:800;margin-bottom:12px">${s.title}</div>
-    <div style="font-size:15px;line-height:1.6;color:#ccc">${s.text}</div>
-    <div style="margin-top:18px;font-size:13px;color:#888">${obStep+1} / ${obSlides.length}</div>
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:24px;padding:32px 24px;max-width:340px;margin:0 auto;box-shadow:0 20px 50px rgba(0,0,0,0.4);">
+      <div style="font-size:48px;margin-bottom:18px;">${s.icon}</div>
+      <div style="font-size:22px;font-weight:800;margin-bottom:14px;color:var(--text);">${s.title}</div>
+      <div style="font-size:15px;line-height:1.65;color:var(--text2);">${s.text}</div>
+      <div style="margin-top:22px;font-size:13px;color:var(--text2);">${obStep+1} / ${obSlides.length}</div>
+    </div>
   `;
   document.getElementById('ob-prev').style.display = obStep === 0 ? 'none' : 'block';
   document.getElementById('ob-next').textContent = obStep === obSlides.length-1 ? 'Commencer' : 'Suivant';
@@ -654,8 +712,10 @@ async function loadNotifications(){
   try {
     const d = await (await fetch('/notifications?user_id=' + currentUserId)).json();
     const b = document.getElementById('notif-badge');
-    if (d.unread > 0) {
-      b.textContent = d.unread > 9 ? '9+' : d.unread;
+    // On ajoute +1 pour la notif spéciale offre de lancement
+    const totalUnread = (d.unread || 0) + 1;
+    if (totalUnread > 0) {
+      b.textContent = totalUnread > 9 ? '9+' : totalUnread;
       b.classList.remove('hidden');
       b.style.display = 'flex';
     } else b.classList.add('hidden');
@@ -666,10 +726,32 @@ async function loadNotifications(){
 function toggleNotifModal(){
   const list = document.getElementById('notif-list');
   const n = window._lastNotifs || [];
-  list.innerHTML = n.length
-    ? n.map(x => `<div class="card" style="margin-bottom:8px"><div style="font-size:13px">${(x.message||'').replace(/<[^>]+>/g,'')}</div><div class="muted">${timeAgo(x.created_at)}</div></div>`).join('')
-    : '<div class="empty">Aucune</div>';
+
+  // Notification spéciale Offre de Lancement (toujours en premier)
+  let html = `
+    <div class="card" style="margin-bottom:10px;cursor:pointer;border:1px solid #f59e0b55;background:linear-gradient(135deg,#f59e0b15,#fbbf2410)" 
+         onclick="closeNotifModal();openLeaderboardModal()">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div style="width:36px;height:36px;border-radius:50%;background:var(--orange);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;">🏆</div>
+        <div>
+          <div style="font-weight:700;font-size:14px;">Offre de Lancement</div>
+          <div class="muted" style="font-size:12.5px;">Gagne jusqu’à 1 500 € • Clique pour voir</div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  html += n.length
+    ? n.map(x => `
+        <div class="card" style="margin-bottom:8px">
+          <div style="font-size:13px">${(x.message||'').replace(/<[^>]+>/g,'')}</div>
+          <div class="muted">${timeAgo(x.created_at)}</div>
+        </div>`).join('')
+    : '<div class="empty" style="padding:20px 0">Aucune autre notification</div>';
+
+  list.innerHTML = html;
   document.getElementById('notifModal').classList.add('active');
+
   if (currentUserId) {
     fetch('/notifications/read', {
       method: 'POST',
@@ -906,10 +988,24 @@ function setupLongPress(){
     if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; }
   }, {passive: true});
 }
+
 function openLongPressMenu(){
+  const sheet = document.querySelector('#longPressModal .sheet');
+  let extra = '';
+  if (isAdmin) {
+    extra = `<button class="danger" onclick="hardDeleteCode()" style="margin-top:8px;">🗑️ Supprimer définitivement (admin)</button>`;
+  }
+  sheet.innerHTML = `
+    <div style="text-align:center;font-weight:700;margin-bottom:14px">Actions</div>
+    <button id="lp-profile" onclick="lpVisitProfile()">👤 Visiter le profil</button>
+    <button class="danger" onclick="openReportModal()">🚩 Signaler le code</button>
+    ${extra}
+    <button onclick="closeLongPress()">Annuler</button>
+  `;
   document.getElementById('lp-profile').style.display = (longPressCode?.userId) ? 'block' : 'none';
   document.getElementById('longPressModal').classList.add('active');
 }
+
 function closeLongPress(){ document.getElementById('longPressModal').classList.remove('active'); }
 function lpVisitProfile(){
   closeLongPress();
@@ -921,6 +1017,34 @@ function openReportModal(){
   document.getElementById('reportModal').classList.add('active');
 }
 function closeReport(){ document.getElementById('reportModal').classList.remove('active'); }
+
+async function hardDeleteCode() {
+  if (!longPressCode?.id || !isAdmin) return;
+  if (!confirm('Supprimer DÉFINITIVEMENT ce code ? Cette action est irréversible.')) return;
+  
+  try {
+    const d = await (await fetch('/code/hard-delete', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({id: longPressCode.id, user_id: currentUserId})
+    })).json();
+    
+    closeLongPress();
+    if (d.success) {
+      haptic('medium');
+      const wrap = document.querySelector(`.post-swipe-wrap[data-id="${longPressCode.id}"]`);
+      if (wrap) {
+        wrap.classList.add('removing');
+        setTimeout(() => wrap.remove(), 360);
+      }
+      cache.codes = null;
+    } else {
+      alert('Erreur');
+    }
+  } catch(e) {
+    alert('Erreur');
+  }
+}
 
 async function submitReport(reason){
   if (!longPressCode?.id || !currentUserId) return;
@@ -1136,6 +1260,15 @@ function openLeaderboardModal(){
 }
 function closeLeaderboardModal(){
   document.getElementById('leaderboardModal').classList.remove('active');
+}
+
+function openLaunchInfo() {
+  document.getElementById('launchInfoModal').classList.add('active');
+  haptic('light');
+}
+
+function closeLaunchInfo() {
+  document.getElementById('launchInfoModal').classList.remove('active');
 }
 
 async function loadLeaderboardModal(){
