@@ -1,6 +1,7 @@
 import os
 import json
 import logging
+import secrets
 from datetime import datetime, timedelta
 
 from flask import Flask, request, jsonify, send_from_directory
@@ -70,6 +71,8 @@ def init_db():
             copies INT DEFAULT 0,
             reports INT DEFAULT 0,
             deleted BOOLEAN DEFAULT FALSE,
+            verified BOOLEAN DEFAULT FALSE,
+            tested_at TIMESTAMP,
             created_at TIMESTAMP DEFAULT NOW()
         )
     """)
@@ -117,7 +120,9 @@ def init_db():
         CREATE TABLE IF NOT EXISTS user_profiles (
             user_id BIGINT PRIMARY KEY,
             bio TEXT,
-            push_enabled BOOLEAN DEFAULT TRUE
+            push_enabled BOOLEAN DEFAULT TRUE,
+            points INT DEFAULT 0,
+            referral_used BOOLEAN DEFAULT FALSE
         )
     """)
     cur.execute("""
@@ -135,6 +140,29 @@ def init_db():
             PRIMARY KEY (user_id, code_id, reaction)
         )
     """)
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS referral_codes (
+            user_id BIGINT PRIMARY KEY,
+            code TEXT UNIQUE NOT NULL,
+            created_at TIMESTAMP DEFAULT NOW()
+        )
+    """)
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS referrals (
+            referred_id BIGINT PRIMARY KEY,
+            referrer_id BIGINT NOT NULL,
+            created_at TIMESTAMP DEFAULT NOW()
+        )
+    """)
+
+    # Colonnes supplémentaires (sécurité si table déjà existante)
+    try:
+        cur.execute("ALTER TABLE codes ADD COLUMN IF NOT EXISTS verified BOOLEAN DEFAULT FALSE")
+        cur.execute("ALTER TABLE codes ADD COLUMN IF NOT EXISTS tested_at TIMESTAMP")
+        cur.execute("ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS points INT DEFAULT 0")
+        cur.execute("ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS referral_used BOOLEAN DEFAULT FALSE")
+    except Exception as e:
+        logging.warning(f"Colonnes déjà présentes: {e}")
 
     conn.commit()
     cur.close()
@@ -302,6 +330,21 @@ def stripe_webhook():
                     "INSERT INTO paid_users (user_id, stripe_session_id) VALUES (%s, %s) ON CONFLICT (user_id) DO NOTHING",
                     (int(telegram_id), session.get("id"))
                 )
+
+                # Crédite le parrain s'il y en a un
+                cur.execute("SELECT referrer_id FROM referrals WHERE referred_id = %s", (int(telegram_id),))
+                ref = cur.fetchone()
+                if ref:
+                    referrer = ref["referrer_id"]
+                    cur.execute("""
+                        INSERT INTO user_profiles (user_id, points) VALUES (%s, 100)
+                        ON CONFLICT (user_id) DO UPDATE SET points = COALESCE(user_profiles.points, 0) + 100
+                    """, (referrer,))
+                    send_telegram_message(
+                        referrer,
+                        "Félicitations ! Quelqu'un a utilisé ton code de parrainage et a rejoint COD.IA.\nTu as gagné 100 points."
+                    )
+
                 conn.commit()
                 cur.close()
                 conn.close()
@@ -325,6 +368,7 @@ def stripe_webhook():
 @app.route("/codes")
 def get_codes():
     type_filter = request.args.get("type")
+    expiring = request.args.get("expiring")
     user_id = request.args.get("user_id", type=int)
     try:
         conn = get_conn()
@@ -338,6 +382,8 @@ def get_codes():
         if type_filter in ("promo", "parrainage"):
             query += " AND type = %s"
             params.append(type_filter)
+        if expiring == "1":
+            query += " AND expires_at IS NOT NULL AND expires_at > NOW() AND expires_at < NOW() + INTERVAL '7 days'"
         if user_id:
             query += " AND id NOT IN (SELECT code_id FROM hidden_codes WHERE user_id = %s)"
             params.append(user_id)
@@ -753,6 +799,114 @@ def code_report():
         return jsonify({"error": str(e)}), 500
 
 
+# ==================== PARRAINAGE ====================
+
+@app.route("/referral/generate", methods=["POST"])
+def referral_generate():
+    data = request.json or {}
+    user_id = data.get("user_id")
+    if not user_id or not is_paid(user_id):
+        return jsonify({"error": "Accès réservé"}), 403
+    try:
+        conn = get_conn()
+        cur = conn.cursor()
+        cur.execute("SELECT code FROM referral_codes WHERE user_id = %s", (user_id,))
+        row = cur.fetchone()
+        if row:
+            cur.close()
+            conn.close()
+            return jsonify({"success": True, "code": row["code"]})
+
+        code = "CODIA" + secrets.token_hex(3).upper()
+        cur.execute(
+            "INSERT INTO referral_codes (user_id, code) VALUES (%s, %s) ON CONFLICT DO NOTHING RETURNING code",
+            (user_id, code)
+        )
+        row = cur.fetchone()
+        conn.commit()
+        cur.close()
+        conn.close()
+        return jsonify({"success": True, "code": row["code"] if row else code})
+    except Exception as e:
+        logging.error(e)
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/referral/integrate", methods=["POST"])
+def referral_integrate():
+    data = request.json or {}
+    user_id = data.get("user_id")
+    code = (data.get("code") or "").strip().upper()
+    if not user_id or not code:
+        return jsonify({"error": "Données manquantes"}), 400
+    try:
+        conn = get_conn()
+        cur = conn.cursor()
+
+        cur.execute("SELECT referral_used FROM user_profiles WHERE user_id = %s", (user_id,))
+        row = cur.fetchone()
+        if row and row["referral_used"]:
+            cur.close()
+            conn.close()
+            return jsonify({"error": "Tu as déjà intégré un code de parrainage"}), 400
+
+        cur.execute("SELECT user_id FROM referral_codes WHERE code = %s", (code,))
+        owner = cur.fetchone()
+        if not owner:
+            cur.close()
+            conn.close()
+            return jsonify({"error": "Code invalide"}), 404
+
+        referrer_id = owner["user_id"]
+        if referrer_id == user_id:
+            cur.close()
+            conn.close()
+            return jsonify({"error": "Tu ne peux pas utiliser ton propre code"}), 400
+
+        cur.execute("""
+            INSERT INTO referrals (referred_id, referrer_id) VALUES (%s, %s)
+            ON CONFLICT (referred_id) DO NOTHING
+        """, (user_id, referrer_id))
+
+        cur.execute("""
+            INSERT INTO user_profiles (user_id, referral_used) VALUES (%s, TRUE)
+            ON CONFLICT (user_id) DO UPDATE SET referral_used = TRUE
+        """, (user_id,))
+
+        conn.commit()
+        cur.close()
+        conn.close()
+        return jsonify({"success": True, "message": "Code intégré avec succès !"})
+    except Exception as e:
+        logging.error(e)
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/referral/status")
+def referral_status():
+    user_id = request.args.get("user_id", type=int)
+    if not user_id:
+        return jsonify({})
+    try:
+        conn = get_conn()
+        cur = conn.cursor()
+        cur.execute("SELECT code FROM referral_codes WHERE user_id = %s", (user_id,))
+        my_code = cur.fetchone()
+        cur.execute("SELECT referral_used FROM user_profiles WHERE user_id = %s", (user_id,))
+        used = cur.fetchone()
+        cur.execute("SELECT COUNT(*) as c FROM referrals WHERE referrer_id = %s", (user_id,))
+        count = cur.fetchone()["c"]
+        cur.close()
+        conn.close()
+        return jsonify({
+            "my_code": my_code["code"] if my_code else None,
+            "has_used": bool(used and used["referral_used"]),
+            "referrals_count": count
+        })
+    except Exception:
+        return jsonify({})
+
+
 # ==================== PROFIL ====================
 
 @app.route("/profile/full_stats")
@@ -773,11 +927,12 @@ def profile_full_stats():
         followers = cur.fetchone()["c"]
         cur.execute("SELECT COUNT(*) as c FROM follows WHERE follower_id = %s", (user_id,))
         following = cur.fetchone()["c"]
-        cur.execute("SELECT bio FROM user_profiles WHERE user_id = %s", (user_id,))
+        cur.execute("SELECT bio, COALESCE(points, 0) as points FROM user_profiles WHERE user_id = %s", (user_id,))
         bio_row = cur.fetchone()
         bio = bio_row["bio"] if bio_row else None
+        points = bio_row["points"] if bio_row else 0
 
-        score = total_codes * 2 + total_likes + total_copies
+        score = total_codes * 2 + total_likes + total_copies + points
         if score >= 100:
             badge = "Ambassadeur"
         elif score >= 50:
@@ -801,7 +956,8 @@ def profile_full_stats():
             "followers": followers,
             "following": following,
             "bio": bio,
-            "badge": badge
+            "badge": badge,
+            "points": points
         })
     except Exception as e:
         logging.error(e)
@@ -1138,7 +1294,7 @@ def telegram_webhook():
     user_id = user.get("id")
     text = (message.get("text") or "").strip()
 
-    # ===== /start (message clair sans emoji) =====
+    # ===== /start =====
     if text.startswith("/start"):
         paid = is_paid(user_id)
         first_name = user.get("first_name") or "toi"
@@ -1184,6 +1340,38 @@ def telegram_webhook():
     # ===== /payadmin =====
     if text.lower() == "/payadmin" and user_id == ADMIN_ID:
         send_telegram_message(chat_id, "Admin OK. Tu as déjà l'accès.")
+        return jsonify(success=True)
+
+    # ===== /stat (admin only) =====
+    if text.lower() in ("/stat", "/stats"):
+        if user_id != ADMIN_ID:
+            send_telegram_message(chat_id, "Commande réservée à l'admin.")
+            return jsonify(success=True)
+        try:
+            conn = get_conn()
+            cur = conn.cursor()
+            cur.execute("""
+                SELECT r.referrer_id, COUNT(*) as cnt,
+                       COALESCE(rc.code, 'N/A') as code
+                FROM referrals r
+                LEFT JOIN referral_codes rc ON rc.user_id = r.referrer_id
+                GROUP BY r.referrer_id, rc.code
+                ORDER BY cnt DESC
+                LIMIT 15
+            """)
+            rows = cur.fetchall()
+            cur.close()
+            conn.close()
+            if not rows:
+                send_telegram_message(chat_id, "Aucun parrainage pour le moment.")
+            else:
+                msg = "Top parrains (codes intégrés) :\n\n"
+                for i, r in enumerate(rows, 1):
+                    msg += f"{i}. User {r['referrer_id']} ({r['code']}) → {r['cnt']} filleuls\n"
+                send_telegram_message(chat_id, msg)
+        except Exception as e:
+            logging.error(e)
+            send_telegram_message(chat_id, "Erreur stats.")
         return jsonify(success=True)
 
     # ===== /parrainage =====
