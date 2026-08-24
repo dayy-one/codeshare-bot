@@ -37,7 +37,6 @@ for _id in _raw_admins.replace(" ", "").split(","):
     if _id.isdigit():
         ADMIN_IDS.add(int(_id))
 
-# Compatibilité
 ADMIN_ID = next(iter(ADMIN_IDS)) if ADMIN_IDS else 8091031583
 
 
@@ -349,7 +348,7 @@ def stripe_webhook():
                     (int(telegram_id), session.get("id"))
                 )
 
-                # Crédite le parrain s'il y en a un
+                # Crédite le parrain
                 cur.execute("SELECT referrer_id FROM referrals WHERE referred_id = %s", (int(telegram_id),))
                 ref = cur.fetchone()
                 if ref:
@@ -369,10 +368,7 @@ def stripe_webhook():
 
                 send_telegram_message(
                     int(telegram_id),
-                    "Paiement reçu.\n\n"
-                    "Bienvenue sur COD.IA.\n"
-                    "Ton accès est maintenant actif.\n\n"
-                    "Tu peux ouvrir l'application et découvrir tous les codes.",
+                    "Paiement reçu.\n\nBienvenue sur COD.IA.\nTon accès est maintenant actif.\n\nTu peux ouvrir l'application et découvrir tous les codes.",
                     reply_markup=discover_keyboard(paid=True)
                 )
             except Exception as e:
@@ -422,25 +418,23 @@ def codes_top():
     try:
         conn = get_conn()
         cur = conn.cursor()
-        query = """
-            SELECT * FROM codes
-            WHERE deleted = FALSE
-            AND (expires_at IS NULL OR expires_at > NOW())
-            ORDER BY (likes + copies) DESC, created_at DESC
-            LIMIT 5
-        """
         if user_id:
-            query = """
+            cur.execute("""
                 SELECT * FROM codes
                 WHERE deleted = FALSE
                 AND (expires_at IS NULL OR expires_at > NOW())
                 AND id NOT IN (SELECT code_id FROM hidden_codes WHERE user_id = %s)
                 ORDER BY (likes + copies) DESC, created_at DESC
                 LIMIT 5
-            """
-            cur.execute(query, (user_id,))
+            """, (user_id,))
         else:
-            cur.execute(query)
+            cur.execute("""
+                SELECT * FROM codes
+                WHERE deleted = FALSE
+                AND (expires_at IS NULL OR expires_at > NOW())
+                ORDER BY (likes + copies) DESC, created_at DESC
+                LIMIT 5
+            """)
         codes = cur.fetchall()
         cur.close()
         conn.close()
@@ -521,16 +515,12 @@ def codes_mine():
     try:
         conn = get_conn()
         cur = conn.cursor()
-        cur.execute("""
-            SELECT * FROM codes
-            WHERE user_id = %s
-            ORDER BY created_at DESC
-        """, (user_id,))
+        cur.execute("SELECT * FROM codes WHERE user_id = %s ORDER BY created_at DESC", (user_id,))
         codes = cur.fetchall()
         cur.close()
         conn.close()
         return jsonify({"codes": codes})
-    except Exception as e:
+    except Exception:
         return jsonify({"codes": []})
 
 
@@ -540,16 +530,12 @@ def codes_user():
     try:
         conn = get_conn()
         cur = conn.cursor()
-        cur.execute("""
-            SELECT * FROM codes
-            WHERE user_id = %s AND deleted = FALSE
-            ORDER BY created_at DESC
-        """, (user_id,))
+        cur.execute("SELECT * FROM codes WHERE user_id = %s AND deleted = FALSE ORDER BY created_at DESC", (user_id,))
         codes = cur.fetchall()
         cur.close()
         conn.close()
         return jsonify({"codes": codes})
-    except Exception as e:
+    except Exception:
         return jsonify({"codes": []})
 
 
@@ -569,7 +555,7 @@ def codes_saved():
         cur.close()
         conn.close()
         return jsonify({"codes": codes})
-    except Exception as e:
+    except Exception:
         return jsonify({"codes": []})
 
 
@@ -589,7 +575,7 @@ def codes_copied():
         cur.close()
         conn.close()
         return jsonify({"codes": codes})
-    except Exception as e:
+    except Exception:
         return jsonify({"codes": []})
 
 
@@ -603,10 +589,7 @@ def code_copy():
         cur = conn.cursor()
 
         if user_id:
-            cur.execute(
-                "SELECT 1 FROM copied_codes WHERE user_id = %s AND code_id = %s",
-                (user_id, code_id)
-            )
+            cur.execute("SELECT 1 FROM copied_codes WHERE user_id = %s AND code_id = %s", (user_id, code_id))
             if cur.fetchone():
                 cur.execute("SELECT copies FROM codes WHERE id = %s", (code_id,))
                 row = cur.fetchone()
@@ -614,15 +597,9 @@ def code_copy():
                 conn.close()
                 return jsonify({"copies": row["copies"] if row else 0})
 
-            cur.execute("""
-                INSERT INTO copied_codes (user_id, code_id) VALUES (%s, %s)
-                ON CONFLICT DO NOTHING
-            """, (user_id, code_id))
+            cur.execute("INSERT INTO copied_codes (user_id, code_id) VALUES (%s, %s) ON CONFLICT DO NOTHING", (user_id, code_id))
 
-        cur.execute(
-            "UPDATE codes SET copies = copies + 1 WHERE id = %s RETURNING copies",
-            (code_id,)
-        )
+        cur.execute("UPDATE codes SET copies = copies + 1 WHERE id = %s RETURNING copies", (code_id,))
         row = cur.fetchone()
         conn.commit()
         cur.close()
@@ -639,10 +616,8 @@ def code_save():
     try:
         conn = get_conn()
         cur = conn.cursor()
-        cur.execute("""
-            INSERT INTO saved_codes (user_id, code_id) VALUES (%s, %s)
-            ON CONFLICT DO NOTHING
-        """, (data.get("user_id"), data.get("id")))
+        cur.execute("INSERT INTO saved_codes (user_id, code_id) VALUES (%s, %s) ON CONFLICT DO NOTHING",
+                    (data.get("user_id"), data.get("id")))
         conn.commit()
         cur.close()
         conn.close()
@@ -686,38 +661,22 @@ def code_react():
         opposite_col = "dislikes" if reaction == "like" else "likes"
 
         if action == "add" and user_id:
-            cur.execute("""
-                DELETE FROM reactions
-                WHERE user_id = %s AND code_id = %s AND reaction = %s
-            """, (user_id, code_id, opposite))
+            cur.execute("DELETE FROM reactions WHERE user_id = %s AND code_id = %s AND reaction = %s",
+                        (user_id, code_id, opposite))
             if cur.rowcount > 0:
-                cur.execute(
-                    f"UPDATE codes SET {opposite_col} = GREATEST({opposite_col} - 1, 0) WHERE id = %s",
-                    (code_id,)
-                )
+                cur.execute(f"UPDATE codes SET {opposite_col} = GREATEST({opposite_col} - 1, 0) WHERE id = %s", (code_id,))
 
-            cur.execute("""
-                INSERT INTO reactions (user_id, code_id, reaction)
-                VALUES (%s, %s, %s)
-                ON CONFLICT DO NOTHING
-            """, (user_id, code_id, reaction))
+            cur.execute("INSERT INTO reactions (user_id, code_id, reaction) VALUES (%s, %s, %s) ON CONFLICT DO NOTHING",
+                        (user_id, code_id, reaction))
             if cur.rowcount > 0:
-                cur.execute(
-                    f"UPDATE codes SET {col} = {col} + 1 WHERE id = %s RETURNING {col} as value",
-                    (code_id,)
-                )
+                cur.execute(f"UPDATE codes SET {col} = {col} + 1 WHERE id = %s RETURNING {col} as value", (code_id,))
             else:
                 cur.execute(f"SELECT {col} as value FROM codes WHERE id = %s", (code_id,))
         else:
             if user_id:
-                cur.execute("""
-                    DELETE FROM reactions
-                    WHERE user_id = %s AND code_id = %s AND reaction = %s
-                """, (user_id, code_id, reaction))
-            cur.execute(
-                f"UPDATE codes SET {col} = GREATEST({col} - 1, 0) WHERE id = %s RETURNING {col} as value",
-                (code_id,)
-            )
+                cur.execute("DELETE FROM reactions WHERE user_id = %s AND code_id = %s AND reaction = %s",
+                            (user_id, code_id, reaction))
+            cur.execute(f"UPDATE codes SET {col} = GREATEST({col} - 1, 0) WHERE id = %s RETURNING {col} as value", (code_id,))
 
         row = cur.fetchone()
         conn.commit()
@@ -790,6 +749,32 @@ def code_restore():
         return jsonify({"error": str(e)}), 500
 
 
+@app.route("/code/hard-delete", methods=["POST"])
+def code_hard_delete():
+    data = request.json or {}
+    user_id = data.get("user_id")
+    code_id = data.get("id")
+
+    if not is_admin(user_id):
+        return jsonify({"error": "unauthorized"}), 403
+
+    try:
+        conn = get_conn()
+        cur = conn.cursor()
+        cur.execute("DELETE FROM codes WHERE id = %s", (code_id,))
+        cur.execute("DELETE FROM reactions WHERE code_id = %s", (code_id,))
+        cur.execute("DELETE FROM saved_codes WHERE code_id = %s", (code_id,))
+        cur.execute("DELETE FROM copied_codes WHERE code_id = %s", (code_id,))
+        cur.execute("DELETE FROM hidden_codes WHERE code_id = %s", (code_id,))
+        conn.commit()
+        cur.close()
+        conn.close()
+        return jsonify({"success": True})
+    except Exception as e:
+        logging.error(e)
+        return jsonify({"error": str(e)}), 500
+
+
 @app.route("/code/report", methods=["POST"])
 def code_report():
     data = request.json or {}
@@ -807,10 +792,8 @@ def code_report():
             cur.execute("UPDATE codes SET deleted = TRUE WHERE id = %s", (code_id,))
             auto_deleted = True
         if hide and user_id:
-            cur.execute("""
-                INSERT INTO hidden_codes (user_id, code_id) VALUES (%s, %s)
-                ON CONFLICT DO NOTHING
-            """, (user_id, code_id))
+            cur.execute("INSERT INTO hidden_codes (user_id, code_id) VALUES (%s, %s) ON CONFLICT DO NOTHING",
+                        (user_id, code_id))
         conn.commit()
         cur.close()
         conn.close()
@@ -883,11 +866,8 @@ def referral_integrate():
             conn.close()
             return jsonify({"error": "Tu ne peux pas utiliser ton propre code"}), 400
 
-        cur.execute("""
-            INSERT INTO referrals (referred_id, referrer_id) VALUES (%s, %s)
-            ON CONFLICT (referred_id) DO NOTHING
-        """, (user_id, referrer_id))
-
+        cur.execute("INSERT INTO referrals (referred_id, referrer_id) VALUES (%s, %s) ON CONFLICT (referred_id) DO NOTHING",
+                    (user_id, referrer_id))
         cur.execute("""
             INSERT INTO user_profiles (user_id, referral_used) VALUES (%s, TRUE)
             ON CONFLICT (user_id) DO UPDATE SET referral_used = TRUE
@@ -1045,10 +1025,8 @@ def follow():
     try:
         conn = get_conn()
         cur = conn.cursor()
-        cur.execute("""
-            INSERT INTO follows (follower_id, followed_id) VALUES (%s, %s)
-            ON CONFLICT DO NOTHING
-        """, (data.get("follower_id"), data.get("followed_id")))
+        cur.execute("INSERT INTO follows (follower_id, followed_id) VALUES (%s, %s) ON CONFLICT DO NOTHING",
+                    (data.get("follower_id"), data.get("followed_id")))
         conn.commit()
         cur.close()
         conn.close()
@@ -1314,7 +1292,6 @@ def telegram_webhook():
     user_id = user.get("id")
     text = (message.get("text") or "").strip()
 
-    # ===== /start =====
     if text.startswith("/start"):
         paid = is_paid(user_id)
         first_name = user.get("first_name") or "toi"
@@ -1335,12 +1312,12 @@ def telegram_webhook():
                 f"• Assistant IA pour trouver un code rapidement\n"
                 f"• Publie tes propres codes\n\n"
                 f"Accès complet : 10 euros (paiement unique).\n\n"
+                f"Offre de lancement en cours : jusqu'à 1500 € à gagner.\n\n"
                 f"Clique sur « Decouvrir COD.IA » pour voir l'aperçu gratuit."
             )
             send_telegram_message(chat_id, welcome, reply_markup=discover_keyboard(paid=False))
         return jsonify(success=True)
 
-    # ===== /free =====
     if text.lower() in ("/free", "/gratuit"):
         free_url = f"{SERVER_URL}/miniapp?force_free=1&v=17"
         keyboard = {
@@ -1349,15 +1326,9 @@ def telegram_webhook():
                 "web_app": {"url": free_url}
             }]]
         }
-        send_telegram_message(
-            chat_id,
-            "Voici la version gratuite (aperçu verrouillé).\n\n"
-            "Tu peux tester l'interface sans accéder aux codes.",
-            reply_markup=keyboard
-        )
+        send_telegram_message(chat_id, "Voici la version gratuite (aperçu verrouillé).", reply_markup=keyboard)
         return jsonify(success=True)
 
-    # ===== /payadmin =====
     if text.lower() == "/payadmin":
         if not is_admin(user_id):
             send_telegram_message(chat_id, "Commande réservée aux admins.")
@@ -1365,7 +1336,6 @@ def telegram_webhook():
         send_telegram_message(chat_id, "Admin OK. Tu as déjà l'accès.")
         return jsonify(success=True)
 
-    # ===== /stat (admins only) =====
     if text.lower() in ("/stat", "/stats"):
         if not is_admin(user_id):
             send_telegram_message(chat_id, "Commande réservée aux admins.")
@@ -1397,7 +1367,6 @@ def telegram_webhook():
             send_telegram_message(chat_id, "Erreur stats.")
         return jsonify(success=True)
 
-    # ===== /parrainage =====
     if text.lower().startswith("/parrainage"):
         if not is_paid(user_id):
             send_telegram_message(chat_id, "Cette commande est réservée aux membres COD.IA.")
@@ -1420,10 +1389,7 @@ def telegram_webhook():
                 conn.close()
             except Exception as e:
                 logging.error(e)
-            send_telegram_message(
-                CHANNEL_ID,
-                f"CODE DE PARRAINAGE\n\nDe : {display}\nSite : {site}\nBonus : +{montant}€\nCode : {code}"
-            )
+            send_telegram_message(CHANNEL_ID, f"CODE DE PARRAINAGE\n\nDe : {display}\nSite : {site}\nBonus : +{montant}€\nCode : {code}")
             send_telegram_message(chat_id, f"Parrainage publié : {site} | {code}")
         else:
             send_telegram_message(chat_id, "Format : /parrainage Site 20 CODE")
