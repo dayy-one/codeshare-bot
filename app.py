@@ -418,20 +418,20 @@ def codes_top():
     try:
         conn = get_conn()
         cur = conn.cursor()
+        base = """
+            SELECT * FROM codes
+            WHERE deleted = FALSE
+            AND (expires_at IS NULL OR expires_at > NOW())
+            AND (likes >= 100 OR copies >= 100)
+        """
         if user_id:
-            cur.execute("""
-                SELECT * FROM codes
-                WHERE deleted = FALSE
-                AND (expires_at IS NULL OR expires_at > NOW())
+            cur.execute(base + """
                 AND id NOT IN (SELECT code_id FROM hidden_codes WHERE user_id = %s)
                 ORDER BY (likes + copies) DESC, created_at DESC
                 LIMIT 5
             """, (user_id,))
         else:
-            cur.execute("""
-                SELECT * FROM codes
-                WHERE deleted = FALSE
-                AND (expires_at IS NULL OR expires_at > NOW())
+            cur.execute(base + """
                 ORDER BY (likes + copies) DESC, created_at DESC
                 LIMIT 5
             """)
@@ -907,6 +907,47 @@ def referral_status():
         return jsonify({})
 
 
+@app.route("/referral/leaderboard")
+def referral_leaderboard():
+    try:
+        conn = get_conn()
+        cur = conn.cursor()
+        cur.execute("""
+            SELECT 
+                r.referrer_id as user_id,
+                COUNT(*) as referrals_count,
+                COALESCE(
+                    (SELECT added_by FROM codes WHERE user_id = r.referrer_id ORDER BY created_at DESC LIMIT 1),
+                    'Membre'
+                ) as name,
+                COALESCE(
+                    (SELECT photo_url FROM codes WHERE user_id = r.referrer_id AND photo_url IS NOT NULL ORDER BY created_at DESC LIMIT 1),
+                    NULL
+                ) as photo_url
+            FROM referrals r
+            GROUP BY r.referrer_id
+            ORDER BY referrals_count DESC
+            LIMIT 20
+        """)
+        rows = cur.fetchall()
+        cur.close()
+        conn.close()
+
+        result = []
+        for i, r in enumerate(rows, 1):
+            result.append({
+                "rank": i,
+                "user_id": r["user_id"],
+                "name": r["name"] or "Membre",
+                "photo_url": r["photo_url"],
+                "referrals_count": r["referrals_count"]
+            })
+        return jsonify({"leaderboard": result})
+    except Exception as e:
+        logging.error(e)
+        return jsonify({"leaderboard": []})
+
+
 # ==================== PROFIL ====================
 
 @app.route("/profile/full_stats")
@@ -1343,6 +1384,8 @@ def telegram_webhook():
         try:
             conn = get_conn()
             cur = conn.cursor()
+
+            # Top parrains (offre de lancement)
             cur.execute("""
                 SELECT r.referrer_id, COUNT(*) as cnt,
                        COALESCE(rc.code, 'N/A') as code
@@ -1350,18 +1393,39 @@ def telegram_webhook():
                 LEFT JOIN referral_codes rc ON rc.user_id = r.referrer_id
                 GROUP BY r.referrer_id, rc.code
                 ORDER BY cnt DESC
-                LIMIT 15
+                LIMIT 10
             """)
-            rows = cur.fetchall()
+            refs = cur.fetchall()
+
+            # Offre Codes/Parrainage (≥ 250 copies)
+            cur.execute("""
+                SELECT id, site, code, copies, added_by, user_id
+                FROM codes
+                WHERE copies >= 250 AND deleted = FALSE
+                ORDER BY copies DESC
+                LIMIT 5
+            """)
+            big_codes = cur.fetchall()
+
             cur.close()
             conn.close()
-            if not rows:
-                send_telegram_message(chat_id, "Aucun parrainage pour le moment.")
-            else:
-                msg = "Top parrains (codes intégrés) :\n\n"
-                for i, r in enumerate(rows, 1):
+
+            msg = "📊 STATS OFFRES\n\n"
+            msg += "🏆 OFFRE DE LANCEMENT (Top parrains)\n"
+            if refs:
+                for i, r in enumerate(refs, 1):
                     msg += f"{i}. User {r['referrer_id']} ({r['code']}) → {r['cnt']} filleuls\n"
-                send_telegram_message(chat_id, msg)
+            else:
+                msg += "Aucun encore\n"
+
+            msg += "\n💰 OFFRE CODES/PARRAINAGE (≥ 250 copies = 100 €)\n"
+            if big_codes:
+                for c in big_codes:
+                    msg += f"• {c['site']} | {c['code']} → {c['copies']} copies ({c['added_by']})\n"
+            else:
+                msg += "Personne n’a encore atteint 250 copies\n"
+
+            send_telegram_message(chat_id, msg)
         except Exception as e:
             logging.error(e)
             send_telegram_message(chat_id, "Erreur stats.")
