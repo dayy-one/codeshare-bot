@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   
-  <!-- SEO de base -->
   <title>COD.IA – Codes promo & parrainage</title>
   <meta name="description" content="Découvre les meilleurs codes promo et parrainages mis à jour en temps réel par la communauté. Accès complet à 10 € (paiement unique).">
   <meta name="keywords" content="codes promo, parrainage, réductions, uber eats, booking, amazon, codes réduction, telegram">
@@ -12,15 +11,12 @@
   <meta name="robots" content="index, follow">
   <meta name="theme-color" content="#2AABEE">
   
-  <!-- Open Graph (partage Telegram / Facebook / WhatsApp) -->
   <meta property="og:type" content="website">
   <meta property="og:title" content="COD.IA – Codes promo & parrainage">
   <meta property="og:description" content="Les meilleurs codes promo et parrainages, mis à jour par la communauté. Accès complet 10 €.">
   <meta property="og:url" content="https://codeshare-bot-production.up.railway.app/miniapp">
   <meta property="og:site_name" content="COD.IA">
   <meta property="og:locale" content="fr_FR">
-  
-  <!-- Twitter Card -->
   <meta name="twitter:card" content="summary">
   
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
@@ -169,11 +165,8 @@
     .profile-actions .primary{background:var(--accent);color:#fff;border-color:var(--accent)}
     .profile-tabs{margin:0 16px!important;border-radius:16px 16px 0 0;overflow:hidden;border:1px solid var(--border);border-bottom:none;background:var(--card)}
 
-    /* ========== PAGE GRATUITE ========== */
-    #free-locked-page{
-      position:fixed;inset:0;z-index:90;max-width:430px;margin:0 auto;
-      background:var(--bg);color:var(--text);overflow-y:auto;display:none;
-    }
+    /* PAGE GRATUITE */
+    #free-locked-page{position:fixed;inset:0;z-index:90;max-width:430px;margin:0 auto;background:var(--bg);color:var(--text);overflow-y:auto;display:none}
     .fl-header{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;position:sticky;top:0;z-index:10;background:rgba(7,7,11,0.92);backdrop-filter:blur(16px);border-bottom:1px solid var(--border)}
     body.light .fl-header{background:rgba(248,250,252,0.92)}
     .fl-badge{font-size:11px;background:rgba(42,171,238,0.15);color:var(--accent);padding:4px 10px;border-radius:999px;font-weight:600;margin-left:8px}
@@ -217,48 +210,31 @@
     .fl-footer p{font-size:13px;color:var(--text2);margin-bottom:16px}
     .fl-btn-secondary{background:transparent;border:1px solid var(--border);color:var(--text);padding:13px 26px;border-radius:14px;font-size:14px;font-weight:600;cursor:pointer}
 
-    /* ========== OVERLAY PAIEMENT (intégré) ========== */
-    #payment-overlay{
-      position:fixed;inset:0;z-index:110;max-width:430px;margin:0 auto;
-      background:rgba(0,0,0,0.72);display:none;align-items:flex-end;justify-content:center;
-    }
+    /* OVERLAY PAIEMENT */
+    #payment-overlay{position:fixed;inset:0;z-index:110;max-width:430px;margin:0 auto;background:rgba(0,0,0,0.72);display:none;align-items:flex-end;justify-content:center}
     #payment-overlay.active{display:flex}
-    .payment-sheet{
-      width:100%;background:var(--card);border-radius:28px 28px 0 0;
-      padding:22px 20px 40px;max-height:92vh;overflow-y:auto;
-      animation:slideUp 0.35s cubic-bezier(0.22,1,0.36,1);
-    }
-    .payment-close{
-      width:36px;height:36px;border-radius:50%;border:1px solid var(--border);
-      background:var(--bg);color:var(--text);font-size:20px;display:flex;
-      align-items:center;justify-content:center;margin-bottom:12px;cursor:pointer;
-    }
-    .payment-price-box{
-      background:var(--bg);border:1px solid var(--border);border-radius:18px;
-      padding:18px;text-align:center;margin:16px 0 20px;
-    }
+    .payment-sheet{width:100%;background:var(--card);border-radius:28px 28px 0 0;padding:22px 20px 40px;max-height:92vh;overflow-y:auto;animation:slideUp 0.35s cubic-bezier(0.22,1,0.36,1)}
+    .payment-close{width:36px;height:36px;border-radius:50%;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:20px;display:flex;align-items:center;justify-content:center;margin-bottom:12px;cursor:pointer}
+    .payment-price-box{background:var(--bg);border:1px solid var(--border);border-radius:18px;padding:18px;text-align:center;margin:16px 0 20px}
     .payment-price-box .label{font-size:13px;color:var(--text2);margin-bottom:4px}
-    .payment-price-box .amount{
-      font-size:38px;font-weight:800;
-      background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent;
-    }
+    .payment-price-box .amount{font-size:38px;font-weight:800;background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
     .payment-features{margin:0 0 18px}
-    .payment-features div{
-      display:flex;align-items:center;gap:10px;padding:10px 0;
-      border-bottom:1px solid var(--border);font-size:14px;
-    }
+    .payment-features div{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);font-size:14px}
     .payment-features div:last-child{border-bottom:none}
     .sg-error{color:#f87171;font-size:13px;text-align:center;margin-top:10px}
 
     #success-screen{position:fixed;inset:0;z-index:200;max-width:430px;margin:0 auto;background:rgba(0,0,0,.92);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px}
     .success-check{width:78px;height:78px;border-radius:50%;background:linear-gradient(135deg,#16a34a,#22c55e);display:flex;align-items:center;justify-content:center;font-size:36px;color:#fff}
+
+    /* ONBOARDING */
+    #onboarding-overlay{display:none;position:fixed;inset:0;z-index:250;background:rgba(0,0,0,0.94);align-items:center;justify-content:center;flex-direction:column;padding:24px}
   </style>
 </head>
 <body>
 
 <!-- COD.IA - Codes promo et parrainages communauté -->
 
-<!-- ========== PAGE GRATUITE ========== -->
+<!-- PAGE GRATUITE -->
 <div id="free-locked-page">
   <header class="fl-header">
     <div style="display:flex;align-items:center">
@@ -277,13 +253,8 @@
   <section class="fl-hero">
     <div class="fl-lock-icon">🔒</div>
     <h1>Accès aux codes réservé<br>aux membres COD.IA</h1>
-    <p class="fl-subtitle">
-      Découvre des milliers de codes promo & parrainage<br>
-      mis à jour en temps réel.
-    </p>
-    <button class="fl-btn-main" onclick="openPaymentOverlay()">
-      Débloquer COD.IA – 10 €
-    </button>
+    <p class="fl-subtitle">Découvre des milliers de codes promo & parrainage<br>mis à jour en temps réel.</p>
+    <button class="fl-btn-main" onclick="openPaymentOverlay()">Débloquer COD.IA – 10 €</button>
     <p class="fl-secure">Paiement sécurisé • Accès immédiat</p>
   </section>
 
@@ -340,11 +311,10 @@
   </footer>
 </div>
 
-<!-- ========== OVERLAY PAIEMENT INTÉGRÉ ========== -->
+<!-- OVERLAY PAIEMENT -->
 <div id="payment-overlay">
   <div class="payment-sheet">
     <button class="payment-close" onclick="closePaymentOverlay()">×</button>
-    
     <div style="text-align:center;margin-bottom:8px">
       <div class="codia-logo compact" style="display:inline-flex;justify-content:center">
         <div class="codia-logo-main">
@@ -354,18 +324,13 @@
         </div>
       </div>
     </div>
-
     <h2 style="text-align:center;font-size:22px;font-weight:800;margin:12px 0 6px">Débloquer COD.IA</h2>
-    <p style="text-align:center;color:var(--text2);font-size:14px;margin-bottom:4px">
-      Accès immédiat à tous les codes
-    </p>
-
+    <p style="text-align:center;color:var(--text2);font-size:14px;margin-bottom:4px">Accès immédiat à tous les codes</p>
     <div class="payment-price-box">
       <div class="label">Paiement unique</div>
       <div class="amount">10 €</div>
       <div style="font-size:12px;color:var(--text2);margin-top:2px">Pas d’abonnement</div>
     </div>
-
     <div class="payment-features">
       <div>📋 Feed complet des meilleurs codes</div>
       <div>⭐ Favoris & historique</div>
@@ -374,19 +339,28 @@
       <div>🏆 Classement & badges</div>
       <div>👤 Profil pro + stats</div>
     </div>
-
     <div id="checkout" style="margin-top:18px"></div>
     <div class="sg-error" id="pw-error-2"></div>
   </div>
 </div>
 
+<!-- SUCCESS + ONBOARDING -->
 <div id="success-screen" class="hidden">
   <div class="success-check">✓</div>
   <h2>Bienvenue sur COD.IA</h2>
-  <p style="color:#a1a1aa">Ton accès est activé</p>
+  <p style="color:#a1a1aa;margin-bottom:20px">Ton accès est activé</p>
+  <button class="fl-btn-main" style="max-width:260px" onclick="startOnboarding()">Voir comment ça marche</button>
 </div>
 
-<!-- ========== APP PRINCIPALE ========== -->
+<div id="onboarding-overlay">
+  <div id="onboarding-slides" style="max-width:360px;width:100%;text-align:center;color:#fff;"></div>
+  <div style="display:flex;gap:12px;margin-top:28px;">
+    <button id="ob-prev" onclick="obPrev()" style="display:none;padding:12px 20px;border-radius:12px;border:1px solid #444;background:#222;color:#fff;">←</button>
+    <button id="ob-next" onclick="obNext()" class="fl-btn-main" style="max-width:180px;">Suivant</button>
+  </div>
+</div>
+
+<!-- APP PRINCIPALE -->
 <div class="app hidden" id="main-app">
   <div class="header">
     <div class="brand">
@@ -413,6 +387,7 @@
       <button class="chip active" id="filter-all" onclick="setFilter('all')">Tous</button>
       <button class="chip" id="filter-promo" onclick="setFilter('promo')">Promo</button>
       <button class="chip" id="filter-parrainage" onclick="setFilter('parrainage')">Parrainage</button>
+      <button class="chip" id="filter-expiring" onclick="setFilter('expiring')">Expire bientôt</button>
     </div>
     <div class="section" id="feed-title">À la une</div>
     <div id="codes-list"><div class="empty">Chargement...</div></div>
@@ -438,10 +413,9 @@
         • <b>Recherche classique</b> → trouve un code rapidement<br>
         • <b>Assistant IA</b> → trouve un code partagé par la communauté en quelques secondes<br>
         • <b>Publie</b> tes propres codes et grimpe au classement<br><br>
-        L'IA sert uniquement à rechercher les codes déjà partagés par les membres. Elle ne répond à aucune autre question.
+        L'IA sert uniquement à rechercher les codes déjà partagés par les membres.
       </div>
     </div>
-
     <div class="section">Assistant IA</div>
     <div class="search-wrap"><div class="search"><span>✦</span><input id="ai-input" placeholder="Ex: code Uber Eats, Booking..." onkeypress="if(event.key==='Enter') askAI()"></div></div>
     <div class="ai-box" id="ai-response" style="display:none"></div>
@@ -470,9 +444,20 @@
 <div class="modal" id="notifModal"><div class="sheet"><div style="text-align:center;font-weight:700;margin-bottom:14px">Notifications</div><div id="notif-list"></div><button onclick="closeNotifModal()">Fermer</button></div></div>
 <div class="modal" id="followListModal"><div class="sheet"><div style="text-align:center;font-weight:700;margin-bottom:14px" id="followListTitle">Abonnés</div><div id="follow-list"></div><button onclick="closeFollowList()">Fermer</button></div></div>
 <div class="modal" id="bioModal"><div class="sheet"><div style="text-align:center;font-weight:700;margin-bottom:14px">Modifier la bio</div><textarea id="bioInput" placeholder="Présente-toi en quelques mots..." maxlength="160" style="width:100%;height:110px;padding:14px;border-radius:16px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:15px;resize:none;margin-bottom:14px;"></textarea><button onclick="saveBioFromModal()">Enregistrer</button><button onclick="closeBioModal()">Annuler</button></div></div>
+
+<!-- MODAL CLASSEMENT + PARRAINAGE + OFFRE -->
 <div class="modal" id="leaderboardModal">
   <div class="sheet">
-    <div style="text-align:center;font-weight:700;margin-bottom:14px">Classement de la semaine</div>
+    <div style="text-align:center;font-weight:700;margin-bottom:10px">Classement de la semaine</div>
+    
+    <div style="background:linear-gradient(135deg,#f59e0b22,#fbbf2422);border:1px solid #f59e0b55;border-radius:16px;padding:14px;margin-bottom:16px;font-size:13px;line-height:1.5;">
+      <strong style="color:var(--orange)">OFFRE DE LANCEMENT</strong><br>
+      🥇 OR → 1500 Membres COD.IA<br>
+      🥈 ARGENT → 1000 Membres COD.IA<br>
+      🥉 BRONZE → 500 Membres COD.IA
+    </div>
+
+    <div id="referral-box" style="margin-bottom:16px;"></div>
     <div id="leaderboard-modal-list"></div>
     <button onclick="closeLeaderboardModal()">Fermer</button>
   </div>
@@ -508,9 +493,7 @@ function showApp(){
   document.getElementById('main-app').classList.remove('hidden');
   closePaymentOverlay();
   loadCodes().then(() => {
-    setTimeout(() => {
-      loadNotifications();
-    }, 350);
+    setTimeout(() => loadNotifications(), 350);
   });
 }
 
@@ -529,7 +512,49 @@ function closePaymentOverlay(){
 function showSuccessThenApp(){
   const s = document.getElementById('success-screen');
   s.classList.remove('hidden');
-  setTimeout(() => { s.classList.add('hidden'); showApp(); }, 1400);
+}
+
+/* ========== ONBOARDING ========== */
+let obStep = 0;
+const obSlides = [
+  { title: "1. Le Feed", text: "Découvre les meilleurs codes promo & parrainages mis à jour en temps réel par la communauté." },
+  { title: "2. Swipe & Favoris", text: "Swipe à droite pour sauvegarder un code. Retrouve-les dans ton profil → Favoris." },
+  { title: "3. Recherche + IA", text: "Utilise la recherche classique ou l’assistant IA pour trouver un code en quelques secondes." },
+  { title: "4. Publie & grimpe", text: "Partage tes propres codes, gagne des points et monte dans le classement de la semaine !" }
+];
+
+function startOnboarding() {
+  document.getElementById('success-screen').classList.add('hidden');
+  document.getElementById('onboarding-overlay').style.display = 'flex';
+  obStep = 0;
+  renderObSlide();
+}
+
+function renderObSlide() {
+  const s = obSlides[obStep];
+  document.getElementById('onboarding-slides').innerHTML = `
+    <div style="font-size:22px;font-weight:800;margin-bottom:12px">${s.title}</div>
+    <div style="font-size:15px;line-height:1.6;color:#ccc">${s.text}</div>
+    <div style="margin-top:18px;font-size:13px;color:#888">${obStep+1} / ${obSlides.length}</div>
+  `;
+  document.getElementById('ob-prev').style.display = obStep === 0 ? 'none' : 'block';
+  document.getElementById('ob-next').textContent = obStep === obSlides.length-1 ? 'Commencer' : 'Suivant';
+}
+
+function obNext() {
+  if (obStep < obSlides.length-1) {
+    obStep++;
+    renderObSlide();
+  } else {
+    document.getElementById('onboarding-overlay').style.display = 'none';
+    showApp();
+  }
+}
+function obPrev() {
+  if (obStep > 0) {
+    obStep--;
+    renderObSlide();
+  }
 }
 
 async function loadStats(){
@@ -781,6 +806,23 @@ function openSite(url, code){
   }
 }
 
+async function copyAndOpen(id, code, url, btn) {
+  try { await navigator.clipboard.writeText(code); } catch(e){}
+  btn.textContent = 'Copié !';
+  haptic('medium');
+  if (id && currentUserId) {
+    fetch('/code/copy', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({id, user_id: currentUserId, actor_name: currentUserName})
+    });
+  }
+  setTimeout(() => {
+    if (tg?.openLink) tg.openLink(url);
+    else window.open(url, '_blank');
+  }, 300);
+}
+
 function renderPost(c, options = {}) {
   const id = c.id;
   const liked = localStorage.getItem('like_'+id) === '1';
@@ -817,14 +859,20 @@ function renderPost(c, options = {}) {
       <div class="muted">${c.site||''}</div>
       <div class="code">
         <span>${c.code||''} <span style="color:var(--green)">${c.description||''}</span></span>
-        <button class="copy-btn" onclick="copyCode(${id||0},'${String(c.code||'').replace(/'/g,"\\'")}',this)">Copier${c.copies ? ' · ' + c.copies : ''}</button>
+        ${!c.url ? `<button class="copy-btn" onclick="copyCode(${id||0},'${String(c.code||'').replace(/'/g,"\\'")}',this)">Copier${c.copies ? ' · ' + c.copies : ''}</button>` : ''}
       </div>
       ${expireText ? `<div class="expire">${expireText}</div>` : ''}
       <div class="actions">
         ${id ? `
           <button onclick="toggleReact(${id},'like',this)">${liked ? '❤️' : '🤍'} <span>${c.likes||0}</span></button>
           <button onclick="toggleReact(${id},'dislike',this)">${disliked ? '💔' : '👎'} <span>${c.dislikes||0}</span></button>
-          ${c.url ? `<button onclick="openSite('${String(c.url).replace(/'/g,"\\'")}','${String(c.code||'').replace(/'/g,"\\'")}')">Ouvrir</button>` : ''}
+          ${c.url ? `
+            <button onclick="copyAndOpen(${id||0},'${String(c.code||'').replace(/'/g,"\\'")}','${String(c.url).replace(/'/g,"\\'")}',this)">
+              Copier + Ouvrir
+            </button>
+          ` : ''}
+          ${c.verified ? `<span class="pill">✓ Vérifié</span>` : ''}
+          ${c.tested_at ? `<span class="muted">Testé le ${new Date(c.tested_at).toLocaleDateString('fr-FR')}</span>` : ''}
           ${showUnsave ? `<button onclick="removeFromFavorites(${id},this)" style="color:#f87171">Retirer</button>` : ''}
           ${manage}
         ` : ''}
@@ -905,6 +953,7 @@ function setFilter(type){
   document.getElementById('filter-all').classList.toggle('active', type === 'all');
   document.getElementById('filter-promo').classList.toggle('active', type === 'promo');
   document.getElementById('filter-parrainage').classList.toggle('active', type === 'parrainage');
+  document.getElementById('filter-expiring').classList.toggle('active', type === 'expiring');
   cache.codes = null;
   loadCodes();
 }
@@ -1080,6 +1129,7 @@ async function askAI(){
   } catch(e){ b.innerHTML = 'Erreur'; }
 }
 
+/* ========== CLASSEMENT + PARRAINAGE ========== */
 function openLeaderboardModal(){
   document.getElementById('leaderboardModal').classList.add('active');
   loadLeaderboardModal();
@@ -1087,9 +1137,40 @@ function openLeaderboardModal(){
 function closeLeaderboardModal(){
   document.getElementById('leaderboardModal').classList.remove('active');
 }
+
 async function loadLeaderboardModal(){
   const list = document.getElementById('leaderboard-modal-list');
+  const refBox = document.getElementById('referral-box');
   list.innerHTML = '<div class="empty">Chargement...</div>';
+  refBox.innerHTML = '';
+
+  if (currentUserId) {
+    try {
+      const st = await (await fetch('/referral/status?user_id=' + currentUserId)).json();
+      let html = `<div style="background:var(--bg);border:1px solid var(--border);border-radius:14px;padding:14px;">`;
+      if (st.my_code) {
+        html += `<div style="font-size:13px;margin-bottom:8px">Ton code de parrainage :</div>
+                 <div style="font-family:monospace;font-size:18px;font-weight:700;letter-spacing:1px;margin-bottom:10px">${st.my_code}</div>
+                 <button onclick="navigator.clipboard.writeText('${st.my_code}');haptic('light');alert('Code copié !')" style="width:100%;padding:10px;border-radius:10px;border:none;background:var(--accent);color:#fff;font-weight:600;margin-bottom:0;">Copier mon code</button>
+                 <div class="muted" style="margin-top:8px;font-size:12px">${st.referrals_count || 0} personne(s) ont utilisé ton code</div>`;
+      } else {
+        html += `<button onclick="generateReferralCode()" style="width:100%;padding:12px;border-radius:12px;border:none;background:var(--gradient);color:#fff;font-weight:700;margin-bottom:0;">Générer mon code de parrainage</button>`;
+      }
+      if (!st.has_used) {
+        html += `
+          <div style="margin-top:14px;border-top:1px solid var(--border);padding-top:12px;">
+            <div style="font-size:13px;margin-bottom:6px">Tu as un code de parrainage ?</div>
+            <input id="ref-input" placeholder="Ex: CODIAXXXXXX" style="width:100%;padding:12px;border-radius:10px;border:1px solid var(--border);background:var(--card);color:var(--text);margin-bottom:8px;">
+            <button onclick="integrateReferralCode()" style="width:100%;padding:10px;border-radius:10px;border:1px solid var(--border);background:var(--card);color:var(--text);font-weight:600;margin-bottom:0;">Intégrer le code</button>
+          </div>`;
+      } else {
+        html += `<div class="muted" style="margin-top:10px;font-size:12px">Tu as déjà intégré un code de parrainage</div>`;
+      }
+      html += `</div>`;
+      refBox.innerHTML = html;
+    } catch(e){}
+  }
+
   try {
     const d = await (await fetch('/leaderboard')).json();
     if (!d.leaderboard?.length) {
@@ -1109,6 +1190,37 @@ async function loadLeaderboardModal(){
   } catch(e){
     list.innerHTML = '<div class="empty">Erreur</div>';
   }
+}
+
+async function generateReferralCode() {
+  try {
+    const d = await (await fetch('/referral/generate', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({user_id: currentUserId})
+    })).json();
+    if (d.success) {
+      haptic('medium');
+      loadLeaderboardModal();
+    } else alert(d.error || 'Erreur');
+  } catch(e){ alert('Erreur'); }
+}
+
+async function integrateReferralCode() {
+  const code = document.getElementById('ref-input')?.value.trim();
+  if (!code) return alert('Entre un code');
+  try {
+    const d = await (await fetch('/referral/integrate', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({user_id: currentUserId, code})
+    })).json();
+    if (d.success) {
+      haptic('medium');
+      alert(d.message || 'Code intégré !');
+      loadLeaderboardModal();
+    } else alert(d.error || 'Erreur');
+  } catch(e){ alert('Erreur'); }
 }
 
 async function viewProfile(uid, name){
@@ -1140,7 +1252,7 @@ async function loadProfile(forceId = null, forceName = null) {
     fullStats = await (await fetch('/profile/full_stats?user_id=' + targetId)).json();
   } catch(e){}
 
-  const score = (fullStats.total_codes || 0) * 2 + (fullStats.total_likes || 0) + (fullStats.total_copies || 0);
+  const score = (fullStats.total_codes || 0) * 2 + (fullStats.total_likes || 0) + (fullStats.total_copies || 0) + (fullStats.points || 0);
   const levels = [
     { min: 0, label: "Membre", next: 3 },
     { min: 3, label: "Actif", next: 10 },
@@ -1196,7 +1308,7 @@ async function loadProfile(forceId = null, forceName = null) {
     <div class="profile-level clickable" onclick="openLeaderboardModal()">
       <div class="profile-level-top">
         <span>Niveau de contribution</span>
-        <strong>${current.label}</strong>
+        <strong>${current.label} • ${fullStats.points||0} pts</strong>
       </div>
       <div class="profile-level-bar">
         <div class="profile-level-fill" style="width:0%" id="level-fill"></div>
@@ -1376,7 +1488,9 @@ async function loadCodes(){
     allCodes = cache.codes;
   } else {
     try {
-      let url = currentFilter === 'all' ? '/codes' : `/codes?type=${currentFilter}`;
+      let url = '/codes';
+      if (currentFilter === 'promo' || currentFilter === 'parrainage') url += `?type=${currentFilter}`;
+      else if (currentFilter === 'expiring') url += '?expiring=1';
       if (currentUserId) url += (url.includes('?') ? '&' : '?') + 'user_id=' + currentUserId;
       allCodes = (await (await fetch(url)).json()).codes || [];
       if (currentFilter === 'all') {
@@ -1394,7 +1508,10 @@ async function loadCodes(){
       ? top.map(c => `<div class="card row"><div><strong>${c.site}</strong><div class="muted">${c.type||'promo'} • ${c.code}</div></div><div class="pill">${c.description||'Promo'}</div></div>`).join('')
       : '<div class="empty">Pas de top</div>';
   } catch(e){}
-  document.getElementById('feed-title').textContent = currentFilter === 'all' ? 'À la une' : (currentFilter === 'promo' ? 'Codes promo' : 'Codes parrainage');
+  document.getElementById('feed-title').textContent = 
+    currentFilter === 'all' ? 'À la une' : 
+    currentFilter === 'promo' ? 'Codes promo' : 
+    currentFilter === 'parrainage' ? 'Codes parrainage' : 'Expirent bientôt';
   document.getElementById('codes-list').innerHTML = allCodes.length
     ? allCodes.map(c => renderPost(c)).join('')
     : '<div class="empty">Aucun code</div>';
