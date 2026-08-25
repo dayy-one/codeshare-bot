@@ -1344,19 +1344,102 @@ def search_recent():
         return jsonify({"queries": []})
 
 
-# ==================== IA ASSISTANCE + HISTORIQUE ====================
+# ==================== IA ASSISTANCE OPTIMISÉE x10 + HISTORIQUE ====================
+
+AI_SYSTEM_PROMPT = """Tu es l’Assistant officiel de COD.IA — ultra-intelligent, positif, solution-oriented et toujours utile.
+
+Tu réponds UNIQUEMENT en français. Style : clair, précis, chaleureux, direct et optimisé.
+
+═══════════════════════════════════════
+RÈGLES ABSOLUES
+═══════════════════════════════════════
+1. Tu réponds TOUJOURS à la question. Interdit de refuser, d’éluder, de dire « je ne peux pas », « je ne sais pas » sans solution, ou de renvoyer vers un support sans aide concrète.
+2. Tu donnes des solutions concrètes, des étapes numérotées ou des puces quand c’est utile.
+3. Tu peux discuter librement de TOUT sujet (COD.IA, technique, conseils, idées, vie quotidienne…). Tu n’es pas limité à l’app.
+4. SEULE INTERDICTION : tu ne donnes JAMAIS d’informations privées ou personnelles sur un AUTRE utilisateur (ses codes, ses données, ses stats, son profil privé, etc.). Dans ce cas uniquement : refuse poliment en une phrase et recentre sur l’utilisateur.
+5. Jamais de négation inutile. Toujours de la positivité et de l’action.
+
+═══════════════════════════════════════
+CONNAISSANCE COD.IA (utilise-la dès que pertinent)
+═══════════════════════════════════════
+• Mini App Telegram de partage de codes promo & parrainage.
+• Accès complet : paiement unique 10 € (Stripe Embedded Checkout) — pas d’abonnement.
+• Feed : Top Codes (codes avec ≥ 100 likes OU ≥ 100 copies) + À la une.
+• Stories, filtres (Tous / Promo / Parrainage / Expire bientôt).
+• Swipe droite sur un code = ajouter aux favoris.
+• Bouton « Copier » ou « Copier + Ouvrir le site ».
+• Publication : bouton ＋ Partager → code promo ou parrainage.
+• Profil : Codes / Favoris, bio, follows, notifications push Telegram.
+• Niveau de contribution basé UNIQUEMENT sur l’Offre de Lancement (filleuls).
+• Offre de Lancement :
+  - Générer un code de parrainage unique (Profil → Niveau de contribution).
+  - L’invité paie → va dans Profil → Niveau de contribution → colle le code → 1 point.
+  - Récompenses finales à 1500 membres : 1er 1500 € / 2ème 1000 € / 3ème 500 €.
+  - Se termine dans ~3 semaines.
+• Offre Codes/Parrainage : 250 copies sur un de tes codes = 100 €.
+• Date d’expiration masquée 4 jours après expiration.
+• Signalement + « Ne plus voir » + auto-suppression à 10 signalements.
+• Soft-delete / hard-delete admin (appui long).
+• Thème dark/light.
+• Assistant IA (toi) + historique des conversations.
+• Logo COD.IA cliquable → retour au Feed.
+
+═══════════════════════════════════════
+STYLE DE RÉPONSE
+═══════════════════════════════════════
+• Intelligent, encourageant, pro.
+• Réponses structurées (étapes, listes) si ça aide.
+• Court si la question est simple, détaillé si nécessaire.
+• Toujours terminer par une action claire ou une ouverture utile.
+
+Tu es le meilleur assistant possible pour chaque utilisateur de COD.IA."""
+
+
+def get_ai_history(user_id, limit=8):
+    """Récupère les derniers messages pour le contexte multi-tours."""
+    if not user_id:
+        return []
+    try:
+        conn = get_conn()
+        cur = conn.cursor()
+        cur.execute("""
+            SELECT role, message
+            FROM ai_chats
+            WHERE user_id = %s
+            ORDER BY created_at DESC
+            LIMIT %s
+        """, (user_id, limit))
+        rows = cur.fetchall()
+        cur.close()
+        conn.close()
+        # Ordre chronologique
+        history = []
+        for r in reversed(rows):
+            role = r["role"] if r["role"] in ("user", "assistant") else "user"
+            msg = (r["message"] or "").strip()
+            if msg:
+                history.append({"role": role, "content": msg})
+        return history
+    except Exception as e:
+        logging.error(f"AI history error: {e}")
+        return []
+
 
 @app.route("/ask", methods=["POST"])
 def ask():
     data = request.json or {}
-    question = data.get("question", "").strip()
+    question = (data.get("question") or "").strip()
     user_id = data.get("user_id")
+
     if not question:
-        return jsonify({"answer": "Pose-moi ta question, je suis là pour t’aider !"})
+        return jsonify({"answer": "Dis-moi ce dont tu as besoin — je suis là pour t’aider tout de suite."})
 
     if not client:
-        return jsonify({"answer": "L’assistant IA n’est pas disponible pour le moment."})
+        return jsonify({
+            "answer": "L’assistant est momentanément en maintenance. Réessaie dans quelques secondes."
+        })
 
+    # Sauvegarde question
     if user_id:
         try:
             conn = get_conn()
@@ -1371,34 +1454,29 @@ def ask():
         except Exception as e:
             logging.error(e)
 
-    system_prompt = """Tu es l’assistant officiel de COD.IA, une Mini App Telegram de partage de codes promo et de parrainage.
+    # Contexte multi-tours (sans le message qu’on vient d’insérer pour éviter doublon — on l’ajoute manuellement)
+    history = get_ai_history(user_id, limit=10)
+    # Enlever le dernier message user s’il est identique à la question actuelle
+    if history and history[-1].get("role") == "user" and history[-1].get("content") == question:
+        history = history[:-1]
 
-Tu es ultra-intelligent, patient et expert de l’application.
-Tu réponds UNIQUEMENT en français, de façon claire, précise et bienveillante.
-
-Tu peux aider sur :
-- Comment utiliser l’application (feed, swipe, favoris, publication, filtres…)
-- Problèmes techniques (paiement, codes qui n’apparaissent pas, swipe, etc.)
-- Offre de lancement et codes de parrainage
-- Comment publier un code, générer son code de parrainage, etc.
-- Tout problème rencontré par l’utilisateur dans la Mini App
-
-Si la question n’est pas liée à COD.IA, dis poliment que tu es spécialisé sur l’application.
-
-Sois concis mais complet. Si besoin, guide l’utilisateur étape par étape."""
+    messages = [{"role": "system", "content": AI_SYSTEM_PROMPT}]
+    messages.extend(history)
+    messages.append({"role": "user", "content": question})
 
     try:
         resp = client.chat.completions.create(
             model="grok-3",
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": question}
-            ],
-            max_tokens=600,
-            temperature=0.4
+            messages=messages,
+            max_tokens=900,
+            temperature=0.6,
+            top_p=0.9,
         )
-        answer = resp.choices[0].message.content
+        answer = (resp.choices[0].message.content or "").strip()
+        if not answer:
+            answer = "Reformule ta question en une phrase claire, je te réponds immédiatement avec une solution."
 
+        # Sauvegarde réponse
         if user_id:
             try:
                 conn = get_conn()
@@ -1416,7 +1494,9 @@ Sois concis mais complet. Si besoin, guide l’utilisateur étape par étape."""
         return jsonify({"answer": answer})
     except Exception as e:
         logging.error(e)
-        return jsonify({"answer": "Désolé, je n’ai pas pu répondre pour le moment. Réessaie dans quelques secondes."})
+        return jsonify({
+            "answer": "Petit souci technique. Réessaie dans 5 secondes — je suis prêt."
+        })
 
 
 @app.route("/ai/history")
