@@ -2,7 +2,7 @@ import os
 import json
 import logging
 import secrets
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 
 from flask import Flask, request, jsonify, send_from_directory
 import stripe
@@ -48,7 +48,7 @@ def is_admin(user_id):
         return False
 
 
-# ==================== IA (xAI en priorité) ====================
+# ==================== IA (optionnel – Coach est le défaut UI) ====================
 XAI_API_KEY = os.getenv("XAI_API_KEY")
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
@@ -63,13 +63,13 @@ if XAI_API_KEY:
 elif GROQ_API_KEY:
     client = OpenAI(api_key=GROQ_API_KEY, base_url="https://api.groq.com/openai/v1")
     AI_MODEL = os.getenv("AI_MODEL", "llama-3.3-70b-versatile")
-    logging.info("IA: Groq (fallback)")
+    logging.info("IA: Groq")
 elif OPENROUTER_API_KEY:
     client = OpenAI(api_key=OPENROUTER_API_KEY, base_url="https://openrouter.ai/api/v1")
     AI_MODEL = os.getenv("AI_MODEL", "meta-llama/llama-3.3-70b-instruct:free")
-    logging.info("IA: OpenRouter (fallback)")
+    logging.info("IA: OpenRouter")
 else:
-    logging.warning("Aucune clé IA configurée (XAI_API_KEY / GROQ_API_KEY / OPENROUTER_API_KEY)")
+    logging.info("IA: non configurée (Coach COD.IA actif sans LLM)")
 
 
 def get_conn():
@@ -201,6 +201,34 @@ def init_db():
             created_at TIMESTAMP DEFAULT NOW()
         )
     """)
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS daily_challenges (
+            user_id BIGINT NOT NULL,
+            challenge_date DATE NOT NULL,
+            challenge_key TEXT NOT NULL,
+            target INT NOT NULL,
+            completed BOOLEAN DEFAULT FALSE,
+            completed_at TIMESTAMP,
+            PRIMARY KEY (user_id, challenge_date)
+        )
+    """)
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS user_badges (
+            user_id BIGINT NOT NULL,
+            badge_key TEXT NOT NULL,
+            earned_at TIMESTAMP DEFAULT NOW(),
+            PRIMARY KEY (user_id, badge_key)
+        )
+    """)
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS coach_events (
+            id SERIAL PRIMARY KEY,
+            user_id BIGINT,
+            owner_id BIGINT,
+            event_type TEXT,
+            created_at TIMESTAMP DEFAULT NOW()
+        )
+    """)
 
     try:
         cur.execute("ALTER TABLE codes ADD COLUMN IF NOT EXISTS verified BOOLEAN DEFAULT FALSE")
@@ -271,6 +299,23 @@ def admin_keyboard():
             "web_app": {"url": f"{MINIAPP_URL}&admin=1"}
         }]]
     }
+
+
+def log_coach_event(owner_id, event_type, actor_id=None):
+    if not owner_id or event_type not in ("like", "copy"):
+        return
+    try:
+        conn = get_conn()
+        cur = conn.cursor()
+        cur.execute(
+            "INSERT INTO coach_events (user_id, owner_id, event_type) VALUES (%s, %s, %s)",
+            (actor_id, owner_id, event_type)
+        )
+        conn.commit()
+        cur.close()
+        conn.close()
+    except Exception as e:
+        logging.error(f"coach_event: {e}")
 
 
 # ==================== ROUTES STATIQUES ====================
@@ -710,17 +755,23 @@ def code_copy():
         if user_id:
             cur.execute("SELECT 1 FROM copied_codes WHERE user_id = %s AND code_id = %s", (user_id, code_id))
             if cur.fetchone():
-                cur.execute("SELECT copies FROM codes WHERE id = %s", (code_id,))
+                cur.execute("SELECT copies, user_id FROM codes WHERE id = %s", (code_id,))
                 row = cur.fetchone()
                 cur.close()
                 conn.close()
                 return jsonify({"copies": row["copies"] if row else 0})
-            cur.execute("INSERT INTO copied_codes (user_id, code_id) VALUES (%s, %s) ON CONFLICT DO NOTHING", (user_id, code_id))
-        cur.execute("UPDATE codes SET copies = copies + 1 WHERE id = %s RETURNING copies", (code_id,))
+            cur.execute(
+                "INSERT INTO copied_codes (user_id, code_id) VALUES (%s, %s) ON CONFLICT DO NOTHING",
+                (user_id, code_id)
+            )
+        cur.execute("UPDATE codes SET copies = copies + 1 WHERE id = %s RETURNING copies, user_id", (code_id,))
         row = cur.fetchone()
         conn.commit()
+        owner_id = row["user_id"] if row else None
         cur.close()
         conn.close()
+        if owner_id:
+            log_coach_event(owner_id, "copy", user_id)
         return jsonify({"copies": row["copies"] if row else 0})
     except Exception as e:
         logging.error(e)
@@ -733,8 +784,10 @@ def code_save():
     try:
         conn = get_conn()
         cur = conn.cursor()
-        cur.execute("INSERT INTO saved_codes (user_id, code_id) VALUES (%s, %s) ON CONFLICT DO NOTHING",
-                    (data.get("user_id"), data.get("id")))
+        cur.execute(
+            "INSERT INTO saved_codes (user_id, code_id) VALUES (%s, %s) ON CONFLICT DO NOTHING",
+            (data.get("user_id"), data.get("id"))
+        )
         conn.commit()
         cur.close()
         conn.close()
@@ -749,8 +802,10 @@ def code_unsave():
     try:
         conn = get_conn()
         cur = conn.cursor()
-        cur.execute("DELETE FROM saved_codes WHERE user_id = %s AND code_id = %s",
-                    (data.get("user_id"), data.get("id")))
+        cur.execute(
+            "DELETE FROM saved_codes WHERE user_id = %s AND code_id = %s",
+            (data.get("user_id"), data.get("id"))
+        )
         conn.commit()
         cur.close()
         conn.close()
@@ -774,22 +829,45 @@ def code_react():
         col = "likes" if reaction == "like" else "dislikes"
         opposite = "dislike" if reaction == "like" else "like"
         opposite_col = "dislikes" if reaction == "like" else "likes"
+        owner_id = None
+        cur.execute("SELECT user_id FROM codes WHERE id = %s", (code_id,))
+        owner_row = cur.fetchone()
+        if owner_row:
+            owner_id = owner_row["user_id"]
+
         if action == "add" and user_id:
-            cur.execute("DELETE FROM reactions WHERE user_id = %s AND code_id = %s AND reaction = %s",
-                        (user_id, code_id, opposite))
+            cur.execute(
+                "DELETE FROM reactions WHERE user_id = %s AND code_id = %s AND reaction = %s",
+                (user_id, code_id, opposite)
+            )
             if cur.rowcount > 0:
-                cur.execute(f"UPDATE codes SET {opposite_col} = GREATEST({opposite_col} - 1, 0) WHERE id = %s", (code_id,))
-            cur.execute("INSERT INTO reactions (user_id, code_id, reaction) VALUES (%s, %s, %s) ON CONFLICT DO NOTHING",
-                        (user_id, code_id, reaction))
+                cur.execute(
+                    f"UPDATE codes SET {opposite_col} = GREATEST({opposite_col} - 1, 0) WHERE id = %s",
+                    (code_id,)
+                )
+            cur.execute(
+                "INSERT INTO reactions (user_id, code_id, reaction) VALUES (%s, %s, %s) ON CONFLICT DO NOTHING",
+                (user_id, code_id, reaction)
+            )
             if cur.rowcount > 0:
-                cur.execute(f"UPDATE codes SET {col} = {col} + 1 WHERE id = %s RETURNING {col} as value", (code_id,))
+                cur.execute(
+                    f"UPDATE codes SET {col} = {col} + 1 WHERE id = %s RETURNING {col} as value",
+                    (code_id,)
+                )
+                if reaction == "like" and owner_id:
+                    log_coach_event(owner_id, "like", user_id)
             else:
                 cur.execute(f"SELECT {col} as value FROM codes WHERE id = %s", (code_id,))
         else:
             if user_id:
-                cur.execute("DELETE FROM reactions WHERE user_id = %s AND code_id = %s AND reaction = %s",
-                            (user_id, code_id, reaction))
-            cur.execute(f"UPDATE codes SET {col} = GREATEST({col} - 1, 0) WHERE id = %s RETURNING {col} as value", (code_id,))
+                cur.execute(
+                    "DELETE FROM reactions WHERE user_id = %s AND code_id = %s AND reaction = %s",
+                    (user_id, code_id, reaction)
+                )
+            cur.execute(
+                f"UPDATE codes SET {col} = GREATEST({col} - 1, 0) WHERE id = %s RETURNING {col} as value",
+                (code_id,)
+            )
         row = cur.fetchone()
         conn.commit()
         cur.close()
@@ -902,8 +980,10 @@ def code_report():
             cur.execute("UPDATE codes SET deleted = TRUE WHERE id = %s", (code_id,))
             auto_deleted = True
         if hide and user_id:
-            cur.execute("INSERT INTO hidden_codes (user_id, code_id) VALUES (%s, %s) ON CONFLICT DO NOTHING",
-                        (user_id, code_id))
+            cur.execute(
+                "INSERT INTO hidden_codes (user_id, code_id) VALUES (%s, %s) ON CONFLICT DO NOTHING",
+                (user_id, code_id)
+            )
         conn.commit()
         cur.close()
         conn.close()
@@ -971,8 +1051,10 @@ def referral_integrate():
             cur.close()
             conn.close()
             return jsonify({"error": "Tu ne peux pas utiliser ton propre code"}), 400
-        cur.execute("INSERT INTO referrals (referred_id, referrer_id) VALUES (%s, %s) ON CONFLICT (referred_id) DO NOTHING",
-                    (user_id, referrer_id))
+        cur.execute(
+            "INSERT INTO referrals (referred_id, referrer_id) VALUES (%s, %s) ON CONFLICT (referred_id) DO NOTHING",
+            (user_id, referrer_id)
+        )
         cur.execute("""
             INSERT INTO user_profiles (user_id, referral_used) VALUES (%s, TRUE)
             ON CONFLICT (user_id) DO UPDATE SET referral_used = TRUE
@@ -1167,8 +1249,10 @@ def follow():
     try:
         conn = get_conn()
         cur = conn.cursor()
-        cur.execute("INSERT INTO follows (follower_id, followed_id) VALUES (%s, %s) ON CONFLICT DO NOTHING",
-                    (data.get("follower_id"), data.get("followed_id")))
+        cur.execute(
+            "INSERT INTO follows (follower_id, followed_id) VALUES (%s, %s) ON CONFLICT DO NOTHING",
+            (data.get("follower_id"), data.get("followed_id"))
+        )
         conn.commit()
         cur.close()
         conn.close()
@@ -1183,8 +1267,10 @@ def unfollow():
     try:
         conn = get_conn()
         cur = conn.cursor()
-        cur.execute("DELETE FROM follows WHERE follower_id = %s AND followed_id = %s",
-                    (data.get("follower_id"), data.get("followed_id")))
+        cur.execute(
+            "DELETE FROM follows WHERE follower_id = %s AND followed_id = %s",
+            (data.get("follower_id"), data.get("followed_id"))
+        )
         conn.commit()
         cur.close()
         conn.close()
@@ -1200,7 +1286,10 @@ def is_following():
     try:
         conn = get_conn()
         cur = conn.cursor()
-        cur.execute("SELECT 1 FROM follows WHERE follower_id = %s AND followed_id = %s", (follower, followed))
+        cur.execute(
+            "SELECT 1 FROM follows WHERE follower_id = %s AND followed_id = %s",
+            (follower, followed)
+        )
         row = cur.fetchone()
         cur.close()
         conn.close()
@@ -1255,7 +1344,10 @@ def notifications():
             ORDER BY created_at DESC LIMIT 30
         """, (user_id,))
         notifs = cur.fetchall()
-        cur.execute("SELECT COUNT(*) as c FROM notifications WHERE user_id = %s AND is_read = FALSE", (user_id,))
+        cur.execute(
+            "SELECT COUNT(*) as c FROM notifications WHERE user_id = %s AND is_read = FALSE",
+            (user_id,)
+        )
         unread = cur.fetchone()["c"]
         cur.close()
         conn.close()
@@ -1362,189 +1454,347 @@ def search_recent():
         return jsonify({"queries": []})
 
 
-# ==================== IA ASSISTANCE ====================
+# ==================== COACH COD.IA + DÉFIS + BADGES ====================
 
-AI_SYSTEM_PROMPT = """Tu es l’Assistant officiel de COD.IA — ultra-intelligent, positif, solution-oriented et toujours utile.
+BADGE_TIERS = [
+    {"key": "rookie", "label": "Rookie", "icon": "🌱", "need": 3, "desc": "3 défis réussis"},
+    {"key": "actif", "label": "Actif", "icon": "⚡", "need": 7, "desc": "7 défis réussis"},
+    {"key": "warrior", "label": "Warrior", "icon": "🔥", "need": 15, "desc": "15 défis réussis"},
+    {"key": "legend", "label": "Légende", "icon": "👑", "need": 30, "desc": "30 défis réussis"},
+    {"key": "mythic", "label": "Mythique", "icon": "💎", "need": 60, "desc": "60 défis réussis"},
+]
 
-Tu réponds UNIQUEMENT en français. Style : clair, précis, chaleureux, direct et optimisé.
-
-═══════════════════════════════════════
-RÈGLES ABSOLUES
-═══════════════════════════════════════
-1. Tu réponds TOUJOURS à la question. Interdit de refuser, d’éluder, de dire « je ne peux pas », « je ne sais pas » sans solution, ou de renvoyer vers un support sans aide concrète.
-2. Tu donnes des solutions concrètes, des étapes numérotées ou des puces quand c’est utile.
-3. Tu peux discuter librement de TOUT sujet (COD.IA, technique, conseils, idées, vie quotidienne…). Tu n’es pas limité à l’app.
-4. SEULE INTERDICTION : tu ne donnes JAMAIS d’informations privées ou personnelles sur un AUTRE utilisateur (ses codes, ses données, ses stats, son profil privé, etc.). Dans ce cas uniquement : refuse poliment en une phrase et recentre sur l’utilisateur.
-5. Jamais de négation inutile. Toujours de la positivité et de l’action.
-
-═══════════════════════════════════════
-CONNAISSANCE COD.IA (utilise-la dès que pertinent)
-═══════════════════════════════════════
-• Mini App Telegram de partage de codes promo & parrainage.
-• Accès complet : paiement unique 10 € (Stripe Embedded Checkout) — pas d’abonnement.
-• Feed : Top Codes (codes avec ≥ 100 likes OU ≥ 100 copies) + À la une.
-• Stories, filtres (Tous / Promo / Parrainage / Expire bientôt).
-• Swipe droite sur un code = ajouter aux favoris.
-• Bouton « Copier » ou « Copier + Ouvrir le site ».
-• Publication : bouton ＋ Partager → code promo ou parrainage.
-• Profil : Codes / Favoris, bio, follows, notifications push Telegram.
-• Niveau de contribution basé UNIQUEMENT sur l’Offre de Lancement (filleuls).
-• Offre de Lancement :
-  - Générer un code de parrainage unique (Profil → Niveau de contribution).
-  - L’invité paie → va dans Profil → Niveau de contribution → colle le code → 1 point.
-  - Récompenses finales à 1500 membres : 1er 1500 € / 2ème 1000 € / 3ème 500 €.
-  - Se termine dans ~3 semaines.
-• Offre Codes/Parrainage : 250 copies sur un de tes codes = 100 €.
-• Date d’expiration masquée 4 jours après expiration.
-• Signalement + « Ne plus voir » + auto-suppression à 10 signalements.
-• Soft-delete / hard-delete admin (appui long).
-• Thème dark/light.
-• Assistant IA (toi) + historique des conversations.
-• Logo COD.IA cliquable → retour au Feed.
-
-═══════════════════════════════════════
-STYLE DE RÉPONSE
-═══════════════════════════════════════
-• Intelligent, encourageant, pro.
-• Réponses structurées (étapes, listes) si ça aide.
-• Court si la question est simple, détaillé si nécessaire.
-• Toujours terminer par une action claire ou une ouverture utile.
-
-Tu es le meilleur assistant possible pour chaque utilisateur de COD.IA."""
+# Défis = résultats à OBTENIR
+CHALLENGE_POOL = [
+    {"key": "likes_3", "label": "Obtiens 3 J’aime aujourd’hui", "metric": "like", "target": 3},
+    {"key": "likes_5", "label": "Obtiens 5 J’aime aujourd’hui", "metric": "like", "target": 5},
+    {"key": "copies_3", "label": "Obtiens 3 copies sur tes codes aujourd’hui", "metric": "copy", "target": 3},
+    {"key": "copies_5", "label": "Obtiens 5 copies sur tes codes aujourd’hui", "metric": "copy", "target": 5},
+    {"key": "copies_10", "label": "Obtiens 10 copies sur tes codes aujourd’hui", "metric": "copy", "target": 10},
+    {"key": "ref_1", "label": "Obtiens 1 nouveau filleul aujourd’hui", "metric": "referral", "target": 1},
+]
 
 
-def get_ai_history(user_id, limit=8):
-    if not user_id:
-        return []
+def _today_challenge_for_user(user_id):
+    d = date.today()
+    idx = (d.toordinal() + int(user_id or 0)) % len(CHALLENGE_POOL)
+    return CHALLENGE_POOL[idx], d
+
+
+def _metric_today(user_id, metric):
     try:
         conn = get_conn()
         cur = conn.cursor()
-        cur.execute("""
-            SELECT role, message
-            FROM ai_chats
-            WHERE user_id = %s
-            ORDER BY created_at DESC
-            LIMIT %s
-        """, (user_id, limit))
-        rows = cur.fetchall()
+        if metric == "copy":
+            cur.execute("""
+                SELECT COUNT(*) as c FROM coach_events
+                WHERE owner_id = %s AND event_type = 'copy' AND created_at::date = CURRENT_DATE
+            """, (user_id,))
+            row = cur.fetchone()
+            if row and row["c"]:
+                cur.close()
+                conn.close()
+                return int(row["c"])
+            cur.execute("""
+                SELECT COUNT(*) as c FROM copied_codes cc
+                JOIN codes c ON c.id = cc.code_id
+                WHERE c.user_id = %s AND cc.created_at::date = CURRENT_DATE
+            """, (user_id,))
+            row = cur.fetchone()
+            cur.close()
+            conn.close()
+            return int(row["c"] or 0)
+        if metric == "like":
+            cur.execute("""
+                SELECT COUNT(*) as c FROM coach_events
+                WHERE owner_id = %s AND event_type = 'like' AND created_at::date = CURRENT_DATE
+            """, (user_id,))
+            row = cur.fetchone()
+            cur.close()
+            conn.close()
+            return int(row["c"] or 0)
+        if metric == "referral":
+            cur.execute("""
+                SELECT COUNT(*) as c FROM referrals
+                WHERE referrer_id = %s AND created_at::date = CURRENT_DATE
+            """, (user_id,))
+            row = cur.fetchone()
+            cur.close()
+            conn.close()
+            return int(row["c"] or 0)
         cur.close()
         conn.close()
-        history = []
-        for r in reversed(rows):
-            role = r["role"] if r["role"] in ("user", "assistant") else "user"
-            msg = (r["message"] or "").strip()
-            if msg:
-                history.append({"role": role, "content": msg})
-        return history
     except Exception as e:
-        logging.error(f"AI history error: {e}")
-        return []
+        logging.error(e)
+    return 0
 
+
+def _count_completed_challenges(user_id):
+    try:
+        conn = get_conn()
+        cur = conn.cursor()
+        cur.execute(
+            "SELECT COUNT(*) as c FROM daily_challenges WHERE user_id = %s AND completed = TRUE",
+            (user_id,)
+        )
+        n = cur.fetchone()["c"] or 0
+        cur.close()
+        conn.close()
+        return int(n)
+    except Exception:
+        return 0
+
+
+def _sync_badges(user_id):
+    n = _count_completed_challenges(user_id)
+    try:
+        conn = get_conn()
+        cur = conn.cursor()
+        for b in BADGE_TIERS:
+            if n >= b["need"]:
+                cur.execute("""
+                    INSERT INTO user_badges (user_id, badge_key) VALUES (%s, %s)
+                    ON CONFLICT DO NOTHING
+                """, (user_id, b["key"]))
+        conn.commit()
+        cur.close()
+        conn.close()
+    except Exception as e:
+        logging.error(e)
+    return n
+
+
+def _best_badge(user_id):
+    n = _count_completed_challenges(user_id)
+    best = None
+    for b in BADGE_TIERS:
+        if n >= b["need"]:
+            best = b
+    return best, n
+
+
+@app.route("/coach/tips")
+def coach_tips():
+    user_id = request.args.get("user_id", type=int)
+    tips = []
+    if not user_id:
+        return jsonify({"tips": tips})
+    try:
+        conn = get_conn()
+        cur = conn.cursor()
+        cur.execute("SELECT COUNT(*) as c FROM codes WHERE user_id = %s AND deleted = FALSE", (user_id,))
+        total_codes = cur.fetchone()["c"] or 0
+        cur.execute("""
+            SELECT id, site, copies FROM codes
+            WHERE user_id = %s AND deleted = FALSE
+            ORDER BY copies DESC LIMIT 1
+        """, (user_id,))
+        top_code = cur.fetchone()
+        cur.execute("SELECT code FROM referral_codes WHERE user_id = %s", (user_id,))
+        ref_code = cur.fetchone()
+        cur.execute("SELECT COUNT(*) as c FROM referrals WHERE referrer_id = %s", (user_id,))
+        refs = cur.fetchone()["c"] or 0
+        cur.execute("SELECT bio FROM user_profiles WHERE user_id = %s", (user_id,))
+        bio_row = cur.fetchone()
+        cur.close()
+        conn.close()
+
+        if total_codes == 0:
+            tips.append({
+                "id": "first_code",
+                "text": "Publie ton 1er code pour apparaître dans le feed.",
+                "action": "share",
+                "cta": "Publier"
+            })
+        if not ref_code:
+            tips.append({
+                "id": "gen_ref",
+                "text": "Génère ton code de parrainage et commence l’Offre de Lancement.",
+                "action": "leaderboard",
+                "cta": "Générer"
+            })
+        elif refs == 0:
+            tips.append({
+                "id": "share_ref",
+                "text": "Partage ton code : chaque filleul qui paie et valide = 1 membre parrainé.",
+                "action": "leaderboard",
+                "cta": "Mon code"
+            })
+        elif refs < 500:
+            tips.append({
+                "id": "refs_prog",
+                "text": f"Tu as {refs} membre(s) parrainé(s). Objectif 500 → 500 €.",
+                "action": "leaderboard",
+                "cta": "Classement"
+            })
+        elif refs < 1000:
+            tips.append({
+                "id": "refs_1k",
+                "text": f"Tu as {refs} parrainés. Objectif 1 000 → 1 000 €.",
+                "action": "leaderboard",
+                "cta": "Classement"
+            })
+        elif refs < 1500:
+            tips.append({
+                "id": "refs_15k",
+                "text": f"Tu as {refs} parrainés. Objectif 1 500 → 1 500 €.",
+                "action": "leaderboard",
+                "cta": "Classement"
+            })
+        if top_code and (top_code["copies"] or 0) < 250:
+            left = 250 - (top_code["copies"] or 0)
+            tips.append({
+                "id": "copies",
+                "text": f"Plus que {left} copies sur « {top_code['site']} » pour l’offre 100 €.",
+                "action": "profile",
+                "cta": "Mes codes"
+            })
+        elif top_code and (top_code["copies"] or 0) >= 250:
+            tips.append({
+                "id": "copies_ok",
+                "text": "250 copies atteintes 🎉 Contacte le support pour la récompense 100 €.",
+                "action": "support",
+                "cta": "Support"
+            })
+        if not bio_row or not (bio_row.get("bio") or "").strip():
+            tips.append({
+                "id": "bio",
+                "text": "Ajoute une bio pour rendre ton profil plus pro.",
+                "action": "profile",
+                "cta": "Profil"
+            })
+
+        return jsonify({"tips": tips[:3], "referrals_count": refs})
+    except Exception as e:
+        logging.error(e)
+        return jsonify({"tips": []})
+
+
+@app.route("/coach/daily")
+def coach_daily():
+    user_id = request.args.get("user_id", type=int)
+    if not user_id:
+        return jsonify({"error": "user_id required"}), 400
+
+    ch, d = _today_challenge_for_user(user_id)
+    progress = 0
+    completed = False
+
+    try:
+        conn = get_conn()
+        cur = conn.cursor()
+        cur.execute(
+            "SELECT * FROM daily_challenges WHERE user_id = %s AND challenge_date = %s",
+            (user_id, d)
+        )
+        row = cur.fetchone()
+        if not row:
+            cur.execute("""
+                INSERT INTO daily_challenges (user_id, challenge_date, challenge_key, target, completed)
+                VALUES (%s, %s, %s, %s, FALSE)
+            """, (user_id, d, ch["key"], ch["target"]))
+            conn.commit()
+        else:
+            completed = bool(row["completed"])
+            for c in CHALLENGE_POOL:
+                if c["key"] == row["challenge_key"]:
+                    ch = c
+                    break
+
+        progress = _metric_today(user_id, ch["metric"])
+
+        if progress >= ch["target"] and not completed:
+            cur.execute("""
+                UPDATE daily_challenges
+                SET completed = TRUE, completed_at = NOW()
+                WHERE user_id = %s AND challenge_date = %s
+            """, (user_id, d))
+            conn.commit()
+            completed = True
+            _sync_badges(user_id)
+
+        cur.close()
+        conn.close()
+    except Exception as e:
+        logging.error(e)
+
+    best, total_done = _best_badge(user_id)
+    return jsonify({
+        "date": str(d),
+        "challenge": {
+            "key": ch["key"],
+            "label": ch["label"],
+            "target": ch["target"],
+            "progress": min(progress, ch["target"]),
+            "completed": completed,
+        },
+        "challenges_completed_total": total_done,
+        "badge": best,
+    })
+
+
+@app.route("/coach/event", methods=["POST"])
+def coach_event():
+    data = request.json or {}
+    owner_id = data.get("owner_id")
+    event_type = data.get("event_type")
+    actor_id = data.get("user_id")
+    if not owner_id or event_type not in ("like", "copy"):
+        return jsonify({"ok": False}), 400
+    log_coach_event(owner_id, event_type, actor_id)
+    return jsonify({"ok": True})
+
+
+@app.route("/coach/badges")
+def coach_badges():
+    user_id = request.args.get("user_id", type=int)
+    if not user_id:
+        return jsonify({"badges": [], "next": None})
+    total = _sync_badges(user_id)
+    unlocked = []
+    next_badge = None
+    all_badges = []
+    for b in BADGE_TIERS:
+        item = {
+            **b,
+            "unlocked": total >= b["need"],
+            "progress": total,
+            "remaining": max(0, b["need"] - total),
+        }
+        all_badges.append(item)
+        if total >= b["need"]:
+            unlocked.append(item)
+        elif next_badge is None:
+            next_badge = item
+    best, _ = _best_badge(user_id)
+    return jsonify({
+        "total_challenges": total,
+        "current": best,
+        "unlocked": unlocked,
+        "all": all_badges,
+        "next": next_badge,
+    })
+
+
+@app.route("/coach/badge")
+def coach_badge_one():
+    user_id = request.args.get("user_id", type=int)
+    best, total = _best_badge(user_id)
+    return jsonify({"badge": best, "total_challenges": total})
+
+
+# ==================== IA LEGACY (optionnel) ====================
 
 @app.route("/ask", methods=["POST"])
 def ask():
-    data = request.json or {}
-    question = (data.get("question") or "").strip()
-    user_id = data.get("user_id")
-
-    if not question:
-        return jsonify({"answer": "Dis-moi ce dont tu as besoin — je suis là pour t’aider tout de suite."})
-
-    if not client or not AI_MODEL:
-        return jsonify({
-            "answer": "L’assistant est momentanément indisponible (clé IA non configurée). Vérifie XAI_API_KEY sur Railway."
-        })
-
-    if user_id:
-        try:
-            conn = get_conn()
-            cur = conn.cursor()
-            cur.execute(
-                "INSERT INTO ai_chats (user_id, role, message) VALUES (%s, %s, %s)",
-                (user_id, "user", question)
-            )
-            conn.commit()
-            cur.close()
-            conn.close()
-        except Exception as e:
-            logging.error(e)
-
-    history = get_ai_history(user_id, limit=10)
-    if history and history[-1].get("role") == "user" and history[-1].get("content") == question:
-        history = history[:-1]
-
-    messages = [{"role": "system", "content": AI_SYSTEM_PROMPT}]
-    messages.extend(history)
-    messages.append({"role": "user", "content": question})
-
-    try:
-        resp = client.chat.completions.create(
-            model=AI_MODEL,
-            messages=messages,
-            max_tokens=900,
-            temperature=0.6,
-            top_p=0.9,
-        )
-        answer = (resp.choices[0].message.content or "").strip()
-        if not answer:
-            answer = "Reformule ta question en une phrase claire, je te réponds immédiatement avec une solution."
-
-        if user_id:
-            try:
-                conn = get_conn()
-                cur = conn.cursor()
-                cur.execute(
-                    "INSERT INTO ai_chats (user_id, role, message) VALUES (%s, %s, %s)",
-                    (user_id, "assistant", answer)
-                )
-                conn.commit()
-                cur.close()
-                conn.close()
-            except Exception as e:
-                logging.error(e)
-
-        return jsonify({"answer": answer})
-    except Exception as e:
-        logging.error(f"AI error: {e}")
-        err = str(e).lower()
-        if "rate" in err or "quota" in err or "429" in err or "credit" in err or "insufficient" in err:
-            return jsonify({
-                "answer": "Quota / crédits IA temporairement insuffisants. Réessaie plus tard ou recharge les crédits xAI."
-            })
-        return jsonify({
-            "answer": "Petit souci technique côté IA. Vérifie XAI_API_KEY et les crédits, puis réessaie."
-        })
+    return jsonify({
+        "answer": "L’Assistant IA a été remplacé par le Coach COD.IA. Ouvre l’onglet COD.IA pour les conseils, défis et l’aide."
+    })
 
 
 @app.route("/ai/history")
 def ai_history():
-    user_id = request.args.get("user_id", type=int)
-    if not user_id:
-        return jsonify({"history": []})
-    try:
-        conn = get_conn()
-        cur = conn.cursor()
-        cur.execute("""
-            SELECT role, message, created_at
-            FROM ai_chats
-            WHERE user_id = %s
-            ORDER BY created_at DESC
-            LIMIT 40
-        """, (user_id,))
-        rows = cur.fetchall()
-        cur.close()
-        conn.close()
-        history = [
-            {
-                "role": r["role"],
-                "message": r["message"],
-                "created_at": r["created_at"].isoformat() if r["created_at"] else None
-            } for r in reversed(rows)
-        ]
-        return jsonify({"history": history})
-    except Exception as e:
-        logging.error(e)
-        return jsonify({"history": []})
+    return jsonify({"history": []})
 
 
 # ==================== TELEGRAM WEBHOOK ====================
@@ -1562,12 +1812,11 @@ def telegram_webhook():
     text = (message.get("text") or "").strip()
     text_lower = text.lower()
 
-    # ===== COMMANDE ADMIN EN PREMIER (avant /start) =====
+    # ADMIN avant /start
     if text_lower in ("/startadmin", "/admin") or text_lower.startswith("/startadmin@") or text_lower.startswith("/admin@"):
         if not is_admin(user_id):
             send_telegram_message(chat_id, "Commande réservée aux administrateurs.")
             return jsonify(success=True)
-
         send_telegram_message(
             chat_id,
             "Serveur Admin COD.IA\n\nClique ci-dessous pour ouvrir le tableau de bord en direct (nouveaux membres + statistiques).",
@@ -1575,29 +1824,23 @@ def telegram_webhook():
         )
         return jsonify(success=True)
 
-    # ===== /start =====
     if text_lower.startswith("/start"):
         paid = is_paid(user_id)
         first_name = user.get("first_name") or "toi"
-
         if paid:
             welcome = (
                 f"Salut {first_name}.\n\n"
                 f"Tu as déjà accès à COD.IA.\n\n"
-                f"Clique sur le bouton ci-dessous pour ouvrir l'application et retrouver tous les codes promo & parrainages."
+                f"Clique sur le bouton ci-dessous pour ouvrir l'application."
             )
             send_telegram_message(chat_id, welcome, reply_markup=discover_keyboard(paid=True))
         else:
             welcome = (
                 f"Bienvenue {first_name}.\n\n"
-                f"COD.IA est la communauté des codes promo et parrainages mis à jour en temps réel.\n\n"
-                f"• Feed complet\n"
-                f"• Favoris & notifications\n"
-                f"• Assistant IA pour t’aider en cas de problème\n"
-                f"• Publie tes propres codes\n\n"
-                f"Accès complet : 10 euros (paiement unique).\n\n"
-                f"Offre de lancement en cours : jusqu'à 1500 € à gagner.\n\n"
-                f"Clique sur « Decouvrir COD.IA » pour voir l'aperçu gratuit."
+                f"COD.IA est la communauté des codes promo et parrainages.\n\n"
+                f"Accès complet : 10 euros (paiement unique).\n"
+                f"Offre de lancement : jusqu'à 1500 € selon tes filleuls.\n\n"
+                f"Clique sur « Decouvrir COD.IA »."
             )
             send_telegram_message(chat_id, welcome, reply_markup=discover_keyboard(paid=False))
         return jsonify(success=True)
@@ -1650,7 +1893,7 @@ def telegram_webhook():
                     msg += f"{i}. User {r['referrer_id']} ({r['code']}) → {r['cnt']} filleuls\n"
             else:
                 msg += "Aucun encore\n"
-            msg += "\n💰 OFFRE CODES/PARRAINAGE (≥ 250 copies = 100 €)\n"
+            msg += "\n💰 OFFRE CODES (≥ 250 copies = 100 €)\n"
             if big_codes:
                 for c in big_codes:
                     msg += f"• {c['site']} | {c['code']} → {c['copies']} copies ({c['added_by']})\n"
@@ -1684,7 +1927,10 @@ def telegram_webhook():
                 conn.close()
             except Exception as e:
                 logging.error(e)
-            send_telegram_message(CHANNEL_ID, f"CODE DE PARRAINAGE\n\nDe : {display}\nSite : {site}\nBonus : +{montant}€\nCode : {code}")
+            send_telegram_message(
+                CHANNEL_ID,
+                f"CODE DE PARRAINAGE\n\nDe : {display}\nSite : {site}\nBonus : +{montant}€\nCode : {code}"
+            )
             send_telegram_message(chat_id, f"Parrainage publié : {site} | {code}")
         else:
             send_telegram_message(chat_id, "Format : /parrainage Site 20 CODE")
