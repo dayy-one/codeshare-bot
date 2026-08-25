@@ -22,7 +22,6 @@ TELEGRAM_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 CHANNEL_LINK = os.getenv("CHANNEL_LINK", "https://t.me/+ODE8T52A5yEzMTZk")
 CHANNEL_ID = os.getenv("CHANNEL_ID", "-1004414166682")
 DATABASE_URL = os.getenv("DATABASE_URL")
-XAI_API_KEY = os.getenv("XAI_API_KEY")
 SERVER_URL = os.getenv("SERVER_URL", "https://codeshare-bot-production.up.railway.app")
 MINIAPP_URL = os.getenv("MINIAPP_URL", f"{SERVER_URL}/miniapp?v=18")
 PRICE_CENTS = int(os.getenv("PRICE_CENTS", "1000"))
@@ -49,9 +48,32 @@ def is_admin(user_id):
         return False
 
 
+# ==================== IA GRATUITE (Groq en priorité) ====================
+# 1) GROQ_API_KEY  → gratuit (recommandé)
+# 2) OPENROUTER_API_KEY → modèles :free
+# 3) XAI_API_KEY → si tu recharges plus tard
+
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
+XAI_API_KEY = os.getenv("XAI_API_KEY")
+
 client = None
-if XAI_API_KEY:
+AI_MODEL = None
+
+if GROQ_API_KEY:
+    client = OpenAI(api_key=GROQ_API_KEY, base_url="https://api.groq.com/openai/v1")
+    AI_MODEL = os.getenv("AI_MODEL", "llama-3.3-70b-versatile")
+    logging.info("IA: Groq (gratuit)")
+elif OPENROUTER_API_KEY:
+    client = OpenAI(api_key=OPENROUTER_API_KEY, base_url="https://openrouter.ai/api/v1")
+    AI_MODEL = os.getenv("AI_MODEL", "meta-llama/llama-3.3-70b-instruct:free")
+    logging.info("IA: OpenRouter (gratuit)")
+elif XAI_API_KEY:
     client = OpenAI(api_key=XAI_API_KEY, base_url="https://api.x.ai/v1")
+    AI_MODEL = os.getenv("AI_MODEL", "grok-3")
+    logging.info("IA: xAI")
+else:
+    logging.warning("Aucune clé IA configurée (GROQ_API_KEY / OPENROUTER_API_KEY / XAI_API_KEY)")
 
 
 def get_conn():
@@ -1344,7 +1366,7 @@ def search_recent():
         return jsonify({"queries": []})
 
 
-# ==================== IA ASSISTANCE OPTIMISÉE x10 + HISTORIQUE ====================
+# ==================== IA ASSISTANCE (GRATUITE + OPTIMISÉE) ====================
 
 AI_SYSTEM_PROMPT = """Tu es l’Assistant officiel de COD.IA — ultra-intelligent, positif, solution-oriented et toujours utile.
 
@@ -1396,7 +1418,6 @@ Tu es le meilleur assistant possible pour chaque utilisateur de COD.IA."""
 
 
 def get_ai_history(user_id, limit=8):
-    """Récupère les derniers messages pour le contexte multi-tours."""
     if not user_id:
         return []
     try:
@@ -1412,7 +1433,6 @@ def get_ai_history(user_id, limit=8):
         rows = cur.fetchall()
         cur.close()
         conn.close()
-        # Ordre chronologique
         history = []
         for r in reversed(rows):
             role = r["role"] if r["role"] in ("user", "assistant") else "user"
@@ -1434,12 +1454,11 @@ def ask():
     if not question:
         return jsonify({"answer": "Dis-moi ce dont tu as besoin — je suis là pour t’aider tout de suite."})
 
-    if not client:
+    if not client or not AI_MODEL:
         return jsonify({
-            "answer": "L’assistant est momentanément en maintenance. Réessaie dans quelques secondes."
+            "answer": "L’assistant est momentanément indisponible (clé IA non configurée). Réessaie bientôt."
         })
 
-    # Sauvegarde question
     if user_id:
         try:
             conn = get_conn()
@@ -1454,9 +1473,7 @@ def ask():
         except Exception as e:
             logging.error(e)
 
-    # Contexte multi-tours (sans le message qu’on vient d’insérer pour éviter doublon — on l’ajoute manuellement)
     history = get_ai_history(user_id, limit=10)
-    # Enlever le dernier message user s’il est identique à la question actuelle
     if history and history[-1].get("role") == "user" and history[-1].get("content") == question:
         history = history[:-1]
 
@@ -1466,7 +1483,7 @@ def ask():
 
     try:
         resp = client.chat.completions.create(
-            model="grok-3",
+            model=AI_MODEL,
             messages=messages,
             max_tokens=900,
             temperature=0.6,
@@ -1476,7 +1493,6 @@ def ask():
         if not answer:
             answer = "Reformule ta question en une phrase claire, je te réponds immédiatement avec une solution."
 
-        # Sauvegarde réponse
         if user_id:
             try:
                 conn = get_conn()
@@ -1494,6 +1510,11 @@ def ask():
         return jsonify({"answer": answer})
     except Exception as e:
         logging.error(e)
+        err = str(e).lower()
+        if "rate" in err or "quota" in err or "429" in err:
+            return jsonify({
+                "answer": "Quota temporairement atteint. Réessaie dans 1 à 2 minutes — je reste dispo."
+            })
         return jsonify({
             "answer": "Petit souci technique. Réessaie dans 5 secondes — je suis prêt."
         })
