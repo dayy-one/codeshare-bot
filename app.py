@@ -174,7 +174,6 @@ def init_db():
             created_at TIMESTAMP DEFAULT NOW()
         )
     """)
-    # Historique IA
     cur.execute("""
         CREATE TABLE IF NOT EXISTS ai_chats (
             id SERIAL PRIMARY KEY,
@@ -357,8 +356,7 @@ def stripe_webhook():
             try:
                 conn = get_conn()
                 cur = conn.cursor()
-                
-                # On récupère le nom si possible (Telegram API)
+
                 first_name = "Membre"
                 username = None
                 try:
@@ -380,7 +378,6 @@ def stripe_webhook():
                     (int(telegram_id), session.get("id"), first_name, username)
                 )
 
-                # Crédite le parrain
                 cur.execute("SELECT referrer_id FROM referrals WHERE referred_id = %s", (int(telegram_id),))
                 ref = cur.fetchone()
                 if ref:
@@ -502,7 +499,7 @@ def admin_recent():
         return jsonify({"joins": []})
 
 
-# ==================== CODES (identique aux versions précédentes) ====================
+# ==================== CODES ====================
 
 @app.route("/codes")
 def get_codes():
@@ -1360,7 +1357,6 @@ def ask():
     if not client:
         return jsonify({"answer": "L’assistant IA n’est pas disponible pour le moment."})
 
-    # Sauvegarde la question utilisateur
     if user_id:
         try:
             conn = get_conn()
@@ -1403,7 +1399,6 @@ Sois concis mais complet. Si besoin, guide l’utilisateur étape par étape."""
         )
         answer = resp.choices[0].message.content
 
-        # Sauvegarde la réponse
         if user_id:
             try:
                 conn = get_conn()
@@ -1442,7 +1437,6 @@ def ai_history():
         rows = cur.fetchall()
         cur.close()
         conn.close()
-        # On inverse pour avoir l’ordre chronologique
         history = [
             {
                 "role": r["role"],
@@ -1469,8 +1463,23 @@ def telegram_webhook():
     user = message.get("from") or {}
     user_id = user.get("id")
     text = (message.get("text") or "").strip()
+    text_lower = text.lower()
 
-    if text.startswith("/start"):
+    # ===== COMMANDE ADMIN EN PREMIER (avant /start) =====
+    if text_lower in ("/startadmin", "/admin") or text_lower.startswith("/startadmin@") or text_lower.startswith("/admin@"):
+        if not is_admin(user_id):
+            send_telegram_message(chat_id, "Commande réservée aux administrateurs.")
+            return jsonify(success=True)
+
+        send_telegram_message(
+            chat_id,
+            "Serveur Admin COD.IA\n\nClique ci-dessous pour ouvrir le tableau de bord en direct (nouveaux membres + statistiques).",
+            reply_markup=admin_keyboard()
+        )
+        return jsonify(success=True)
+
+    # ===== /start =====
+    if text_lower.startswith("/start"):
         paid = is_paid(user_id)
         first_name = user.get("first_name") or "toi"
 
@@ -1496,20 +1505,7 @@ def telegram_webhook():
             send_telegram_message(chat_id, welcome, reply_markup=discover_keyboard(paid=False))
         return jsonify(success=True)
 
-    # ===== COMMANDE ADMIN =====
-    if text.lower() in ("/startadmin", "/admin"):
-        if not is_admin(user_id):
-            send_telegram_message(chat_id, "Commande réservée aux administrateurs.")
-            return jsonify(success=True)
-        
-        send_telegram_message(
-            chat_id,
-            "Serveur Admin COD.IA\n\nClique ci-dessous pour ouvrir le tableau de bord en direct (nouveaux membres + statistiques).",
-            reply_markup=admin_keyboard()
-        )
-        return jsonify(success=True)
-
-    if text.lower() in ("/free", "/gratuit"):
+    if text_lower in ("/free", "/gratuit"):
         free_url = f"{SERVER_URL}/miniapp?force_free=1&v=18"
         keyboard = {
             "inline_keyboard": [[{
@@ -1520,14 +1516,14 @@ def telegram_webhook():
         send_telegram_message(chat_id, "Voici la version gratuite (aperçu verrouillé).", reply_markup=keyboard)
         return jsonify(success=True)
 
-    if text.lower() == "/payadmin":
+    if text_lower == "/payadmin":
         if not is_admin(user_id):
             send_telegram_message(chat_id, "Commande réservée aux admins.")
             return jsonify(success=True)
         send_telegram_message(chat_id, "Admin OK. Tu as déjà l'accès.")
         return jsonify(success=True)
 
-    if text.lower() in ("/stat", "/stats"):
+    if text_lower in ("/stat", "/stats"):
         if not is_admin(user_id):
             send_telegram_message(chat_id, "Commande réservée aux admins.")
             return jsonify(success=True)
@@ -1569,7 +1565,7 @@ def telegram_webhook():
             send_telegram_message(chat_id, "Erreur stats.")
         return jsonify(success=True)
 
-    if text.lower().startswith("/parrainage"):
+    if text_lower.startswith("/parrainage"):
         if not is_paid(user_id):
             send_telegram_message(chat_id, "Cette commande est réservée aux membres COD.IA.")
             return jsonify(success=True)
