@@ -48,32 +48,28 @@ def is_admin(user_id):
         return False
 
 
-# ==================== IA GRATUITE (Groq en priorité) ====================
-# 1) GROQ_API_KEY  → gratuit (recommandé)
-# 2) OPENROUTER_API_KEY → modèles :free
-# 3) XAI_API_KEY → si tu recharges plus tard
-
+# ==================== IA (xAI en priorité) ====================
+XAI_API_KEY = os.getenv("XAI_API_KEY")
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
-XAI_API_KEY = os.getenv("XAI_API_KEY")
 
 client = None
 AI_MODEL = None
 
-if GROQ_API_KEY:
-    client = OpenAI(api_key=GROQ_API_KEY, base_url="https://api.groq.com/openai/v1")
-    AI_MODEL = os.getenv("AI_MODEL", "llama-3.3-70b-versatile")
-    logging.info("IA: Groq (gratuit)")
-elif OPENROUTER_API_KEY:
-    client = OpenAI(api_key=OPENROUTER_API_KEY, base_url="https://openrouter.ai/api/v1")
-    AI_MODEL = os.getenv("AI_MODEL", "meta-llama/llama-3.3-70b-instruct:free")
-    logging.info("IA: OpenRouter (gratuit)")
-elif XAI_API_KEY:
+if XAI_API_KEY:
     client = OpenAI(api_key=XAI_API_KEY, base_url="https://api.x.ai/v1")
     AI_MODEL = os.getenv("AI_MODEL", "grok-3")
     logging.info("IA: xAI")
+elif GROQ_API_KEY:
+    client = OpenAI(api_key=GROQ_API_KEY, base_url="https://api.groq.com/openai/v1")
+    AI_MODEL = os.getenv("AI_MODEL", "llama-3.3-70b-versatile")
+    logging.info("IA: Groq (fallback)")
+elif OPENROUTER_API_KEY:
+    client = OpenAI(api_key=OPENROUTER_API_KEY, base_url="https://openrouter.ai/api/v1")
+    AI_MODEL = os.getenv("AI_MODEL", "meta-llama/llama-3.3-70b-instruct:free")
+    logging.info("IA: OpenRouter (fallback)")
 else:
-    logging.warning("Aucune clé IA configurée (GROQ_API_KEY / OPENROUTER_API_KEY / XAI_API_KEY)")
+    logging.warning("Aucune clé IA configurée (XAI_API_KEY / GROQ_API_KEY / OPENROUTER_API_KEY)")
 
 
 def get_conn():
@@ -1366,7 +1362,7 @@ def search_recent():
         return jsonify({"queries": []})
 
 
-# ==================== IA ASSISTANCE (GRATUITE + OPTIMISÉE) ====================
+# ==================== IA ASSISTANCE ====================
 
 AI_SYSTEM_PROMPT = """Tu es l’Assistant officiel de COD.IA — ultra-intelligent, positif, solution-oriented et toujours utile.
 
@@ -1456,7 +1452,7 @@ def ask():
 
     if not client or not AI_MODEL:
         return jsonify({
-            "answer": "L’assistant est momentanément indisponible (clé IA non configurée). Réessaie bientôt."
+            "answer": "L’assistant est momentanément indisponible (clé IA non configurée). Vérifie XAI_API_KEY sur Railway."
         })
 
     if user_id:
@@ -1509,14 +1505,14 @@ def ask():
 
         return jsonify({"answer": answer})
     except Exception as e:
-        logging.error(e)
+        logging.error(f"AI error: {e}")
         err = str(e).lower()
-        if "rate" in err or "quota" in err or "429" in err:
+        if "rate" in err or "quota" in err or "429" in err or "credit" in err or "insufficient" in err:
             return jsonify({
-                "answer": "Quota temporairement atteint. Réessaie dans 1 à 2 minutes — je reste dispo."
+                "answer": "Quota / crédits IA temporairement insuffisants. Réessaie plus tard ou recharge les crédits xAI."
             })
         return jsonify({
-            "answer": "Petit souci technique. Réessaie dans 5 secondes — je suis prêt."
+            "answer": "Petit souci technique côté IA. Vérifie XAI_API_KEY et les crédits, puis réessaie."
         })
 
 
