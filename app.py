@@ -24,7 +24,7 @@ CHANNEL_ID = os.getenv("CHANNEL_ID", "-1004414166682")
 DATABASE_URL = os.getenv("DATABASE_URL")
 XAI_API_KEY = os.getenv("XAI_API_KEY")
 SERVER_URL = os.getenv("SERVER_URL", "https://codeshare-bot-production.up.railway.app")
-MINIAPP_URL = os.getenv("MINIAPP_URL", f"{SERVER_URL}/miniapp?v=17")
+MINIAPP_URL = os.getenv("MINIAPP_URL", f"{SERVER_URL}/miniapp?v=18")
 PRICE_CENTS = int(os.getenv("PRICE_CENTS", "1000"))
 
 BASE_MEMBERS = 2345
@@ -69,7 +69,9 @@ def init_db():
         CREATE TABLE IF NOT EXISTS paid_users (
             user_id BIGINT PRIMARY KEY,
             paid_at TIMESTAMP DEFAULT NOW(),
-            stripe_session_id TEXT
+            stripe_session_id TEXT,
+            first_name TEXT,
+            username TEXT
         )
     """)
     cur.execute("""
@@ -172,12 +174,24 @@ def init_db():
             created_at TIMESTAMP DEFAULT NOW()
         )
     """)
+    # Historique IA
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS ai_chats (
+            id SERIAL PRIMARY KEY,
+            user_id BIGINT NOT NULL,
+            role TEXT NOT NULL,
+            message TEXT NOT NULL,
+            created_at TIMESTAMP DEFAULT NOW()
+        )
+    """)
 
     try:
         cur.execute("ALTER TABLE codes ADD COLUMN IF NOT EXISTS verified BOOLEAN DEFAULT FALSE")
         cur.execute("ALTER TABLE codes ADD COLUMN IF NOT EXISTS tested_at TIMESTAMP")
         cur.execute("ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS points INT DEFAULT 0")
         cur.execute("ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS referral_used BOOLEAN DEFAULT FALSE")
+        cur.execute("ALTER TABLE paid_users ADD COLUMN IF NOT EXISTS first_name TEXT")
+        cur.execute("ALTER TABLE paid_users ADD COLUMN IF NOT EXISTS username TEXT")
     except Exception as e:
         logging.warning(f"Colonnes déjà présentes: {e}")
 
@@ -233,11 +247,11 @@ def discover_keyboard(paid: bool):
     }
 
 
-def channel_keyboard():
+def admin_keyboard():
     return {
         "inline_keyboard": [[{
-            "text": "Rejoindre le canal",
-            "url": CHANNEL_LINK
+            "text": "Ouvrir le Serveur Admin COD.IA",
+            "web_app": {"url": f"{MINIAPP_URL}&admin=1"}
         }]]
     }
 
@@ -275,9 +289,9 @@ def stats():
             display = f"{total/1000:.3f}".replace(".", ",") + "k"
         else:
             display = str(total)
-        return jsonify({"members": total, "members_display": display})
+        return jsonify({"members": total, "members_display": display, "paid": paid_count})
     except Exception:
-        return jsonify({"members": BASE_MEMBERS, "members_display": "2,345k"})
+        return jsonify({"members": BASE_MEMBERS, "members_display": "2,345k", "paid": 0})
 
 
 @app.route("/access")
@@ -314,7 +328,7 @@ def create_embedded_checkout():
                 },
                 "quantity": 1,
             }],
-            return_url=f"{SERVER_URL}/miniapp?paid=1&v=17",
+            return_url=f"{SERVER_URL}/miniapp?paid=1&v=18",
             metadata={"telegram_id": str(telegram_id)},
         )
         return jsonify({"clientSecret": session.client_secret})
@@ -343,12 +357,30 @@ def stripe_webhook():
             try:
                 conn = get_conn()
                 cur = conn.cursor()
+                
+                # On récupère le nom si possible (Telegram API)
+                first_name = "Membre"
+                username = None
+                try:
+                    tg_info = requests.get(
+                        f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/getChat",
+                        params={"chat_id": telegram_id},
+                        timeout=5
+                    ).json()
+                    if tg_info.get("ok"):
+                        first_name = tg_info["result"].get("first_name") or "Membre"
+                        username = tg_info["result"].get("username")
+                except Exception:
+                    pass
+
                 cur.execute(
-                    "INSERT INTO paid_users (user_id, stripe_session_id) VALUES (%s, %s) ON CONFLICT (user_id) DO NOTHING",
-                    (int(telegram_id), session.get("id"))
+                    """INSERT INTO paid_users (user_id, stripe_session_id, first_name, username)
+                       VALUES (%s, %s, %s, %s)
+                       ON CONFLICT (user_id) DO UPDATE SET first_name = EXCLUDED.first_name, username = EXCLUDED.username""",
+                    (int(telegram_id), session.get("id"), first_name, username)
                 )
 
-                # Crédite le parrain (+1 point = +1 filleul)
+                # Crédite le parrain
                 cur.execute("SELECT referrer_id FROM referrals WHERE referred_id = %s", (int(telegram_id),))
                 ref = cur.fetchone()
                 if ref:
@@ -359,7 +391,7 @@ def stripe_webhook():
                     """, (referrer,))
                     send_telegram_message(
                         referrer,
-                        "Félicitations ! Quelqu'un a utilisé ton code de parrainage et a rejoint COD.IA.\nTu as gagné +1 point (Offre de Lancement)."
+                        f"Félicitations ! {first_name} a utilisé ton code et a rejoint COD.IA.\n+1 point (Offre de Lancement)."
                     )
 
                 conn.commit()
@@ -377,7 +409,100 @@ def stripe_webhook():
     return jsonify({"ok": True})
 
 
-# ==================== CODES ====================
+# ==================== ADMIN SERVER ====================
+
+@app.route("/admin/stats")
+def admin_stats():
+    user_id = request.args.get("user_id", type=int)
+    if not is_admin(user_id):
+        return jsonify({"error": "unauthorized"}), 403
+    try:
+        conn = get_conn()
+        cur = conn.cursor()
+
+        cur.execute("SELECT COUNT(*) as c FROM paid_users")
+        paid = cur.fetchone()["c"] or 0
+        total_members = BASE_MEMBERS + paid
+
+        cur.execute("SELECT COUNT(*) as c FROM codes WHERE deleted = FALSE")
+        total_codes = cur.fetchone()["c"] or 0
+
+        cur.execute("SELECT COUNT(*) as c FROM referrals")
+        total_referrals = cur.fetchone()["c"] or 0
+
+        cur.execute("""
+            SELECT first_name, username, paid_at
+            FROM paid_users
+            ORDER BY paid_at DESC
+            LIMIT 30
+        """)
+        recent = cur.fetchall()
+
+        cur.execute("""
+            SELECT r.referrer_id, COUNT(*) as cnt, rc.code
+            FROM referrals r
+            LEFT JOIN referral_codes rc ON rc.user_id = r.referrer_id
+            GROUP BY r.referrer_id, rc.code
+            ORDER BY cnt DESC LIMIT 10
+        """)
+        top_refs = cur.fetchall()
+
+        cur.close()
+        conn.close()
+
+        return jsonify({
+            "total_members": total_members,
+            "paid_members": paid,
+            "total_codes": total_codes,
+            "total_referrals": total_referrals,
+            "recent_joins": [
+                {
+                    "name": r["first_name"] or "Membre",
+                    "username": r["username"],
+                    "paid_at": r["paid_at"].isoformat() if r["paid_at"] else None
+                } for r in recent
+            ],
+            "top_referrers": [
+                {"user_id": r["referrer_id"], "code": r["code"], "count": r["cnt"]}
+                for r in top_refs
+            ]
+        })
+    except Exception as e:
+        logging.error(e)
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/admin/recent")
+def admin_recent():
+    user_id = request.args.get("user_id", type=int)
+    if not is_admin(user_id):
+        return jsonify({"error": "unauthorized"}), 403
+    try:
+        conn = get_conn()
+        cur = conn.cursor()
+        cur.execute("""
+            SELECT first_name, username, paid_at
+            FROM paid_users
+            ORDER BY paid_at DESC
+            LIMIT 50
+        """)
+        rows = cur.fetchall()
+        cur.close()
+        conn.close()
+        return jsonify({
+            "joins": [
+                {
+                    "name": r["first_name"] or "Membre",
+                    "username": r["username"],
+                    "paid_at": r["paid_at"].isoformat() if r["paid_at"] else None
+                } for r in rows
+            ]
+        })
+    except Exception as e:
+        return jsonify({"joins": []})
+
+
+# ==================== CODES (identique aux versions précédentes) ====================
 
 @app.route("/codes")
 def get_codes():
@@ -559,26 +684,6 @@ def codes_saved():
         return jsonify({"codes": []})
 
 
-@app.route("/codes/copied")
-def codes_copied():
-    user_id = request.args.get("user_id", type=int)
-    try:
-        conn = get_conn()
-        cur = conn.cursor()
-        cur.execute("""
-            SELECT c.* FROM codes c
-            JOIN copied_codes cc ON cc.code_id = c.id
-            WHERE cc.user_id = %s AND c.deleted = FALSE
-            ORDER BY cc.created_at DESC
-        """, (user_id,))
-        codes = cur.fetchall()
-        cur.close()
-        conn.close()
-        return jsonify({"codes": codes})
-    except Exception:
-        return jsonify({"codes": []})
-
-
 @app.route("/code/copy", methods=["POST"])
 def code_copy():
     data = request.json or {}
@@ -587,7 +692,6 @@ def code_copy():
     try:
         conn = get_conn()
         cur = conn.cursor()
-
         if user_id:
             cur.execute("SELECT 1 FROM copied_codes WHERE user_id = %s AND code_id = %s", (user_id, code_id))
             if cur.fetchone():
@@ -596,9 +700,7 @@ def code_copy():
                 cur.close()
                 conn.close()
                 return jsonify({"copies": row["copies"] if row else 0})
-
             cur.execute("INSERT INTO copied_codes (user_id, code_id) VALUES (%s, %s) ON CONFLICT DO NOTHING", (user_id, code_id))
-
         cur.execute("UPDATE codes SET copies = copies + 1 WHERE id = %s RETURNING copies", (code_id,))
         row = cur.fetchone()
         conn.commit()
@@ -649,23 +751,19 @@ def code_react():
     reaction = data.get("reaction")
     action = data.get("action")
     user_id = data.get("user_id")
-
     if reaction not in ("like", "dislike") or action not in ("add", "remove"):
         return jsonify({"value": 0})
-
     try:
         conn = get_conn()
         cur = conn.cursor()
         col = "likes" if reaction == "like" else "dislikes"
         opposite = "dislike" if reaction == "like" else "like"
         opposite_col = "dislikes" if reaction == "like" else "likes"
-
         if action == "add" and user_id:
             cur.execute("DELETE FROM reactions WHERE user_id = %s AND code_id = %s AND reaction = %s",
                         (user_id, code_id, opposite))
             if cur.rowcount > 0:
                 cur.execute(f"UPDATE codes SET {opposite_col} = GREATEST({opposite_col} - 1, 0) WHERE id = %s", (code_id,))
-
             cur.execute("INSERT INTO reactions (user_id, code_id, reaction) VALUES (%s, %s, %s) ON CONFLICT DO NOTHING",
                         (user_id, code_id, reaction))
             if cur.rowcount > 0:
@@ -677,7 +775,6 @@ def code_react():
                 cur.execute("DELETE FROM reactions WHERE user_id = %s AND code_id = %s AND reaction = %s",
                             (user_id, code_id, reaction))
             cur.execute(f"UPDATE codes SET {col} = GREATEST({col} - 1, 0) WHERE id = %s RETURNING {col} as value", (code_id,))
-
         row = cur.fetchone()
         conn.commit()
         cur.close()
@@ -754,10 +851,8 @@ def code_hard_delete():
     data = request.json or {}
     user_id = data.get("user_id")
     code_id = data.get("id")
-
     if not is_admin(user_id):
         return jsonify({"error": "unauthorized"}), 403
-
     try:
         conn = get_conn()
         cur = conn.cursor()
@@ -819,7 +914,6 @@ def referral_generate():
             cur.close()
             conn.close()
             return jsonify({"success": True, "code": row["code"]})
-
         code = "CODIA" + secrets.token_hex(3).upper()
         cur.execute(
             "INSERT INTO referral_codes (user_id, code) VALUES (%s, %s) ON CONFLICT DO NOTHING RETURNING code",
@@ -845,34 +939,29 @@ def referral_integrate():
     try:
         conn = get_conn()
         cur = conn.cursor()
-
         cur.execute("SELECT referral_used FROM user_profiles WHERE user_id = %s", (user_id,))
         row = cur.fetchone()
         if row and row["referral_used"]:
             cur.close()
             conn.close()
             return jsonify({"error": "Tu as déjà intégré un code de parrainage"}), 400
-
         cur.execute("SELECT user_id FROM referral_codes WHERE code = %s", (code,))
         owner = cur.fetchone()
         if not owner:
             cur.close()
             conn.close()
             return jsonify({"error": "Code invalide"}), 404
-
         referrer_id = owner["user_id"]
         if referrer_id == user_id:
             cur.close()
             conn.close()
             return jsonify({"error": "Tu ne peux pas utiliser ton propre code"}), 400
-
         cur.execute("INSERT INTO referrals (referred_id, referrer_id) VALUES (%s, %s) ON CONFLICT (referred_id) DO NOTHING",
                     (user_id, referrer_id))
         cur.execute("""
             INSERT INTO user_profiles (user_id, referral_used) VALUES (%s, TRUE)
             ON CONFLICT (user_id) DO UPDATE SET referral_used = TRUE
         """, (user_id,))
-
         conn.commit()
         cur.close()
         conn.close()
@@ -932,7 +1021,6 @@ def referral_leaderboard():
         rows = cur.fetchall()
         cur.close()
         conn.close()
-
         result = []
         for i, r in enumerate(rows, 1):
             result.append({
@@ -972,7 +1060,6 @@ def profile_full_stats():
         bio_row = cur.fetchone()
         bio = bio_row["bio"] if bio_row else None
         points = bio_row["points"] if bio_row else 0
-
         score = total_codes * 2 + total_likes + total_copies + points
         if score >= 100:
             badge = "Ambassadeur"
@@ -986,7 +1073,6 @@ def profile_full_stats():
             badge = "Actif"
         else:
             badge = "Membre"
-
         cur.close()
         conn.close()
         return jsonify({
@@ -1261,47 +1347,49 @@ def search_recent():
         return jsonify({"queries": []})
 
 
-# ==================== IA ====================
+# ==================== IA ASSISTANCE + HISTORIQUE ====================
 
 @app.route("/ask", methods=["POST"])
 def ask():
     data = request.json or {}
     question = data.get("question", "").strip()
+    user_id = data.get("user_id")
     if not question:
-        return jsonify({"answer": "Pose-moi une question sur un code !"})
+        return jsonify({"answer": "Pose-moi ta question, je suis là pour t’aider !"})
+
     if not client:
-        return jsonify({"answer": "L'assistant IA n'est pas configure pour le moment."})
+        return jsonify({"answer": "L’assistant IA n’est pas disponible pour le moment."})
 
-    codes_context = ""
-    try:
-        conn = get_conn()
-        cur = conn.cursor()
-        cur.execute("""
-            SELECT site, code, description, type FROM codes
-            WHERE deleted = FALSE AND (expires_at IS NULL OR expires_at > NOW())
-            ORDER BY created_at DESC LIMIT 40
-        """)
-        rows = cur.fetchall()
-        cur.close()
-        conn.close()
-        codes_context = "\n".join([
-            f"- {r['site']} | {r['code']} | {r['description'] or ''} ({r['type']})"
-            for r in rows
-        ])
-    except Exception:
-        pass
+    # Sauvegarde la question utilisateur
+    if user_id:
+        try:
+            conn = get_conn()
+            cur = conn.cursor()
+            cur.execute(
+                "INSERT INTO ai_chats (user_id, role, message) VALUES (%s, %s, %s)",
+                (user_id, "user", question)
+            )
+            conn.commit()
+            cur.close()
+            conn.close()
+        except Exception as e:
+            logging.error(e)
 
-    system_prompt = f"""Tu es l'assistant de COD.IA.
-Tu sers UNIQUEMENT a aider les utilisateurs a trouver des codes promo ou de parrainage partages par la communaute.
+    system_prompt = """Tu es l’assistant officiel de COD.IA, une Mini App Telegram de partage de codes promo et de parrainage.
 
-Regles strictes :
-- Reponds uniquement en francais.
-- Si la question n'est pas liee a la recherche d'un code, reponds poliment : "Je peux uniquement t'aider a trouver des codes partages par la communaute COD.IA."
-- Propose uniquement les codes qui existent dans la liste ci-dessous.
-- Sois concis et utile.
+Tu es ultra-intelligent, patient et expert de l’application.
+Tu réponds UNIQUEMENT en français, de façon claire, précise et bienveillante.
 
-Codes actuellement actifs :
-{codes_context}"""
+Tu peux aider sur :
+- Comment utiliser l’application (feed, swipe, favoris, publication, filtres…)
+- Problèmes techniques (paiement, codes qui n’apparaissent pas, swipe, etc.)
+- Offre de lancement et codes de parrainage
+- Comment publier un code, générer son code de parrainage, etc.
+- Tout problème rencontré par l’utilisateur dans la Mini App
+
+Si la question n’est pas liée à COD.IA, dis poliment que tu es spécialisé sur l’application.
+
+Sois concis mais complet. Si besoin, guide l’utilisateur étape par étape."""
 
     try:
         resp = client.chat.completions.create(
@@ -1310,13 +1398,62 @@ Codes actuellement actifs :
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": question}
             ],
-            max_tokens=400
+            max_tokens=600,
+            temperature=0.4
         )
         answer = resp.choices[0].message.content
+
+        # Sauvegarde la réponse
+        if user_id:
+            try:
+                conn = get_conn()
+                cur = conn.cursor()
+                cur.execute(
+                    "INSERT INTO ai_chats (user_id, role, message) VALUES (%s, %s, %s)",
+                    (user_id, "assistant", answer)
+                )
+                conn.commit()
+                cur.close()
+                conn.close()
+            except Exception as e:
+                logging.error(e)
+
         return jsonify({"answer": answer})
     except Exception as e:
         logging.error(e)
-        return jsonify({"answer": "Desole, je n'ai pas pu repondre pour le moment."})
+        return jsonify({"answer": "Désolé, je n’ai pas pu répondre pour le moment. Réessaie dans quelques secondes."})
+
+
+@app.route("/ai/history")
+def ai_history():
+    user_id = request.args.get("user_id", type=int)
+    if not user_id:
+        return jsonify({"history": []})
+    try:
+        conn = get_conn()
+        cur = conn.cursor()
+        cur.execute("""
+            SELECT role, message, created_at
+            FROM ai_chats
+            WHERE user_id = %s
+            ORDER BY created_at DESC
+            LIMIT 40
+        """, (user_id,))
+        rows = cur.fetchall()
+        cur.close()
+        conn.close()
+        # On inverse pour avoir l’ordre chronologique
+        history = [
+            {
+                "role": r["role"],
+                "message": r["message"],
+                "created_at": r["created_at"].isoformat() if r["created_at"] else None
+            } for r in reversed(rows)
+        ]
+        return jsonify({"history": history})
+    except Exception as e:
+        logging.error(e)
+        return jsonify({"history": []})
 
 
 # ==================== TELEGRAM WEBHOOK ====================
@@ -1350,7 +1487,7 @@ def telegram_webhook():
                 f"COD.IA est la communauté des codes promo et parrainages mis à jour en temps réel.\n\n"
                 f"• Feed complet\n"
                 f"• Favoris & notifications\n"
-                f"• Assistant IA pour trouver un code rapidement\n"
+                f"• Assistant IA pour t’aider en cas de problème\n"
                 f"• Publie tes propres codes\n\n"
                 f"Accès complet : 10 euros (paiement unique).\n\n"
                 f"Offre de lancement en cours : jusqu'à 1500 € à gagner.\n\n"
@@ -1359,8 +1496,21 @@ def telegram_webhook():
             send_telegram_message(chat_id, welcome, reply_markup=discover_keyboard(paid=False))
         return jsonify(success=True)
 
+    # ===== COMMANDE ADMIN =====
+    if text.lower() in ("/startadmin", "/admin"):
+        if not is_admin(user_id):
+            send_telegram_message(chat_id, "Commande réservée aux administrateurs.")
+            return jsonify(success=True)
+        
+        send_telegram_message(
+            chat_id,
+            "Serveur Admin COD.IA\n\nClique ci-dessous pour ouvrir le tableau de bord en direct (nouveaux membres + statistiques).",
+            reply_markup=admin_keyboard()
+        )
+        return jsonify(success=True)
+
     if text.lower() in ("/free", "/gratuit"):
-        free_url = f"{SERVER_URL}/miniapp?force_free=1&v=17"
+        free_url = f"{SERVER_URL}/miniapp?force_free=1&v=18"
         keyboard = {
             "inline_keyboard": [[{
                 "text": "Voir la version Gratuite",
@@ -1384,47 +1534,35 @@ def telegram_webhook():
         try:
             conn = get_conn()
             cur = conn.cursor()
-
-            # Top parrains (offre de lancement)
             cur.execute("""
-                SELECT r.referrer_id, COUNT(*) as cnt,
-                       COALESCE(rc.code, 'N/A') as code
+                SELECT r.referrer_id, COUNT(*) as cnt, COALESCE(rc.code, 'N/A') as code
                 FROM referrals r
                 LEFT JOIN referral_codes rc ON rc.user_id = r.referrer_id
                 GROUP BY r.referrer_id, rc.code
-                ORDER BY cnt DESC
-                LIMIT 10
+                ORDER BY cnt DESC LIMIT 10
             """)
             refs = cur.fetchall()
-
-            # Offre Codes/Parrainage (≥ 250 copies)
             cur.execute("""
-                SELECT id, site, code, copies, added_by, user_id
-                FROM codes
-                WHERE copies >= 250 AND deleted = FALSE
-                ORDER BY copies DESC
-                LIMIT 5
+                SELECT id, site, code, copies, added_by
+                FROM codes WHERE copies >= 250 AND deleted = FALSE
+                ORDER BY copies DESC LIMIT 5
             """)
             big_codes = cur.fetchall()
-
             cur.close()
             conn.close()
 
-            msg = "📊 STATS OFFRES\n\n"
-            msg += "🏆 OFFRE DE LANCEMENT (Top parrains)\n"
+            msg = "📊 STATS OFFRES\n\n🏆 OFFRE DE LANCEMENT (Top parrains)\n"
             if refs:
                 for i, r in enumerate(refs, 1):
                     msg += f"{i}. User {r['referrer_id']} ({r['code']}) → {r['cnt']} filleuls\n"
             else:
                 msg += "Aucun encore\n"
-
             msg += "\n💰 OFFRE CODES/PARRAINAGE (≥ 250 copies = 100 €)\n"
             if big_codes:
                 for c in big_codes:
                     msg += f"• {c['site']} | {c['code']} → {c['copies']} copies ({c['added_by']})\n"
             else:
                 msg += "Personne n’a encore atteint 250 copies\n"
-
             send_telegram_message(chat_id, msg)
         except Exception as e:
             logging.error(e)
