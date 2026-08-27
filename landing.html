@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="fr">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,7 +7,6 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-
   <style>
     :root {
       --bg: #f7f6f2;
@@ -22,368 +20,157 @@
       --border: rgba(50, 55, 35, 0.10);
       --max-width: 1180px;
     }
-
     * { margin: 0; padding: 0; box-sizing: border-box; }
     html { scroll-behavior: smooth; }
-    body {
-      font-family: "Manrope", sans-serif;
-      background: var(--bg);
-      color: var(--black);
-      line-height: 1.5;
-    }
-    img { display: block; max-width: 100%; }
+    body { font-family: "Manrope", sans-serif; background: var(--bg); color: var(--black); line-height: 1.5; }
+    img, svg { display: block; max-width: 100%; }
     a { color: inherit; text-decoration: none; }
-
-    .container {
-      width: min(var(--max-width), calc(100% - 48px));
-      margin: auto;
-    }
+    .container { width: min(var(--max-width), calc(100% - 48px)); margin: auto; }
 
     header {
-      position: sticky;
-      top: 0;
-      z-index: 100;
+      position: sticky; top: 0; z-index: 100;
       background: rgba(247, 246, 242, 0.90);
       backdrop-filter: blur(15px);
       border-bottom: 1px solid rgba(50, 55, 35, 0.04);
     }
-
-    .nav {
-      min-height: 82px;
-      display: flex;
-      align-items: center;
-      gap: 30px;
-    }
-
-    .brand {
-      width: 72px;
-      flex-shrink: 0;
-    }
-    .brand img {
-      width: 100%;
-      height: auto;
-    }
-
-    .links {
-      display: flex;
-      align-items: center;
-      gap: 38px;
-      margin-left: auto;
-    }
-    .links a {
-      position: relative;
-      padding: 8px 0;
-      font-size: 14px;
-      font-weight: 600;
-      color: #252623;
-      transition: 0.2s ease;
-    }
-    .links a:hover,
-    .links a.active { color: var(--green); }
+    .nav { min-height: 82px; display: flex; align-items: center; gap: 30px; }
+    .brand { width: 58px; flex-shrink: 0; }
+    .brand .logo-slogan { display: none; }
+    .links { display: flex; align-items: center; gap: 38px; margin-left: auto; }
+    .links a { position: relative; padding: 8px 0; font-size: 14px; font-weight: 600; color: #252623; }
+    .links a:hover, .links a.active { color: var(--green); }
     .links a.active::after {
-      content: "";
-      position: absolute;
-      left: 0; right: 0; bottom: 1px;
-      height: 2px;
-      background: var(--green);
-      border-radius: 100px;
+      content: ""; position: absolute; left: 0; right: 0; bottom: 1px;
+      height: 2px; background: var(--green); border-radius: 100px;
     }
-
     .btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      background: var(--green);
-      color: white;
-      border: none;
-      border-radius: 11px;
-      padding: 13px 20px;
-      font-size: 14px;
-      font-weight: 700;
-      cursor: pointer;
-      white-space: nowrap;
+      display: inline-flex; align-items: center; justify-content: center;
+      background: var(--green); color: #fff; border: none; border-radius: 11px;
+      padding: 13px 20px; font-size: 14px; font-weight: 700; white-space: nowrap;
       box-shadow: 0 9px 22px rgba(113, 132, 59, 0.20);
-      transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
     }
-    .btn:hover {
-      background: var(--green-dark);
-      transform: translateY(-2px);
-      box-shadow: 0 12px 26px rgba(113, 132, 59, 0.27);
-    }
-    .btn-ghost {
-      background: transparent;
-      color: var(--black);
-      box-shadow: none;
-      border: 1px solid var(--border);
-    }
-    .btn-ghost:hover {
-      background: var(--white);
-      color: var(--black);
-      box-shadow: none;
-    }
-
-    .burger {
-      display: none;
-      border: none;
-      background: transparent;
-      font-size: 26px;
-      cursor: pointer;
-      margin-left: auto;
-    }
+    .btn:hover { background: var(--green-dark); }
+    .btn-ghost { background: transparent; color: var(--black); box-shadow: none; border: 1px solid var(--border); }
+    .burger { display: none; border: none; background: transparent; font-size: 26px; margin-left: auto; }
 
     .hero {
-      min-height: 650px;
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      align-items: center;
-      gap: 50px;
-      padding: 70px 0 80px;
+      min-height: 650px; display: grid; grid-template-columns: 1fr 1fr;
+      align-items: center; gap: 50px; padding: 70px 0 80px;
     }
-    .hero-copy { position: relative; z-index: 2; }
-    .hero-title {
-      font-size: clamp(48px, 6vw, 76px);
-      line-height: 0.98;
-      letter-spacing: -3px;
-      font-weight: 800;
-    }
-    .hero-title span {
-      display: inline-block;
-      color: var(--green);
-      position: relative;
-    }
+    .hero-title { font-size: clamp(48px, 6vw, 76px); line-height: 0.98; letter-spacing: -3px; font-weight: 800; }
+    .hero-title span { display: inline-block; color: var(--green); position: relative; }
     .hero-title span::after {
-      content: "";
-      position: absolute;
-      left: 0; right: 12%; bottom: -8px;
-      height: 8px;
-      background: var(--green);
-      border-radius: 100%;
-      transform: rotate(-1deg);
+      content: ""; position: absolute; left: 0; right: 12%; bottom: -8px;
+      height: 8px; background: var(--green); border-radius: 100%;
     }
-    .hero-lead {
-      max-width: 520px;
-      margin: 30px 0 32px;
-      color: var(--text);
-      font-size: 17px;
-      line-height: 1.7;
-    }
+    .hero-lead { max-width: 520px; margin: 30px 0 32px; color: var(--text); font-size: 17px; line-height: 1.7; }
     .hero-actions { display: flex; flex-wrap: wrap; gap: 12px; }
+    .hero-visual { display: flex; align-items: center; justify-content: center; }
+    .hero-logo { width: min(460px, 100%); }
 
-    .hero-visual {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 480px;
-    }
-    .hero-logo {
-      width: min(520px, 100%);
-      filter: drop-shadow(0 20px 25px rgba(50, 55, 35, 0.06));
-    }
-
-    .features {
-      background: var(--white);
-      padding: 74px 0 82px;
-    }
-    .section-title {
-      text-align: center;
-      font-size: 31px;
-      letter-spacing: -1px;
-      font-weight: 800;
-      margin-bottom: 16px;
-    }
-    .section-sub {
-      text-align: center;
-      max-width: 560px;
-      margin: 0 auto 52px;
-      color: var(--muted);
-      font-size: 15px;
-      line-height: 1.7;
-    }
-
-    .feature-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 55px;
-    }
-    .feature {
-      display: grid;
-      grid-template-columns: 68px 1fr;
-      gap: 20px;
-      align-items: start;
-    }
+    .features { background: var(--white); padding: 74px 0 82px; }
+    .section-title { text-align: center; font-size: 31px; letter-spacing: -1px; font-weight: 800; margin-bottom: 16px; }
+    .section-sub { text-align: center; max-width: 560px; margin: 0 auto 52px; color: var(--muted); font-size: 15px; }
+    .feature-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 55px; }
+    .feature { display: grid; grid-template-columns: 68px 1fr; gap: 20px; }
     .feature-icon {
-      width: 68px;
-      height: 68px;
-      border-radius: 18px;
-      background: var(--green-light);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: var(--green-dark);
+      width: 68px; height: 68px; border-radius: 18px; background: var(--green-light);
+      display: flex; align-items: center; justify-content: center; color: var(--green-dark);
     }
-    .feature-icon svg {
-      width: 29px;
-      height: 29px;
-      fill: none;
-      stroke: currentColor;
-      stroke-width: 2;
-      stroke-linecap: round;
-      stroke-linejoin: round;
-    }
-    .feature h3 {
-      font-size: 17px;
-      margin: 6px 0 7px;
-      font-weight: 800;
-    }
-    .feature p {
-      color: var(--muted);
-      font-size: 14px;
-      line-height: 1.65;
-    }
+    .feature-icon svg { width: 29px; height: 29px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
+    .feature h3 { font-size: 17px; margin: 6px 0 7px; font-weight: 800; }
+    .feature p { color: var(--muted); font-size: 14px; line-height: 1.65; }
 
-    .community-section {
-      background: var(--white);
-      padding: 24px 0 64px;
-    }
-    .offers {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 22px;
-    }
-    .offer {
-      border-radius: 26px;
-      background: linear-gradient(120deg, #f1f3e6, #edf0df);
-      padding: 32px 34px;
-    }
+    .community-section { background: var(--white); padding: 24px 0 64px; }
+    .offers { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
+    .offer { border-radius: 26px; background: linear-gradient(120deg, #f1f3e6, #edf0df); padding: 32px 34px; }
     .offer .tag {
-      display: inline-block;
-      background: var(--white);
-      color: var(--green-dark);
-      font-size: 11px;
-      font-weight: 800;
-      letter-spacing: .04em;
-      text-transform: uppercase;
-      padding: 6px 10px;
-      border-radius: 999px;
-      margin-bottom: 14px;
+      display: inline-block; background: var(--white); color: var(--green-dark);
+      font-size: 11px; font-weight: 800; text-transform: uppercase; padding: 6px 10px; border-radius: 999px; margin-bottom: 14px;
     }
     .offer h3 { font-size: 22px; margin-bottom: 10px; }
     .offer p { color: var(--text); font-size: 14.5px; line-height: 1.7; margin-bottom: 10px; }
 
-    .about {
-      background: var(--white);
-      text-align: center;
-      padding: 10px 0 82px;
-    }
-    .about h2 {
-      font-size: 30px;
-      font-weight: 800;
-      margin-bottom: 22px;
-    }
-    .about p {
-      max-width: 720px;
-      margin: auto;
-      color: var(--text);
-      font-size: 15px;
-      line-height: 1.8;
-    }
+    .about { background: var(--white); text-align: center; padding: 10px 0 82px; }
+    .about h2 { font-size: 30px; font-weight: 800; margin-bottom: 22px; }
+    .about p { max-width: 720px; margin: auto; color: var(--text); font-size: 15px; line-height: 1.8; }
     .about .btn { margin-top: 28px; }
 
-    footer {
-      background: #fbfaf7;
-      border-top: 1px solid var(--border);
-      padding: 55px 0 34px;
-    }
-    .footer-grid {
-      display: grid;
-      grid-template-columns: 1.4fr 1fr 1fr;
-      gap: 50px;
-    }
-    .footer-logo { width: 130px; }
+    footer { background: #fbfaf7; border-top: 1px solid var(--border); padding: 55px 0 34px; }
+    .footer-grid { display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 50px; }
+    .footer-logo { width: 120px; }
+    .footer-logo .logo-slogan { display: none; }
     .footer h3 { font-size: 14px; margin-bottom: 14px; }
-    .footer-links {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      color: var(--muted);
-      font-size: 13px;
-    }
-    .footer-links a:hover { color: var(--green); }
-    .copyright {
-      text-align: center;
-      margin-top: 55px;
-      padding-top: 25px;
-      border-top: 1px solid var(--border);
-      color: #8a8b84;
-      font-size: 12px;
-    }
+    .footer-links { display: flex; flex-direction: column; gap: 8px; color: var(--muted); font-size: 13px; }
+    .copyright { text-align: center; margin-top: 55px; padding-top: 25px; border-top: 1px solid var(--border); color: #8a8b84; font-size: 12px; }
 
     @media (max-width: 900px) {
       .links {
-        display: none;
-        position: absolute;
-        top: 82px;
-        left: 24px;
-        right: 24px;
-        padding: 18px;
-        background: white;
-        border-radius: 18px;
-        box-shadow: 0 20px 60px rgba(50,55,35,.12);
-        flex-direction: column;
-        gap: 4px;
+        display: none; position: absolute; top: 82px; left: 24px; right: 24px;
+        padding: 18px; background: white; border-radius: 18px;
+        box-shadow: 0 20px 60px rgba(50,55,35,.12); flex-direction: column;
       }
       .links.open { display: flex; }
-      .links a { padding: 12px 8px; }
       .burger { display: block; }
       header .nav > .btn { display: none; }
-      .hero {
-        grid-template-columns: 1fr;
-        text-align: center;
-        padding: 50px 0 60px;
-      }
-      .hero-copy { order: 1; }
-      .hero-visual { order: 2; min-height: 360px; }
+      .hero { grid-template-columns: 1fr; text-align: center; padding: 50px 0 60px; }
       .hero-lead { margin-inline: auto; }
       .hero-actions { justify-content: center; }
-      .feature-grid { grid-template-columns: 1fr; gap: 30px; }
-      .offers { grid-template-columns: 1fr; }
+      .feature-grid, .offers { grid-template-columns: 1fr; }
       .footer-grid { grid-template-columns: 1fr 1fr; }
     }
-
     @media (max-width: 560px) {
       .container { width: calc(100% - 32px); }
-      .nav { min-height: 72px; }
-      .brand { width: 58px; }
-      .links { top: 72px; left: 16px; right: 16px; }
-      .hero { padding-top: 38px; }
-      .hero-title { font-size: 49px; letter-spacing: -2.5px; }
-      .hero-lead { font-size: 15px; margin-top: 25px; }
-      .hero-visual { min-height: 300px; }
-      .features { padding: 58px 0; }
-      .section-title { font-size: 27px; }
-      .feature { grid-template-columns: 56px 1fr; gap: 15px; }
-      .feature-icon { width: 56px; height: 56px; border-radius: 15px; }
-      .footer-grid { grid-template-columns: 1fr; gap: 30px; }
-      .footer-logo { width: 110px; }
+      .hero-title { font-size: 49px; }
+      .footer-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
-
 <body>
+
+<!-- LOGO DESSINÉ DANS LA PAGE (identique à ton image) -->
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+  <symbol id="logo-codia" viewBox="0 0 520 560">
+    <g fill="none" stroke="#2a2a2a" stroke-width="2.2" stroke-linejoin="round">
+      <circle cx="260" cy="230" r="168"/>
+      <ellipse cx="260" cy="230" rx="62" ry="168"/>
+      <ellipse cx="260" cy="230" rx="118" ry="168"/>
+      <path d="M92 230h336"/>
+      <path d="M108 165c48-14 100-22 152-22s104 8 152 22"/>
+      <path d="M108 295c48 14 100 22 152 22s104-8 152-22"/>
+      <path d="M128 110c36-38 82-58 132-58 46 0 90 16 126 48"/>
+      <path d="M128 350c40 36 86 54 132 54 48 0 94-18 132-52"/>
+      <path d="M170 95c18-22 48-42 90-48 28-4 58 2 86 18"/>
+      <path d="M175 90c-10 28-18 70-18 118 0 62 10 118 28 155"/>
+      <path d="M210 78c-22 40-38 95-38 152 0 58 12 112 34 152"/>
+      <path d="M300 78c24 38 40 94 40 152 0 60-14 116-36 156"/>
+      <path d="M155 200c22-30 48-48 78-52 22-2 40 8 48 28 6 16-2 32-18 42-22 14-48 8-62-6"/>
+      <path d="M148 248c28 8 52 6 70-10 14 18 18 42 8 64-18 38-52 58-86 48-18-6-30-22-32-40 0-18 12-42 40-62z"/>
+      <path d="M200 330c18 22 40 34 62 28 16-4 28-18 30-34"/>
+    </g>
+    <path d="M392 78l16-26M414 88l26-12M428 108l30 2" stroke="#7a8f3d" stroke-width="5" stroke-linecap="round" fill="none"/>
+    <g font-family="Georgia, 'Times New Roman', serif" font-size="72" font-weight="700" letter-spacing="2">
+      <text x="262" y="248" text-anchor="middle" fill="#6b654c">COD.IA</text>
+      <text x="260" y="245" text-anchor="middle" fill="#f6f3ea">COD.IA</text>
+    </g>
+    <g class="logo-slogan">
+      <text x="260" y="500" text-anchor="middle" font-family="Great Vibes, cursive" font-size="42" fill="#111">Un monde tous ensemble</text>
+      <rect x="148" y="512" width="175" height="10" rx="5" fill="#8aa24a"/>
+    </g>
+  </symbol>
+</svg>
+
 <header>
   <div class="container nav">
     <a class="brand" href="#accueil" aria-label="COD.IA">
-      <img src="/assets/logo-codia.png" alt="COD.IA">
+      <svg viewBox="0 0 520 400"><use href="#logo-codia"></use></svg>
     </a>
-
     <nav class="links" id="menu">
       <a href="#accueil" class="active">Accueil</a>
       <a href="#fonctionnalites">Fonctionnalités</a>
       <a href="#communaute">Communauté</a>
       <a href="#apropos">À propos</a>
     </nav>
-
     <a class="btn" href="/app">Connexion</a>
     <button class="burger" onclick="toggleMenu()" aria-label="Menu">☰</button>
   </div>
@@ -392,23 +179,17 @@
 <main>
   <section class="container hero" id="accueil">
     <div class="hero-copy">
-      <h1 class="hero-title">
-        Un monde
-        <br>
-        <span>tous ensemble</span>
-      </h1>
-      <p class="hero-lead">
-        Rejoins une communauté où entraide, partage et opportunités se rencontrent.
-        Codes promo et parrainage, au même endroit.
-      </p>
+      <h1 class="hero-title">Un monde<br><span>tous ensemble</span></h1>
+      <p class="hero-lead">Rejoins une communauté où entraide, partage et opportunités se rencontrent. Codes promo et parrainage, au même endroit.</p>
       <div class="hero-actions">
         <a class="btn" href="/app">Connexion</a>
         <a class="btn btn-ghost" href="/app">Créer mon compte</a>
       </div>
     </div>
-
     <div class="hero-visual">
-      <img class="hero-logo" src="/assets/logo-codia.png" alt="Logo officiel COD.IA — Un monde tous ensemble">
+      <svg class="hero-logo" viewBox="0 0 520 560" role="img" aria-label="COD.IA — Un monde tous ensemble">
+        <use href="#logo-codia"></use>
+      </svg>
     </div>
   </section>
 
@@ -418,27 +199,21 @@
       <p class="section-sub">Trouve, partage et garde les codes qui aident vraiment.</p>
       <div class="feature-grid">
         <article class="feature">
-          <div class="feature-icon">
-            <svg viewBox="0 0 24 24"><path d="M4 7h16v10H4z"/><path d="M8 7V5h8v2"/><path d="M8 12h8"/></svg>
-          </div>
+          <div class="feature-icon"><svg viewBox="0 0 24 24"><path d="M4 7h16v10H4z"/><path d="M8 7V5h8v2"/><path d="M8 12h8"/></svg></div>
           <div>
             <h3>Codes promo & parrainage</h3>
             <p>Un feed clair, des filtres Promo / Parrainage / Expire bientôt, et les Top Codes les plus utiles.</p>
           </div>
         </article>
         <article class="feature">
-          <div class="feature-icon">
-            <svg viewBox="0 0 24 24"><path d="M12 21 4.5 13.4A5 5 0 0 1 12 6.5a5 5 0 0 1 7.5 6.9Z"/></svg>
-          </div>
+          <div class="feature-icon"><svg viewBox="0 0 24 24"><path d="M12 21 4.5 13.4A5 5 0 0 1 12 6.5a5 5 0 0 1 7.5 6.9Z"/></svg></div>
           <div>
             <h3>Favoris en un geste</h3>
             <p>Glisse un code vers la droite pour le garder. Tu le retrouves ensuite dans ton profil.</p>
           </div>
         </article>
         <article class="feature">
-          <div class="feature-icon">
-            <svg viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M4 16V6a2 2 0 0 1 2-2h10"/></svg>
-          </div>
+          <div class="feature-icon"><svg viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M4 16V6a2 2 0 0 1 2-2h10"/></svg></div>
           <div>
             <h3>Copier, puis ouvrir</h3>
             <p>Un tap pour copier. Un second pour ouvrir le site. Simple, rapide, sans friction.</p>
@@ -472,10 +247,7 @@
   <section class="about" id="apropos">
     <div class="container">
       <h2>À propos</h2>
-      <p>
-        Créer un espace où chacun peut s’entraider, partager et avancer ensemble.
-        COD.IA rassemble les codes promo et de parrainage au même endroit, pour un monde plus simple, tous ensemble.
-      </p>
+      <p>Créer un espace où chacun peut s’entraider, partager et avancer ensemble. COD.IA rassemble les codes promo et de parrainage au même endroit.</p>
       <a class="btn" href="/app">Rejoindre COD.IA</a>
     </div>
   </section>
@@ -484,8 +256,8 @@
 <footer>
   <div class="container">
     <div class="footer-grid">
-      <div>
-        <img class="footer-logo" src="/assets/logo-codia.png" alt="COD.IA">
+      <div class="footer-logo">
+        <svg viewBox="0 0 520 400"><use href="#logo-codia"></use></svg>
       </div>
       <div class="footer">
         <h3>Liens rapides</h3>
@@ -510,13 +282,11 @@
 </footer>
 
 <script>
-  function toggleMenu() {
-    document.getElementById("menu").classList.toggle("open");
-  }
-  document.querySelectorAll(".links a").forEach(function(link) {
-    link.addEventListener("click", function() {
+  function toggleMenu(){ document.getElementById("menu").classList.toggle("open"); }
+  document.querySelectorAll(".links a").forEach(function(link){
+    link.addEventListener("click", function(){
       document.getElementById("menu").classList.remove("open");
-      document.querySelectorAll(".links a").forEach(function(a) { a.classList.remove("active"); });
+      document.querySelectorAll(".links a").forEach(function(a){ a.classList.remove("active"); });
       link.classList.add("active");
     });
   });
