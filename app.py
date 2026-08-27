@@ -1,48 +1,104 @@
 import os
-import json
 import logging
 import secrets
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 import psycopg2
 import psycopg2.extras
 import stripe
-import requests
-from flask import Flask, request, jsonify, session, send_from_directory
+from flask import (
+    Flask,
+    jsonify,
+    request,
+    session,
+    send_from_directory,
+)
 from werkzeug.security import generate_password_hash, check_password_hash
 
 logging.basicConfig(level=logging.INFO)
 
-app = Flask(__name__)
-app.secret_key = os.getenv("SECRET_KEY", secrets.token_hex(32))
-app.config["SESSION_COOKIE_HTTPONLY"] = True
-app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
-app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(days=90)
+app = Flask(__name__, static_folder=".", static_url_path="")
+app.secret_key = os.environ.get("SECRET_KEY", "change-me")
+app.permanent_session_lifetime = timedelta(days=90)
 
-DATABASE_URL = os.getenv("DATABASE_URL")
-STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY")
-STRIPE_PUBLISHABLE_KEY = os.getenv("STRIPE_PUBLISHABLE_KEY")
-STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET")
-SERVER_URL = os.getenv("SERVER_URL", "https://cod-ia.fr")
-PRICE_CENTS = int(os.getenv("PRICE_CENTS", "999"))
-TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN") or os.getenv("BOT_TOKEN")
-CHANNEL_ID = os.getenv("CHANNEL_ID")
-ADMIN_ID = os.getenv("ADMIN_ID")
+DATABASE_URL = os.environ.get("DATABASE_URL")
+SERVER_URL = os.environ.get("SERVER_URL", "https://cod-ia.fr").rstrip("/")
+PRICE_CENTS = int(os.environ.get("PRICE_CENTS", "999"))
+ADMIN_EMAILS = [
+    e.strip().lower()
+    for e in os.environ.get("ADMIN_EMAILS", "contact@cod-ia.fr").split(",")
+    if e.strip()
+]
+ADMIN_IDS = [
+    x.strip()
+    for x in os.environ.get("ADMIN_IDS", "8091031583,6886937051").split(",")
+    if x.strip()
+]
 
-ADMIN_EMAILS = [e.strip().lower() for e in os.getenv("ADMIN_EMAILS", "contact@cod-ia.fr").split(",") if e.strip()]
-ADMIN_IDS = set()
-for x in os.getenv("ADMIN_IDS", "8091031583,6886937051").split(","):
-    x = x.strip()
-    if x.isdigit():
-        ADMIN_IDS.add(int(x))
-
-if STRIPE_SECRET_KEY:
-    stripe.api_key = STRIPE_SECRET_KEY
+stripe.api_key = os.environ.get("STRIPE_SECRET_KEY")
+STRIPE_WEBHOOK_SECRET = os.environ.get("STRIPE_WEBHOOK_SECRET")
 
 
 def get_conn():
-    conn = psycopg2.connect(DATABASE_URL)
-    return conn
+    if not DATABASE_URL:
+        raise RuntimeError("DATABASE_URL manquant")
+    return psycopg2.connect(DATABASE_URL)
+
+
+def session_user_id():
+    return session.get("user_id")
+
+
+def is_admin_email(email):
+    return bool(email) and str(email).lower() in ADMIN_EMAILS
+
+
+def is_admin_id(uid):
+    return uid is not None and str(uid) in ADMIN_IDS
+
+
+def get_user_by_id(uid):
+    if not uid:
+        return None
+    conn = get_conn()
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    cur.execute("SELECT * FROM users WHERE id=%s", (uid,))
+    user = cur.fetchone()
+    cur.close()
+    conn.close()
+    return user
+
+
+def is_paid(uid):
+    if not uid:
+        return False
+    user = get_user_by_id(uid)
+    if user and (is_admin_email(user.get("email")) or is_admin_id(uid) or user.get("role") == "admin"):
+        return True
+    conn = get_conn()
+    cur = conn.cursor()
+    cur.execute("SELECT 1 FROM paid_users WHERE user_id=%s LIMIT 1", (uid,))
+    row = cur.fetchone()
+    cur.close()
+    conn.close()
+    return bool(row)
+
+
+def user_public(user, paid=None, admin=None):
+    if not user:
+        return None
+    uid = user["id"]
+    admin = is_admin_email(user.get("email")) or is_admin_id(uid) or user.get("role") == "admin" if admin is None else admin
+    paid = True if admin else (is_paid(uid) if paid is None else paid)
+    return {
+        "id": uid,
+        "username": user.get("username"),
+        "email": user.get("email"),
+        "points": user.get("points") or 0,
+        "role": "admin" if admin else (user.get("role") or "user"),
+        "paid": paid,
+        "is_admin": admin,
+    }
 
 
 def init_db():
@@ -52,74 +108,91 @@ def init_db():
         """
         CREATE TABLE IF NOT EXISTS users (
             id SERIAL PRIMARY KEY,
+            username TEXT,
             email TEXT UNIQUE,
-            username TEXT UNIQUE,
-            password_hash TEXT,
-            telegram_id BIGINT UNIQUE,
+            password TEXT,
+            telegram_id TEXT,
+            points INTEGER DEFAULT 0,
+            role TEXT DEFAULT 'user',
             bio TEXT,
-            instagram TEXT,
-            snapchat TEXT,
             created_at TIMESTAMP DEFAULT NOW()
-        );
+        )
+        """
+    )
+    cur.execute(
+        """
         CREATE TABLE IF NOT EXISTS paid_users (
             id SERIAL PRIMARY KEY,
             user_id INTEGER,
-            telegram_id BIGINT,
+            telegram_id TEXT,
             paid_at TIMESTAMP DEFAULT NOW()
-        );
+        )
+        """
+    )
+    cur.execute(
+        """
         CREATE TABLE IF NOT EXISTS codes (
             id SERIAL PRIMARY KEY,
+            user_id INTEGER,
             type TEXT,
             site TEXT,
+            title TEXT,
             code TEXT,
             description TEXT,
             url TEXT,
-            expires_at TIMESTAMP,
+            expires_at DATE,
             added_by TEXT,
-            user_id INTEGER,
-            photo_url TEXT,
             likes INTEGER DEFAULT 0,
-            dislikes INTEGER DEFAULT 0,
             copies INTEGER DEFAULT 0,
-            reports INTEGER DEFAULT 0,
+            clicks INTEGER DEFAULT 0,
+            status TEXT DEFAULT 'pending',
             deleted BOOLEAN DEFAULT FALSE,
             created_at TIMESTAMP DEFAULT NOW()
-        );
-        CREATE TABLE IF NOT EXISTS notifications (
-            id SERIAL PRIMARY KEY,
-            user_id INTEGER,
-            message TEXT,
-            read BOOLEAN DEFAULT FALSE,
-            created_at TIMESTAMP DEFAULT NOW()
-        );
-        CREATE TABLE IF NOT EXISTS follows (
-            follower_id INTEGER,
-            followed_id INTEGER,
-            UNIQUE(follower_id, followed_id)
-        );
-        CREATE TABLE IF NOT EXISTS saved_codes (
+        )
+        """
+    )
+    cur.execute(
+        """
+        CREATE TABLE IF NOT EXISTS code_saves (
             user_id INTEGER,
             code_id INTEGER,
+            created_at TIMESTAMP DEFAULT NOW(),
             UNIQUE(user_id, code_id)
-        );
-        CREATE TABLE IF NOT EXISTS hidden_codes (
+        )
+        """
+    )
+    cur.execute(
+        """
+        CREATE TABLE IF NOT EXISTS code_reacts (
             user_id INTEGER,
             code_id INTEGER,
-            UNIQUE(user_id, code_id)
-        );
-        CREATE TABLE IF NOT EXISTS search_logs (
-            q TEXT,
-            created_at TIMESTAMP DEFAULT NOW()
-        );
+            reaction TEXT,
+            UNIQUE(user_id, code_id, reaction)
+        )
+        """
+    )
+    cur.execute(
+        """
         CREATE TABLE IF NOT EXISTS referrals (
-            user_id INTEGER PRIMARY KEY,
+            id SERIAL PRIMARY KEY,
+            user_id INTEGER UNIQUE,
             code TEXT UNIQUE,
-            used_code TEXT
-        );
+            created_at TIMESTAMP DEFAULT NOW()
+        )
+        """
+    )
+    cur.execute(
+        """
         CREATE TABLE IF NOT EXISTS referral_uses (
+            id SERIAL PRIMARY KEY,
             referrer_id INTEGER,
-            referred_id INTEGER UNIQUE
-        );
+            referred_id INTEGER UNIQUE,
+            created_at TIMESTAMP DEFAULT NOW()
+        )
+        """
+    )
+    cur.execute(
+        """
         CREATE TABLE IF NOT EXISTS support_messages (
             id SERIAL PRIMARY KEY,
             user_id INTEGER,
@@ -128,226 +201,143 @@ def init_db():
             admin_reply TEXT,
             status TEXT DEFAULT 'open',
             created_at TIMESTAMP DEFAULT NOW()
-        );
-        CREATE TABLE IF NOT EXISTS push_settings (
-            user_id INTEGER PRIMARY KEY,
-            enabled BOOLEAN DEFAULT TRUE
-        );
-        CREATE TABLE IF NOT EXISTS daily_challenges (
-            user_id INTEGER,
-            day DATE,
-            progress INTEGER DEFAULT 0,
-            completed BOOLEAN DEFAULT FALSE,
-            UNIQUE(user_id, day)
-        );
+        )
         """
+    )
+    for stmt in [
+        "ALTER TABLE users ADD COLUMN IF NOT EXISTS points INTEGER DEFAULT 0",
+        "ALTER TABLE users ADD COLUMN IF NOT EXISTS role TEXT DEFAULT 'user'",
+        "ALTER TABLE users ADD COLUMN IF NOT EXISTS bio TEXT",
+        "ALTER TABLE users ADD COLUMN IF NOT EXISTS email TEXT",
+        "ALTER TABLE users ADD COLUMN IF NOT EXISTS password TEXT",
+        "ALTER TABLE users ADD COLUMN IF NOT EXISTS username TEXT",
+        "ALTER TABLE codes ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'approved'",
+        "ALTER TABLE codes ADD COLUMN IF NOT EXISTS clicks INTEGER DEFAULT 0",
+        "ALTER TABLE codes ADD COLUMN IF NOT EXISTS title TEXT",
+        "ALTER TABLE codes ADD COLUMN IF NOT EXISTS copies INTEGER DEFAULT 0",
+        "ALTER TABLE codes ADD COLUMN IF NOT EXISTS likes INTEGER DEFAULT 0",
+        "ALTER TABLE codes ADD COLUMN IF NOT EXISTS deleted BOOLEAN DEFAULT FALSE",
+        "ALTER TABLE codes ADD COLUMN IF NOT EXISTS url TEXT",
+        "ALTER TABLE codes ADD COLUMN IF NOT EXISTS expires_at DATE",
+        "ALTER TABLE codes ADD COLUMN IF NOT EXISTS added_by TEXT",
+        "ALTER TABLE codes ADD COLUMN IF NOT EXISTS user_id INTEGER",
+        "ALTER TABLE codes ADD COLUMN IF NOT EXISTS type TEXT",
+        "ALTER TABLE codes ADD COLUMN IF NOT EXISTS site TEXT",
+        "ALTER TABLE codes ADD COLUMN IF NOT EXISTS code TEXT",
+        "ALTER TABLE codes ADD COLUMN IF NOT EXISTS description TEXT",
+    ]:
+        try:
+            cur.execute(stmt)
+        except Exception as e:
+            logging.warning("alter skip: %s", e)
+            conn.rollback()
+    cur.execute(
+        "UPDATE users SET role='admin' WHERE lower(email)=ANY(%s)",
+        (ADMIN_EMAILS,),
     )
     conn.commit()
     cur.close()
     conn.close()
-    logging.info("DB initialisée")
-
-
-def session_user_id():
-    uid = session.get("user_id")
-    try:
-        return int(uid) if uid is not None else None
-    except Exception:
-        return None
-
-
-def is_admin_email(email):
-    return (email or "").lower() in ADMIN_EMAILS
-
-
-def is_admin_id(uid):
-    try:
-        return int(uid) in ADMIN_IDS
-    except Exception:
-        return False
-
-
-def is_paid(uid, telegram_id=None):
-    if not uid and not telegram_id:
-        return False
-    conn = get_conn()
-    cur = conn.cursor()
-    if uid:
-        cur.execute("SELECT 1 FROM paid_users WHERE user_id=%s LIMIT 1", (uid,))
-        if cur.fetchone():
-            cur.close()
-            conn.close()
-            return True
-    if telegram_id:
-        cur.execute("SELECT 1 FROM paid_users WHERE telegram_id=%s LIMIT 1", (telegram_id,))
-        if cur.fetchone():
-            cur.close()
-            conn.close()
-            return True
-    cur.close()
-    conn.close()
-    return False
-
-
-def get_user_by_id(uid):
-    conn = get_conn()
-    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
-    cur.execute("SELECT * FROM users WHERE id=%s", (uid,))
-    row = cur.fetchone()
-    cur.close()
-    conn.close()
-    return row
-
-
-def send_telegram_message(chat_id, text):
-    if not TELEGRAM_TOKEN or not chat_id:
-        return
-    try:
-        requests.post(
-            f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage",
-            json={"chat_id": chat_id, "text": text},
-            timeout=10,
-        )
-    except Exception as e:
-        logging.error(e)
 
 
 @app.route("/")
-def landing():
+def home():
     return send_from_directory(".", "landing.html")
 
 
 @app.route("/app")
+@app.route("/miniapp")
 def miniapp():
     return send_from_directory(".", "miniapp.html")
 
 
-@app.route("/miniapp")
-def miniapp_old():
-    return send_from_directory(".", "miniapp.html")
-
-
-@app.route("/assets/<path:filename>")
-def assets(filename):
-    return send_from_directory("assets", filename)
-
-
 @app.route("/config")
 def config():
-    return jsonify({"stripe_pk": STRIPE_PUBLISHABLE_KEY or "", "price": PRICE_CENTS})
+    return jsonify(stripe_pk=os.environ.get("STRIPE_PUBLISHABLE_KEY", ""))
 
 
 @app.route("/me")
 def me():
     uid = session_user_id()
-    if not uid:
-        return jsonify({"user": None, "paid": False, "is_admin": False})
     user = get_user_by_id(uid)
     if not user:
-        session.clear()
-        return jsonify({"user": None, "paid": False, "is_admin": False})
-    admin = is_admin_email(user.get("email")) or is_admin_id(user.get("telegram_id"))
-    paid = admin or is_paid(uid, user.get("telegram_id"))
-    return jsonify(
-        {
-            "user": {
-                "id": user["id"],
-                "email": user.get("email"),
-                "username": user.get("username"),
-                "instagram": user.get("instagram"),
-                "snapchat": user.get("snapchat"),
-            },
-            "paid": paid,
-            "is_admin": admin,
-        }
-    )
+        return jsonify(user=None, paid=False, is_admin=False)
+    admin = is_admin_email(user.get("email")) or is_admin_id(uid) or user.get("role") == "admin"
+    paid = True if admin else is_paid(uid)
+    return jsonify(user=user_public(user, paid=paid, admin=admin), paid=paid, is_admin=admin)
 
 
 @app.route("/access")
 def access():
-    uid = request.args.get("user_id")
-    try:
-        uid = int(uid)
-    except Exception:
-        return jsonify({"paid": False, "is_admin": False})
-    admin = is_admin_id(uid)
-    return jsonify({"paid": admin or is_paid(None, uid) or is_paid(uid), "is_admin": admin})
+    uid = session_user_id()
+    return jsonify(ok=is_paid(uid))
 
 
 @app.route("/auth/register", methods=["POST"])
 def auth_register():
-    data = request.json or {}
+    data = request.get_json(silent=True) or {}
     email = (data.get("email") or "").strip().lower()
-    username = (data.get("username") or "").strip().lstrip("@")
+    username = (data.get("username") or "").strip()
     password = data.get("password") or ""
-    if not email or "@" not in email:
-        return jsonify(success=False, error="Email invalide")
-    if len(username) < 3:
-        return jsonify(success=False, error="Username trop court")
+    if not email or not username or not password:
+        return jsonify(success=False, error="Tous les champs sont obligatoires."), 400
     if len(password) < 8:
-        return jsonify(success=False, error="Mot de passe trop court")
-    try:
-        conn = get_conn()
-        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
-        cur.execute(
-            "INSERT INTO users (email, username, password_hash) VALUES (%s,%s,%s) RETURNING *",
-            (email, username, generate_password_hash(password)),
-        )
-        user = cur.fetchone()
-        conn.commit()
+        return jsonify(success=False, error="Mot de passe : 8 caractères minimum."), 400
+    conn = get_conn()
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    cur.execute("SELECT id FROM users WHERE lower(email)=%s", (email,))
+    if cur.fetchone():
         cur.close()
         conn.close()
-    except Exception:
-        return jsonify(success=False, error="Email ou username déjà utilisé")
+        return jsonify(success=False, error="Cet email est déjà utilisé."), 409
+    role = "admin" if email in ADMIN_EMAILS else "user"
+    points = 50
+    cur.execute(
+        """
+        INSERT INTO users (username, email, password, points, role)
+        VALUES (%s,%s,%s,%s,%s)
+        RETURNING *
+        """,
+        (username, email, generate_password_hash(password), points, role),
+    )
+    user = cur.fetchone()
+    conn.commit()
+    cur.close()
+    conn.close()
     session.permanent = True
     session["user_id"] = user["id"]
-    admin = is_admin_email(email)
-    if admin:
-        mark_paid(user["id"], None)
-    return jsonify(
-        success=True,
-        user={
-            "id": user["id"],
-            "email": email,
-            "username": username,
-            "paid": admin or is_paid(user["id"]),
-            "is_admin": admin,
-        },
-    )
+    return jsonify(success=True, user=user_public(user))
 
 
 @app.route("/auth/login", methods=["POST"])
 def auth_login():
-    data = request.json or {}
-    login = (data.get("login") or "").strip()
+    data = request.get_json(silent=True) or {}
+    login = (data.get("login") or data.get("email") or "").strip()
     password = data.get("password") or ""
     if not login or not password:
-        return jsonify(success=False, error="Identifiants manquants")
+        return jsonify(success=False, error="Identifiant et mot de passe requis."), 400
     conn = get_conn()
     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
-    if "@" in login:
-        cur.execute("SELECT * FROM users WHERE lower(email)=%s", (login.lower(),))
-    else:
-        cur.execute("SELECT * FROM users WHERE lower(username)=%s", (login.lower().lstrip("@"),))
+    cur.execute(
+        "SELECT * FROM users WHERE lower(email)=%s OR lower(username)=%s",
+        (login.lower(), login.lower()),
+    )
     user = cur.fetchone()
     cur.close()
     conn.close()
-    if not user or not user.get("password_hash") or not check_password_hash(user["password_hash"], password):
-        return jsonify(success=False, error="Identifiants incorrects")
+    if not user or not user.get("password") or not check_password_hash(user["password"], password):
+        return jsonify(success=False, error="Email ou mot de passe incorrect."), 401
+    if is_admin_email(user.get("email")):
+        conn = get_conn()
+        cur = conn.cursor()
+        cur.execute("UPDATE users SET role='admin' WHERE id=%s", (user["id"],))
+        conn.commit()
+        cur.close()
+        conn.close()
+        user["role"] = "admin"
     session.permanent = True
     session["user_id"] = user["id"]
-    admin = is_admin_email(user.get("email")) or is_admin_id(user.get("telegram_id"))
-    paid = admin or is_paid(user["id"], user.get("telegram_id"))
-    return jsonify(
-        success=True,
-        user={
-            "id": user["id"],
-            "email": user.get("email"),
-            "username": user.get("username"),
-            "paid": paid,
-            "is_admin": admin,
-        },
-    )
+    return jsonify(success=True, user=user_public(user))
 
 
 @app.route("/auth/logout", methods=["POST"])
@@ -356,98 +346,79 @@ def auth_logout():
     return jsonify(success=True)
 
 
-def mark_paid(user_id=None, telegram_id=None):
-    conn = get_conn()
-    cur = conn.cursor()
-    if user_id:
-        cur.execute("SELECT 1 FROM paid_users WHERE user_id=%s", (user_id,))
-        if not cur.fetchone():
-            cur.execute("INSERT INTO paid_users (user_id, telegram_id) VALUES (%s,%s)", (user_id, telegram_id))
-    elif telegram_id:
-        cur.execute("SELECT 1 FROM paid_users WHERE telegram_id=%s", (telegram_id,))
-        if not cur.fetchone():
-            cur.execute("INSERT INTO paid_users (telegram_id) VALUES (%s)", (telegram_id,))
-    conn.commit()
-    cur.close()
-    conn.close()
-
-
 @app.route("/create-embedded-checkout", methods=["POST"])
 def create_embedded_checkout():
-    data = request.json or {}
-    telegram_id = data.get("telegram_id")
     uid = session_user_id()
-    if not uid and not telegram_id:
+    if not uid:
         return jsonify(error="Connecte-toi d’abord"), 401
-    try:
-        checkout = stripe.checkout.Session.create(
-            mode="payment",
-            ui_mode="embedded_page",
-            redirect_on_completion="if_required",
-            return_url=SERVER_URL + "/app?paid=1",
-            line_items=[
-                {
-                    "price_data": {
-                        "currency": "eur",
-                        "product_data": {"name": "Accès COD.IA"},
-                        "unit_amount": PRICE_CENTS,
-                    },
-                    "quantity": 1,
-                }
-            ],
-            metadata={
-                "user_id": str(uid or ""),
-                "telegram_id": str(telegram_id or ""),
-            },
-        )
-        return jsonify(clientSecret=checkout.client_secret)
-    except Exception as e:
-        logging.error(e)
-        return jsonify(error=str(e)), 400
+    if not stripe.api_key:
+        return jsonify(error="Stripe non configuré"), 500
+    checkout = stripe.checkout.Session.create(
+        mode="payment",
+        ui_mode="embedded_page",
+        return_url=SERVER_URL + "/app?paid=1",
+        line_items=[
+            {
+                "price_data": {
+                    "currency": "eur",
+                    "product_data": {"name": "Accès COD.IA"},
+                    "unit_amount": PRICE_CENTS,
+                },
+                "quantity": 1,
+            }
+        ],
+        metadata={"user_id": str(uid)},
+    )
+    return jsonify(clientSecret=checkout.client_secret)
 
 
 @app.route("/stripe/webhook", methods=["POST"])
 def stripe_webhook():
-    payload = request.data
+    payload = request.get_data()
     sig = request.headers.get("Stripe-Signature")
     try:
         if STRIPE_WEBHOOK_SECRET:
             event = stripe.Webhook.construct_event(payload, sig, STRIPE_WEBHOOK_SECRET)
         else:
-            event = stripe.Event.construct_from(json.loads(payload), stripe.api_key)
+            event = request.get_json()
     except Exception as e:
-        return jsonify(error=str(e)), 400
-    if event["type"] in ("checkout.session.completed", "checkout.session.async_payment_succeeded"):
-        obj = event["data"]["object"]
-        meta = obj.get("metadata") or {}
+        logging.error("webhook: %s", e)
+        return jsonify(error="invalid"), 400
+    etype = event.get("type") if isinstance(event, dict) else getattr(event, "type", "")
+    data = event.get("data", {}).get("object", {}) if isinstance(event, dict) else {}
+    if etype in ("checkout.session.completed", "checkout.session.async_payment_succeeded"):
+        meta = data.get("metadata") or {}
         uid = meta.get("user_id")
-        tid = meta.get("telegram_id")
-        mark_paid(int(uid) if uid and str(uid).isdigit() else None, int(tid) if tid and str(tid).isdigit() else None)
+        if uid:
+            conn = get_conn()
+            cur = conn.cursor()
+            cur.execute("SELECT 1 FROM paid_users WHERE user_id=%s", (uid,))
+            if not cur.fetchone():
+                cur.execute("INSERT INTO paid_users (user_id) VALUES (%s)", (uid,))
+            conn.commit()
+            cur.close()
+            conn.close()
     return jsonify(ok=True)
 
 
-def hidden_filter(uid):
-    if not uid:
-        return ""
-    return f" AND id NOT IN (SELECT code_id FROM hidden_codes WHERE user_id={int(uid)})"
+def approved_filter():
+    return "AND COALESCE(deleted,FALSE)=FALSE AND (status='approved' OR status IS NULL)"
 
 
 @app.route("/codes")
-def list_codes():
+def codes_list():
     typ = request.args.get("type")
     expiring = request.args.get("expiring")
-    uid = request.args.get("user_id")
     conn = get_conn()
     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
-    q = "SELECT * FROM codes WHERE deleted=FALSE"
+    q = "SELECT * FROM codes WHERE 1=1 " + approved_filter()
     params = []
-    if typ:
+    if typ in ("promo", "parrainage"):
         q += " AND type=%s"
         params.append(typ)
     if expiring:
-        q += " AND expires_at IS NOT NULL AND expires_at < NOW() + INTERVAL '4 days' AND expires_at > NOW()"
-    q += hidden_filter(uid)
-    q += " ORDER BY created_at DESC LIMIT 200"
+        q += " AND expires_at IS NOT NULL AND expires_at <= (CURRENT_DATE + INTERVAL '7 day')"
+    q += " ORDER BY id DESC LIMIT 200"
     cur.execute(q, params)
     rows = cur.fetchall()
     cur.close()
@@ -460,7 +431,7 @@ def codes_top():
     conn = get_conn()
     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
     cur.execute(
-        "SELECT * FROM codes WHERE deleted=FALSE AND (likes>=100 OR copies>=100) ORDER BY likes+copies DESC LIMIT 10"
+        "SELECT * FROM codes WHERE 1=1 " + approved_filter() + " ORDER BY COALESCE(likes,0) DESC, COALESCE(copies,0) DESC LIMIT 8"
     )
     rows = cur.fetchall()
     cur.close()
@@ -470,15 +441,14 @@ def codes_top():
 
 @app.route("/codes/search")
 def codes_search():
-    q = request.args.get("q") or ""
-    uid = request.args.get("user_id")
+    qtxt = (request.args.get("q") or "").strip()
     conn = get_conn()
     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
     cur.execute(
-        "SELECT * FROM codes WHERE deleted=FALSE AND (site ILIKE %s OR code ILIKE %s OR description ILIKE %s) "
-        + hidden_filter(uid)
-        + " ORDER BY created_at DESC LIMIT 50",
-        (f"%{q}%", f"%{q}%", f"%{q}%"),
+        "SELECT * FROM codes WHERE 1=1 "
+        + approved_filter()
+        + " AND (site ILIKE %s OR code ILIKE %s OR description ILIKE %s OR COALESCE(title,'') ILIKE %s) ORDER BY id DESC LIMIT 100",
+        (f"%{qtxt}%", f"%{qtxt}%", f"%{qtxt}%", f"%{qtxt}%"),
     )
     rows = cur.fetchall()
     cur.close()
@@ -488,38 +458,62 @@ def codes_search():
 
 @app.route("/codes/add", methods=["POST"])
 def codes_add():
-    data = request.json or {}
-    uid = data.get("user_id") or session_user_id()
+    uid = session_user_id()
+    if not uid:
+        return jsonify(success=False, error="Connecte-toi"), 401
+    data = request.get_json(silent=True) or {}
+    site = (data.get("site") or data.get("store") or "").strip()
+    code = (data.get("code") or "").strip()
+    typ = (data.get("type") or "promo").strip()
+    title = (data.get("title") or "").strip()
+    desc = (data.get("description") or title).strip()
+    url = (data.get("url") or data.get("link") or "").strip() or None
+    expires = data.get("expires_at") or None
+    added_by = data.get("added_by") or None
+    if not site or not code:
+        return jsonify(success=False, error="Site et code obligatoires."), 400
     conn = get_conn()
     cur = conn.cursor()
     cur.execute(
-        """INSERT INTO codes (type,site,code,description,url,expires_at,added_by,user_id,photo_url)
-           VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)""",
-        (
-            data.get("type") or "promo",
-            data.get("site"),
-            data.get("code"),
-            data.get("description"),
-            data.get("url"),
-            data.get("expires_at") or None,
-            data.get("added_by") or "Membre",
-            uid,
-            data.get("photo_url"),
-        ),
+        """
+        INSERT INTO codes (user_id, type, site, title, code, description, url, expires_at, added_by, status)
+        VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,'pending')
+        RETURNING id
+        """,
+        (uid, typ, site, title, code, desc, url, expires, added_by),
     )
+    new_id = cur.fetchone()[0]
+    cur.execute("UPDATE users SET points = COALESCE(points,0)+10 WHERE id=%s", (uid,))
     conn.commit()
     cur.close()
     conn.close()
-    return jsonify(success=True)
+    return jsonify(success=True, id=new_id)
 
 
 @app.route("/codes/mine")
-@app.route("/codes/user")
 def codes_mine():
+    uid = request.args.get("user_id") or session_user_id()
+    conn = get_conn()
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    cur.execute(
+        "SELECT * FROM codes WHERE user_id=%s AND COALESCE(deleted,FALSE)=FALSE ORDER BY id DESC",
+        (uid,),
+    )
+    rows = cur.fetchall()
+    cur.close()
+    conn.close()
+    return jsonify(codes=rows)
+
+
+@app.route("/codes/user")
+def codes_user():
     uid = request.args.get("user_id")
     conn = get_conn()
     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
-    cur.execute("SELECT * FROM codes WHERE user_id=%s ORDER BY created_at DESC", (uid,))
+    cur.execute(
+        "SELECT * FROM codes WHERE user_id=%s " + approved_filter() + " ORDER BY id DESC",
+        (uid,),
+    )
     rows = cur.fetchall()
     cur.close()
     conn.close()
@@ -528,11 +522,18 @@ def codes_mine():
 
 @app.route("/codes/saved")
 def codes_saved():
-    uid = request.args.get("user_id")
+    uid = request.args.get("user_id") or session_user_id()
     conn = get_conn()
     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
     cur.execute(
-        "SELECT c.* FROM codes c JOIN saved_codes s ON s.code_id=c.id WHERE s.user_id=%s AND c.deleted=FALSE ORDER BY c.created_at DESC",
+        """
+        SELECT c.* FROM codes c
+        JOIN code_saves s ON s.code_id=c.id
+        WHERE s.user_id=%s """
+        + approved_filter().replace("AND COALESCE", "AND COALESCE")
+        + """
+        ORDER BY s.created_at DESC
+        """,
         (uid,),
     )
     rows = cur.fetchall()
@@ -543,40 +544,69 @@ def codes_saved():
 
 @app.route("/code/copy", methods=["POST"])
 def code_copy():
-    data = request.json or {}
+    data = request.get_json(silent=True) or {}
+    cid = data.get("id")
     conn = get_conn()
     cur = conn.cursor()
-    cur.execute("UPDATE codes SET copies=COALESCE(copies,0)+1 WHERE id=%s RETURNING copies", (data.get("id"),))
+    cur.execute("UPDATE codes SET copies=COALESCE(copies,0)+1 WHERE id=%s RETURNING copies", (cid,))
     row = cur.fetchone()
     conn.commit()
     cur.close()
     conn.close()
-    return jsonify(copies=row[0] if row else 0)
+    return jsonify(success=True, copies=row[0] if row else 0)
+
+
+@app.route("/code/click", methods=["POST"])
+def code_click():
+    data = request.get_json(silent=True) or {}
+    cid = data.get("id")
+    conn = get_conn()
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    cur.execute(
+        "UPDATE codes SET clicks=COALESCE(clicks,0)+1 WHERE id=%s RETURNING url, clicks",
+        (cid,),
+    )
+    row = cur.fetchone()
+    conn.commit()
+    cur.close()
+    conn.close()
+    if not row:
+        return jsonify(error="introuvable"), 404
+    return jsonify(ok=True, url=row.get("url"), clicks=row.get("clicks") or 0)
 
 
 @app.route("/code/react", methods=["POST"])
 def code_react():
-    data = request.json or {}
-    field = "likes" if data.get("reaction") == "like" else "dislikes"
-    op = "+1" if data.get("action") == "add" else "-1"
+    uid = session_user_id() or (request.get_json(silent=True) or {}).get("user_id")
+    data = request.get_json(silent=True) or {}
+    cid = data.get("id")
+    reaction = data.get("reaction") or "like"
     conn = get_conn()
     cur = conn.cursor()
-    cur.execute(f"UPDATE codes SET {field}=GREATEST(COALESCE({field},0){op},0) WHERE id=%s RETURNING {field}", (data.get("id"),))
-    row = cur.fetchone()
+    cur.execute(
+        "INSERT INTO code_reacts (user_id, code_id, reaction) VALUES (%s,%s,%s) ON CONFLICT DO NOTHING",
+        (uid, cid, reaction),
+    )
+    if cur.rowcount:
+        cur.execute("UPDATE codes SET likes=COALESCE(likes,0)+1 WHERE id=%s", (cid,))
+    cur.execute("SELECT likes FROM codes WHERE id=%s", (cid,))
+    likes = cur.fetchone()[0]
     conn.commit()
     cur.close()
     conn.close()
-    return jsonify(value=row[0] if row else 0)
+    return jsonify(success=True, value=likes)
 
 
 @app.route("/code/save", methods=["POST"])
 def code_save():
-    data = request.json or {}
+    data = request.get_json(silent=True) or {}
+    uid = session_user_id() or data.get("user_id")
+    cid = data.get("id")
     conn = get_conn()
     cur = conn.cursor()
     cur.execute(
-        "INSERT INTO saved_codes (user_id, code_id) VALUES (%s,%s) ON CONFLICT DO NOTHING",
-        (data.get("user_id"), data.get("id")),
+        "INSERT INTO code_saves (user_id, code_id) VALUES (%s,%s) ON CONFLICT DO NOTHING",
+        (uid, cid),
     )
     conn.commit()
     cur.close()
@@ -586,10 +616,11 @@ def code_save():
 
 @app.route("/code/unsave", methods=["POST"])
 def code_unsave():
-    data = request.json or {}
+    data = request.get_json(silent=True) or {}
+    uid = session_user_id() or data.get("user_id")
     conn = get_conn()
     cur = conn.cursor()
-    cur.execute("DELETE FROM saved_codes WHERE user_id=%s AND code_id=%s", (data.get("user_id"), data.get("id")))
+    cur.execute("DELETE FROM code_saves WHERE user_id=%s AND code_id=%s", (uid, data.get("id")))
     conn.commit()
     cur.close()
     conn.close()
@@ -598,10 +629,16 @@ def code_unsave():
 
 @app.route("/code/delete", methods=["POST"])
 def code_delete():
-    data = request.json or {}
+    data = request.get_json(silent=True) or {}
+    uid = session_user_id()
+    user = get_user_by_id(uid)
+    admin = user and (is_admin_email(user.get("email")) or user.get("role") == "admin")
     conn = get_conn()
     cur = conn.cursor()
-    cur.execute("UPDATE codes SET deleted=TRUE WHERE id=%s", (data.get("id"),))
+    if admin:
+        cur.execute("UPDATE codes SET deleted=TRUE WHERE id=%s", (data.get("id"),))
+    else:
+        cur.execute("UPDATE codes SET deleted=TRUE WHERE id=%s AND user_id=%s", (data.get("id"), uid))
     conn.commit()
     cur.close()
     conn.close()
@@ -610,7 +647,11 @@ def code_delete():
 
 @app.route("/code/restore", methods=["POST"])
 def code_restore():
-    data = request.json or {}
+    data = request.get_json(silent=True) or {}
+    uid = session_user_id()
+    user = get_user_by_id(uid)
+    if not user or not (is_admin_email(user.get("email")) or user.get("role") == "admin"):
+        return jsonify(error="unauthorized"), 403
     conn = get_conn()
     cur = conn.cursor()
     cur.execute("UPDATE codes SET deleted=FALSE WHERE id=%s", (data.get("id"),))
@@ -620,308 +661,72 @@ def code_restore():
     return jsonify(success=True)
 
 
-@app.route("/code/edit", methods=["POST"])
-def code_edit():
-    data = request.json or {}
-    conn = get_conn()
-    cur = conn.cursor()
-    cur.execute(
-        "UPDATE codes SET site=%s, code=%s, description=%s, url=%s, expires_at=%s WHERE id=%s",
-        (
-            data.get("site"),
-            data.get("code"),
-            data.get("description"),
-            data.get("url"),
-            data.get("expires_at") or None,
-            data.get("id"),
-        ),
-    )
-    conn.commit()
-    cur.close()
-    conn.close()
-    return jsonify(success=True)
-
-
-@app.route("/code/hard-delete", methods=["POST"])
-def code_hard_delete():
-    data = request.json or {}
-    if not (is_admin_id(data.get("user_id")) or is_admin_email((get_user_by_id(session_user_id()) or {}).get("email"))):
-        return jsonify(error="unauthorized"), 403
-    conn = get_conn()
-    cur = conn.cursor()
-    cur.execute("DELETE FROM codes WHERE id=%s", (data.get("id"),))
-    conn.commit()
-    cur.close()
-    conn.close()
-    return jsonify(success=True)
-
-
-@app.route("/code/report", methods=["POST"])
-def code_report():
-    data = request.json or {}
-    conn = get_conn()
-    cur = conn.cursor()
-    cur.execute("UPDATE codes SET reports=COALESCE(reports,0)+1 WHERE id=%s RETURNING reports", (data.get("id"),))
-    row = cur.fetchone()
-    if data.get("hide") and data.get("user_id"):
-        cur.execute(
-            "INSERT INTO hidden_codes (user_id, code_id) VALUES (%s,%s) ON CONFLICT DO NOTHING",
-            (data.get("user_id"), data.get("id")),
-        )
-    if row and row[0] >= 10:
-        cur.execute("UPDATE codes SET deleted=TRUE WHERE id=%s", (data.get("id"),))
-    conn.commit()
-    cur.close()
-    conn.close()
-    return jsonify(success=True)
-
-
-@app.route("/search/log", methods=["POST"])
-def search_log():
-    q = (request.json or {}).get("q")
-    if q:
-        conn = get_conn()
-        cur = conn.cursor()
-        cur.execute("INSERT INTO search_logs (q) VALUES (%s)", (q,))
-        conn.commit()
-        cur.close()
-        conn.close()
-    return jsonify(ok=True)
-
-
-@app.route("/search/recent")
-def search_recent():
-    conn = get_conn()
-    cur = conn.cursor()
-    cur.execute("SELECT q FROM search_logs ORDER BY created_at DESC LIMIT 8")
-    rows = [r[0] for r in cur.fetchall()]
-    cur.close()
-    conn.close()
-    return jsonify(queries=rows)
-
-
-@app.route("/notifications")
-def notifications():
-    uid = request.args.get("user_id")
-    conn = get_conn()
-    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
-    cur.execute("SELECT * FROM notifications WHERE user_id=%s ORDER BY created_at DESC LIMIT 30", (uid,))
-    rows = cur.fetchall()
-    cur.execute("SELECT COUNT(*) FROM notifications WHERE user_id=%s AND read=FALSE", (uid,))
-    unread = cur.fetchone()["count"]
-    cur.close()
-    conn.close()
-    return jsonify(notifications=rows, unread=unread)
-
-
-@app.route("/notifications/read", methods=["POST"])
-def notifications_read():
-    uid = (request.json or {}).get("user_id")
-    conn = get_conn()
-    cur = conn.cursor()
-    cur.execute("UPDATE notifications SET read=TRUE WHERE user_id=%s", (uid,))
-    conn.commit()
-    cur.close()
-    conn.close()
-    return jsonify(ok=True)
-
-
 @app.route("/profile/full_stats")
 def profile_full_stats():
-    uid = request.args.get("user_id")
+    uid = request.args.get("user_id") or session_user_id()
     conn = get_conn()
     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
-    cur.execute("SELECT * FROM users WHERE id=%s", (uid,))
-    user = cur.fetchone() or {}
-    cur.execute("SELECT COUNT(*) AS c, COALESCE(SUM(likes),0) AS l, COALESCE(SUM(copies),0) AS k FROM codes WHERE user_id=%s AND deleted=FALSE", (uid,))
-    st = cur.fetchone()
-    cur.execute("SELECT COUNT(*) AS c FROM follows WHERE followed_id=%s", (uid,))
-    followers = cur.fetchone()["c"]
-    cur.execute("SELECT COUNT(*) AS c FROM follows WHERE follower_id=%s", (uid,))
-    following = cur.fetchone()["c"]
+    cur.execute("SELECT username, bio, points FROM users WHERE id=%s", (uid,))
+    u = cur.fetchone() or {}
+    cur.execute(
+        """
+        SELECT COUNT(*) AS total_codes,
+               COALESCE(SUM(likes),0) AS total_likes,
+               COALESCE(SUM(copies),0) AS total_copies,
+               COALESCE(SUM(clicks),0) AS total_clicks
+        FROM codes WHERE user_id=%s AND COALESCE(deleted,FALSE)=FALSE
+        """,
+        (uid,),
+    )
+    s = cur.fetchone() or {}
     cur.close()
     conn.close()
     return jsonify(
-        username=user.get("username"),
-        bio=user.get("bio"),
-        instagram=user.get("instagram"),
-        snapchat=user.get("snapchat"),
-        total_codes=st["c"] if st else 0,
-        total_likes=st["l"] if st else 0,
-        total_copies=st["k"] if st else 0,
-        followers=followers,
-        following=following,
-        badge=None,
+        username=u.get("username"),
+        bio=u.get("bio") or "",
+        points=u.get("points") or 0,
+        total_codes=s.get("total_codes") or 0,
+        total_likes=s.get("total_likes") or 0,
+        total_copies=s.get("total_copies") or 0,
+        total_clicks=s.get("total_clicks") or 0,
     )
 
 
 @app.route("/profile/bio", methods=["POST"])
 def profile_bio():
-    data = request.json or {}
-    uid = data.get("user_id") or session_user_id()
+    uid = session_user_id()
+    data = request.get_json(silent=True) or {}
     conn = get_conn()
     cur = conn.cursor()
-    cur.execute("UPDATE users SET bio=%s WHERE id=%s", (data.get("bio"), uid))
+    cur.execute("UPDATE users SET bio=%s WHERE id=%s", ((data.get("bio") or "")[:160], uid))
     conn.commit()
     cur.close()
     conn.close()
     return jsonify(success=True)
 
 
-@app.route("/profile/social", methods=["POST"])
-def profile_social():
-    data = request.json or {}
-    uid = session_user_id() or data.get("user_id")
-    ig = (data.get("instagram") or "").lstrip("@")
-    snap = (data.get("snapchat") or "").lstrip("@")
-    conn = get_conn()
-    cur = conn.cursor()
-    cur.execute("UPDATE users SET instagram=%s, snapchat=%s WHERE id=%s", (ig or None, snap or None, uid))
-    conn.commit()
-    cur.close()
-    conn.close()
-    return jsonify(success=True, instagram=ig, snapchat=snap)
-
-
-@app.route("/settings/push")
-def get_push():
-    uid = request.args.get("user_id")
-    conn = get_conn()
-    cur = conn.cursor()
-    cur.execute("SELECT enabled FROM push_settings WHERE user_id=%s", (uid,))
-    row = cur.fetchone()
-    cur.close()
-    conn.close()
-    return jsonify(enabled=True if not row else row[0])
-
-
-@app.route("/settings/push", methods=["POST"])
-def set_push():
-    data = request.json or {}
-    conn = get_conn()
-    cur = conn.cursor()
-    cur.execute(
-        "INSERT INTO push_settings (user_id, enabled) VALUES (%s,%s) ON CONFLICT (user_id) DO UPDATE SET enabled=EXCLUDED.enabled",
-        (data.get("user_id"), bool(data.get("enabled"))),
-    )
-    conn.commit()
-    cur.close()
-    conn.close()
-    return jsonify(ok=True)
-
-
-@app.route("/follow", methods=["POST"])
-def follow():
-    data = request.json or {}
-    conn = get_conn()
-    cur = conn.cursor()
-    cur.execute(
-        "INSERT INTO follows (follower_id, followed_id) VALUES (%s,%s) ON CONFLICT DO NOTHING",
-        (data.get("follower_id"), data.get("followed_id")),
-    )
-    conn.commit()
-    cur.close()
-    conn.close()
-    return jsonify(ok=True)
-
-
-@app.route("/unfollow", methods=["POST"])
-def unfollow():
-    data = request.json or {}
-    conn = get_conn()
-    cur = conn.cursor()
-    cur.execute(
-        "DELETE FROM follows WHERE follower_id=%s AND followed_id=%s",
-        (data.get("follower_id"), data.get("followed_id")),
-    )
-    conn.commit()
-    cur.close()
-    conn.close()
-    return jsonify(ok=True)
-
-
-@app.route("/is_following")
-def is_following():
-    conn = get_conn()
-    cur = conn.cursor()
-    cur.execute(
-        "SELECT 1 FROM follows WHERE follower_id=%s AND followed_id=%s",
-        (request.args.get("follower"), request.args.get("followed")),
-    )
-    ok = bool(cur.fetchone())
-    cur.close()
-    conn.close()
-    return jsonify(following=ok)
-
-
-@app.route("/followers")
-@app.route("/following")
-def follow_lists():
-    uid = request.args.get("user_id")
-    conn = get_conn()
-    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
-    if request.path.endswith("followers"):
-        cur.execute(
-            "SELECT u.id AS user_id, COALESCE('@'||u.username,'Membre') AS name FROM follows f JOIN users u ON u.id=f.follower_id WHERE f.followed_id=%s",
-            (uid,),
-        )
-    else:
-        cur.execute(
-            "SELECT u.id AS user_id, COALESCE('@'||u.username,'Membre') AS name FROM follows f JOIN users u ON u.id=f.followed_id WHERE f.follower_id=%s",
-            (uid,),
-        )
-    rows = cur.fetchall()
-    cur.close()
-    conn.close()
-    return jsonify(users=rows)
-
-
-@app.route("/leaderboard")
-def leaderboard():
-    conn = get_conn()
-    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
-    cur.execute(
-        """
-        SELECT user_id, COALESCE(added_by,'Membre') AS name, COUNT(*) AS codes_count
-        FROM codes
-        WHERE deleted=FALSE AND created_at > NOW() - INTERVAL '7 days' AND user_id IS NOT NULL
-        GROUP BY user_id, added_by
-        ORDER BY codes_count DESC
-        LIMIT 10
-        """
-    )
-    rows = cur.fetchall()
-    cur.close()
-    conn.close()
-    out = []
-    for i, r in enumerate(rows, 1):
-        r["rank"] = i
-        out.append(r)
-    return jsonify(leaderboard=out)
-
-
 @app.route("/referral/status")
 def referral_status():
-    uid = request.args.get("user_id")
+    uid = request.args.get("user_id") or session_user_id()
     conn = get_conn()
     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
-    cur.execute("SELECT * FROM referrals WHERE user_id=%s", (uid,))
+    cur.execute("SELECT code FROM referrals WHERE user_id=%s", (uid,))
     row = cur.fetchone()
     cur.execute("SELECT COUNT(*) AS c FROM referral_uses WHERE referrer_id=%s", (uid,))
     count = cur.fetchone()["c"]
+    cur.execute("SELECT 1 FROM referral_uses WHERE referred_id=%s", (uid,))
+    used = bool(cur.fetchone())
     cur.close()
     conn.close()
-    return jsonify(
-        my_code=row["code"] if row else None,
-        has_used=bool(row and row.get("used_code")),
-        referrals_count=count,
-    )
+    return jsonify(my_code=row["code"] if row else None, referrals_count=count, has_used=used)
 
 
 @app.route("/referral/generate", methods=["POST"])
 def referral_generate():
-    uid = (request.json or {}).get("user_id") or session_user_id()
-    code = "CODIA" + secrets.token_hex(3).upper()
+    uid = session_user_id()
+    if not uid:
+        return jsonify(error="login"), 401
+    code = "CODIA" + secrets.token_hex(2).upper()
     conn = get_conn()
     cur = conn.cursor()
     cur.execute(
@@ -936,89 +741,165 @@ def referral_generate():
 
 @app.route("/referral/integrate", methods=["POST"])
 def referral_integrate():
-    data = request.json or {}
-    uid = data.get("user_id")
+    uid = session_user_id()
+    data = request.get_json(silent=True) or {}
     code = (data.get("code") or "").strip().upper()
     conn = get_conn()
     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
-    cur.execute("SELECT * FROM referrals WHERE code=%s", (code,))
+    cur.execute("SELECT user_id FROM referrals WHERE upper(code)=%s", (code,))
     ref = cur.fetchone()
     if not ref:
         cur.close()
         conn.close()
-        return jsonify(success=False, error="Code introuvable")
-    if int(ref["user_id"]) == int(uid):
+        return jsonify(success=False, error="Code inconnu")
+    if str(ref["user_id"]) == str(uid):
         cur.close()
         conn.close()
         return jsonify(success=False, error="Tu ne peux pas utiliser ton propre code")
     cur.execute(
-        "INSERT INTO referrals (user_id, used_code) VALUES (%s,%s) ON CONFLICT (user_id) DO UPDATE SET used_code=EXCLUDED.used_code",
-        (uid, code),
-    )
-    cur.execute(
-        "INSERT INTO referral_uses (referrer_id, referred_id) VALUES (%s,%s) ON CONFLICT DO NOTHING",
+        "INSERT INTO referral_uses (referrer_id, referred_id) VALUES (%s,%s) ON CONFLICT (referred_id) DO NOTHING",
         (ref["user_id"], uid),
     )
+    if cur.rowcount:
+        cur.execute("UPDATE users SET points=COALESCE(points,0)+100 WHERE id=%s", (ref["user_id"],))
     conn.commit()
     cur.close()
     conn.close()
     return jsonify(success=True)
 
 
-@app.route("/referral/leaderboard")
-def referral_leaderboard():
+@app.route("/leaderboard")
+def leaderboard():
     conn = get_conn()
     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
     cur.execute(
         """
-        SELECT r.user_id, COALESCE(u.username,'Membre') AS name, COUNT(ru.referred_id) AS referrals_count
-        FROM referrals r
-        LEFT JOIN referral_uses ru ON ru.referrer_id=r.user_id
-        LEFT JOIN users u ON u.id=r.user_id
-        GROUP BY r.user_id, u.username
-        HAVING COUNT(ru.referred_id) > 0
-        ORDER BY referrals_count DESC
-        LIMIT 10
+        SELECT COALESCE(u.username,'Membre') AS name, COUNT(c.id) AS codes_count
+        FROM users u
+        LEFT JOIN codes c ON c.user_id=u.id AND COALESCE(c.deleted,FALSE)=FALSE
+        GROUP BY u.id, u.username
+        ORDER BY codes_count DESC
+        LIMIT 20
         """
     )
     rows = cur.fetchall()
     cur.close()
     conn.close()
-    out = []
-    for i, r in enumerate(rows, 1):
-        r["rank"] = i
-        out.append(r)
-    return jsonify(leaderboard=out)
+    return jsonify(leaderboard=rows)
 
 
-@app.route("/coach/tips")
-def coach_tips():
-    return jsonify(tips=[{"text": "Publie un code aujourd’hui pour apparaître dans le feed.", "cta": "Publier", "action": "share"}])
+@app.route("/admin/stats")
+def admin_stats():
+    uid = session_user_id()
+    user = get_user_by_id(uid)
+    if not user or not (is_admin_email(user.get("email")) or user.get("role") == "admin" or is_admin_id(uid)):
+        return jsonify(error="unauthorized"), 403
+    conn = get_conn()
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    cur.execute("SELECT COUNT(*) AS c FROM users")
+    members = cur.fetchone()["c"]
+    cur.execute("SELECT COUNT(*) AS c FROM paid_users")
+    paid = cur.fetchone()["c"]
+    cur.execute("SELECT COUNT(*) AS c FROM codes WHERE COALESCE(deleted,FALSE)=FALSE")
+    codes = cur.fetchone()["c"]
+    cur.execute("SELECT COUNT(*) AS c FROM referral_uses")
+    refs = cur.fetchone()["c"]
+    cur.execute("SELECT COUNT(*) AS c FROM codes WHERE status='pending'")
+    pending = cur.fetchone()["c"]
+    cur.execute("SELECT COALESCE(SUM(clicks),0) AS c FROM codes")
+    clicks = cur.fetchone()["c"]
+    cur.execute(
+        """
+        SELECT COALESCE(u.username,'Membre') AS name, p.paid_at
+        FROM paid_users p LEFT JOIN users u ON u.id=p.user_id
+        ORDER BY p.paid_at DESC LIMIT 20
+        """
+    )
+    joins = cur.fetchall()
+    cur.close()
+    conn.close()
+    return jsonify(
+        total_members=members,
+        paid_members=paid,
+        total_codes=codes,
+        total_referrals=refs,
+        pending=pending,
+        clicks=clicks,
+        recent_joins=joins,
+    )
 
 
-@app.route("/coach/daily")
-def coach_daily():
-    return jsonify(challenge={"label": "Publie 1 code aujourd’hui", "progress": 0, "target": 1, "completed": False}, challenges_completed_total=0)
+@app.route("/admin/moderation")
+def admin_moderation():
+    uid = session_user_id()
+    user = get_user_by_id(uid)
+    if not user or not (is_admin_email(user.get("email")) or user.get("role") == "admin" or is_admin_id(uid)):
+        return jsonify(error="unauthorized"), 403
+    conn = get_conn()
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    cur.execute(
+        """
+        SELECT c.*, COALESCE(u.username,'Membre') AS username, u.email
+        FROM codes c
+        LEFT JOIN users u ON u.id=c.user_id
+        WHERE COALESCE(c.deleted,FALSE)=FALSE
+        ORDER BY c.id DESC
+        LIMIT 200
+        """
+    )
+    rows = cur.fetchall()
+    cur.close()
+    conn.close()
+    return jsonify(codes=rows)
 
 
-@app.route("/coach/badges")
-def coach_badges():
-    return jsonify(total_challenges=0, all=[{"icon": "🌱", "label": "Débutant", "desc": "Premier pas", "unlocked": True}])
+@app.route("/admin/code/approve", methods=["POST"])
+def admin_approve():
+    uid = session_user_id()
+    user = get_user_by_id(uid)
+    if not user or not (is_admin_email(user.get("email")) or user.get("role") == "admin"):
+        return jsonify(error="unauthorized"), 403
+    data = request.get_json(silent=True) or {}
+    conn = get_conn()
+    cur = conn.cursor()
+    cur.execute("UPDATE codes SET status='approved' WHERE id=%s RETURNING user_id", (data.get("id"),))
+    row = cur.fetchone()
+    if row and row[0]:
+        cur.execute("UPDATE users SET points=COALESCE(points,0)+25 WHERE id=%s", (row[0],))
+    conn.commit()
+    cur.close()
+    conn.close()
+    return jsonify(success=True)
 
 
-@app.route("/coach/badge")
-def coach_badge():
-    return jsonify(badge=None)
+@app.route("/admin/code/reject", methods=["POST"])
+def admin_reject():
+    uid = session_user_id()
+    user = get_user_by_id(uid)
+    if not user or not (is_admin_email(user.get("email")) or user.get("role") == "admin"):
+        return jsonify(error="unauthorized"), 403
+    data = request.get_json(silent=True) or {}
+    conn = get_conn()
+    cur = conn.cursor()
+    cur.execute("UPDATE codes SET status='rejected' WHERE id=%s", (data.get("id"),))
+    conn.commit()
+    cur.close()
+    conn.close()
+    return jsonify(success=True)
 
 
 @app.route("/support/send", methods=["POST"])
 def support_send():
-    data = request.json or {}
+    data = request.get_json(silent=True) or {}
+    uid = session_user_id() or data.get("user_id")
+    msg = (data.get("message") or "").strip()
+    if not msg:
+        return jsonify(success=False, error="Message vide"), 400
     conn = get_conn()
     cur = conn.cursor()
     cur.execute(
-        "INSERT INTO support_messages (user_id,user_name,message) VALUES (%s,%s,%s)",
-        (data.get("user_id"), data.get("user_name"), data.get("message")),
+        "INSERT INTO support_messages (user_id, user_name, message) VALUES (%s,%s,%s)",
+        (uid, data.get("user_name") or "Membre", msg[:1000]),
     )
     conn.commit()
     cur.close()
@@ -1028,66 +909,50 @@ def support_send():
 
 @app.route("/support/list")
 def support_list():
-    uid = request.args.get("user_id")
-    user = get_user_by_id(session_user_id()) if session_user_id() else None
-    if not (is_admin_id(uid) or is_admin_email((user or {}).get("email"))):
+    uid = session_user_id()
+    user = get_user_by_id(uid)
+    if not user or not (is_admin_email(user.get("email")) or user.get("role") == "admin"):
         return jsonify(error="unauthorized"), 403
     status = request.args.get("status") or "open"
     conn = get_conn()
     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
-    cur.execute("SELECT * FROM support_messages WHERE status=%s ORDER BY created_at DESC LIMIT 50", (status,))
+    cur.execute(
+        "SELECT * FROM support_messages WHERE status=%s ORDER BY id DESC LIMIT 100",
+        (status,),
+    )
     rows = cur.fetchall()
-    cur.execute("SELECT COUNT(*) AS c FROM support_messages WHERE status='open'")
-    open_count = cur.fetchone()["c"]
     cur.close()
     conn.close()
-    return jsonify(messages=rows, open_count=open_count)
+    return jsonify(messages=rows)
 
 
 @app.route("/support/reply", methods=["POST"])
 def support_reply():
-    data = request.json or {}
+    uid = session_user_id()
+    user = get_user_by_id(uid)
+    if not user or not (is_admin_email(user.get("email")) or user.get("role") == "admin"):
+        return jsonify(error="unauthorized"), 403
+    data = request.get_json(silent=True) or {}
     conn = get_conn()
-    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    cur = conn.cursor()
     cur.execute(
-        "UPDATE support_messages SET admin_reply=%s, status='replied' WHERE id=%s RETURNING *",
+        "UPDATE support_messages SET admin_reply=%s, status='replied' WHERE id=%s",
         (data.get("reply"), data.get("id")),
     )
-    row = cur.fetchone()
-    if row:
-        cur.execute(
-            "INSERT INTO notifications (user_id, message) VALUES (%s,%s)",
-            (row["user_id"], "Réponse du support : " + (data.get("reply") or "")),
-        )
     conn.commit()
     cur.close()
     conn.close()
     return jsonify(success=True)
 
 
-@app.route("/admin/stats")
-def admin_stats():
-    uid = request.args.get("user_id")
-    user = get_user_by_id(session_user_id()) if session_user_id() else None
-    if not (is_admin_id(uid) or is_admin_email((user or {}).get("email"))):
-        return jsonify(error="unauthorized"), 403
-    conn = get_conn()
-    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
-    cur.execute("SELECT COUNT(*) AS c FROM paid_users")
-    paid = cur.fetchone()["c"]
-    cur.execute("SELECT COUNT(*) AS c FROM users")
-    members = cur.fetchone()["c"]
-    cur.execute("SELECT COUNT(*) AS c FROM codes WHERE deleted=FALSE")
-    codes = cur.fetchone()["c"]
-    cur.execute("SELECT COUNT(*) AS c FROM referral_uses")
-    refs = cur.fetchone()["c"]
-    cur.execute(
-        "SELECT COALESCE(u.username,'Membre') AS name, p.paid_at FROM paid_users p LEFT JOIN users u ON u.id=p.user_id ORDER BY p.paid_at DESC LIMIT 20"
-    )
-    joins = cur.fetchall()
-    cur.close()
-    conn.close()
-    return jsonify(total_members=members, paid_members=paid, total_codes=codes, total_referrals=refs, recent_joins=joins)
+@app.route("/coach/tips")
+def coach_tips():
+    return jsonify(tips=[{"text": "Publie un code clair : site + code + lien."}])
+
+
+@app.route("/coach/daily")
+def coach_daily():
+    return jsonify(challenge={"label": "Partage 1 code utile aujourd’hui", "progress": 0, "target": 1})
 
 
 @app.route("/stats")
@@ -1103,7 +968,7 @@ def telegram():
 try:
     init_db()
 except Exception as e:
-    logging.error(f"Init DB error: {e}")
+    logging.error("Init DB error: %s", e)
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
