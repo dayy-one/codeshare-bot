@@ -19,7 +19,6 @@
       --gold: #c4b07a;
       --line: rgba(80, 80, 70, 0.12);
     }
-
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html { scroll-behavior: smooth; }
     body {
@@ -28,23 +27,14 @@
       color: var(--ink);
       min-height: 100vh;
     }
-
     a { color: inherit; text-decoration: none; }
-
-    .wrap {
-      max-width: 1120px;
-      margin: 0 auto;
-      padding: 0 28px;
-    }
-
-    /* HEADER */
+    .wrap { max-width: 1120px; margin: 0 auto; padding: 0 28px; }
     header {
       position: sticky;
       top: 0;
       z-index: 40;
       background: rgba(246, 243, 236, 0.88);
       backdrop-filter: blur(12px);
-      border-bottom: 1px solid transparent;
     }
     .nav {
       display: flex;
@@ -53,12 +43,7 @@
       min-height: 78px;
       gap: 20px;
     }
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      flex-shrink: 0;
-    }
+    .brand { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
     .brand-mark { width: 42px; height: 42px; }
     .brand-name {
       font-family: "Cormorant Garamond", serif;
@@ -70,7 +55,6 @@
       background-clip: text;
       color: transparent;
     }
-
     nav.links {
       display: flex;
       align-items: center;
@@ -79,8 +63,6 @@
       color: #3a3a3a;
     }
     nav.links a { position: relative; padding: 6px 0; }
-    nav.links a.active,
-    nav.links a:hover { color: var(--ink); }
     nav.links a.active::after {
       content: "";
       position: absolute;
@@ -89,12 +71,10 @@
       background: var(--green);
       border-radius: 2px;
     }
-
     .btn {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      gap: 8px;
       background: var(--green);
       color: #fff;
       border: 0;
@@ -110,33 +90,19 @@
     }
     .btn:hover { background: var(--green-dark); transform: translateY(-1px); }
     .btn-lg { padding: 14px 26px; font-size: 15.5px; border-radius: 12px; }
-    .btn-ghost {
-      background: transparent;
-      color: var(--ink);
-      box-shadow: none;
-      border: 1px solid rgba(80,80,70,.18);
-    }
-    .btn-ghost:hover { background: #fff; }
-
     .burger {
       display: none;
       width: 42px; height: 42px;
       border: 0; background: transparent;
       font-size: 22px; cursor: pointer;
     }
-
-    /* HERO */
     .hero {
       position: relative;
       text-align: center;
       padding: 36px 0 90px;
       overflow: hidden;
     }
-    .hero-logo {
-      width: min(420px, 86vw);
-      margin: 8px auto 8px;
-      display: block;
-    }
+    .hero-logo { width: min(420px, 86vw); margin: 8px auto; display: block; }
     .slogan {
       font-family: "Great Vibes", cursive;
       font-size: clamp(34px, 5.2vw, 56px);
@@ -144,16 +110,11 @@
       line-height: 1.15;
       margin: 6px 0 18px;
     }
-    .slogan span {
-      position: relative;
-      display: inline-block;
-    }
+    .slogan span { position: relative; display: inline-block; }
     .slogan span::after {
       content: "";
       position: absolute;
-      left: 2%;
-      right: 2%;
-      bottom: 2px;
+      left: 2%; right: 2%; bottom: 2px;
       height: 8px;
       background: rgba(107, 122, 61, 0.28);
       border-radius: 8px;
@@ -175,11 +136,7 @@
         radial-gradient(90% 80% at 90% 130%, #eef3e2 0%, transparent 55%);
       pointer-events: none;
     }
-
-    /* SECTIONS */
-    section.block {
-      padding: 72px 0;
-    }
+    section.block { padding: 72px 0; }
     .block h2 {
       font-family: "Cormorant Garamond", serif;
       font-size: clamp(30px, 4vw, 42px);
@@ -194,12 +151,7 @@
       margin: 0 auto 40px;
       line-height: 1.6;
     }
-
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 20px;
-    }
+    .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
     .card {
       background: var(--paper);
       border: 1px solid var(--line);
@@ -207,10 +159,7 @@
       padding: 26px 24px;
       box-shadow: 0 10px 30px rgba(60, 55, 40, 0.04);
     }
-    .card h3 {
-      font-size: 18px;
-      margin: 12px 0 8px;
-    }
+    .card h3 { font-size: 18px; margin: 12px 0 8px; }
     .card p { color: var(--muted); line-height: 1.55; font-size: 14.5px; }
     .ico {
       width: 42px; height: 42px;
@@ -220,7 +169,6 @@
       color: var(--green-dark);
       font-size: 20px;
     }
-
     .mission {
       background: linear-gradient(180deg, #f3f0e7 0%, #eef1e3 100%);
       border-radius: 28px;
@@ -234,12 +182,7 @@
       font-size: 17px;
       line-height: 1.65;
     }
-
-    .offers {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 22px;
-    }
+    .offers { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
     .offer {
       background: #fff;
       border-radius: 22px;
@@ -261,71 +204,8 @@
     .offer h3 { font-size: 24px; margin-bottom: 10px; }
     .offer p { color: var(--muted); line-height: 1.6; margin-bottom: 10px; }
     .offer strong { color: var(--ink); }
-
-    footer {
-      padding: 36px 0 48px;
-      text-align: center;
-      color: var(--muted);
-      font-size: 14px;
-    }
+    footer { padding: 36px 0 48px; text-align: center; color: var(--muted); font-size: 14px; }
     footer a { color: var(--green-dark); font-weight: 600; }
-
-    /* LOGIN MODAL */
-    .modal {
-      position: fixed; inset: 0;
-      background: rgba(40, 38, 32, 0.38);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 80;
-      padding: 20px;
-    }
-    .modal.open { display: flex; }
-    .modal-card {
-      width: min(440px, 100%);
-      background: var(--paper);
-      border-radius: 22px;
-      padding: 32px 28px 28px;
-      box-shadow: 0 30px 80px rgba(0,0,0,.18);
-    }
-    .modal-card h2 {
-      font-family: "Cormorant Garamond", serif;
-      font-size: 32px;
-      text-align: center;
-      margin-bottom: 6px;
-    }
-    .tabs {
-      display: flex; gap: 8px; justify-content: center; margin: 16px 0 22px;
-    }
-    .tabs button {
-      border: 0; background: transparent;
-      font-family: inherit; font-weight: 600;
-      padding: 8px 14px; cursor: pointer;
-      color: var(--muted); border-bottom: 2px solid transparent;
-    }
-    .tabs button.on {
-      color: var(--ink);
-      border-bottom-color: var(--green);
-    }
-    label {
-      display: block; font-size: 13px; font-weight: 600;
-      margin: 12px 0 6px;
-    }
-    input {
-      width: 100%;
-      border: 1px solid rgba(80,80,70,.2);
-      background: #fff;
-      border-radius: 10px;
-      padding: 12px 12px;
-      font-family: inherit;
-      font-size: 15px;
-    }
-    .modal .btn { width: 100%; margin-top: 18px; }
-    .close-x {
-      float: right; border: 0; background: transparent;
-      font-size: 22px; cursor: pointer; color: #777;
-    }
-
     @media (max-width: 860px) {
       nav.links { display: none; }
       nav.links.open {
@@ -359,15 +239,13 @@
         </svg>
         <span class="brand-name">COD.IA</span>
       </a>
-
       <nav class="links" id="menu">
         <a href="#accueil" class="active">Accueil</a>
         <a href="#fonctionnalites">Fonctionnalités</a>
         <a href="#communaute">Communauté</a>
         <a href="#apropos">À propos</a>
       </nav>
-
-      <button class="btn" type="button" onclick="openAuth('login')">Connexion</button>
+      <a class="btn" href="/app">Connexion</a>
       <button class="burger" type="button" onclick="document.getElementById('menu').classList.toggle('open')">☰</button>
     </div>
   </header>
@@ -393,10 +271,9 @@
         <path d="M372 78l18-28M392 88l28-14M402 108l32 4" stroke="#c4b07a" stroke-width="2.2" fill="none" stroke-linecap="round"/>
         <text x="262" y="196" text-anchor="middle" font-family="Cormorant Garamond, serif" font-size="72" font-weight="600" fill="url(#gold)" letter-spacing="6">COD.IA</text>
       </svg>
-
       <h1 class="slogan"><span>Un monde tous ensemble</span></h1>
       <p class="lead">Rejoins une communauté où entraide, partage et opportunités se rencontrent.</p>
-      <button class="btn btn-lg" type="button" onclick="openAuth('login')">Connexion</button>
+      <a class="btn btn-lg" href="/app">Connexion</a>
       <div class="hero-wave"></div>
     </section>
 
@@ -453,7 +330,7 @@
           <h2>Notre mission</h2>
           <p>Créer un espace où chacun peut s’entraider, partager et avancer ensemble. Un monde plus simple, plus juste, tous ensemble.</p>
           <div style="margin-top:26px">
-            <button class="btn btn-lg" type="button" onclick="openAuth('register')">Créer mon compte</button>
+            <a class="btn btn-lg" href="/app">Créer mon compte</a>
           </div>
         </div>
       </div>
@@ -466,53 +343,10 @@
     </div>
   </footer>
 
-  <div class="modal" id="authModal" onclick="if(event.target===this)closeAuth()">
-    <div class="modal-card">
-      <button class="close-x" type="button" onclick="closeAuth()">×</button>
-      <h2 id="authTitle">Connexion</h2>
-      <p class="sub" style="margin-bottom:0">Un monde tous ensemble.</p>
-      <div class="tabs">
-        <button type="button" id="tabLogin" class="on" onclick="openAuth('login')">Connexion</button>
-        <button type="button" id="tabRegister" onclick="openAuth('register')">Inscription</button>
-      </div>
-
-      <form id="formLogin" method="post" action="/login">
-        <label for="login_id">Email ou nom d’utilisateur</label>
-        <input id="login_id" name="username" type="text" required autocomplete="username" />
-        <label for="login_pw">Mot de passe</label>
-        <input id="login_pw" name="password" type="password" required autocomplete="current-password" />
-        <button class="btn" type="submit">Entrer</button>
-      </form>
-
-      <form id="formRegister" method="post" action="/register" style="display:none">
-        <label for="reg_user">Nom d’utilisateur</label>
-        <input id="reg_user" name="username" type="text" required autocomplete="username" />
-        <label for="reg_email">Email</label>
-        <input id="reg_email" name="email" type="email" required autocomplete="email" />
-        <label for="reg_pw">Mot de passe</label>
-        <input id="reg_pw" name="password" type="password" required autocomplete="new-password" />
-        <button class="btn" type="submit">Créer mon compte</button>
-      </form>
-    </div>
-  </div>
-
   <script>
-    function openAuth(mode) {
-      document.getElementById("authModal").classList.add("open");
-      const login = mode !== "register";
-      document.getElementById("formLogin").style.display = login ? "block" : "none";
-      document.getElementById("formRegister").style.display = login ? "none" : "block";
-      document.getElementById("tabLogin").classList.toggle("on", login);
-      document.getElementById("tabRegister").classList.toggle("on", !login);
-      document.getElementById("authTitle").textContent = login ? "Connexion" : "Inscription";
-      document.getElementById("menu").classList.remove("open");
-    }
-    function closeAuth() {
-      document.getElementById("authModal").classList.remove("open");
-    }
-    document.querySelectorAll('nav.links a').forEach(a => {
-      a.addEventListener("click", () => {
-        document.querySelectorAll('nav.links a').forEach(x => x.classList.remove("active"));
+    document.querySelectorAll("nav.links a").forEach(function(a) {
+      a.addEventListener("click", function() {
+        document.querySelectorAll("nav.links a").forEach(function(x) { x.classList.remove("active"); });
         a.classList.add("active");
         document.getElementById("menu").classList.remove("open");
       });
