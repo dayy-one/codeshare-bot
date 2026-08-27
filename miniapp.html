@@ -2,254 +2,852 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>COD.IA</title>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Great+Vibes&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>COD.IA — Promos & Parrainages</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://js.stripe.com/v3/"></script>
+
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:Manrope,Arial,sans-serif;background:#f6f3ec;color:#171817}
-a{color:inherit;text-decoration:none}
+:root{
+ --bg:#f6f3ec;--card:#fff;--text:#171817;--muted:#77776f;
+ --green:#6b7a3d;--green2:#879b4d;--line:#e5e7df;
+ --gold:#c49b32;--silver:#8c9299;--bronze:#a96e42;
+}
+body{font-family:Manrope,Arial,sans-serif;background:var(--bg);color:var(--text)}
+button,input,textarea,select{font:inherit}
+button{cursor:pointer}
+a{text-decoration:none;color:inherit}
 .hidden{display:none!important}
-.navbar{height:75px;background:#fff;border-bottom:1px solid #e5e7df;display:flex;align-items:center;justify-content:space-between;padding:0 28px;position:sticky;top:0;z-index:20;gap:12px}
-.logo{display:flex;align-items:center;gap:8px;font-family:"Cormorant Garamond",serif;font-size:22px;color:#6b7a3d}
-.logo svg{width:28px;height:28px}
-.navbar nav{display:flex;gap:20px;flex-wrap:wrap}
-.navbar nav a{font-size:13px;font-weight:600}
-.navbar nav a.on{color:#6b7a3d}
-.user-menu{display:flex;align-items:center;gap:8px;font-size:13px}
-.btn{border:0;background:#6b7a3d;color:#fff;padding:10px 14px;border-radius:8px;cursor:pointer;font-weight:700;font-family:inherit}
-.btn.ghost{background:#fff;color:#171817;border:1px solid #e5e7df}
+.navbar{
+ position:sticky;top:0;z-index:30;height:74px;background:#fff;
+ border-bottom:1px solid var(--line);display:flex;align-items:center;
+ justify-content:space-between;padding:0 28px;gap:20px
+}
+.logo{display:flex;align-items:center;gap:9px;color:var(--green);
+ font-family:"Cormorant Garamond",serif;font-size:25px;font-weight:700}
+.logo-mark{width:32px;height:32px;border:1.5px solid var(--green);
+ border-radius:50%;display:grid;place-items:center;font-size:17px}
+.navbar nav{display:flex;gap:20px;align-items:center}
+.navbar nav a{font-size:12px;font-weight:700;color:#555}
+.navbar nav a.on{color:var(--green)}
+.user-menu{display:flex;align-items:center;gap:8px;font-size:12px}
+.btn{
+ border:0;background:var(--green);color:#fff;padding:10px 15px;
+ border-radius:9px;font-weight:800
+}
+.btn:hover{filter:brightness(.96)}
+.btn.ghost{background:#fff;color:var(--text);border:1px solid var(--line)}
+.btn.gold{background:#b58a29}
 .btn.bad{background:#f1eeee;color:#8a4444}
-.page{display:none;min-height:calc(100vh - 75px)}
+.page{display:none;min-height:calc(100vh - 74px)}
 .page.on{display:block}
-.dashboard{max-width:1250px;margin:auto;padding:40px 22px 80px}
-.welcome span{color:#6b7a3d;font-size:11px;font-weight:800;letter-spacing:2px}
-.welcome h1{font-size:40px;line-height:1.15;margin:12px 0;font-weight:800}
-.welcome h1 em{font-family:"Cormorant Garamond",serif;font-style:italic;color:#6b7a3d}
-.welcome p{color:#6b6b66;max-width:620px;line-height:1.6}
-.stats,.admin-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:24px 0}
-.stats div,.admin-stat{background:#fff;border:1px solid #e7e9e1;border-radius:14px;padding:18px}
-.stats strong,.admin-stat strong{display:block;font-size:26px;color:#6b7a3d}
-.stats span,.admin-stat span{color:#777;font-size:11px}
-.section-title{display:flex;justify-content:space-between;align-items:center;margin:24px 0 16px;gap:10px;flex-wrap:wrap}
+.dashboard{max-width:1250px;margin:auto;padding:38px 22px 90px}
+.welcome span,.eyebrow{color:var(--green);font-size:10px;font-weight:800;letter-spacing:2px}
+.welcome h1{font-size:40px;line-height:1.12;margin:10px 0;font-weight:800}
+.welcome h1 em{font-family:"Cormorant Garamond",serif;font-weight:600;color:var(--green)}
+.welcome p{max-width:680px;color:var(--muted);font-size:13px;line-height:1.7}
+.section-title{display:flex;justify-content:space-between;align-items:center;
+ gap:12px;margin:28px 0 15px;flex-wrap:wrap}
+.section-title h2{font-size:21px}
+.section-title small{color:var(--muted)}
 .filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
-.chip{border:1px solid #e7e9e1;background:#fff;border-radius:999px;padding:8px 14px;font-size:13px;cursor:pointer}
-.chip.on{background:#6b7a3d;color:#fff;border-color:#6b7a3d}
+.chip{border:1px solid var(--line);background:#fff;border-radius:999px;
+ padding:8px 14px;font-size:12px;font-weight:700}
+.chip.on{background:var(--green);border-color:var(--green);color:#fff}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:25px 0}
+.stat{background:#fff;border:1px solid var(--line);border-radius:15px;padding:18px}
+.stat strong{display:block;font-size:27px;color:var(--green)}
+.stat span{font-size:10px;color:#777}
 .offers-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
-.offer-card,.admin-offer,.profile-box,.launch-card{background:#fff;border:1px solid #e7e9e1;border-radius:15px;padding:20px}
-.offer-card{min-height:220px;display:flex;flex-direction:column}
-.store{font-weight:800;font-size:17px;margin-bottom:10px}
-.offer-card h3,.admin-offer h3{font-size:16px;margin:6px 0}
-.offer-card p,.admin-offer p{color:#777;font-size:12px;line-height:1.45}
-.promo-code{align-self:center;background:#edf2dd;color:#556230;border-radius:8px;padding:8px 16px;font-size:12px;font-weight:800;margin:10px 0;cursor:pointer}
-.offer-footer{border-top:1px solid #eee;margin-top:auto;padding-top:12px;display:flex;justify-content:space-between;align-items:center;font-size:11px;color:#888}
-.offer-footer button,.admin-buttons button{border:0;border-radius:8px;padding:8px 12px;cursor:pointer;font-weight:700}
-.badge{display:inline-block;font-size:11px;font-weight:800;border-radius:999px;padding:3px 8px}
-.ok{background:#edf2dd;color:#556230}
-.wait{background:#f7efd6;color:#8a6a22}
-.no{background:#f1eeee;color:#8a4444}
+.offer-card,.profile-box,.launch-card,.admin-offer,.ref-card{
+ background:#fff;border:1px solid var(--line);border-radius:16px;padding:19px
+}
+.offer-card{min-height:235px;display:flex;flex-direction:column}
+.store{font-size:16px;font-weight:800}
+.offer-card h3{font-size:15px;margin:7px 0}
+.offer-card p{font-size:11px;color:var(--muted);line-height:1.5}
+.type-pill,.status-pill{display:inline-block;width:max-content;border-radius:999px;
+ padding:5px 8px;font-size:9px;font-weight:800;margin-bottom:9px}
+.type-pill{background:#edf2dd;color:#556230}
+.status-approved{background:#edf2dd;color:#556230}
+.status-pending{background:#f7efd6;color:#8a6a22}
+.status-rejected{background:#f1eeee;color:#8a4444}
+.promo-code{
+ align-self:center;background:#edf2dd;color:#556230;border:1px dashed #a5b47b;
+ border-radius:9px;padding:10px 18px;font-size:13px;font-weight:800;
+ margin:13px 0;cursor:pointer
+}
+.offer-footer{margin-top:auto;border-top:1px solid #eee;padding-top:11px;
+ display:flex;justify-content:space-between;align-items:center;gap:7px}
+.offer-meta{font-size:9px;color:#999}
+.offer-actions{display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end}
+.offer-actions button{padding:7px 9px;font-size:10px}
 .launch-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-.tag{display:inline-block;background:#e7edd6;color:#556230;font-size:11px;font-weight:800;text-transform:uppercase;padding:5px 9px;border-radius:999px;margin-bottom:10px}
-.auth-page{min-height:100vh;display:flex;justify-content:center;align-items:center;padding:24px}
-.auth-container{width:420px;max-width:100%;background:#fff;border-radius:20px;padding:36px;box-shadow:0 15px 50px rgba(0,0,0,.08)}
-.auth-container h1{text-align:center;margin:8px 0}
-.auth-container p{color:#777;text-align:center;font-size:13px}
-.auth-container label{display:block;margin-top:14px;font-size:12px;font-weight:700}
-.auth-container input,.modal-content input,.modal-content textarea,.modal-content select{width:100%;margin-top:6px;padding:12px;border:1px solid #ddd;border-radius:9px}
-.auth-link{text-align:center;margin-top:14px;font-size:13px}
-.auth-link a{color:#6b7a3d;font-weight:700}
-.err{color:#b4534a;text-align:center;margin-top:10px;font-size:13px}
-.modal{position:fixed;inset:0;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;z-index:50;padding:16px}
-.modal-content{width:500px;max-width:100%;max-height:90vh;overflow:auto;background:#fff;border-radius:18px;padding:28px;position:relative}
-.close{position:absolute;right:16px;top:10px;border:0;background:none;font-size:24px;cursor:pointer}
-.admin-offers{display:flex;flex-direction:column;gap:12px}
-.admin-offer{display:flex;justify-content:space-between;gap:16px;align-items:center}
-.admin-buttons{display:flex;gap:8px}
-.admin-buttons button:first-child{background:#6b7a3d;color:#fff}
-.mine-item{display:flex;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid #eee;font-size:14px}
-@media(max-width:1100px){.offers-grid,.admin-stats,.stats{grid-template-columns:repeat(2,1fr)}}
-@media(max-width:700px){.navbar nav{display:none}.offers-grid,.launch-grid,.stats,.admin-stats{grid-template-columns:1fr}.admin-offer{flex-direction:column;align-items:flex-start}.welcome h1{font-size:30px}}
+.launch-card h3{font-size:22px;margin:7px 0}
+.launch-card p{font-size:12px;color:var(--muted);line-height:1.65}
+.tag{display:inline-block;background:#e7edd6;color:#556230;padding:5px 9px;
+ border-radius:999px;font-size:9px;font-weight:800;text-transform:uppercase}
+.referral-box{margin-top:16px;background:#f7f8f2;border:1px solid var(--line);
+ border-radius:13px;padding:14px}
+.referral-code{font-size:19px;font-weight:800;letter-spacing:1px;color:var(--green)}
+.ref-link{font-size:10px;color:#777;word-break:break-all;margin:6px 0 10px}
+.challenge{
+ margin:28px 0;padding:29px;border-radius:22px;background:#fff;
+ border:1px solid var(--line);box-shadow:0 12px 35px rgba(60,70,30,.06)
+}
+.challenge-top{display:flex;justify-content:space-between;gap:20px;align-items:flex-start}
+.challenge h2{font-size:29px;margin:7px 0}
+.challenge h2 em{font-family:"Cormorant Garamond",serif;color:var(--green)}
+.challenge-description{color:var(--muted);font-size:12px;line-height:1.6}
+.countdown{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:24px 0}
+.time-box{background:#f5f7ef;border-radius:13px;text-align:center;padding:15px}
+.time-box strong{display:block;color:var(--green);font-size:29px}
+.time-box span{font-size:8px;color:#777;letter-spacing:1px;text-transform:uppercase}
+.rewards{display:grid;grid-template-columns:repeat(3,1fr);gap:13px}
+.reward{border:1px solid var(--line);border-radius:15px;text-align:center;padding:17px}
+.reward .medal{font-size:28px}
+.reward strong{display:block;font-size:12px;margin-top:4px}
+.reward .target{display:block;font-size:24px;margin:7px 0 1px}
+.reward small{font-size:9px;color:#888}
+.reward .money{display:block;font-size:17px;font-weight:800;color:var(--green);margin-top:8px}
+.reward.gold{border-color:#d7bf7c;background:#fcf8eb}
+.reward.silver{border-color:#c9cdd1}
+.reward.bronze{border-color:#d6b49b}
+.my-challenge{
+ display:grid;grid-template-columns:1.4fr .6fr .6fr .7fr;gap:10px;
+ background:#f7f8f2;border-radius:14px;padding:15px;margin-top:15px
+}
+.my-challenge strong{display:block;font-size:20px;color:var(--green)}
+.my-challenge span{font-size:9px;color:#888}
+.progress{height:7px;background:#e8eadf;border-radius:99px;margin-top:8px;overflow:hidden}
+.progress i{display:block;height:100%;background:var(--green);width:0}
+.leaderboard{background:#fff;border:1px solid var(--line);border-radius:18px;padding:22px;margin-bottom:30px}
+.ranking-row{display:grid;grid-template-columns:55px 1fr 130px 120px 90px;
+ align-items:center;gap:10px;padding:13px 5px;border-bottom:1px solid #eee}
+.ranking-row:last-child{border-bottom:0}
+.rank{font-size:14px;font-weight:800}
+.ranking-user{display:flex;align-items:center;gap:9px;font-size:12px}
+.avatar{width:35px;height:35px;border-radius:50%;background:#e4ebd4;
+ color:#687d32;display:grid;place-items:center;font-size:10px;font-weight:800}
+.refcount{font-weight:800;color:var(--green);font-size:12px}
+.refcount small{display:block;font-size:8px;color:#999;font-weight:400}
+.tier{font-size:10px;font-weight:800}
+.reward-value{font-size:11px;font-weight:800}
+.profile-box{padding:25px}
+.profile-box h1{margin-top:6px}
+.mine-item{display:flex;justify-content:space-between;align-items:center;
+ padding:13px 0;border-bottom:1px solid #eee;font-size:12px;gap:10px}
+.admin-stats{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin:22px 0}
+.admin-stat{background:#fff;border:1px solid var(--line);border-radius:14px;padding:17px}
+.admin-stat strong{display:block;font-size:25px;color:var(--green)}
+.admin-stat span{font-size:9px;color:#777}
+.admin-offers{display:flex;flex-direction:column;gap:11px}
+.admin-offer{display:flex;justify-content:space-between;align-items:center;gap:15px}
+.admin-offer h3{font-size:14px;margin:5px 0}
+.admin-offer p,.admin-offer small{font-size:10px;color:#777}
+.admin-buttons{display:flex;gap:7px;flex-wrap:wrap}
+.admin-buttons button{border:0;border-radius:8px;padding:8px 11px;font-weight:800;font-size:10px}
+.admin-buttons button:first-child{background:var(--green);color:#fff}
+.admin-buttons button:nth-child(2){background:#f1eeee;color:#8a4444}
+.auth-page{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
+.auth-container{width:430px;max-width:100%;background:#fff;border-radius:21px;
+ padding:35px;box-shadow:0 15px 50px rgba(0,0,0,.08)}
+.auth-container h1{text-align:center;margin:9px 0}
+.auth-container>p{text-align:center;color:#777;font-size:12px}
+.auth-container label{display:block;margin-top:14px;font-size:11px;font-weight:800}
+.auth-container input,.modal-content input,.modal-content textarea,.modal-content select{
+ width:100%;margin-top:6px;padding:12px;border:1px solid #ddd;border-radius:9px;
+ outline:0;background:#fff
+}
+.auth-container input:focus,.modal-content input:focus,.modal-content textarea:focus{
+ border-color:var(--green)
+}
+.auth-link{text-align:center;margin-top:13px;font-size:12px}
+.auth-link a{color:var(--green);font-weight:800}
+.err{color:#b4534a;text-align:center;font-size:12px;margin-top:10px}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:60;
+ display:flex;align-items:center;justify-content:center;padding:16px}
+.modal-content{width:520px;max-width:100%;max-height:92vh;overflow:auto;
+ background:#fff;border-radius:18px;padding:27px;position:relative}
+.close{position:absolute;right:15px;top:10px;border:0;background:none;font-size:25px}
+.modal-content label{display:block;margin-top:12px;font-size:11px;font-weight:800}
+.admin-referrals{display:flex;flex-direction:column;gap:10px;margin-top:12px}
+.ref-row{background:#fff;border:1px solid var(--line);border-radius:13px;padding:14px;
+ display:flex;justify-content:space-between;gap:15px;align-items:center}
+.ref-row small{display:block;color:#888;font-size:9px;margin-top:4px}
+.empty{color:#888;font-size:12px;padding:18px 0}
+@media(max-width:1100px){.offers-grid{grid-template-columns:repeat(2,1fr)}.stats{grid-template-columns:repeat(2,1fr)}.admin-stats{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:800px){.navbar{padding:0 15px}.navbar nav{display:none}.user-menu span{display:none}
+.dashboard{padding:25px 15px 60px}.welcome h1{font-size:30px}.launch-grid,.rewards{grid-template-columns:1fr}
+.countdown{gap:6px}.time-box{padding:11px 5px}.time-box strong{font-size:22px}
+.my-challenge{grid-template-columns:1fr 1fr}.ranking-row{grid-template-columns:35px 1fr 75px}
+.ranking-row .tier,.ranking-row .reward-value{display:none}.admin-stats{grid-template-columns:repeat(2,1fr)}
+.admin-offer{flex-direction:column;align-items:flex-start}.offers-grid{grid-template-columns:1fr}}
 </style>
 </head>
+
 <body>
-<svg xmlns="http://www.w3.org/2000/svg" style="display:none"><symbol id="globe" viewBox="0 0 64 64"><circle cx="32" cy="34" r="20" fill="none" stroke="#8a8a7a" stroke-width="1.3"/><ellipse cx="32" cy="34" rx="8" ry="20" fill="none" stroke="#8a8a7a" stroke-width="1"/><ellipse cx="32" cy="34" rx="15" ry="20" fill="none" stroke="#8a8a7a" stroke-width="1"/><path d="M12 34h40M18 22h28M18 46h28" fill="none" stroke="#8a8a7a" stroke-width="1"/><path d="M46 12l4-6M50 14l6-3M52 18l7 1" stroke="#c4b07a" stroke-width="1.5" fill="none" stroke-linecap="round"/></symbol></svg>
 
 <div id="page-auth" class="page on">
-  <div class="auth-page"><div class="auth-container">
-    <div class="logo" style="justify-content:center"><svg viewBox="0 0 64 64"><use href="#globe"></use></svg>COD.IA</div>
-    <h1 id="authTitle">Connexion</h1>
-    <p id="authLead">Entre dans ton espace.</p>
-    <form id="loginForm"><label>Email ou username<input id="loginIdent" required></label><label>Mot de passe<input id="loginPassword" type="password" required></label><button class="btn" style="width:100%;margin-top:18px" type="submit">Se connecter</button></form>
-    <form id="registerForm" class="hidden"><label>Username<input id="regUsername" required></label><label>Email<input id="regEmail" type="email" required></label><label>Mot de passe<input id="regPassword" type="password" required></label><button class="btn" style="width:100%;margin-top:18px" type="submit">Créer mon compte</button></form>
-    <p class="err" id="authError"></p>
-    <div class="auth-link" id="authSwitch">Pas encore de compte ? <a href="#" onclick="showRegister();return false">Créer un compte</a></div>
-  </div></div>
+<div class="auth-page">
+<div class="auth-container">
+<div class="logo" style="justify-content:center"><span class="logo-mark">◎</span>COD.IA</div>
+<h1 id="authTitle">Connexion</h1>
+<p id="authLead">Entre dans ton espace COD.IA.</p>
+
+<form id="loginForm">
+<label>Email ou username<input id="loginIdent" required></label>
+<label>Mot de passe<input id="loginPassword" type="password" required></label>
+<button class="btn" style="width:100%;margin-top:18px" type="submit">Se connecter</button>
+</form>
+
+<form id="registerForm" class="hidden">
+<label>Username<input id="regUsername" required maxlength="30"></label>
+<label>Email<input id="regEmail" type="email" required></label>
+<label>Mot de passe<input id="regPassword" type="password" required minlength="8"></label>
+<label id="refRegisterLabel" class="hidden">Code parrainage
+<input id="regReferral" placeholder="CODIAXXXX"></label>
+<button class="btn" style="width:100%;margin-top:18px" type="submit">Créer mon compte</button>
+</form>
+
+<p class="err" id="authError"></p>
+<div class="auth-link" id="authSwitch">
+Pas encore de compte ?
+<a href="#" onclick="showRegister();return false">Créer un compte</a>
+</div>
+</div>
+</div>
 </div>
 
 <div id="page-pay" class="page">
-  <div class="auth-page"><div class="auth-container">
-    <div class="logo" style="justify-content:center"><svg viewBox="0 0 64 64"><use href="#globe"></use></svg>COD.IA</div>
-    <h1>Accès membres</h1>
-    <p>9,99 € une fois. Accès immédiat.</p>
-    <div id="checkout"></div>
-    <p class="err" id="payError"></p>
-    <button class="btn ghost" style="width:100%;margin-top:12px" onclick="doLogout()">Changer de compte</button>
-  </div></div>
+<div class="auth-page">
+<div class="auth-container">
+<div class="logo" style="justify-content:center"><span class="logo-mark">◎</span>COD.IA</div>
+<h1>Accès membres</h1>
+<p>9,99 € une fois. Accès immédiat.</p>
+<div id="checkout" style="margin-top:15px"></div>
+<p class="err" id="payError"></p>
+<button class="btn ghost" style="width:100%;margin-top:12px" onclick="doLogout()">Changer de compte</button>
+</div>
+</div>
 </div>
 
 <div id="page-app" class="page">
-  <header class="navbar">
-    <a class="logo" href="#" onclick="showTab('home');return false"><svg viewBox="0 0 64 64"><use href="#globe"></use></svg>COD.IA</a>
-    <nav>
-      <a href="#" class="on" id="nav-home" onclick="showTab('home');return false">Accueil</a>
-      <a href="#" id="nav-promo" onclick="setFilter('promo');return false">Promos</a>
-      <a href="#" id="nav-parrainage" onclick="setFilter('parrainage');return false">Parrainages</a>
-      <a href="#" id="nav-offres" onclick="showTab('offres');return false">Nos offres</a>
-      <a href="#" id="nav-mine" onclick="showTab('mine');return false">Mon espace</a>
-      <a href="#" id="nav-admin" class="hidden" onclick="showTab('admin');return false">Admin</a>
-    </nav>
-    <div class="user-menu">
-      <span id="username">Membre</span>
-      <button class="btn" onclick="openPublish()">＋ Publier</button>
-      <button class="btn ghost" onclick="doLogout()">Déconnexion</button>
-    </div>
-  </header>
-  <main class="dashboard">
-    <section class="welcome" id="block-home">
-      <span>COMMUNAUTÉ COD.IA</span>
-      <h1>Découvrez, partagez,<br><em>avancez ensemble.</em></h1>
-      <p>Les codes visibles ici ont été validés. Les nouveaux passent d’abord par la modération.</p>
-    </section>
 
-    <section id="block-codes">
-      <div class="section-title"><h2 id="listTitle">Codes validés</h2><button class="btn" onclick="openPublish()">＋ Publier</button></div>
-      <div class="filters">
-        <button class="chip on" id="filter-all" onclick="setFilter('all')">Tous</button>
-        <button class="chip" id="filter-promo" onclick="setFilter('promo')">Promos</button>
-        <button class="chip" id="filter-parrainage" onclick="setFilter('parrainage')">Parrainages</button>
-      </div>
-      <div id="offers" class="offers-grid"></div>
-    </section>
+<header class="navbar">
+<a class="logo" href="#" onclick="showTab('home');return false">
+<span class="logo-mark">◎</span>COD.IA
+</a>
 
-    <section id="block-offres" class="hidden">
-      <div class="section-title"><h2>Les offres COD.IA</h2></div>
-      <div class="launch-grid">
-        <article class="launch-card">
-          <span class="tag">Offre de lancement · 3 semaines</span>
-          <h3>Parrainage</h3>
-          <p>Lorsqu’un utilisateur rejoint COD.IA et utilise ton code, <b>1 point</b> t’est attribué.</p>
-          <p style="margin-top:8px"><b>500 / 1 000 / 1 500 points = 500 / 1 000 / 1 500 €</b>.</p>
-          <div id="referralBox" style="margin-top:14px"></div>
-        </article>
-        <article class="launch-card">
-          <span class="tag">Offre Copies</span>
-          <h3>Un même code</h3>
-          <p>Si un même code est copié <b>250 fois</b> → <b>100 €</b>.</p>
-        </article>
-      </div>
-    </section>
+<nav>
+<a href="#" id="nav-home" class="on" onclick="showTab('home');return false">Accueil</a>
+<a href="#" id="nav-promo" onclick="setFilter('promo');return false">Promos</a>
+<a href="#" id="nav-parrainage" onclick="setFilter('parrainage');return false">Parrainages</a>
+<a href="#" id="nav-offres" onclick="showTab('offres');return false">Challenge</a>
+<a href="#" id="nav-mine" onclick="showTab('mine');return false">Mon espace</a>
+<a href="#" id="nav-admin" class="hidden" onclick="showTab('admin');return false">Admin</a>
+</nav>
 
-    <section id="block-mine" class="hidden">
-      <div class="profile-box">
-        <span>MON ESPACE</span>
-        <h1 id="profileName">Membre</h1>
-        <p>Membre COD.IA</p>
-        <div class="stats">
-          <div><strong id="points">0</strong><span>Points</span></div>
-          <div><strong id="publications">0</strong><span>Publications</span></div>
-          <div><strong id="likesStat">0</strong><span>Likes reçus</span></div>
-          <div><strong id="clicksStat">0</strong><span>Clics</span></div>
-        </div>
-      </div>
-      <div class="section-title"><h2>Mes publications</h2></div>
-      <div id="mineList"></div>
-    </section>
+<div class="user-menu">
+<span id="username">Membre</span>
+<button class="btn" onclick="openPublish()">＋ Publier</button>
+<button class="btn ghost" onclick="doLogout()">Déconnexion</button>
+</div>
+</header>
 
-    <section id="block-admin" class="hidden">
-      <section class="welcome"><span>ADMINISTRATION</span><h1>Centre de contrôle</h1><p>Valide ou refuse les publications.</p></section>
-      <div class="admin-stats">
-        <div class="admin-stat"><span>Utilisateurs</span><strong id="adUsers">0</strong></div>
-        <div class="admin-stat"><span>Publications</span><strong id="adOffers">0</strong></div>
-        <div class="admin-stat"><span>En attente</span><strong id="adPending">0</strong></div>
-        <div class="admin-stat"><span>Clics</span><strong id="adClicks">0</strong></div>
-      </div>
-      <div class="section-title"><h2>Modération</h2></div>
-      <div id="adminOffers" class="admin-offers"></div>
-    </section>
-  </main>
+<main class="dashboard">
+
+<section id="block-home">
+<div class="welcome">
+<span>COMMUNAUTÉ COD.IA</span>
+<h1>Découvrez, partagez,<br><em>gagnez ensemble.</em></h1>
+<p>Codes promos, parrainages et challenge communautaire. Les publications sont contrôlées avant leur mise en ligne.</p>
+</div>
+
+<div class="challenge" id="homeChallenge"></div>
+
+<div class="section-title">
+<h2>Dernières offres</h2>
+<button class="btn ghost" onclick="setFilter('all')">Voir toutes</button>
+</div>
+<div id="offers" class="offers-grid"></div>
+</section>
+
+<section id="block-codes" class="hidden">
+<div class="section-title">
+<h2 id="listTitle">Codes validés</h2>
+<button class="btn" onclick="openPublish()">＋ Publier</button>
+</div>
+<div class="filters">
+<button class="chip on" id="filter-all" onclick="setFilter('all')">Tous</button>
+<button class="chip" id="filter-promo" onclick="setFilter('promo')">Promos</button>
+<button class="chip" id="filter-parrainage" onclick="setFilter('parrainage')">Parrainages</button>
+</div>
+<div id="offersCodes" class="offers-grid"></div>
+</section>
+
+<section id="block-offres" class="hidden">
+<div class="welcome">
+<span>CHALLENGE COD.IA</span>
+<h1>21 jours pour atteindre<br><em>le sommet.</em></h1>
+<p>Le classement est calculé à partir des parrainages validés pendant le challenge.</p>
+</div>
+
+<div class="challenge" id="challengeFull"></div>
+
+<div class="leaderboard">
+<div class="section-title" style="margin-top:0">
+<h2>🏆 Classement final</h2>
+<small id="rankingStatus">Actualisé</small>
+</div>
+<div id="leaderboardList"></div>
+</div>
+
+<div class="launch-grid">
+<div class="launch-card">
+<span class="tag">Mon parrainage</span>
+<h3>Invite ta communauté</h3>
+<p>Ton lien personnel permet de rattacher les nouveaux membres à ton compte. Les validations frauduleuses ou les doublons ne doivent pas être comptabilisés.</p>
+<div id="referralBox" class="referral-box">Chargement…</div>
+</div>
+
+<div class="launch-card">
+<span class="tag">Récompenses</span>
+<h3>3 niveaux</h3>
+<p><b>BRONZE</b> dès 500 parrainages validés : <b>500 €</b>.</p>
+<p><b>ARGENT</b> dès 1 000 : <b>1 000 €</b>.</p>
+<p><b>OR</b> dès 1 500 : <b>1 500 €</b>.</p>
+</div>
+</div>
+</section>
+
+<section id="block-mine" class="hidden">
+<div class="profile-box">
+<span class="eyebrow">MON ESPACE</span>
+<h1 id="profileName">Membre</h1>
+<p style="font-size:11px;color:#777;margin-top:3px">Membre COD.IA</p>
+
+<div class="stats">
+<div class="stat"><strong id="points">0</strong><span>Points</span></div>
+<div class="stat"><strong id="publications">0</strong><span>Publications</span></div>
+<div class="stat"><strong id="likesStat">0</strong><span>Likes reçus</span></div>
+<div class="stat"><strong id="clicksStat">0</strong><span>Clics</span></div>
+</div>
+
+<div id="myChallengeMini"></div>
+</div>
+
+<div class="section-title"><h2>Mes publications</h2></div>
+<div id="mineList"></div>
+</section>
+
+<section id="block-admin" class="hidden">
+<div class="welcome">
+<span>ADMINISTRATION</span>
+<h1>Centre de contrôle</h1>
+<p>Modération, parrainages, challenge et suivi des membres.</p>
+</div>
+
+<div class="admin-stats">
+<div class="admin-stat"><span>Utilisateurs</span><strong id="adUsers">0</strong></div>
+<div class="admin-stat"><span>Publications</span><strong id="adOffers">0</strong></div>
+<div class="admin-stat"><span>En attente</span><strong id="adPending">0</strong></div>
+<div class="admin-stat"><span>Parrainages</span><strong id="adRefs">0</strong></div>
+<div class="admin-stat"><span>Clics</span><strong id="adClicks">0</strong></div>
+</div>
+
+<div class="section-title"><h2>Publications</h2></div>
+<div id="adminOffers" class="admin-offers"></div>
+
+<div class="section-title"><h2>Parrainages à vérifier</h2></div>
+<div id="adminReferrals" class="admin-referrals"></div>
+</section>
+
+</main>
 </div>
 
 <div id="publishModal" class="modal hidden">
-  <div class="modal-content">
-    <button class="close" onclick="closePublish()">×</button>
-    <h2>Publier</h2>
-    <form id="offerForm">
-      <label>Type<select id="type"><option value="promo">Code promo</option><option value="parrainage">Parrainage</option></select></label>
-      <label>Boutique / site<input id="store" required></label>
-      <label>Titre<input id="title" required placeholder="-15% ..."></label>
-      <label>Code<input id="code" required></label>
-      <label>Lien<input id="link" placeholder="https://"></label>
-      <label>Description<textarea id="description"></textarea></label>
-      <button class="btn" style="width:100%;margin-top:10px" type="submit">Envoyer pour validation</button>
-    </form>
-  </div>
+<div class="modal-content">
+<button class="close" onclick="closePublish()">×</button>
+<h2>Publier sur COD.IA</h2>
+<p style="font-size:11px;color:#777;margin-top:5px">La publication sera visible après validation.</p>
+
+<form id="offerForm">
+<label>Type
+<select id="type">
+<option value="promo">Code promo</option>
+<option value="parrainage">Parrainage</option>
+</select>
+</label>
+
+<label>Boutique / site<input id="store" required></label>
+<label>Titre<input id="title" required placeholder="-15% sur votre commande"></label>
+<label>Code<input id="code" required placeholder="MONCODE15"></label>
+<label>Lien<input id="link" placeholder="https://"></label>
+<label>Date d'expiration<input id="expiresAt" type="date"></label>
+<label>Description<textarea id="description" rows="4"></textarea></label>
+<button class="btn" style="width:100%;margin-top:13px" type="submit">Envoyer pour validation</button>
+</form>
+</div>
 </div>
 
 <script>
-let currentUser=null,currentFilter="all";
-function $(id){return document.getElementById(id)}
-function showPage(id){document.querySelectorAll(".page").forEach(p=>p.classList.remove("on"));$(id).classList.add("on")}
-function showRegister(){$("loginForm").classList.add("hidden");$("registerForm").classList.remove("hidden");$("authTitle").textContent="Créer ton compte";$("authSwitch").innerHTML='Déjà membre ? <a href="#" onclick="showLogin();return false">Se connecter</a>'}
-function showLogin(){$("registerForm").classList.add("hidden");$("loginForm").classList.remove("hidden");$("authTitle").textContent="Connexion";$("authSwitch").innerHTML='Pas encore de compte ? <a href="#" onclick="showRegister();return false">Créer un compte</a>'}
-function esc(v){return String(v||"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;")}
-function badge(st){if(st==="pending")return '<span class="badge wait">En attente</span>';if(st==="rejected")return '<span class="badge no">Refusée</span>';return '<span class="badge ok">Validée</span>'}
+let currentUser=null,currentFilter="all",challengeData=null,challengeTimer=null;
+
+const $=id=>document.getElementById(id);
+
+function esc(v){
+ return String(v??"").replaceAll("&","&amp;").replaceAll("<","&lt;")
+ .replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;");
+}
+
+function showPage(id){
+ document.querySelectorAll(".page").forEach(p=>p.classList.remove("on"));
+ $(id).classList.add("on");
+}
+
+function showRegister(){
+ $("loginForm").classList.add("hidden");
+ $("registerForm").classList.remove("hidden");
+ $("authTitle").textContent="Créer ton compte";
+ $("authLead").textContent="Rejoins la communauté COD.IA.";
+ $("authSwitch").innerHTML='Déjà membre ? <a href="#" onclick="showLogin();return false">Se connecter</a>';
+ if(new URLSearchParams(location.search).get("ref")){
+  $("refRegisterLabel").classList.remove("hidden");
+  $("regReferral").value=new URLSearchParams(location.search).get("ref");
+ }
+}
+
+function showLogin(){
+ $("registerForm").classList.add("hidden");
+ $("loginForm").classList.remove("hidden");
+ $("authTitle").textContent="Connexion";
+ $("authLead").textContent="Entre dans ton espace COD.IA.";
+ $("authSwitch").innerHTML='Pas encore de compte ? <a href="#" onclick="showRegister();return false">Créer un compte</a>';
+}
+
+function badge(st){
+ if(st==="pending")return '<span class="status-pill status-pending">En attente</span>';
+ if(st==="rejected")return '<span class="status-pill status-rejected">Refusée</span>';
+ return '<span class="status-pill status-approved">Validée</span>';
+}
+
+function tier(refs){
+ if(Number(refs)>=1500)return {name:"OR",reward:1500,emoji:"🥇",cls:"gold"};
+ if(Number(refs)>=1000)return {name:"ARGENT",reward:1000,emoji:"🥈",cls:"silver"};
+ if(Number(refs)>=500)return {name:"BRONZE",reward:500,emoji:"🥉",cls:"bronze"};
+ return {name:"—",reward:0,emoji:"",cls:""};
+}
+
 function showTab(name){
-  ["home","codes","offres","mine","admin"].forEach(function(){});
-  $("block-home").classList.toggle("hidden", name!=="home");
-  $("block-codes").classList.toggle("hidden", name==="offres"||name==="mine"||name==="admin");
-  $("block-offres").classList.toggle("hidden", name!=="offres");
-  $("block-mine").classList.toggle("hidden", name!=="mine");
-  $("block-admin").classList.toggle("hidden", name!=="admin");
-  document.querySelectorAll(".navbar nav a").forEach(a=>a.classList.remove("on"));
-  if(name==="offres"){$("nav-offres").classList.add("on");loadReferral()}
-  else if(name==="mine"){$("nav-mine").classList.add("on");loadMine()}
-  else if(name==="admin"){$("nav-admin").classList.add("on");loadAdmin()}
-  else {$("nav-home").classList.add("on")}
+ $("block-home").classList.toggle("hidden",name!=="home");
+ $("block-codes").classList.toggle("hidden",name!=="codes");
+ $("block-offres").classList.toggle("hidden",name!=="offres");
+ $("block-mine").classList.toggle("hidden",name!=="mine");
+ $("block-admin").classList.toggle("hidden",name!=="admin");
+
+ document.querySelectorAll(".navbar nav a").forEach(a=>a.classList.remove("on"));
+
+ if(name==="offres"){
+  $("nav-offres").classList.add("on");
+  loadChallenge();
+  loadReferral();
+ }else if(name==="mine"){
+  $("nav-mine").classList.add("on");
+  loadMine();
+}else if(name==="admin"){
+  $("nav-admin").classList.add("on");
+  loadAdmin();
+}else if(name==="codes"){
+  $("nav-home").classList.remove("on");
+ }else $("nav-home").classList.add("on");
 }
-async function doLogout(){await fetch("/auth/logout",{method:"POST",credentials:"same-origin"});currentUser=null;showPage("page-auth")}
-$("loginForm").onsubmit=async e=>{e.preventDefault();$("authError").textContent="";const d=await(await fetch("/auth/login",{method:"POST",headers:{"Content-Type":"application/json"},credentials:"same-origin",body:JSON.stringify({login:$("loginIdent").value.trim(),password:$("loginPassword").value})})).json();if(!d.success){$("authError").textContent=d.error||"Erreur";return}afterAuth(d.user)};
-$("registerForm").onsubmit=async e=>{e.preventDefault();$("authError").textContent="";const d=await(await fetch("/auth/register",{method:"POST",headers:{"Content-Type":"application/json"},credentials:"same-origin",body:JSON.stringify({username:$("regUsername").value.trim(),email:$("regEmail").value.trim(),password:$("regPassword").value})})).json();if(!d.success){$("authError").textContent=d.error||"Erreur";return}afterAuth(d.user)};
-function afterAuth(user){currentUser=user;if(user.paid||user.is_admin)openApp();else openPay()}
-function openApp(){showPage("page-app");$("username").textContent=currentUser.username||"Membre";if(currentUser.is_admin)$("nav-admin").classList.remove("hidden");loadOffers();loadMineStats()}
-async function openPay(){showPage("page-pay");$("checkout").innerHTML="Chargement…";try{const cfg=await(await fetch("/config")).json();const stripe=Stripe(cfg.stripe_pk);const data=await(await fetch("/create-embedded-checkout",{method:"POST",headers:{"Content-Type":"application/json"},credentials:"same-origin",body:"{}"})).json();if(!data.clientSecret){$("payError").textContent=data.error||"Erreur";return}const c=await stripe.initEmbeddedCheckout({clientSecret:data.clientSecret});$("checkout").innerHTML="";c.mount("#checkout")}catch(e){$("payError").textContent="Paiement indisponible"}}
-function setFilter(type){currentFilter=type;["all","promo","parrainage"].forEach(t=>{const el=$("filter-"+t);if(el)el.classList.toggle("on",t===type)});showTab("home");$("nav-promo").classList.toggle("on",type==="promo");$("nav-parrainage").classList.toggle("on",type==="parrainage");if(type!=="all")$("nav-home").classList.remove("on");loadOffers()}
-async function loadOffers(){let url="/codes";if(currentFilter==="promo"||currentFilter==="parrainage")url+="?type="+currentFilter;if(currentUser)url+=(url.includes("?")?"&":"?")+"user_id="+currentUser.id;let list=[];try{list=(await(await fetch(url,{credentials:"same-origin"})).json()).codes||[]}catch(e){}
-  const box=$("offers");
-  box.innerHTML=list.length?list.map(o=>`<article class="offer-card"><div class="store">${esc(o.site)}</div><h3>${esc(o.title||o.description||"")}</h3><p>${o.type==="parrainage"?"Parrainage":"Promo"} · ${esc(o.added_by||o.username||"")}</p>${o.code?`<div class="promo-code" onclick="copyCode(${o.id},'${esc(o.code)}',this)">${esc(o.code)}</div>`:""}<div class="offer-footer"><span>${o.clicks||0} clics · ${o.copies||0} copies</span><div>${o.url?`<button class="btn" onclick="openOffer(${o.id},'${esc(o.url)}')">Ouvrir</button>`:""}<button class="btn ghost" onclick="likeOffer(${o.id},this)">♡ ${o.likes||0}</button><button class="btn ghost" onclick="saveCode(${o.id})">Garder</button></div></div></article>`).join(""):'<p style="grid-column:1/-1;color:#777">Aucun code validé pour le moment.</p>';
+
+function setFilter(type){
+ currentFilter=type;
+ ["all","promo","parrainage"].forEach(t=>{
+  if($("filter-"+t))$("filter-"+t).classList.toggle("on",t===type);
+ });
+ showTab("codes");
+ loadOffers();
 }
-async function copyCode(id,code,el){try{await navigator.clipboard.writeText(code)}catch(e){alert(code)}if(el)el.textContent="Copié";if(id&&currentUser)fetch("/code/copy",{method:"POST",headers:{"Content-Type":"application/json"},credentials:"same-origin",body:JSON.stringify({id,user_id:currentUser.id})})}
-async function openOffer(id,url){try{await fetch("/code/click",{method:"POST",headers:{"Content-Type":"application/json"},credentials:"same-origin",body:JSON.stringify({id})})}catch(e){}window.open(url,"_blank")}
-async function likeOffer(id,btn){const d=await(await fetch("/code/react",{method:"POST",headers:{"Content-Type":"application/json"},credentials:"same-origin",body:JSON.stringify({id,reaction:"like",action:"add",user_id:currentUser.id})})).json();btn.textContent="♡ "+(d.value||0)}
-async function saveCode(id){await fetch("/code/save",{method:"POST",headers:{"Content-Type":"application/json"},credentials:"same-origin",body:JSON.stringify({id,user_id:currentUser.id})});alert("Gardé dans ton espace")}
+
+async function api(url,options={}){
+ const r=await fetch(url,{credentials:"same-origin",...options});
+ let d={};
+ try{d=await r.json()}catch(e){}
+ if(!r.ok)throw new Error(d.error||"Erreur serveur");
+ return d;
+}
+
+async function doLogout(){
+ try{await api("/auth/logout",{method:"POST"})}catch(e){}
+ currentUser=null;
+ if(challengeTimer)clearInterval(challengeTimer);
+ showPage("page-auth");
+}
+
+$("loginForm").onsubmit=async e=>{
+ e.preventDefault();
+ $("authError").textContent="";
+ try{
+  const d=await api("/auth/login",{method:"POST",headers:{"Content-Type":"application/json"},
+   body:JSON.stringify({login:$("loginIdent").value.trim(),password:$("loginPassword").value})});
+  afterAuth(d.user);
+ }catch(err){$("authError").textContent=err.message}
+};
+
+$("registerForm").onsubmit=async e=>{
+ e.preventDefault();
+ $("authError").textContent="";
+ try{
+  const d=await api("/auth/register",{method:"POST",headers:{"Content-Type":"application/json"},
+   body:JSON.stringify({
+    username:$("regUsername").value.trim(),
+    email:$("regEmail").value.trim(),
+    password:$("regPassword").value,
+    referral:$("regReferral").value.trim()
+   })});
+  afterAuth(d.user);
+ }catch(err){$("authError").textContent=err.message}
+};
+
+function afterAuth(user){
+ currentUser=user;
+ if(user.paid||user.is_admin)openApp();else openPay();
+}
+
+function openApp(){
+ showPage("page-app");
+ $("username").textContent=currentUser.username||"Membre";
+ $("nav-admin").classList.toggle("hidden",!currentUser.is_admin);
+ loadOffers();
+ loadChallenge();
+ loadMineStats();
+}
+
+async function openPay(){
+ showPage("page-pay");
+ $("checkout").innerHTML="Chargement…";
+ try{
+  const cfg=await api("/config");
+  if(!cfg.stripe_pk)throw new Error("Stripe non configuré");
+  const stripe=Stripe(cfg.stripe_pk);
+  const data=await api("/create-embedded-checkout",{method:"POST",headers:{"Content-Type":"application/json"},body:"{}"});
+  if(!data.clientSecret)throw new Error(data.error||"Paiement indisponible");
+  const checkout=await stripe.initEmbeddedCheckout({clientSecret:data.clientSecret});
+  $("checkout").innerHTML="";
+  checkout.mount("#checkout");
+ }catch(e){$("payError").textContent=e.message}
+}
+
+function offerCard(o){
+ const safeCode=esc(o.code||"");
+ return `
+ <article class="offer-card">
+  <span class="type-pill">${o.type==="parrainage"?"PARRAINAGE":"PROMO"}</span>
+  <div class="store">${esc(o.site)}</div>
+  <h3>${esc(o.title||o.description||"Offre")}</h3>
+  <p>${esc(o.description||"")}<br>Publié par ${esc(o.added_by||o.username||"membre")}</p>
+  ${o.code?`<div class="promo-code" onclick="copyCode(${Number(o.id)},'${safeCode}',this)">${safeCode}</div>`:""}
+  <div class="offer-footer">
+   <span class="offer-meta">${Number(o.clicks||0)} clics · ${Number(o.copies||0)} copies · ${Number(o.likes||0)} ♥</span>
+   <div class="offer-actions">
+    ${o.url?`<button class="btn" onclick="openOffer(${Number(o.id)},'${esc(o.url)}')">Ouvrir</button>`:""}
+    <button class="btn ghost" onclick="likeOffer(${Number(o.id)},this)">♡ ${Number(o.likes||0)}</button>
+    <button class="btn ghost" onclick="saveCode(${Number(o.id)})">Garder</button>
+   </div>
+  </div>
+ </article>`;
+}
+
+async function loadOffers(){
+ let url="/codes";
+ if(currentFilter==="promo"||currentFilter==="parrainage")url+="?type="+currentFilter;
+ try{
+  const d=await api(url);
+  const html=(d.codes||[]).map(offerCard).join("")||'<p class="empty">Aucun code validé pour le moment.</p>';
+  $("offers").innerHTML=html;
+  $("offersCodes").innerHTML=html;
+ }catch(e){
+  $("offers").innerHTML='<p class="empty">Impossible de charger les offres.</p>';
+  $("offersCodes").innerHTML='<p class="empty">Impossible de charger les offres.</p>';
+ }
+}
+
+async function copyCode(id,code,el){
+ try{await navigator.clipboard.writeText(code)}catch(e){alert(code)}
+ if(el)el.textContent="Copié ✓";
+ try{await api("/code/copy",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id})})}catch(e){}
+}
+
+async function openOffer(id,url){
+ try{await api("/code/click",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id})})}catch(e){}
+ window.open(url,"_blank","noopener");
+}
+
+async function likeOffer(id,btn){
+ try{
+  const d=await api("/code/react",{method:"POST",headers:{"Content-Type":"application/json"},
+   body:JSON.stringify({id,reaction:"like",action:"add",user_id:currentUser.id})});
+  btn.textContent="♡ "+(d.value||0);
+ }catch(e){alert(e.message)}
+}
+
+async function saveCode(id){
+ try{await api("/code/save",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id,user_id:currentUser.id})});alert("Ajouté à tes favoris ✓")}
+ catch(e){alert(e.message)}
+}
+
 function openPublish(){$("publishModal").classList.remove("hidden")}
 function closePublish(){$("publishModal").classList.add("hidden")}
-$("offerForm").onsubmit=async e=>{e.preventDefault();const body={type:$("type").value,site:$("store").value.trim(),code:$("code").value.trim(),title:$("title").value.trim(),description:$("title").value.trim()+($("description").value.trim()?" — "+$("description").value.trim():""),url:$("link").value.trim()||null,added_by:currentUser&&currentUser.username,user_id:currentUser&&currentUser.id};const d=await(await fetch("/codes/add",{method:"POST",headers:{"Content-Type":"application/json"},credentials:"same-origin",body:JSON.stringify(body)})).json();if(!d.success){alert(d.error||"Erreur");return}alert("Envoyé. Visible après validation.");closePublish();$("offerForm").reset();showTab("mine")};
-async function loadMineStats(){if(!currentUser)return;try{const st=await(await fetch("/profile/full_stats?user_id="+currentUser.id,{credentials:"same-origin"})).json();$("publications").textContent=st.total_codes||0;$("likesStat").textContent=st.total_likes||0;$("clicksStat").textContent=st.total_clicks||st.total_copies||0;$("profileName").textContent="@"+(st.username||currentUser.username||"membre")}catch(e){}try{const r=await(await fetch("/referral/status?user_id="+currentUser.id,{credentials:"same-origin"})).json();$("points").textContent=r.referrals_count||0}catch(e){}}
-async function loadMine(){loadMineStats();let list=[];try{list=(await(await fetch("/codes/mine?user_id="+currentUser.id,{credentials:"same-origin"})).json()).codes||[]}catch(e){}
-  $("mineList").innerHTML=list.length?list.map(o=>`<div class="mine-item"><div><b>${esc(o.site)}</b> — ${esc(o.title||o.description||o.code)}</div>${badge(o.status||"approved")}</div>`).join(""):"<p style='color:#777'>Pas encore de publication.</p>";
+
+$("offerForm").onsubmit=async e=>{
+ e.preventDefault();
+ try{
+  await api("/codes/add",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({
+   type:$("type").value,site:$("store").value.trim(),code:$("code").value.trim(),
+   title:$("title").value.trim(),description:$("description").value.trim(),
+   url:$("link").value.trim()||null,expires_at:$("expiresAt").value||null,
+   added_by:currentUser.username
+  })});
+  alert("Publication envoyée. Elle sera visible après validation.");
+  closePublish();$("offerForm").reset();showTab("mine");
+ }catch(e){alert(e.message)}
+};
+
+async function loadMineStats(){
+ if(!currentUser)return;
+ try{
+  const st=await api("/profile/full_stats?user_id="+currentUser.id);
+  $("publications").textContent=st.total_codes||0;
+  $("likesStat").textContent=st.total_likes||0;
+  $("clicksStat").textContent=st.total_clicks||0;
+  $("points").textContent=st.points||currentUser.points||0;
+  $("profileName").textContent="@"+(st.username||currentUser.username||"membre");
+ }catch(e){}
+ try{
+  const r=await api("/referral/status?user_id="+currentUser.id);
+  $("points").textContent=r.referrals_count||0;
+ }catch(e){}
 }
-async function loadReferral(){const box=$("referralBox");try{const st=await(await fetch("/referral/status?user_id="+currentUser.id,{credentials:"same-origin"})).json();if(st.my_code)box.innerHTML=`<p><b>${st.my_code}</b> · ${st.referrals_count||0} point(s)</p><button class="btn" style="margin-top:8px" onclick="navigator.clipboard.writeText('${st.my_code}')">Copier mon code</button>`;else box.innerHTML=`<button class="btn" onclick="generateRef()">Générer mon code</button>`}catch(e){box.innerHTML=""}}
-async function generateRef(){await fetch("/referral/generate",{method:"POST",headers:{"Content-Type":"application/json"},credentials:"same-origin",body:JSON.stringify({user_id:currentUser.id})});loadReferral()}
-async function loadAdmin(){try{const s=await(await fetch("/admin/stats?user_id="+currentUser.id,{credentials:"same-origin"})).json();$("adUsers").textContent=s.total_members||0;$("adOffers").textContent=s.total_codes||0}catch(e){}
-  let codes=[];try{codes=(await(await fetch("/admin/moderation",{credentials:"same-origin"})).json()).codes||[]}catch(e){}
-  $("adPending").textContent=codes.filter(c=>(c.status||"approved")==="pending").length;
-  $("adClicks").textContent=codes.reduce((n,c)=>n+(c.clicks||0),0);
-  $("adminOffers").innerHTML=codes.map(o=>`<div class="admin-offer"><div><b>${esc(o.site)}</b><h3>${esc(o.title||o.description||o.code)}</h3><p>${esc(o.username||"")} · ${esc(o.email||"")}</p><small>Statut : <b>${o.status||"approved"}</b></small></div><div class="admin-buttons"><button onclick="approve(${o.id})">✓ Approuver</button><button onclick="reject(${o.id})">✕ Refuser</button></div></div>`).join("")||"<p>Rien à modérer.</p>";
+
+async function loadMine(){
+ await loadMineStats();
+ try{
+  const d=await api("/codes/mine?user_id="+currentUser.id);
+  $("mineList").innerHTML=(d.codes||[]).map(o=>`
+   <div class="mine-item">
+    <div><b>${esc(o.site)}</b> — ${esc(o.title||o.description||o.code)}</div>
+    ${badge(o.status||"approved")}
+   </div>`).join("")||'<p class="empty">Pas encore de publication.</p>';
+ }catch(e){$("mineList").innerHTML='<p class="empty">Erreur.</p>'}
+ renderMyChallengeMini();
 }
-async function approve(id){await fetch("/admin/code/approve",{method:"POST",headers:{"Content-Type":"application/json"},credentials:"same-origin",body:JSON.stringify({id})});loadAdmin()}
-async function reject(id){await fetch("/admin/code/reject",{method:"POST",headers:{"Content-Type":"application/json"},credentials:"same-origin",body:JSON.stringify({id})});loadAdmin()}
-async function boot(){try{const d=await(await fetch("/me",{credentials:"same-origin"})).json();if(d.user){currentUser=Object.assign({},d.user,{paid:d.paid,is_admin:d.is_admin});if(d.paid||d.is_admin){openApp();return}openPay();return}}catch(e){}showPage("page-auth")}
+
+async function loadReferral(){
+ try{
+  const st=await api("/referral/status?user_id="+currentUser.id);
+  const code=st.my_code;
+  if(code){
+   const link=location.origin+"/app?ref="+encodeURIComponent(code);
+   $("referralBox").innerHTML=`
+    <div style="font-size:9px;color:#777;margin-bottom:4px">TON CODE</div>
+    <div class="referral-code">${esc(code)}</div>
+    <div class="ref-link">${esc(link)}</div>
+    <button class="btn" onclick="copyReferral('${esc(code)}','${esc(link)}')">Copier mon lien</button>
+    <span style="font-size:10px;color:#777;margin-left:8px">${Number(st.referrals_count||0)} validés</span>`;
+  }else{
+   $("referralBox").innerHTML=`<button class="btn" onclick="generateRef()">Générer mon lien personnel</button>`;
+  }
+ }catch(e){$("referralBox").innerHTML='<span style="font-size:11px;color:#999">Parrainage indisponible.</span>'}
+}
+
+async function generateRef(){
+ try{await api("/referral/generate",{method:"POST",headers:{"Content-Type":"application/json"},body:"{}"});loadReferral()}
+ catch(e){alert(e.message)}
+}
+
+async function copyReferral(code,link){
+ try{await navigator.clipboard.writeText(link);alert("Lien copié ✓")}catch(e){alert(link)}
+}
+
+function renderChallenge(data,targetId){
+ const c=data.challenge;
+ const now=new Date();
+ const end=new Date(c.end);
+ const finished=now>=end||c.status==="finished";
+ const my=data.me||null;
+ const myRefs=Number(my?.referrals||0);
+ const t=tier(myRefs);
+
+ return `
+ <div class="challenge-top">
+  <div>
+   <span class="eyebrow">CHALLENGE · 21 JOURS</span>
+   <h2>Parraine. Progresse. <em>Gagne.</em></h2>
+   <p class="challenge-description">Le classement se base uniquement sur les parrainages validés. À la fin du compte à rebours, le classement est figé.</p>
+  </div>
+  <div style="text-align:right;font-size:9px;color:#888">${finished?"CHALLENGE TERMINÉ":"CHALLENGE EN COURS"}</div>
+ </div>
+
+ <div class="countdown" data-end="${esc(c.end)}">
+  <div class="time-box"><strong class="cd-days">00</strong><span>Jours</span></div>
+  <div class="time-box"><strong class="cd-hours">00</strong><span>Heures</span></div>
+  <div class="time-box"><strong class="cd-minutes">00</strong><span>Minutes</span></div>
+  <div class="time-box"><strong class="cd-seconds">00</strong><span>Secondes</span></div>
+ </div>
+
+ <div class="rewards">
+  <div class="reward bronze"><div class="medal">🥉</div><strong>BRONZE</strong><span class="target">500</span><small>parrainages validés</small><span class="money">500 €</span></div>
+  <div class="reward silver"><div class="medal">🥈</div><strong>ARGENT</strong><span class="target">1 000</span><small>parrainages validés</small><span class="money">1 000 €</span></div>
+  <div class="reward gold"><div class="medal">🥇</div><strong>OR</strong><span class="target">1 500</span><small>parrainages validés</small><span class="money">1 500 €</span></div>
+ </div>
+
+ ${my?`
+ <div class="my-challenge">
+  <div><span>MA PROGRESSION</span><strong>${myRefs}</strong><div class="progress"><i style="width:${Math.min(100,(myRefs/1500)*100)}%"></i></div></div>
+  <div><span>CLASSEMENT</span><strong>#${my.rank||"—"}</strong></div>
+  <div><span>NIVEAU</span><strong>${t.emoji||"—"} ${t.name}</strong></div>
+  <div><span>RÉCOMPENSE</span><strong>${t.reward?t.reward+" €":"—"}</strong></div>
+ </div>`:""}
+ `;
+}
+
+function startCountdown(){
+ if(challengeTimer)clearInterval(challengeTimer);
+ function tick(){
+  document.querySelectorAll(".countdown[data-end]").forEach(box=>{
+   let diff=new Date(box.dataset.end)-new Date();
+   if(diff<0)diff=0;
+   const day=Math.floor(diff/86400000);diff%=86400000;
+   const hour=Math.floor(diff/3600000);diff%=3600000;
+   const min=Math.floor(diff/60000);
+   const sec=Math.floor((diff%60000)/1000);
+   box.querySelector(".cd-days").textContent=String(day).padStart(2,"0");
+   box.querySelector(".cd-hours").textContent=String(hour).padStart(2,"0");
+   box.querySelector(".cd-minutes").textContent=String(min).padStart(2,"0");
+   box.querySelector(".cd-seconds").textContent=String(sec).padStart(2,"0");
+  });
+ }
+ tick();challengeTimer=setInterval(tick,1000);
+}
+
+async function loadChallenge(){
+ try{
+  const d=await api("/challenge");
+  challengeData=d;
+  $("homeChallenge").innerHTML=renderChallenge(d);
+  $("challengeFull").innerHTML=renderChallenge(d);
+  $("rankingStatus").textContent=d.challenge.status==="finished"?"Classement final figé":"Actualisé en direct";
+  renderLeaderboard(d.leaderboard||[]);
+  startCountdown();
+ }catch(e){
+  $("homeChallenge").innerHTML="";
+  $("challengeFull").innerHTML="";
+ }
+}
+
+function renderLeaderboard(list){
+ const box=$("leaderboardList");
+ if(!list.length){box.innerHTML='<p class="empty">Aucun parrainage validé pour le moment.</p>';return}
+ box.innerHTML=list.slice(0,50).map((u,i)=>{
+  const t=tier(Number(u.referrals||0));
+  const medal=i===0?"🥇":i===1?"🥈":i===2?"🥉":"#"+(i+1);
+  const initials=esc(String(u.name||u.username||"Membre").substring(0,2).toUpperCase());
+  return `
+   <div class="ranking-row">
+    <div class="rank">${medal}</div>
+    <div class="ranking-user"><div class="avatar">${initials}</div><b>${esc(u.name||u.username||"Membre")}</b></div>
+    <div class="refcount">${Number(u.referrals||0)}<small>parrainages</small></div>
+    <div class="tier">${t.emoji||""} ${t.name}</div>
+    <div class="reward-value">${t.reward?t.reward+" €":"—"}</div>
+   </div>`;
+ }).join("");
+}
+
+async function renderMyChallengeMini(){
+ try{
+  const d=await api("/challenge");
+  const me=d.me;
+  if(!me){$("myChallengeMini").innerHTML="";return}
+  const t=tier(Number(me.referrals||0));
+  $("myChallengeMini").innerHTML=`
+   <div class="referral-box">
+    <span class="eyebrow">CHALLENGE</span>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:10px">
+     <div><small style="font-size:8px;color:#888">PARRAINAGES</small><strong style="display:block;color:var(--green);font-size:20px">${Number(me.referrals||0)}</strong></div>
+     <div><small style="font-size:8px;color:#888">RANG</small><strong style="display:block;color:var(--green);font-size:20px">#${me.rank||"—"}</strong></div>
+     <div><small style="font-size:8px;color:#888">GAIN</small><strong style="display:block;color:var(--green);font-size:20px">${t.reward?t.reward+" €":"—"}</strong></div>
+    </div>
+   </div>`;
+ }catch(e){}
+}
+
+async function loadAdmin(){
+ try{
+  const s=await api("/admin/stats");
+  $("adUsers").textContent=s.total_members||0;
+  $("adOffers").textContent=s.total_codes||0;
+  $("adPending").textContent=s.pending||0;
+  $("adRefs").textContent=s.total_referrals||0;
+  $("adClicks").textContent=s.clicks||0;
+
+  const c=await api("/admin/moderation");
+  $("adminOffers").innerHTML=(c.codes||[]).map(o=>`
+   <div class="admin-offer">
+    <div>
+     <b>${esc(o.site)}</b>
+     <h3>${esc(o.title||o.description||o.code)}</h3>
+     <p>${esc(o.username||"")} · ${esc(o.email||"")}</p>
+     <small>Statut : ${esc(o.status||"approved")}</small>
+    </div>
+    <div class="admin-buttons">
+     <button onclick="approve(${Number(o.id)})">✓ Approuver</button>
+     <button onclick="reject(${Number(o.id)})">✕ Refuser</button>
+    </div>
+   </div>`).join("")||'<p class="empty">Rien à modérer.</p>';
+
+  const r=await api("/admin/referrals");
+  $("adminReferrals").innerHTML=(r.referrals||[]).map(x=>`
+   <div class="ref-row">
+    <div>
+     <b>${esc(x.referrer_name||"Membre")}</b>
+     <small>Nouveau membre : ${esc(x.referred_name||"Membre")}</small>
+     <small>${esc(x.status||"pending")}</small>
+    </div>
+    ${x.status==="pending"?`
+     <div class="admin-buttons">
+      <button onclick="approveReferral(${Number(x.id)})">✓ Valider</button>
+      <button onclick="rejectReferral(${Number(x.id)})">✕ Refuser</button>
+     </div>`:""}
+   </div>`).join("")||'<p class="empty">Aucun parrainage à vérifier.</p>';
+ }catch(e){alert(e.message)}
+}
+
+async function approve(id){try{await api("/admin/code/approve",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id})});loadAdmin();loadOffers()}catch(e){alert(e.message)}}
+async function reject(id){try{await api("/admin/code/reject",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id})});loadAdmin()}catch(e){alert(e.message)}}
+async function approveReferral(id){try{await api("/admin/referral/approve",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id})});loadAdmin();loadChallenge()}catch(e){alert(e.message)}}
+async function rejectReferral(id){try{await api("/admin/referral/reject",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id})});loadAdmin();loadChallenge()}catch(e){alert(e.message)}}
+
+async function boot(){
+ const params=new URLSearchParams(location.search);
+ if(params.get("ref")){
+  $("refRegisterLabel").classList.remove("hidden");
+  $("regReferral").value=params.get("ref");
+ }
+ try{
+  const d=await api("/me");
+  if(d.user){
+   currentUser=Object.assign({},d.user,{paid:d.paid,is_admin:d.is_admin});
+   if(d.paid||d.is_admin){openApp();return}
+   openPay();return;
+  }
+ }catch(e){}
+ showPage("page-auth");
+}
+
 boot();
 </script>
 </body>
