@@ -227,6 +227,11 @@ def miniapp_old():
     return send_from_directory(".", "miniapp.html")
 
 
+@app.route("/assets/<path:filename>")
+def assets(filename):
+    return send_from_directory("assets", filename)
+
+
 @app.route("/config")
 def config():
     return jsonify({"stripe_pk": STRIPE_PUBLISHABLE_KEY or "", "price": PRICE_CENTS})
