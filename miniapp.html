@@ -648,7 +648,19 @@ function initSwipe(){document.addEventListener('touchstart',onSwipeStart,{passiv
 function onSwipeStart(e){if(e.target.closest('button'))return;const wrap=e.target.closest('.post-swipe-wrap');if(!wrap||!wrap.dataset.id)return;const content=wrap.querySelector('.post-swipe-content');if(!content)return;const touch=e.touches[0];swipeActive={wrap,content,bg:wrap.querySelector('.post-swipe-bg'),startX:touch.clientX,startY:touch.clientY,currentX:0,isHorizontal:null};content.classList.add('swiping')}
 function onSwipeMove(e){if(!swipeActive)return;const touch=e.touches[0],dx=touch.clientX-swipeActive.startX,dy=touch.clientY-swipeActive.startY;if(swipeActive.isHorizontal===null){if(Math.abs(dx)>6||Math.abs(dy)>6)swipeActive.isHorizontal=Math.abs(dx)>Math.abs(dy)*1.15}if(!swipeActive.isHorizontal)return;e.preventDefault();const x=Math.max(0,Math.min(dx,160));swipeActive.currentX=x;swipeActive.content.style.transform=`translateX(${x}px)`;if(x>=SWIPE_THRESHOLD*.6)swipeActive.bg.classList.add('active');else swipeActive.bg.classList.remove('active')}
 async function onSwipeEnd(){if(!swipeActive)return;const {content,currentX,wrap,bg}=swipeActive;content.classList.remove('swiping');if(currentX>=SWIPE_THRESHOLD){const id=parseInt(wrap.dataset.id,10);if(id&&currentUserId){const isSaved=localStorage.getItem('saved_'+id)==='1';try{await fetch(isSaved?'/code/unsave':'/code/save',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify({id,user_id:currentUserId})});localStorage.setItem('saved_'+id,isSaved?'0':'1');const favIcon=bg.querySelector('.fav-icon');if(favIcon)favIcon.innerHTML=isSaved?ICON_OUT:ICON_FILL;content.classList.add('saved-flash');setTimeout(()=>content.classList.remove('saved-flash'),550)}catch(err){}}}content.style.transform='translateX(0)';bg.classList.remove('active');swipeActive=null}
-initSwipe();setupLongPress();setInterval(loadNotifications,60000);boot();
+initSwipe();
+setupLongPress();
+setInterval(loadNotifications,60000);
+
+try {
+  showAuthPage();
+  boot();
+} catch (e) {
+  console.error(e);
+  showAuthPage();
+  var err = document.getElementById('auth-error');
+  if (err) err.textContent = 'Erreur de chargement. Recharge la page.';
+}
 </script>
 </body>
 </html>
