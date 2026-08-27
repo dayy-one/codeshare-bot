@@ -142,6 +142,43 @@ def init_db():
         );
         """
     )
+    cur.execute(
+        """
+        ALTER TABLE notifications ADD COLUMN IF NOT EXISTS read BOOLEAN DEFAULT FALSE;
+        ALTER TABLE notifications ADD COLUMN IF NOT EXISTS user_id INTEGER;
+        ALTER TABLE notifications ADD COLUMN IF NOT EXISTS message TEXT;
+        ALTER TABLE notifications ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT NOW();
+        ALTER TABLE codes ADD COLUMN IF NOT EXISTS likes INTEGER DEFAULT 0;
+        ALTER TABLE codes ADD COLUMN IF NOT EXISTS dislikes INTEGER DEFAULT 0;
+        ALTER TABLE codes ADD COLUMN IF NOT EXISTS copies INTEGER DEFAULT 0;
+        ALTER TABLE codes ADD COLUMN IF NOT EXISTS reports INTEGER DEFAULT 0;
+        ALTER TABLE codes ADD COLUMN IF NOT EXISTS deleted BOOLEAN DEFAULT FALSE;
+        ALTER TABLE codes ADD COLUMN IF NOT EXISTS photo_url TEXT;
+        ALTER TABLE codes ADD COLUMN IF NOT EXISTS expires_at TIMESTAMP;
+        ALTER TABLE codes ADD COLUMN IF NOT EXISTS type TEXT;
+        ALTER TABLE codes ADD COLUMN IF NOT EXISTS site TEXT;
+        ALTER TABLE codes ADD COLUMN IF NOT EXISTS code TEXT;
+        ALTER TABLE codes ADD COLUMN IF NOT EXISTS description TEXT;
+        ALTER TABLE codes ADD COLUMN IF NOT EXISTS url TEXT;
+        ALTER TABLE codes ADD COLUMN IF NOT EXISTS added_by TEXT;
+        ALTER TABLE codes ADD COLUMN IF NOT EXISTS user_id INTEGER;
+        ALTER TABLE codes ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT NOW();
+        ALTER TABLE users ADD COLUMN IF NOT EXISTS bio TEXT;
+        ALTER TABLE users ADD COLUMN IF NOT EXISTS telegram_id BIGINT;
+        ALTER TABLE users ADD COLUMN IF NOT EXISTS password_hash TEXT;
+        ALTER TABLE users ADD COLUMN IF NOT EXISTS email TEXT;
+        ALTER TABLE users ADD COLUMN IF NOT EXISTS username TEXT;
+        ALTER TABLE users ADD COLUMN IF NOT EXISTS instagram TEXT;
+        ALTER TABLE users ADD COLUMN IF NOT EXISTS snapchat TEXT;
+        ALTER TABLE paid_users ADD COLUMN IF NOT EXISTS user_id INTEGER;
+        ALTER TABLE paid_users ADD COLUMN IF NOT EXISTS telegram_id BIGINT;
+        ALTER TABLE paid_users ADD COLUMN IF NOT EXISTS paid_at TIMESTAMP DEFAULT NOW();
+        ALTER TABLE support_messages ADD COLUMN IF NOT EXISTS admin_reply TEXT;
+        ALTER TABLE support_messages ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'open';
+        ALTER TABLE referrals ADD COLUMN IF NOT EXISTS used_code TEXT;
+        ALTER TABLE referrals ADD COLUMN IF NOT EXISTS code TEXT;
+        """
+    )
     conn.commit()
     cur.close()
     conn.close()
@@ -424,7 +461,10 @@ def stripe_webhook():
 def hidden_filter(uid):
     if not uid:
         return ""
-    return f" AND id NOT IN (SELECT code_id FROM hidden_codes WHERE user_id={int(uid)})"
+    try:
+        return f" AND id NOT IN (SELECT code_id FROM hidden_codes WHERE user_id={int(uid)})"
+    except Exception:
+        return ""
 
 
 @app.route("/codes")
@@ -698,15 +738,36 @@ def search_recent():
 @app.route("/notifications")
 def notifications():
     uid = request.args.get("user_id")
+    try:
+        uid = int(uid) if uid not in (None, "") else None
+    except Exception:
+        uid = None
+    if not uid:
+        return jsonify(notifications=[], unread=0)
     conn = get_conn()
     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
-    cur.execute("SELECT * FROM notifications WHERE user_id=%s ORDER BY created_at DESC LIMIT 30", (uid,))
-    rows = cur.fetchall()
-    cur.execute("SELECT COUNT(*) FROM notifications WHERE user_id=%s AND read=FALSE", (uid,))
-    unread = cur.fetchone()["count"]
+    try:
+        cur.execute(
+            "SELECT * FROM notifications WHERE user_id=%s ORDER BY created_at DESC LIMIT 30",
+            (uid,),
+        )
+        rows = cur.fetchall()
+        try:
+            cur.execute(
+                "SELECT COUNT(*) AS c FROM notifications WHERE user_id=%s AND COALESCE(read, FALSE)=FALSE",
+                (uid,),
+            )
+            unread = cur.fetchone()["c"]
+        except Exception:
+            conn.rollback()
+            unread = 0
+    except Exception as e:
+        logging.error(e)
+        conn.rollback()
+        rows, unread = [], 0
     cur.close()
     conn.close()
-    return jsonify(notifications=rows, unread=unread)
+    return jsonify(notifications=rows or [], unread=unread or 0)
 
 
 @app.route("/notifications/read", methods=["POST"])
@@ -714,8 +775,12 @@ def notifications_read():
     uid = (request.json or {}).get("user_id")
     conn = get_conn()
     cur = conn.cursor()
-    cur.execute("UPDATE notifications SET read=TRUE WHERE user_id=%s", (uid,))
-    conn.commit()
+    try:
+        cur.execute("UPDATE notifications SET read=TRUE WHERE user_id=%s", (uid,))
+        conn.commit()
+    except Exception as e:
+        logging.error(e)
+        conn.rollback()
     cur.close()
     conn.close()
     return jsonify(ok=True)
