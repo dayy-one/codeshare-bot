@@ -518,7 +518,7 @@ def create_embedded_checkout():
         meta["telegram_id"] = str(telegram_id)
     try:
         kwargs = {
-            "ui_mode": "embedded",
+            "ui_mode": "embedded_page",
             "mode": "payment",
             "line_items": [{
                 "price_data": {
