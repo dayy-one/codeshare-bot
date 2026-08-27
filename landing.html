@@ -55,8 +55,14 @@
       gap: 30px;
     }
 
-    .brand { width: 125px; flex-shrink: 0; }
-    .brand img { width: 100%; height: auto; }
+    .brand {
+      width: 72px;
+      flex-shrink: 0;
+    }
+    .brand img {
+      width: 100%;
+      height: auto;
+    }
 
     .links {
       display: flex;
@@ -64,7 +70,6 @@
       gap: 38px;
       margin-left: auto;
     }
-
     .links a {
       position: relative;
       padding: 8px 0;
@@ -172,26 +177,8 @@
       min-height: 480px;
     }
     .hero-logo {
-      width: min(560px, 100%);
+      width: min(520px, 100%);
       filter: drop-shadow(0 20px 25px rgba(50, 55, 35, 0.06));
-    }
-
-    .slogan {
-      font-family: "Great Vibes", cursive;
-      font-size: 34px;
-      text-align: center;
-      margin-top: -5px;
-      color: #111;
-    }
-    .slogan span { position: relative; display: inline-block; }
-    .slogan span::after {
-      content: "";
-      position: absolute;
-      left: 2%; right: 2%; bottom: 1px;
-      height: 7px;
-      background: rgba(113, 132, 59, 0.75);
-      border-radius: 99px;
-      z-index: -1;
     }
 
     .features {
@@ -313,7 +300,7 @@
       grid-template-columns: 1.4fr 1fr 1fr;
       gap: 50px;
     }
-    .footer-logo { width: 145px; }
+    .footer-logo { width: 130px; }
     .footer h3 { font-size: 14px; margin-bottom: 14px; }
     .footer-links {
       display: flex;
@@ -356,7 +343,7 @@
         padding: 50px 0 60px;
       }
       .hero-copy { order: 1; }
-      .hero-visual { order: 2; min-height: 390px; }
+      .hero-visual { order: 2; min-height: 360px; }
       .hero-lead { margin-inline: auto; }
       .hero-actions { justify-content: center; }
       .feature-grid { grid-template-columns: 1fr; gap: 30px; }
@@ -367,19 +354,18 @@
     @media (max-width: 560px) {
       .container { width: calc(100% - 32px); }
       .nav { min-height: 72px; }
-      .brand { width: 105px; }
+      .brand { width: 58px; }
       .links { top: 72px; left: 16px; right: 16px; }
       .hero { padding-top: 38px; }
       .hero-title { font-size: 49px; letter-spacing: -2.5px; }
       .hero-lead { font-size: 15px; margin-top: 25px; }
-      .hero-visual { min-height: 330px; }
-      .slogan { font-size: 28px; }
+      .hero-visual { min-height: 300px; }
       .features { padding: 58px 0; }
       .section-title { font-size: 27px; }
       .feature { grid-template-columns: 56px 1fr; gap: 15px; }
       .feature-icon { width: 56px; height: 56px; border-radius: 15px; }
       .footer-grid { grid-template-columns: 1fr; gap: 30px; }
-      .footer-logo { width: 125px; }
+      .footer-logo { width: 110px; }
     }
   </style>
 </head>
@@ -388,7 +374,7 @@
 <header>
   <div class="container nav">
     <a class="brand" href="#accueil" aria-label="COD.IA">
-      <img src="assets/logo-codia.png" alt="COD.IA">
+      <img src="/assets/logo-codia.png" alt="COD.IA">
     </a>
 
     <nav class="links" id="menu">
@@ -399,7 +385,6 @@
     </nav>
 
     <a class="btn" href="/app">Connexion</a>
-
     <button class="burger" onclick="toggleMenu()" aria-label="Menu">☰</button>
   </div>
 </header>
@@ -412,12 +397,10 @@
         <br>
         <span>tous ensemble</span>
       </h1>
-
       <p class="hero-lead">
         Rejoins une communauté où entraide, partage et opportunités se rencontrent.
         Codes promo et parrainage, au même endroit.
       </p>
-
       <div class="hero-actions">
         <a class="btn" href="/app">Connexion</a>
         <a class="btn btn-ghost" href="/app">Créer mon compte</a>
@@ -425,12 +408,7 @@
     </div>
 
     <div class="hero-visual">
-      <div>
-        <img class="hero-logo" src="assets/logo-codia.png" alt="Logo officiel COD.IA">
-        <div class="slogan">
-          <span>Un monde tous ensemble</span>
-        </div>
-      </div>
+      <img class="hero-logo" src="/assets/logo-codia.png" alt="Logo officiel COD.IA — Un monde tous ensemble">
     </div>
   </section>
 
@@ -438,40 +416,28 @@
     <div class="container">
       <h2 class="section-title">Notre force, c’est vous</h2>
       <p class="section-sub">Trouve, partage et garde les codes qui aident vraiment.</p>
-
       <div class="feature-grid">
         <article class="feature">
           <div class="feature-icon">
-            <svg viewBox="0 0 24 24">
-              <path d="M4 7h16v10H4z"/>
-              <path d="M8 7V5h8v2"/>
-              <path d="M8 12h8"/>
-            </svg>
+            <svg viewBox="0 0 24 24"><path d="M4 7h16v10H4z"/><path d="M8 7V5h8v2"/><path d="M8 12h8"/></svg>
           </div>
           <div>
             <h3>Codes promo & parrainage</h3>
             <p>Un feed clair, des filtres Promo / Parrainage / Expire bientôt, et les Top Codes les plus utiles.</p>
           </div>
         </article>
-
         <article class="feature">
           <div class="feature-icon">
-            <svg viewBox="0 0 24 24">
-              <path d="M12 21 4.5 13.4A5 5 0 0 1 12 6.5a5 5 0 0 1 7.5 6.9Z"/>
-            </svg>
+            <svg viewBox="0 0 24 24"><path d="M12 21 4.5 13.4A5 5 0 0 1 12 6.5a5 5 0 0 1 7.5 6.9Z"/></svg>
           </div>
           <div>
             <h3>Favoris en un geste</h3>
             <p>Glisse un code vers la droite pour le garder. Tu le retrouves ensuite dans ton profil.</p>
           </div>
         </article>
-
         <article class="feature">
           <div class="feature-icon">
-            <svg viewBox="0 0 24 24">
-              <rect x="8" y="8" width="12" height="12" rx="2"/>
-              <path d="M4 16V6a2 2 0 0 1 2-2h10"/>
-            </svg>
+            <svg viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M4 16V6a2 2 0 0 1 2-2h10"/></svg>
           </div>
           <div>
             <h3>Copier, puis ouvrir</h3>
@@ -486,7 +452,6 @@
     <div class="container">
       <h2 class="section-title">Communauté</h2>
       <p class="section-sub">Deux offres séparées. Un même esprit : avancer ensemble.</p>
-
       <div class="offers">
         <article class="offer">
           <span class="tag">Offre de lancement · 3 semaines</span>
@@ -494,7 +459,6 @@
           <p>Lorsqu’un utilisateur rejoint COD.IA et utilise ton code de parrainage, <strong>1 point t’est attribué</strong>.</p>
           <p><strong>500 / 1 000 / 1 500 points</strong> = <strong>500 / 1 000 / 1 500 €</strong>.</p>
         </article>
-
         <article class="offer">
           <span class="tag">Offre Copies</span>
           <h3>Un code qui voyage</h3>
@@ -521,9 +485,8 @@
   <div class="container">
     <div class="footer-grid">
       <div>
-        <img class="footer-logo" src="assets/logo-codia.png" alt="COD.IA">
+        <img class="footer-logo" src="/assets/logo-codia.png" alt="COD.IA">
       </div>
-
       <div class="footer">
         <h3>Liens rapides</h3>
         <div class="footer-links">
@@ -534,7 +497,6 @@
           <a href="/app">Connexion</a>
         </div>
       </div>
-
       <div class="footer">
         <h3>Contact</h3>
         <div class="footer-links">
@@ -543,10 +505,7 @@
         </div>
       </div>
     </div>
-
-    <div class="copyright">
-      © 2026 COD.IA. Tous droits réservés.
-    </div>
+    <div class="copyright">© 2026 COD.IA. Tous droits réservés.</div>
   </div>
 </footer>
 
@@ -554,13 +513,10 @@
   function toggleMenu() {
     document.getElementById("menu").classList.toggle("open");
   }
-
   document.querySelectorAll(".links a").forEach(function(link) {
     link.addEventListener("click", function() {
       document.getElementById("menu").classList.remove("open");
-      document.querySelectorAll(".links a").forEach(function(a) {
-        a.classList.remove("active");
-      });
+      document.querySelectorAll(".links a").forEach(function(a) { a.classList.remove("active"); });
       link.classList.add("active");
     });
   });
