@@ -1,195 +1,522 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>COD.IA — Un monde tous ensemble</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<style>
-:root{--navy:#16325c;--blue:#1e6fd9;--blue2:#2b7de9;--text:#243044;--muted:#6b7a90;--line:#e7eef8;--bg:#fff}
-*{box-sizing:border-box;margin:0;padding:0}
-html{scroll-behavior:smooth}
-body{font-family:Inter,system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.55}
-a{color:inherit;text-decoration:none}
-.wrap{max-width:1120px;margin:0 auto;padding:0 24px}
-.logo{display:inline-flex;align-items:flex-start;gap:6px;line-height:1}
-.logo b{font-size:22px;letter-spacing:-.04em;position:relative;z-index:1}
-.logo b:after{content:"";position:absolute;left:0;bottom:2px;width:58%;height:6px;background:linear-gradient(90deg,#1e90ff,#4aa3ff 70%,transparent);border-radius:4px;z-index:0}
-.plane{width:22px;height:22px;border-radius:50%;background:#2b8cff;display:inline-flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(30,111,217,.35);margin-top:1px}
-.plane svg{width:11px;height:11px;fill:#fff}
-header{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.92);backdrop-filter:blur(16px);border-bottom:1px solid var(--line)}
-.nav{display:flex;align-items:center;justify-content:space-between;height:72px}
-.links{display:flex;align-items:center;gap:28px;font-size:14.5px;color:#3d4d66}
-.links a:hover,.links a.active{color:var(--blue);text-decoration:underline;text-underline-offset:6px}
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;background:var(--blue);color:#fff;border:0;border-radius:999px;padding:12px 22px;font-weight:700;font-size:14px;cursor:pointer;box-shadow:0 8px 20px rgba(30,111,217,.28)}
-.btn:hover{background:#165fc4}
-.btn-ghost{background:#fff;color:var(--navy);border:1px solid var(--line);box-shadow:none}
-.menu{display:none;background:none;border:0;font-size:26px;color:var(--navy)}
-.hero{position:relative;min-height:calc(100vh - 72px);display:flex;align-items:center;text-align:center;overflow:hidden}
-.hero:after{content:"";position:absolute;left:0;right:0;bottom:0;height:280px;background:radial-gradient(80% 90% at 50% 120%,#d7ebff 0%,rgba(255,255,255,0) 70%);pointer-events:none}
-.hero-inner{position:relative;z-index:1;padding:72px 0 120px;margin:0 auto}
-.brand-xl{font-size:clamp(64px,11vw,128px);font-weight:800;letter-spacing:-.05em;line-height:.9;position:relative;display:inline-block}
-.brand-xl:after{content:"";position:absolute;left:0;bottom:10px;width:56%;height:14px;background:linear-gradient(90deg,#1e90ff,#57a8ff 65%,transparent);border-radius:8px;z-index:0}
-.brand-xl span{position:relative;z-index:1}
-.badge{position:absolute;right:-42px;top:8px;width:46px;height:46px;border-radius:50%;background:#2b8cff;display:flex;align-items:center;justify-content:center;box-shadow:0 10px 24px rgba(30,111,217,.35)}
-.badge svg{width:22px;height:22px;fill:#fff}
-.script{font-family:"Great Vibes",cursive;font-size:clamp(34px,5vw,56px);color:#1d2a44;margin:18px 0 22px}
-.lead{max-width:520px;margin:0 auto 28px;color:var(--muted);font-size:17px}
-.section{padding:88px 0}
-.section h2{font-size:32px;letter-spacing:-.03em;margin-bottom:12px;color:var(--navy)}
-.sub{color:var(--muted);max-width:560px}
-.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:28px}
-.card{border:1px solid var(--line);border-radius:22px;padding:24px;background:#fff;box-shadow:0 10px 30px rgba(22,50,92,.04)}
-.card h3{margin:10px 0 8px;font-size:18px}
-.mission{display:grid;grid-template-columns:1.1fr .9fr;gap:40px;align-items:center}
-.illus{height:260px;border-radius:28px;background:linear-gradient(180deg,#eef6ff,#d7ebff);display:flex;align-items:flex-end;justify-content:center;overflow:hidden}
-.illus svg{width:220px}
-footer{border-top:1px solid var(--line);padding:28px 0;color:var(--muted);font-size:13px}
-.screen{display:none;position:fixed;inset:0;z-index:40;background:#fff;overflow:auto}
-.screen.on{display:block}
-.authbox{max-width:420px;margin:40px auto;padding:0 20px 60px}
-.tabs{display:flex;gap:8px;justify-content:center;margin:18px 0}
-.tab{border:1px solid var(--line);background:#fff;border-radius:999px;padding:9px 16px;cursor:pointer}
-.tab.on{background:var(--blue);color:#fff;border-color:var(--blue)}
-.inp{width:100%;margin:0 0 10px;padding:14px 16px;border-radius:14px;border:1px solid var(--line);font-size:15px}
-.err{color:#d12b2b;text-align:center;min-height:20px;margin-top:10px;font-size:13px}
-@media(max-width:860px){
-  .links,.nav .btn{display:none}
-  .menu{display:block}
-  .grid,.mission{grid-template-columns:1fr}
-  .badge{right:-8px;width:36px;height:36px}
-}
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>COD.IA — Un monde tous ensemble</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Great+Vibes&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #f6f3ec;
+      --paper: #fbf8f2;
+      --ink: #2b2b2b;
+      --muted: #6b6b66;
+      --green: #6b7a3d;
+      --green-dark: #556230;
+      --green-soft: #e7edd6;
+      --gold: #c4b07a;
+      --line: rgba(80, 80, 70, 0.12);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: "Manrope", sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      min-height: 100vh;
+    }
+
+    a { color: inherit; text-decoration: none; }
+
+    .wrap {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 0 28px;
+    }
+
+    /* HEADER */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      background: rgba(246, 243, 236, 0.88);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid transparent;
+    }
+    .nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 78px;
+      gap: 20px;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+    .brand-mark { width: 42px; height: 42px; }
+    .brand-name {
+      font-family: "Cormorant Garamond", serif;
+      font-weight: 600;
+      font-size: 22px;
+      letter-spacing: 1px;
+      background: linear-gradient(180deg, #ddd3b0 0%, #8c7a45 55%, #d7ccaa 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    nav.links {
+      display: flex;
+      align-items: center;
+      gap: 34px;
+      font-size: 15px;
+      color: #3a3a3a;
+    }
+    nav.links a { position: relative; padding: 6px 0; }
+    nav.links a.active,
+    nav.links a:hover { color: var(--ink); }
+    nav.links a.active::after {
+      content: "";
+      position: absolute;
+      left: 0; right: 0; bottom: 0;
+      height: 2px;
+      background: var(--green);
+      border-radius: 2px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      background: var(--green);
+      color: #fff;
+      border: 0;
+      border-radius: 10px;
+      padding: 11px 18px;
+      font-family: inherit;
+      font-size: 14.5px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 8px 18px rgba(107, 122, 61, 0.22);
+      transition: 0.2s ease;
+      white-space: nowrap;
+    }
+    .btn:hover { background: var(--green-dark); transform: translateY(-1px); }
+    .btn-lg { padding: 14px 26px; font-size: 15.5px; border-radius: 12px; }
+    .btn-ghost {
+      background: transparent;
+      color: var(--ink);
+      box-shadow: none;
+      border: 1px solid rgba(80,80,70,.18);
+    }
+    .btn-ghost:hover { background: #fff; }
+
+    .burger {
+      display: none;
+      width: 42px; height: 42px;
+      border: 0; background: transparent;
+      font-size: 22px; cursor: pointer;
+    }
+
+    /* HERO */
+    .hero {
+      position: relative;
+      text-align: center;
+      padding: 36px 0 90px;
+      overflow: hidden;
+    }
+    .hero-logo {
+      width: min(420px, 86vw);
+      margin: 8px auto 8px;
+      display: block;
+    }
+    .slogan {
+      font-family: "Great Vibes", cursive;
+      font-size: clamp(34px, 5.2vw, 56px);
+      font-weight: 400;
+      line-height: 1.15;
+      margin: 6px 0 18px;
+    }
+    .slogan span {
+      position: relative;
+      display: inline-block;
+    }
+    .slogan span::after {
+      content: "";
+      position: absolute;
+      left: 2%;
+      right: 2%;
+      bottom: 2px;
+      height: 8px;
+      background: rgba(107, 122, 61, 0.28);
+      border-radius: 8px;
+      z-index: -1;
+    }
+    .lead {
+      max-width: 520px;
+      margin: 0 auto 28px;
+      color: var(--muted);
+      font-size: 16.5px;
+      line-height: 1.55;
+    }
+    .hero-wave {
+      position: absolute;
+      left: 0; right: 0; bottom: -2px;
+      height: 120px;
+      background:
+        radial-gradient(120% 80% at 20% 120%, var(--green-soft) 0%, transparent 60%),
+        radial-gradient(90% 80% at 90% 130%, #eef3e2 0%, transparent 55%);
+      pointer-events: none;
+    }
+
+    /* SECTIONS */
+    section.block {
+      padding: 72px 0;
+    }
+    .block h2 {
+      font-family: "Cormorant Garamond", serif;
+      font-size: clamp(30px, 4vw, 42px);
+      font-weight: 600;
+      text-align: center;
+      margin-bottom: 10px;
+    }
+    .block .sub {
+      text-align: center;
+      color: var(--muted);
+      max-width: 560px;
+      margin: 0 auto 40px;
+      line-height: 1.6;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+    .card {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 26px 24px;
+      box-shadow: 0 10px 30px rgba(60, 55, 40, 0.04);
+    }
+    .card h3 {
+      font-size: 18px;
+      margin: 12px 0 8px;
+    }
+    .card p { color: var(--muted); line-height: 1.55; font-size: 14.5px; }
+    .ico {
+      width: 42px; height: 42px;
+      border-radius: 12px;
+      background: var(--green-soft);
+      display: flex; align-items: center; justify-content: center;
+      color: var(--green-dark);
+      font-size: 20px;
+    }
+
+    .mission {
+      background: linear-gradient(180deg, #f3f0e7 0%, #eef1e3 100%);
+      border-radius: 28px;
+      padding: 48px 40px;
+      text-align: center;
+    }
+    .mission p {
+      max-width: 640px;
+      margin: 14px auto 0;
+      color: #4d4d47;
+      font-size: 17px;
+      line-height: 1.65;
+    }
+
+    .offers {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 22px;
+    }
+    .offer {
+      background: #fff;
+      border-radius: 22px;
+      padding: 32px 28px;
+      border: 1px solid var(--line);
+    }
+    .offer .tag {
+      display: inline-block;
+      background: var(--green-soft);
+      color: var(--green-dark);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+      padding: 5px 10px;
+      border-radius: 999px;
+      margin-bottom: 14px;
+    }
+    .offer h3 { font-size: 24px; margin-bottom: 10px; }
+    .offer p { color: var(--muted); line-height: 1.6; margin-bottom: 10px; }
+    .offer strong { color: var(--ink); }
+
+    footer {
+      padding: 36px 0 48px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 14px;
+    }
+    footer a { color: var(--green-dark); font-weight: 600; }
+
+    /* LOGIN MODAL */
+    .modal {
+      position: fixed; inset: 0;
+      background: rgba(40, 38, 32, 0.38);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 80;
+      padding: 20px;
+    }
+    .modal.open { display: flex; }
+    .modal-card {
+      width: min(440px, 100%);
+      background: var(--paper);
+      border-radius: 22px;
+      padding: 32px 28px 28px;
+      box-shadow: 0 30px 80px rgba(0,0,0,.18);
+    }
+    .modal-card h2 {
+      font-family: "Cormorant Garamond", serif;
+      font-size: 32px;
+      text-align: center;
+      margin-bottom: 6px;
+    }
+    .tabs {
+      display: flex; gap: 8px; justify-content: center; margin: 16px 0 22px;
+    }
+    .tabs button {
+      border: 0; background: transparent;
+      font-family: inherit; font-weight: 600;
+      padding: 8px 14px; cursor: pointer;
+      color: var(--muted); border-bottom: 2px solid transparent;
+    }
+    .tabs button.on {
+      color: var(--ink);
+      border-bottom-color: var(--green);
+    }
+    label {
+      display: block; font-size: 13px; font-weight: 600;
+      margin: 12px 0 6px;
+    }
+    input {
+      width: 100%;
+      border: 1px solid rgba(80,80,70,.2);
+      background: #fff;
+      border-radius: 10px;
+      padding: 12px 12px;
+      font-family: inherit;
+      font-size: 15px;
+    }
+    .modal .btn { width: 100%; margin-top: 18px; }
+    .close-x {
+      float: right; border: 0; background: transparent;
+      font-size: 22px; cursor: pointer; color: #777;
+    }
+
+    @media (max-width: 860px) {
+      nav.links { display: none; }
+      nav.links.open {
+        display: flex;
+        flex-direction: column;
+        position: absolute;
+        top: 78px; left: 16px; right: 16px;
+        background: #fff;
+        border-radius: 16px;
+        padding: 18px;
+        box-shadow: 0 16px 40px rgba(0,0,0,.1);
+        gap: 14px;
+      }
+      .burger { display: block; }
+      .grid, .offers { grid-template-columns: 1fr; }
+      .nav .btn { display: none; }
+      .mission { padding: 32px 22px; }
+    }
+  </style>
 </head>
 <body>
-<header>
-  <div class="wrap nav">
-    <a class="logo" href="#accueil">
-      <b>COD.IA</b>
-      <span class="plane"><svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg></span>
-    </a>
-    <nav class="links">
-      <a class="active" href="#accueil">Accueil</a>
-      <a href="#fonctionnalites">Fonctionnalités</a>
-      <a href="#communaute">Communauté</a>
-      <a href="#apropos">À propos</a>
-    </nav>
-    <button class="btn" onclick="openAuth()">Connexion</button>
-    <button class="menu" onclick="openAuth()">☰</button>
-  </div>
-</header>
-
-<section class="hero" id="accueil">
-  <div class="wrap hero-inner">
-    <div class="brand-xl"><span>COD.IA</span>
-      <span class="badge"><svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg></span>
-    </div>
-    <div class="script">Un monde tous ensemble</div>
-    <p class="lead">Rejoins une communauté où entraide, partage et opportunités se rencontrent.</p>
-    <button class="btn" onclick="openAuth()">Connexion</button>
-  </div>
-</section>
-
-<section class="section" id="fonctionnalites">
-  <div class="wrap">
-    <h2>Fonctionnalités</h2>
-    <p class="sub">Tous les codes promo et de parrainage, au même endroit, avec une communauté qui avance ensemble.</p>
-    <div class="grid">
-      <div class="card"><div>📋</div><h3>Feed de codes</h3><p class="sub">Promo et parrainage publiés par la communauté, prêts à copier.</p></div>
-      <div class="card"><div>⭐</div><h3>Favoris</h3><p class="sub">Garde sous la main les codes qui te servent vraiment.</p></div>
-      <div class="card"><div>🏆</div><h3>Offres COD.IA</h3><p class="sub">Offre de Lancement jusqu’à 1 500 € et Offre Copies : 250 copies = 100 €.</p></div>
-    </div>
-  </div>
-</section>
-
-<section class="section" id="communaute" style="background:#f7fbff">
-  <div class="wrap mission">
-    <div>
-      <h2>Communauté</h2>
-      <p class="sub" style="margin-top:10px">COD.IA n’est pas seulement une liste de codes. C’est un espace où chacun peut s’entraider, partager et avancer.</p>
-      <p class="sub" style="margin-top:12px">Lorsqu’un utilisateur rejoint COD.IA et utilise ton code de parrainage, 1 point t’est attribué.</p>
-    </div>
-    <div class="illus">
-      <svg viewBox="0 0 280 180" fill="none">
-        <circle cx="80" cy="90" r="28" fill="#3b82f6"/>
-        <circle cx="140" cy="78" r="34" fill="#1d4ed8"/>
-        <circle cx="200" cy="94" r="28" fill="#60a5fa"/>
-        <circle cx="110" cy="118" r="24" fill="#93c5fd"/>
-        <circle cx="170" cy="122" r="24" fill="#2563eb"/>
-      </svg>
-    </div>
-  </div>
-</section>
-
-<section class="section" id="apropos">
-  <div class="wrap">
-    <h2>Notre mission</h2>
-    <p class="sub">Créer un espace où chacun peut s’entraider, partager et avancer ensemble.</p>
-    <p class="sub" style="margin-top:14px">Un paiement unique pour débloquer la plateforme. Pas d’abonnement.</p>
-    <button class="btn" style="margin-top:24px" onclick="openAuth()">Connexion</button>
-  </div>
-</section>
-
-<footer>
-  <div class="wrap" style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap">
-    <span>© COD.IA</span>
-    <span>Un monde tous ensemble</span>
-  </div>
-</footer>
-
-<div class="screen" id="auth">
   <header>
     <div class="wrap nav">
-      <a class="logo" href="#" onclick="closeAuth();return false"><b>COD.IA</b><span class="plane"><svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg></span></a>
-      <button class="btn btn-ghost" onclick="closeAuth()">Retour</button>
+      <a class="brand" href="#accueil">
+        <svg class="brand-mark" viewBox="0 0 64 64" aria-hidden="true">
+          <circle cx="32" cy="34" r="20" fill="none" stroke="#8a8a7a" stroke-width="1.2"/>
+          <ellipse cx="32" cy="34" rx="8" ry="20" fill="none" stroke="#8a8a7a" stroke-width="1"/>
+          <ellipse cx="32" cy="34" rx="15" ry="20" fill="none" stroke="#8a8a7a" stroke-width="1"/>
+          <path d="M12 34h40M18 22h28M18 46h28" fill="none" stroke="#8a8a7a" stroke-width="1"/>
+          <path d="M46 12l4-6M50 14l6-3M52 18l7 1" stroke="#c4b07a" stroke-width="1.4" fill="none" stroke-linecap="round"/>
+        </svg>
+        <span class="brand-name">COD.IA</span>
+      </a>
+
+      <nav class="links" id="menu">
+        <a href="#accueil" class="active">Accueil</a>
+        <a href="#fonctionnalites">Fonctionnalités</a>
+        <a href="#communaute">Communauté</a>
+        <a href="#apropos">À propos</a>
+      </nav>
+
+      <button class="btn" type="button" onclick="openAuth('login')">Connexion</button>
+      <button class="burger" type="button" onclick="document.getElementById('menu').classList.toggle('open')">☰</button>
     </div>
   </header>
-  <div class="authbox">
-    <div style="text-align:center;margin:20px 0 8px">
-      <div class="logo" style="justify-content:center"><b>COD.IA</b><span class="plane"><svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg></span></div>
-      <div class="script" style="font-size:34px;margin:10px 0 6px">Un monde tous ensemble</div>
-      <p class="sub">Connecte-toi ou crée ton compte pour entrer sur la plateforme.</p>
-    </div>
-    <div class="tabs">
-      <button class="tab on" id="tL" onclick="tab('l')">Connexion</button>
-      <button class="tab" id="tR" onclick="tab('r')">Inscription</button>
-    </div>
-    <div id="boxL">
-      <input class="inp" id="li" placeholder="Email ou username">
-      <input class="inp" id="lp" type="password" placeholder="Mot de passe">
-      <button class="btn" style="width:100%" onclick="login()">Se connecter</button>
-    </div>
-    <div id="boxR" style="display:none">
-      <input class="inp" id="re" placeholder="Email">
-      <input class="inp" id="ru" placeholder="Username public">
-      <input class="inp" id="rp" type="password" placeholder="Mot de passe (8 min.)">
-      <button class="btn" style="width:100%" onclick="reg()">Créer mon compte</button>
-    </div>
-    <p class="err" id="ae"></p>
-  </div>
-</div>
 
-<script>
-function openAuth(){document.getElementById('auth').classList.add('on');window.scrollTo(0,0)}
-function closeAuth(){document.getElementById('auth').classList.remove('on')}
-function tab(x){
-  document.getElementById('boxL').style.display=x==='l'?'block':'none';
-  document.getElementById('boxR').style.display=x==='r'?'block':'none';
-  document.getElementById('tL').classList.toggle('on',x==='l');
-  document.getElementById('tR').classList.toggle('on',x==='r');
-  document.getElementById('ae').textContent='';
-}
-async function login(){
-  const r=await (await fetch('/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify({login:document.getElementById('li').value.trim(),password:document.getElementById('lp').value})})).json();
-  if(!r.success){document.getElementById('ae').textContent=r.error||'Erreur';return}
-  location.href='/app';
-}
-async function reg(){
-  const r=await (await fetch('/auth/register',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify({email:document.getElementById('re').value.trim(),username:document.getElementById('ru').value.trim(),password:document.getElementById('rp').value})})).json();
-  if(!r.success){document.getElementById('ae').textContent=r.error||'Erreur';return}
-  location.href='/app';
-}
-</script>
+  <main>
+    <section class="hero wrap" id="accueil">
+      <svg class="hero-logo" viewBox="0 0 520 340" role="img" aria-label="COD.IA">
+        <defs>
+          <linearGradient id="gold" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#efe6c8"/>
+            <stop offset="45%" stop-color="#b9a36a"/>
+            <stop offset="100%" stop-color="#efe6c8"/>
+          </linearGradient>
+        </defs>
+        <ellipse cx="262" cy="178" rx="128" ry="128" fill="none" stroke="#7d7d70" stroke-width="2"/>
+        <ellipse cx="262" cy="178" rx="48" ry="128" fill="none" stroke="#8a8a7c" stroke-width="1.3"/>
+        <ellipse cx="262" cy="178" rx="92" ry="128" fill="none" stroke="#8a8a7c" stroke-width="1.3"/>
+        <path d="M134 178h256" stroke="#8a8a7c" stroke-width="1.3"/>
+        <path d="M152 118c40-10 80-16 110-16s70 6 110 16" fill="none" stroke="#8a8a7c" stroke-width="1.3"/>
+        <path d="M152 238c40 10 80 16 110 16s70-6 110-16" fill="none" stroke="#8a8a7c" stroke-width="1.3"/>
+        <path d="M168 86c18-28 50-48 94-48 28 0 52 8 72 22" fill="none" stroke="#7d7d70" stroke-width="1.4"/>
+        <path d="M168 270c22 26 54 40 94 40 36 0 66-12 88-32" fill="none" stroke="#7d7d70" stroke-width="1.4"/>
+        <path d="M372 78l18-28M392 88l28-14M402 108l32 4" stroke="#c4b07a" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+        <text x="262" y="196" text-anchor="middle" font-family="Cormorant Garamond, serif" font-size="72" font-weight="600" fill="url(#gold)" letter-spacing="6">COD.IA</text>
+      </svg>
+
+      <h1 class="slogan"><span>Un monde tous ensemble</span></h1>
+      <p class="lead">Rejoins une communauté où entraide, partage et opportunités se rencontrent.</p>
+      <button class="btn btn-lg" type="button" onclick="openAuth('login')">Connexion</button>
+      <div class="hero-wave"></div>
+    </section>
+
+    <section class="block" id="fonctionnalites">
+      <div class="wrap">
+        <h2>Fonctionnalités</h2>
+        <p class="sub">Tout ce qu’il te faut pour trouver, partager et faire vivre les meilleurs codes.</p>
+        <div class="grid">
+          <article class="card">
+            <div class="ico">🏷</div>
+            <h3>Codes promo & parrainage</h3>
+            <p>Un feed clair, des filtres Promo / Parrainage / Expire bientôt, et les Top Codes les plus utiles.</p>
+          </article>
+          <article class="card">
+            <div class="ico">♡</div>
+            <h3>Favoris en un geste</h3>
+            <p>Glisse vers la droite pour garder un code. Retrouve-le ensuite dans ton profil, quand tu en as besoin.</p>
+          </article>
+          <article class="card">
+            <div class="ico">⎘</div>
+            <h3>Copier, puis ouvrir</h3>
+            <p>Un tap pour copier. Un second pour ouvrir le site. Simple, rapide, sans friction.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="block" id="communaute">
+      <div class="wrap">
+        <h2>Communauté</h2>
+        <p class="sub">COD.IA grandit grâce à celles et ceux qui partagent. Deux offres, deux chemins, un même esprit.</p>
+        <div class="offers">
+          <article class="offer">
+            <span class="tag">Offre de lancement · 3 semaines</span>
+            <h3>Parrainage chaleureux</h3>
+            <p>Lorsqu’un utilisateur rejoint COD.IA et utilise ton code de parrainage, <strong>1 point t’est attribué</strong>.</p>
+            <p><strong>500 / 1 000 / 1 500 points</strong> = <strong>500 / 1 000 / 1 500 €</strong>.</p>
+            <p>Tu invites. La communauté s’agrandit. Toi, tu avances avec elle.</p>
+          </article>
+          <article class="offer">
+            <span class="tag">Offre Copies</span>
+            <h3>Un code qui voyage</h3>
+            <p>Si <strong>un même code</strong> est copié <strong>250 fois</strong> → <strong>100 €</strong>.</p>
+            <p>Pas 250 codes différents : un seul code, beaucoup de personnes aidées.</p>
+            <p>Tu partages ce qui marche. Les autres en profitent. Tout le monde y gagne.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="block" id="apropos">
+      <div class="wrap">
+        <div class="mission">
+          <h2>Notre mission</h2>
+          <p>Créer un espace où chacun peut s’entraider, partager et avancer ensemble. Un monde plus simple, plus juste, tous ensemble.</p>
+          <div style="margin-top:26px">
+            <button class="btn btn-lg" type="button" onclick="openAuth('register')">Créer mon compte</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      COD.IA · <a href="mailto:contact@cod-ia.fr">contact@cod-ia.fr</a>
+    </div>
+  </footer>
+
+  <div class="modal" id="authModal" onclick="if(event.target===this)closeAuth()">
+    <div class="modal-card">
+      <button class="close-x" type="button" onclick="closeAuth()">×</button>
+      <h2 id="authTitle">Connexion</h2>
+      <p class="sub" style="margin-bottom:0">Un monde tous ensemble.</p>
+      <div class="tabs">
+        <button type="button" id="tabLogin" class="on" onclick="openAuth('login')">Connexion</button>
+        <button type="button" id="tabRegister" onclick="openAuth('register')">Inscription</button>
+      </div>
+
+      <form id="formLogin" method="post" action="/login">
+        <label for="login_id">Email ou nom d’utilisateur</label>
+        <input id="login_id" name="username" type="text" required autocomplete="username" />
+        <label for="login_pw">Mot de passe</label>
+        <input id="login_pw" name="password" type="password" required autocomplete="current-password" />
+        <button class="btn" type="submit">Entrer</button>
+      </form>
+
+      <form id="formRegister" method="post" action="/register" style="display:none">
+        <label for="reg_user">Nom d’utilisateur</label>
+        <input id="reg_user" name="username" type="text" required autocomplete="username" />
+        <label for="reg_email">Email</label>
+        <input id="reg_email" name="email" type="email" required autocomplete="email" />
+        <label for="reg_pw">Mot de passe</label>
+        <input id="reg_pw" name="password" type="password" required autocomplete="new-password" />
+        <button class="btn" type="submit">Créer mon compte</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    function openAuth(mode) {
+      document.getElementById("authModal").classList.add("open");
+      const login = mode !== "register";
+      document.getElementById("formLogin").style.display = login ? "block" : "none";
+      document.getElementById("formRegister").style.display = login ? "none" : "block";
+      document.getElementById("tabLogin").classList.toggle("on", login);
+      document.getElementById("tabRegister").classList.toggle("on", !login);
+      document.getElementById("authTitle").textContent = login ? "Connexion" : "Inscription";
+      document.getElementById("menu").classList.remove("open");
+    }
+    function closeAuth() {
+      document.getElementById("authModal").classList.remove("open");
+    }
+    document.querySelectorAll('nav.links a').forEach(a => {
+      a.addEventListener("click", () => {
+        document.querySelectorAll('nav.links a').forEach(x => x.classList.remove("active"));
+        a.classList.add("active");
+        document.getElementById("menu").classList.remove("open");
+      });
+    });
+  </script>
 </body>
 </html>
