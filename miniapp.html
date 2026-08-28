@@ -14,7 +14,7 @@ body{padding-bottom:100px}
 body.dark{--cream:#12140f;--white:#1b1e16;--text:#f3f5ee;--muted:#a3aa98;--border:#2c3226}
 .app{max-width:520px;margin:auto;min-height:100vh}
 .header{position:sticky;top:0;z-index:50;height:72px;background:rgba(248,247,241,.94);backdrop-filter:blur(18px);border-bottom:1px solid rgba(0,0,0,.05);display:flex;align-items:center;justify-content:space-between;padding:0 18px}
-.logo{display:flex;align-items:center;gap:9px;font-family:Georgia,serif;font-weight:700;font-size:25px;color:var(--green-dark)}
+.logo{display:flex;align-items:center;gap:9px;font-family:Georgia,serif;font-weight:700;font-size:25px;color:var(--green-dark);background:transparent}
 .logo-globe{width:39px;height:39px;border:2px solid var(--green);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px}
 .header-actions{display:flex;align-items:center;gap:10px}
 .icon-btn{width:42px;height:42px;border-radius:50%;background:transparent;color:var(--text);position:relative;font-size:21px}
@@ -51,7 +51,7 @@ body.dark{--cream:#12140f;--white:#1b1e16;--text:#f3f5ee;--muted:#a3aa98;--borde
 .medal{width:42px;height:42px;border-radius:50%;margin:auto;display:flex;align-items:center;justify-content:center;font-size:20px}
 .section-head{display:flex;justify-content:space-between;align-items:center;margin:24px 2px 12px}
 .section-title{font-family:Georgia,serif;font-size:22px;font-weight:700}
-.see-all{color:var(--green);font-size:13px;font-weight:800}
+.see-all{color:var(--green);font-size:13px;font-weight:800;background:transparent}
 .filters{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none}
 .filter{flex:none;background:#fff;border:1px solid var(--border);color:#6d7468;border-radius:30px;padding:10px 15px;font-size:12px;font-weight:700}
 .filter.active{background:var(--green);border-color:var(--green);color:#fff}
@@ -120,7 +120,7 @@ body.dark{--cream:#12140f;--white:#1b1e16;--text:#f3f5ee;--muted:#a3aa98;--borde
 <body>
 <div class="app">
 <header class="header">
-  <div class="logo"><div class="logo-globe">🌐</div>COD.IA</div>
+  <button class="logo" onclick="goPage('home')"><div class="logo-globe">🌐</div>COD.IA</button>
   <div class="header-actions">
     <button class="icon-btn" onclick="openNotifications()">🔔<span id="notificationDot" class="notification-dot"></span></button>
     <button class="icon-btn" onclick="toggleTheme()">◐</button>
@@ -337,10 +337,20 @@ async function api(url,options={}){
   const config={credentials:"same-origin",...options};
   config.headers={"Content-Type":"application/json",...(options.headers||{})};
   const response=await fetch(url,config);
-  let data;try{data=await response.json()}catch(e){data={ok:false,error:"Réponse serveur invalide."}}
-  if(response.status===401) showAuth();
-  if(!response.ok&&!data.error) data.error="Une erreur est survenue.";
+  const raw=await response.text();
+  let data;
+  try{data=JSON.parse(raw)}catch(e){data={ok:false,error:"Réponse serveur invalide ("+response.status+")."}}
+  if(!response.ok&&!data.error) data.error="Erreur "+response.status;
   return data;
+}
+async function apiFirst(urls,options={}){
+  let last={ok:false,error:"Aucune route disponible."};
+  for(const url of urls){
+    last=await api(url,options);
+    if(last.ok) return last;
+    if(last.error&&!String(last.error).includes("invalide")&&!String(last.error).includes("404")) return last;
+  }
+  return last;
 }
 function toast(m){const el=document.getElementById("toast");el.textContent=m;el.classList.add("show");clearTimeout(window.toastTimer);window.toastTimer=setTimeout(()=>el.classList.remove("show"),2800)}
 function escapeHtml(v){return String(v??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;")}
@@ -356,21 +366,22 @@ function showAuth(mode="login"){
   if(ref) document.getElementById("registerReferral").value=ref;
 }
 async function login(){
-  const result=await api("/api/login",{method:"POST",body:JSON.stringify({identifier:document.getElementById("loginIdentifier").value.trim(),password:document.getElementById("loginPassword").value})});
-  if(!result.ok){toast(result.error);return}
+  const payload={identifier:document.getElementById("loginIdentifier").value.trim(),password:document.getElementById("loginPassword").value};
+  const result=await apiFirst(["/api/login","/auth/login"],{method:"POST",body:JSON.stringify(payload)});
+  if(!result.ok){toast(result.error||"Connexion impossible");return}
   document.getElementById("auth").classList.remove("show");
   await boot();
 }
 async function register(){
-  const result=await api("/api/register",{method:"POST",body:JSON.stringify({display_name:document.getElementById("registerName").value.trim(),username:document.getElementById("registerUsername").value.trim(),email:document.getElementById("registerEmail").value.trim(),password:document.getElementById("registerPassword").value,referral_code:document.getElementById("registerReferral").value.trim().toUpperCase()})});
-  if(!result.ok){toast(result.error);return}
+  const payload={display_name:document.getElementById("registerName").value.trim(),username:document.getElementById("registerUsername").value.trim(),email:document.getElementById("registerEmail").value.trim(),password:document.getElementById("registerPassword").value,referral_code:document.getElementById("registerReferral").value.trim().toUpperCase()};
+  const result=await apiFirst(["/api/register","/auth/register"],{method:"POST",body:JSON.stringify(payload)});
+  if(!result.ok){toast(result.error||"Inscription impossible");return}
   document.getElementById("auth").classList.remove("show");
   toast("Bienvenue sur COD.IA");
   await boot();
 }
 function logout(){location.href="/logout"}
 async function boot(){
-  const params=new URLSearchParams(location.search);
   const result=await api("/api/me");
   if(!result.ok||!result.user){showAuth();return}
   currentUser=result.user;
