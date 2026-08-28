@@ -164,22 +164,6 @@ def init_db():
             ensure_column(cur, "users", "hidden_codes", "JSONB DEFAULT '[]'::jsonb")
             ensure_column(cur, "users", "updated_at", "TIMESTAMPTZ DEFAULT NOW()")
             ensure_column(cur, "users", "created_at", "TIMESTAMPTZ DEFAULT NOW()")
-            ensure_column(cur, "codes", "kind", "TEXT DEFAULT 'PROMO'")
-            ensure_column(cur, "codes", "category", "TEXT DEFAULT 'Autres'")
-            ensure_column(cur, "codes", "brand", "TEXT DEFAULT ''")
-            ensure_column(cur, "codes", "title", "TEXT")
-            ensure_column(cur, "codes", "description", "TEXT DEFAULT ''")
-            ensure_column(cur, "codes", "code", "TEXT DEFAULT ''")
-            ensure_column(cur, "codes", "url", "TEXT DEFAULT ''")
-            ensure_column(cur, "codes", "image_url", "TEXT DEFAULT ''")
-            ensure_column(cur, "codes", "expires_at", "TIMESTAMPTZ")
-            ensure_column(cur, "codes", "status", "TEXT DEFAULT 'VALIDEE'")
-            ensure_column(cur, "codes", "likes_count", "INTEGER DEFAULT 0")
-            ensure_column(cur, "codes", "copies_count", "INTEGER DEFAULT 0")
-            ensure_column(cur, "codes", "clicks_count", "INTEGER DEFAULT 0")
-            ensure_column(cur, "codes", "reports_count", "INTEGER DEFAULT 0")
-            ensure_column(cur, "codes", "copy_reward_awarded", "BOOLEAN DEFAULT FALSE")
-            ensure_column(cur, "codes", "created_at", "TIMESTAMPTZ DEFAULT NOW()")
 
             cur.execute(
                 """
@@ -203,6 +187,27 @@ def init_db():
                     copy_reward_awarded BOOLEAN DEFAULT FALSE,
                     created_at TIMESTAMPTZ DEFAULT NOW()
                 );
+                """
+            )
+            ensure_column(cur, "codes", "kind", "TEXT DEFAULT 'PROMO'")
+            ensure_column(cur, "codes", "category", "TEXT DEFAULT 'Autres'")
+            ensure_column(cur, "codes", "brand", "TEXT DEFAULT ''")
+            ensure_column(cur, "codes", "title", "TEXT")
+            ensure_column(cur, "codes", "description", "TEXT DEFAULT ''")
+            ensure_column(cur, "codes", "code", "TEXT DEFAULT ''")
+            ensure_column(cur, "codes", "url", "TEXT DEFAULT ''")
+            ensure_column(cur, "codes", "image_url", "TEXT DEFAULT ''")
+            ensure_column(cur, "codes", "expires_at", "TIMESTAMPTZ")
+            ensure_column(cur, "codes", "status", "TEXT DEFAULT 'VALIDEE'")
+            ensure_column(cur, "codes", "likes_count", "INTEGER DEFAULT 0")
+            ensure_column(cur, "codes", "copies_count", "INTEGER DEFAULT 0")
+            ensure_column(cur, "codes", "clicks_count", "INTEGER DEFAULT 0")
+            ensure_column(cur, "codes", "reports_count", "INTEGER DEFAULT 0")
+            ensure_column(cur, "codes", "copy_reward_awarded", "BOOLEAN DEFAULT FALSE")
+            ensure_column(cur, "codes", "created_at", "TIMESTAMPTZ DEFAULT NOW()")
+
+            cur.execute(
+                """
                 CREATE TABLE IF NOT EXISTS likes (
                     user_id BIGINT REFERENCES users(id) ON DELETE CASCADE,
                     code_id BIGINT REFERENCES codes(id) ON DELETE CASCADE,
@@ -353,13 +358,16 @@ def json_error(message, status=400):
 
 
 def create_notification(cur, user_id, title, message, kind="INFO"):
-    cur.execute(
-        """
-        INSERT INTO notifications(user_id, title, message, type)
-        VALUES(%s, %s, %s, %s)
-        """,
-        (user_id, title, message, kind),
-    )
+    try:
+        cur.execute(
+            """
+            INSERT INTO notifications(user_id, title, message, type)
+            VALUES(%s, %s, %s, %s)
+            """,
+            (user_id, title, message, kind),
+        )
+    except Exception as exc:
+        logging.error("Notification error: %s", exc)
 
 
 def user_stats(user_id):
@@ -399,7 +407,6 @@ def user_stats(user_id):
     }
 
 
-
 def challenge_start():
     conn = db()
     try:
@@ -420,115 +427,121 @@ def challenge_info(user_id=None):
     start = challenge_start()
     end = start + timedelta(days=21)
     now = now_utc()
-    conn = db()
+    points = 0
+    rank = 1
     try:
-        with conn.cursor() as cur:
-            if user_id:
+        conn = db()
+        try:
+            with conn.cursor() as cur:
+                if user_id:
+                    cur.execute(
+                        """
+                        SELECT COUNT(*) AS total
+                        FROM users
+                        WHERE referred_by=%s AND created_at >= %s AND created_at <= %s
+                        """,
+                        (user_id, start, end),
+                    )
+                    points = int(cur.fetchone()["total"] or 0)
+                if points >= 1500:
+                    level, reward = "OR", 1500
+                elif points >= 1000:
+                    level, reward = "ARGENT", 1000
+                elif points >= 500:
+                    level, reward = "BRONZE", 500
+                else:
+                    level, reward = "EN COURSE", 0
                 cur.execute(
                     """
-                    SELECT COUNT(*) AS total
-                    FROM users
-                    WHERE referred_by=%s AND created_at >= %s AND created_at <= %s
+                    SELECT COUNT(*) + 1 AS rank
+                    FROM (
+                        SELECT u.id, COUNT(r.id) AS referrals
+                        FROM users u
+                        LEFT JOIN users r
+                          ON r.referred_by=u.id
+                         AND r.created_at >= %s AND r.created_at <= %s
+                        GROUP BY u.id
+                        HAVING COUNT(r.id) > %s
+                    ) ranking
                     """,
-                    (user_id, start, end),
+                    (start, end, points),
                 )
-                points = int(cur.fetchone()["total"] or 0)
-            else:
-                points = 0
-            if points >= 1500:
-                level, reward = "OR", 1500
-            elif points >= 1000:
-                level, reward = "ARGENT", 1000
-            elif points >= 500:
-                level, reward = "BRONZE", 500
-            else:
-                level, reward = "EN COURSE", 0
-            cur.execute(
-                """
-                SELECT COUNT(*) + 1 AS rank
-                FROM (
-                    SELECT u.id, COUNT(r.id) AS referrals
-                    FROM users u
-                    LEFT JOIN users r
-                      ON r.referred_by=u.id
-                     AND r.created_at >= %s AND r.created_at <= %s
-                    GROUP BY u.id
-                    HAVING COUNT(r.id) > %s
-                ) ranking
-                """,
-                (start, end, points),
-            )
-            rank = int(cur.fetchone()["rank"] or 1)
-        return {
-            "start": iso(start),
-            "end": iso(end),
-            "active": now < end,
-            "finished": now >= end,
-            "remaining_seconds": max(0, int((end - now).total_seconds())),
-            "points": points,
-            "rank": rank,
-            "level": level,
-            "reward": reward,
-            "rule": "Lorsqu'un utilisateur rejoint COD.IA et utilise ton code de parrainage, 1 point t'est attribué.",
-            "bronze": {"target": 500, "reward": 500},
-            "silver": {"target": 1000, "reward": 1000},
-            "gold": {"target": 1500, "reward": 1500},
-        }
-    finally:
-        conn.close()
+                rank = int(cur.fetchone()["rank"] or 1)
+        finally:
+            conn.close()
+    except Exception:
+        level, reward = "EN COURSE", 0
+    return {
+        "start": iso(start),
+        "end": iso(end),
+        "active": now < end,
+        "finished": now >= end,
+        "remaining_seconds": max(0, int((end - now).total_seconds())),
+        "points": points,
+        "rank": rank,
+        "level": level,
+        "reward": reward,
+        "rule": "Lorsqu'un utilisateur rejoint COD.IA et utilise ton code de parrainage, 1 point t'est attribué.",
+        "bronze": {"target": 500, "reward": 500},
+        "silver": {"target": 1000, "reward": 1000},
+        "gold": {"target": 1500, "reward": 1500},
+    }
 
 
 def serialize_code(row, current_user_id=None):
-    conn = db()
+    liked = favorite = False
+    author = {}
     try:
-        liked = favorite = False
-        author = {}
-        with conn.cursor() as cur:
-            if current_user_id:
+        conn = db()
+        try:
+            with conn.cursor() as cur:
+                if current_user_id:
+                    cur.execute(
+                        "SELECT 1 FROM likes WHERE user_id=%s AND code_id=%s",
+                        (current_user_id, row["id"]),
+                    )
+                    liked = bool(cur.fetchone())
+                    cur.execute(
+                        "SELECT 1 FROM favorites WHERE user_id=%s AND code_id=%s",
+                        (current_user_id, row["id"]),
+                    )
+                    favorite = bool(cur.fetchone())
                 cur.execute(
-                    "SELECT 1 FROM likes WHERE user_id=%s AND code_id=%s",
-                    (current_user_id, row["id"]),
+                    "SELECT id, username, display_name, avatar_initials FROM users WHERE id=%s",
+                    (row["user_id"],),
                 )
-                liked = bool(cur.fetchone())
-                cur.execute(
-                    "SELECT 1 FROM favorites WHERE user_id=%s AND code_id=%s",
-                    (current_user_id, row["id"]),
-                )
-                favorite = bool(cur.fetchone())
-            cur.execute(
-                "SELECT id, username, display_name, avatar_initials FROM users WHERE id=%s",
-                (row["user_id"],),
-            )
-            author = cur.fetchone() or {}
-        expires = row.get("expires_at")
-        expired = bool(expires) and expires <= now_utc()
-        return {
-            "id": row["id"],
-            "user_id": row["user_id"],
-            "kind": row["kind"],
-            "type": "parrainage" if row["kind"] == "PARRAINAGE" else "promo",
-            "category": row["category"],
-            "brand": row["brand"],
-            "site": row["brand"] or row["title"],
-            "title": row["title"],
-            "description": row["description"],
-            "code": row["code"],
-            "url": row["url"],
-            "image_url": row.get("image_url"),
-            "added_by": author.get("display_name") or author.get("username") or "Membre",
-            "expires_at": iso(expires),
-            "expired": expired,
-            "status": "EXPIREE" if expired else row["status"],
-            "likes": row["likes_count"],
-            "copies": row["copies_count"],
-            "clicks": row["clicks_count"],
-            "reports": row["reports_count"],
-            "liked": liked,
-            "favorite": favorite,
-            "created_at": iso(row["created_at"]),
-        }
-    finally:
-        conn.close()
+                author = cur.fetchone() or {}
+        finally:
+            conn.close()
+    except Exception:
+        pass
+    expires = row.get("expires_at")
+    expired = bool(expires) and expires <= now_utc()
+    return {
+        "id": row["id"],
+        "user_id": row["user_id"],
+        "kind": row.get("kind") or "PROMO",
+        "type": "parrainage" if row.get("kind") == "PARRAINAGE" else "promo",
+        "category": row.get("category"),
+        "brand": row.get("brand"),
+        "site": row.get("brand") or row.get("title"),
+        "title": row.get("title"),
+        "description": row.get("description"),
+        "code": row.get("code"),
+        "url": row.get("url"),
+        "image_url": row.get("image_url"),
+        "added_by": author.get("display_name") or author.get("username") or "Membre",
+        "expires_at": iso(expires),
+        "expired": expired,
+        "status": "EXPIREE" if expired else row.get("status"),
+        "likes": row.get("likes_count") or 0,
+        "copies": row.get("copies_count") or 0,
+        "clicks": row.get("clicks_count") or 0,
+        "reports": row.get("reports_count") or 0,
+        "liked": liked,
+        "favorite": favorite,
+        "created_at": iso(row.get("created_at")),
+    }
 
 
 @app.route("/")
@@ -641,6 +654,8 @@ def register():
     if len(display_name) < 2:
         display_name = username
 
+    user_id = None
+    admin = email in ADMIN_EMAILS
     conn = db()
     try:
         with conn.cursor() as cur:
@@ -661,7 +676,6 @@ def register():
                 if referrer:
                     referred_by = referrer["id"]
 
-            admin = email in ADMIN_EMAILS
             cur.execute(
                 """
                 INSERT INTO users(
@@ -701,6 +715,13 @@ def register():
                 "WELCOME",
             )
         conn.commit()
+    except Exception as exc:
+        logging.error("REGISTER ERROR: %s", exc)
+        try:
+            conn.rollback()
+        except Exception:
+            pass
+        return json_error("Inscription impossible : " + str(exc), 500)
     finally:
         conn.close()
 
@@ -781,8 +802,14 @@ def me_any():
         return jsonify({"ok": True, "user": None, "paid": False, "is_admin": False})
     admin = is_admin(user)
     paid = bool(user.get("is_paid")) or admin
-    challenge = challenge_info(user["id"])
-    stats = user_stats(user["id"])
+    try:
+        challenge = challenge_info(user["id"])
+    except Exception:
+        challenge = {"points": 0, "remaining_seconds": 0, "level": "EN COURSE", "reward": 0}
+    try:
+        stats = user_stats(user["id"])
+    except Exception:
+        stats = {"referrals": 0, "points": 0, "likes": 0, "clicks": 0}
     return jsonify({
         "ok": True,
         "user": {
@@ -946,7 +973,7 @@ def feed(user):
             params = [user["id"]]
             query = """
                 SELECT c.* FROM codes c
-                WHERE c.status='VALIDEE'
+                WHERE COALESCE(c.status,'VALIDEE')='VALIDEE'
                   AND (c.expires_at IS NULL OR c.expires_at > NOW())
                   AND NOT EXISTS (
                       SELECT 1 FROM reports r
@@ -971,13 +998,16 @@ def feed(user):
                 term = f"%{search}%"
                 params.extend([term, term, term, term])
             if mode == "top":
-                query += " ORDER BY (c.likes_count + c.copies_count) DESC, c.created_at DESC"
+                query += " ORDER BY (COALESCE(c.likes_count,0) + COALESCE(c.copies_count,0)) DESC, c.created_at DESC"
             else:
                 query += " ORDER BY c.created_at DESC"
             query += " LIMIT 80"
             cur.execute(query, params)
             rows = cur.fetchall()
         return jsonify({"ok": True, "codes": [serialize_code(row, user["id"]) for row in rows]})
+    except Exception as exc:
+        logging.error("FEED ERROR: %s", exc)
+        return jsonify({"ok": True, "codes": []})
     finally:
         conn.close()
 
@@ -989,7 +1019,7 @@ def codes_compat():
         conn = db()
         try:
             with conn.cursor() as cur:
-                q = "SELECT * FROM codes WHERE status='VALIDEE' ORDER BY created_at DESC LIMIT 80"
+                q = "SELECT * FROM codes ORDER BY created_at DESC LIMIT 80"
                 cur.execute(q)
                 rows = cur.fetchall()
             return jsonify({"codes": [serialize_code(row) for row in rows]})
@@ -1009,15 +1039,18 @@ def top_codes():
             cur.execute(
                 """
                 SELECT * FROM codes
-                WHERE status='VALIDEE'
-                  AND (likes_count >= 100 OR copies_count >= 100)
+                WHERE COALESCE(status,'VALIDEE')='VALIDEE'
+                  AND (COALESCE(likes_count,0) >= 100 OR COALESCE(copies_count,0) >= 100)
                   AND (expires_at IS NULL OR expires_at > NOW())
-                ORDER BY (likes_count + copies_count) DESC
+                ORDER BY (COALESCE(likes_count,0) + COALESCE(copies_count,0)) DESC
                 LIMIT 30
                 """
             )
             rows = cur.fetchall()
         return jsonify({"ok": True, "codes": [serialize_code(row, uid) for row in rows]})
+    except Exception as exc:
+        logging.error("TOP CODES ERROR: %s", exc)
+        return jsonify({"ok": True, "codes": []})
     finally:
         conn.close()
 
@@ -1062,6 +1095,9 @@ def create_code(user):
         if CHANNEL_ID:
             send_telegram_message(CHANNEL_ID, f"{kind}\n{user.get('username')}\n{title}\n{code}")
         return jsonify({"ok": True, "success": True, "code": serialize_code(row, user["id"])})
+    except Exception as exc:
+        logging.error("CREATE CODE ERROR: %s", exc)
+        return json_error("Publication impossible : " + str(exc), 500)
     finally:
         conn.close()
 
@@ -1079,10 +1115,10 @@ def copy_code(user, code_id=None):
             code = cur.fetchone()
             if not code:
                 return json_error("Code introuvable.", 404)
-            if code["expires_at"] and code["expires_at"] <= now_utc():
+            if code.get("expires_at") and code["expires_at"] <= now_utc():
                 return json_error("Ce code est expiré.", 410)
             cur.execute(
-                "UPDATE codes SET copies_count=copies_count+1 WHERE id=%s RETURNING copies_count",
+                "UPDATE codes SET copies_count=COALESCE(copies_count,0)+1 WHERE id=%s RETURNING copies_count",
                 (code_id,),
             )
             new_count = int(cur.fetchone()["copies_count"])
@@ -1096,7 +1132,7 @@ def copy_code(user, code_id=None):
                     "REWARD",
                 )
         conn.commit()
-        return jsonify({"ok": True, "copies": new_count, "code": code["code"], "url": code["url"]})
+        return jsonify({"ok": True, "copies": new_count, "code": code["code"], "url": code.get("url")})
     finally:
         conn.close()
 
@@ -1112,7 +1148,7 @@ def like_code(user, code_id):
             if already:
                 cur.execute("DELETE FROM likes WHERE user_id=%s AND code_id=%s", (user["id"], code_id))
                 cur.execute(
-                    "UPDATE codes SET likes_count=GREATEST(likes_count-1,0) WHERE id=%s RETURNING likes_count",
+                    "UPDATE codes SET likes_count=GREATEST(COALESCE(likes_count,0)-1,0) WHERE id=%s RETURNING likes_count",
                     (code_id,),
                 )
                 liked = False
@@ -1122,7 +1158,7 @@ def like_code(user, code_id):
                     (user["id"], code_id),
                 )
                 cur.execute(
-                    "UPDATE codes SET likes_count=likes_count+1 WHERE id=%s RETURNING likes_count",
+                    "UPDATE codes SET likes_count=COALESCE(likes_count,0)+1 WHERE id=%s RETURNING likes_count",
                     (code_id,),
                 )
                 liked = True
@@ -1387,7 +1423,7 @@ def code_edit(user):
 @require_auth
 def update_profile(user):
     data = request.get_json(silent=True) or {}
-    display_name = data.get("display_name") if data.get("display_name") is not None else user["display_name"]
+    display_name = data.get("display_name") if data.get("display_name") is not None else user.get("display_name")
     bio = data.get("bio") if data.get("bio") is not None else user.get("bio")
     display_name = str(display_name).strip()[:80]
     bio = str(bio or "").strip()[:300]
@@ -1418,7 +1454,7 @@ def profile_full_stats(user):
             cur.execute("SELECT * FROM users WHERE id=%s", (target,))
             u = cur.fetchone() or {}
             cur.execute(
-                "SELECT COUNT(*) AS c, COALESCE(SUM(likes_count),0) AS l, COALESCE(SUM(copies_count),0) AS k FROM codes WHERE user_id=%s AND status='VALIDEE'",
+                "SELECT COUNT(*) AS c, COALESCE(SUM(likes_count),0) AS l, COALESCE(SUM(copies_count),0) AS k FROM codes WHERE user_id=%s",
                 (target,),
             )
             st = cur.fetchone()
@@ -1461,7 +1497,7 @@ def leaderboard():
                  AND r.created_at >= %s AND r.created_at <= %s
                 GROUP BY u.id, u.display_name, u.username, u.avatar_initials
                 ORDER BY points DESC, u.created_at ASC
-                LIMIT 10
+                LIMIT 3
                 """,
                 (start, start + timedelta(days=21)),
             )
@@ -1470,7 +1506,7 @@ def leaderboard():
                 """
                 SELECT user_id, COALESCE(brand,title,'Membre') AS name, COUNT(*) AS codes_count
                 FROM codes
-                WHERE status='VALIDEE' AND created_at > NOW() - INTERVAL '7 days'
+                WHERE created_at > NOW() - INTERVAL '7 days'
                 GROUP BY user_id, brand, title
                 ORDER BY codes_count DESC LIMIT 10
                 """
@@ -1573,13 +1609,15 @@ def notifications(user):
                     "id": row["id"],
                     "title": row["title"],
                     "message": row["message"],
-                    "type": row["type"],
-                    "read": row["is_read"],
-                    "created_at": iso(row["created_at"]),
+                    "type": row.get("type"),
+                    "read": row.get("is_read"),
+                    "created_at": iso(row.get("created_at")),
                 }
                 for row in rows
             ],
         })
+    except Exception:
+        return jsonify({"ok": True, "unread": 0, "notifications": []})
     finally:
         conn.close()
 
@@ -1700,7 +1738,7 @@ def admin_stats(user):
             users = int(cur.fetchone()["n"])
             cur.execute("SELECT COUNT(*) AS n FROM users WHERE is_paid=TRUE")
             paid = int(cur.fetchone()["n"])
-            cur.execute("SELECT COUNT(*) AS n FROM codes WHERE status='VALIDEE'")
+            cur.execute("SELECT COUNT(*) AS n FROM codes")
             codes = int(cur.fetchone()["n"])
             cur.execute("SELECT COUNT(*) AS n FROM users WHERE referred_by IS NOT NULL")
             refs = int(cur.fetchone()["n"])
