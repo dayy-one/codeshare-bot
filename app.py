@@ -3,15 +3,12 @@ import logging
 import os
 import re
 import secrets
-import smtplib
 import string
 from datetime import datetime, timedelta, timezone
-from email.message import EmailMessage
 from functools import wraps
 
 import psycopg2
 import psycopg2.extras
-import requests
 from flask import Flask, jsonify, redirect, request, send_from_directory, session
 from werkzeug.middleware.proxy_fix import ProxyFix
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -32,7 +29,6 @@ app.config.update(SESSION_COOKIE_HTTPONLY=True, SESSION_COOKIE_SECURE=True, SESS
 DATABASE_URL = os.getenv("DATABASE_URL", "")
 SERVER_URL = os.getenv("SERVER_URL", "https://cod-ia.fr").rstrip("/")
 ADMIN_EMAILS = {x.strip().lower() for x in os.getenv("ADMIN_EMAILS", "contact@cod-ia.fr").split(",") if x.strip()}
-ADMIN_IDS = {x.strip() for x in os.getenv("ADMIN_IDS", "8091031583,6886937051").split(",") if x.strip()}
 try:
     PRICE_CENTS = int(os.getenv("PRICE_CENTS", "999"))
 except ValueError:
@@ -42,13 +38,6 @@ STRIPE_PUBLISHABLE_KEY = os.getenv("STRIPE_PUBLISHABLE_KEY", "")
 STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET", "")
 STRIPE_PRICE_ID = os.getenv("STRIPE_PRICE_ID", "")
 STRIPE_UI_MODE = os.getenv("STRIPE_UI_MODE", "embedded_page")
-TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN") or os.getenv("BOT_TOKEN", "")
-CHANNEL_ID = os.getenv("CHANNEL_ID", "")
-SMTP_HOST = os.getenv("SMTP_HOST", "")
-SMTP_PORT = int(os.getenv("SMTP_PORT", "587") or 587)
-SMTP_USER = os.getenv("SMTP_USER", "")
-SMTP_PASSWORD = os.getenv("SMTP_PASSWORD", "")
-MAIL_FROM = os.getenv("MAIL_FROM", "contact@cod-ia.fr")
 if stripe and STRIPE_SECRET_KEY:
     stripe.api_key = STRIPE_SECRET_KEY
 
@@ -75,27 +64,6 @@ def clean_username(v):
     return re.sub(r"[^a-z0-9_.-]", "", (v or "").strip().lower())[:30]
 
 
-def send_email(to_email, subject, body):
-    logging.info("MAIL CODE to %s | %s\n%s", to_email, subject, body)
-    if not SMTP_HOST or not to_email:
-        return False
-    try:
-        msg = EmailMessage()
-        msg["Subject"] = subject
-        msg["From"] = MAIL_FROM
-        msg["To"] = to_email
-        msg.set_content(body)
-        with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=20) as server:
-            server.starttls()
-            if SMTP_USER:
-                server.login(SMTP_USER, SMTP_PASSWORD)
-            server.send_message(msg)
-        return True
-    except Exception as exc:
-        logging.error("MAIL ERROR: %s", exc)
-        return False
-
-
 def ensure_column(cur, table, column, definition):
     cur.execute("SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name=%s AND column_name=%s", (table, column))
     if not cur.fetchone():
@@ -112,14 +80,12 @@ def init_db():
                 avatar_initials TEXT DEFAULT 'CO', avatar_url TEXT DEFAULT '',
                 referral_code TEXT UNIQUE NOT NULL, referred_by BIGINT,
                 is_admin BOOLEAN DEFAULT FALSE, is_paid BOOLEAN DEFAULT FALSE,
-                email_verified BOOLEAN DEFAULT FALSE, verify_token TEXT,
                 stripe_session_id TEXT, hidden_codes JSONB DEFAULT '[]'::jsonb,
                 created_at TIMESTAMPTZ DEFAULT NOW(), updated_at TIMESTAMPTZ DEFAULT NOW())""")
             for c, d in [("password_hash","TEXT"),("display_name","TEXT"),("bio","TEXT DEFAULT ''"),
                          ("avatar_initials","TEXT DEFAULT 'CO'"),("avatar_url","TEXT DEFAULT ''"),
                          ("referral_code","TEXT"),("referred_by","BIGINT"),("is_admin","BOOLEAN DEFAULT FALSE"),
-                         ("is_paid","BOOLEAN DEFAULT FALSE"),("email_verified","BOOLEAN DEFAULT FALSE"),
-                         ("verify_token","TEXT"),("stripe_session_id","TEXT"),
+                         ("is_paid","BOOLEAN DEFAULT FALSE"),("stripe_session_id","TEXT"),
                          ("hidden_codes","JSONB DEFAULT '[]'::jsonb")]:
                 ensure_column(cur, "users", c, d)
             cur.execute("""CREATE TABLE IF NOT EXISTS codes (
@@ -146,7 +112,7 @@ def init_db():
                 CREATE TABLE IF NOT EXISTS settings(key TEXT PRIMARY KEY, value TEXT NOT NULL);""")
             cur.execute("INSERT INTO settings(key,value) VALUES('challenge_start',%s) ON CONFLICT DO NOTHING", (now_utc().isoformat(),))
             for email in ADMIN_EMAILS:
-                cur.execute("UPDATE users SET is_admin=TRUE, is_paid=TRUE, email_verified=TRUE WHERE LOWER(email)=%s", (email,))
+                cur.execute("UPDATE users SET is_admin=TRUE, is_paid=TRUE WHERE LOWER(email)=%s", (email,))
         conn.commit()
         logging.info("DB initialisée")
     finally:
@@ -233,7 +199,10 @@ def challenge_start():
     except Exception:
         return now_utc()
     finally:
-        conn.close()
+        try:
+            conn.close()
+        except Exception:
+            pass
 
 
 def challenge_info(user_id=None):
@@ -316,7 +285,6 @@ def register():
     if len(password) < 8:
         return json_error("Mot de passe : 8 caractères minimum.")
     admin = email in ADMIN_EMAILS
-    code = "000000" if admin else f"{secrets.randbelow(1000000):06d}"
     conn = db()
     try:
         with conn.cursor() as cur:
@@ -329,11 +297,11 @@ def register():
                 ref = cur.fetchone()
                 if ref:
                     referred_by = ref["id"]
-            cur.execute("""INSERT INTO users(email,username,password_hash,display_name,avatar_initials,referral_code,referred_by,is_admin,is_paid,email_verified,verify_token)
-                VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) RETURNING id""",
+            cur.execute("""INSERT INTO users(email,username,password_hash,display_name,avatar_initials,referral_code,referred_by,is_admin,is_paid)
+                VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s) RETURNING id""",
                 (email, username, generate_password_hash(password), display_name or username,
                  "".join(x[0] for x in (display_name or username).split() if x)[:2].upper() or "CO",
-                 make_referral_code(), referred_by, admin, admin, admin, None if admin else code))
+                 make_referral_code(), referred_by, admin, admin))
             user_id = cur.fetchone()["id"]
             if referred_by:
                 create_notification(cur, referred_by, "Nouveau parrainage", f"{display_name} a rejoint avec ton code. +1 point.", "REFERRAL")
@@ -344,37 +312,9 @@ def register():
         return json_error("Inscription impossible : " + str(exc), 500)
     finally:
         conn.close()
-    if not admin:
-        send_email(email, "Ton code COD.IA", f"Voici ton code de confirmation COD.IA : {code}\nValide-le sur le site pour continuer.")
     session.permanent = True
     session["user_id"] = user_id
-    return jsonify({"ok": True, "needs_verification": not admin, "user": {"id": user_id, "email": email, "username": username, "is_paid": admin, "is_admin": admin, "email_verified": admin}})
-
-
-@app.post("/api/verify-email")
-def verify_email():
-    data = request.get_json(silent=True) or {}
-    code = re.sub(r"\D", "", data.get("code") or request.args.get("token") or "")
-    user = get_current_user()
-    conn = db()
-    try:
-        with conn.cursor() as cur:
-            if user:
-                cur.execute("SELECT * FROM users WHERE id=%s", (user["id"],))
-            else:
-                cur.execute("SELECT * FROM users WHERE verify_token=%s", (code,))
-            row = cur.fetchone()
-            if not row:
-                return json_error("Code invalide.")
-            if not is_admin(row) and str(row.get("verify_token") or "") != code:
-                return json_error("Code incorrect.")
-            cur.execute("UPDATE users SET email_verified=TRUE, verify_token=NULL WHERE id=%s", (row["id"],))
-        conn.commit()
-        session.permanent = True
-        session["user_id"] = row["id"]
-        return jsonify({"ok": True, "user": {"id": row["id"], "is_paid": bool(row.get("is_paid")), "is_admin": is_admin(row), "email_verified": True}})
-    finally:
-        conn.close()
+    return jsonify({"ok": True, "user": {"id": user_id, "email": email, "username": username, "is_paid": admin, "is_admin": admin}})
 
 
 @app.post("/api/login")
@@ -395,8 +335,7 @@ def login():
     session.permanent = True
     session["user_id"] = user["id"]
     admin = is_admin(user)
-    return jsonify({"ok": True, "needs_verification": not (user.get("email_verified") or admin),
-                    "user": {"id": user["id"], "email": user.get("email"), "is_paid": bool(user.get("is_paid")) or admin, "is_admin": admin, "email_verified": bool(user.get("email_verified")) or admin}})
+    return jsonify({"ok": True, "user": {"id": user["id"], "email": user.get("email"), "is_paid": bool(user.get("is_paid")) or admin, "is_admin": admin}})
 
 
 @app.get("/api/me")
@@ -413,7 +352,6 @@ def me_any():
         "referral_code": user.get("referral_code"),
         "referral_link": f"{SERVER_URL}/app?ref={user.get('referral_code') or ''}",
         "is_admin": admin, "is_paid": paid, "paid": paid,
-        "email_verified": bool(user.get("email_verified")) or admin,
     }, "stats": user_stats(user["id"]), "challenge": challenge_info(user["id"])})
 
 
@@ -584,6 +522,9 @@ def copy_code(user, code_id):
             if not code:
                 return json_error("Code introuvable.", 404)
             cur.execute("UPDATE codes SET copies_count=COALESCE(copies_count,0)+1 WHERE id=%s", (code_id,))
+            if int(code.get("copies_count") or 0) + 1 >= 250 and not code.get("copy_reward_awarded"):
+                cur.execute("UPDATE codes SET copy_reward_awarded=TRUE WHERE id=%s", (code_id,))
+                create_notification(cur, code["user_id"], "Récompense Copies", "250 copies atteintes. Récompense : 100 €.", "REWARD")
         conn.commit()
         return jsonify({"ok": True, "code": code.get("code"), "url": code.get("url")})
     finally:
@@ -704,11 +645,7 @@ def update_profile(user):
                 cur.execute("SELECT id FROM users WHERE LOWER(email)=LOWER(%s) AND id<>%s", (email, user["id"]))
                 if cur.fetchone():
                     return json_error("Cet email est déjà utilisé.")
-                pin = f"{secrets.randbelow(1000000):06d}"
-                cur.execute("UPDATE users SET bio=%s, email=%s, email_verified=FALSE, verify_token=%s, avatar_url=%s, updated_at=NOW() WHERE id=%s", (bio, email, pin, avatar_url or "", user["id"]))
-                send_email(email, "Confirme ton nouvel email COD.IA", f"Ton code : {pin}")
-            else:
-                cur.execute("UPDATE users SET bio=%s, avatar_url=%s, updated_at=NOW() WHERE id=%s", (bio, avatar_url or "", user["id"]))
+            cur.execute("UPDATE users SET bio=%s, email=%s, avatar_url=%s, updated_at=NOW() WHERE id=%s", (bio, email, avatar_url or "", user["id"]))
         conn.commit()
         return jsonify({"ok": True})
     finally:
