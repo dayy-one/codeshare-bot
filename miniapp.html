@@ -6,7 +6,7 @@
 <title>COD.IA — Un monde tous ensemble</title>
 <script src="https://js.stripe.com/v3/"></script>
 <style>
-:root{--green:#617b35;--green-dark:#405824;--green-light:#edf2e3;--cream:#f8f7f1;--white:#fff;--text:#172014;--muted:#777d72;--border:#e7e8df;--shadow:0 10px 35px rgba(50,65,30,.08);--radius:24px}
+:root{--green:#617b35;--green-dark:#405824;--green-light:#edf2e3;--cream:#f8f7f1;--text:#172014;--muted:#777d72;--border:#e7e8df;--shadow:0 10px 35px rgba(50,65,30,.08);--radius:24px}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;padding:0;min-height:100%;background:var(--cream);color:var(--text);font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
 button,input,textarea,select{font:inherit}button{border:0;cursor:pointer}
@@ -25,7 +25,7 @@ body{padding-bottom:100px}
 .profile-name{font-family:Georgia,serif;font-size:27px;font-weight:700;margin:4px 0}
 .member{color:var(--green-dark);font-size:13px;font-weight:700}
 .bio{color:#5f665c;font-size:13px;margin-top:9px;line-height:1.45}
-.edit-btn{background:#fff;border:1px solid #d7dccd;color:var(--text);border-radius:13px;padding:10px 13px;font-weight:700}
+.edit-btn{background:#fff;border:1px solid #d7dccd;border-radius:13px;padding:10px 13px;font-weight:700}
 .card{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:18px;margin-top:14px;box-shadow:var(--shadow)}
 .card-title{font-size:17px;font-weight:800;margin-bottom:12px}
 .referral-row{display:flex;align-items:center;gap:9px}
@@ -84,11 +84,11 @@ body{padding-bottom:100px}
 .close{width:38px;height:38px;border-radius:50%;background:#f0f2ec}
 .field{margin-bottom:13px}.field label{display:block;font-size:12px;font-weight:800;margin-bottom:6px}
 .field input,.field textarea,.field select{width:100%;border:1px solid #dfe3d8;background:#f9faf6;border-radius:13px;padding:13px;outline:0}
-.paywall,.onboard,.auth{position:fixed;inset:0;z-index:300;background:radial-gradient(circle at 50% 0%,#e8eddc,#f8f7f1 55%);display:none;align-items:center;justify-content:center;padding:22px}
+.paywall,.onboard{position:fixed;inset:0;z-index:300;background:radial-gradient(circle at 50% 0%,#e8eddc,#f8f7f1 55%);display:none;align-items:center;justify-content:center;padding:16px;overflow:auto}
 .paywall.show,.onboard.show{display:flex}
-.paywall-card{width:min(450px,100%);background:#fff;border-radius:30px;padding:30px 22px;text-align:center}
+.paywall-card{width:min(480px,100%);background:#fff;border-radius:30px;padding:24px 18px;text-align:center}
 .price{font-size:38px;font-weight:900;color:var(--green-dark);margin:15px 0}
-.auth{display:none;overflow:auto;align-items:flex-start}
+.auth{position:fixed;inset:0;z-index:300;background:var(--cream);display:none;overflow:auto}
 .auth.show{display:block}
 .auth-inner{max-width:480px;margin:auto;padding:40px 20px}
 .auth-logo{text-align:center;font-family:Georgia,serif;color:var(--green-dark);font-size:34px;font-weight:800}
@@ -211,16 +211,14 @@ body{padding-bottom:100px}
   <div class="field"><label>Expiration</label><input id="publishExpiration" type="datetime-local"></div>
   <button class="primary" onclick="publishCode()">Publier mon offre</button>
 </div></div>
-
 <div id="editModal" class="modal"><div class="sheet">
   <div class="sheet-head"><div class="section-title">Modifier mon profil</div><button class="close" onclick="closeModal('editModal')">✕</button></div>
   <div class="field"><label>Photo de profil</label><input id="editPhoto" type="file" accept="image/*"></div>
-  <div class="field"><label>Bio</label><textarea id="editBio" placeholder="Quelques mots sur toi"></textarea></div>
+  <div class="field"><label>Bio</label><textarea id="editBio"></textarea></div>
   <div class="field"><label>Email</label><input id="editEmail" type="email"></div>
   <p class="code-desc">Le nom d’utilisateur ne peut pas être modifié.</p>
   <button class="primary" onclick="saveProfile()">Enregistrer</button>
 </div></div>
-
 <div id="supportModal" class="modal"><div class="sheet">
   <div class="sheet-head"><div class="section-title">Support</div><button class="close" onclick="closeModal('supportModal')">✕</button></div>
   <div class="field"><label>Sujet</label><input id="supportSubject"></div>
@@ -233,7 +231,7 @@ body{padding-bottom:100px}
 </div></div>
 <div id="launchModal" class="modal"><div class="sheet">
   <div class="sheet-head"><div class="section-title">Offre de Lancement</div><button class="close" onclick="closeModal('launchModal')">✕</button></div>
-  <p class="code-desc">1 point quand quelqu’un rejoint avec ton code. 500 / 1 000 / 1 500 points = 500 € / 1 000 € / 1 500 €.</p>
+  <p class="code-desc">1 point par inscription avec ton code. 500 / 1000 / 1500 points = 500 € / 1000 € / 1500 €.</p>
   <button class="primary" onclick="closeModal('launchModal')">C’est compris</button>
 </div></div>
 <div id="copiesModal" class="modal"><div class="sheet">
@@ -290,18 +288,25 @@ body{padding-bottom:100px}
 
 <div id="paywall" class="paywall"><div class="paywall-card">
   <div class="logo-globe" style="margin:0 auto 12px">C.</div>
-  <h1>Bienvenue sur COD.IA</h1>
-  <p style="color:#70776b;font-size:13px">Rejoins la communauté.</p>
-  <div class="price">9,99 € <small>accès unique</small></div>
-  <div class="compare">
-    <div><b>Ce que tu obtiens</b><b>Gratuit</b><b>COD.IA</b></div>
-    <div><span>Voir tous les codes</span><span>✗</span><span>✓</span></div>
-    <div><span>Publier</span><span>✗</span><span>✓</span></div>
-    <div><span>Offre Lancement 1 500 €</span><span>✗</span><span>✓</span></div>
-    <div><span>250 copies = 100 €</span><span>✗</span><span>✓</span></div>
+  <div id="paywallIntro">
+    <h1>Bienvenue sur COD.IA</h1>
+    <p style="color:#70776b;font-size:13px">Rejoins la communauté.</p>
+    <div class="price">9,99 € <small>accès unique</small></div>
+    <div class="compare">
+      <div><b>Ce que tu obtiens</b><b>Gratuit</b><b>COD.IA</b></div>
+      <div><span>Voir tous les codes</span><span>✗</span><span>✓</span></div>
+      <div><span>Publier</span><span>✗</span><span>✓</span></div>
+      <div><span>Offre Lancement 1 500 €</span><span>✗</span><span>✓</span></div>
+      <div><span>250 copies = 100 €</span><span>✗</span><span>✓</span></div>
+    </div>
+    <button class="primary" onclick="startPayment()">Rejoindre COD.IA — 9,99 €</button>
+    <button class="secondary" style="width:100%;margin-top:10px" onclick="location.href='/'">Retour au site</button>
   </div>
-  <button class="primary" onclick="startPayment()">Rejoindre COD.IA — 9,99 €</button>
-  <button class="secondary" style="width:100%;margin-top:10px" onclick="location.href='/'">Retour au site</button>
+  <div id="stripeBox" style="display:none;text-align:left">
+    <h2 style="text-align:center">Paiement 9,99 €</h2>
+    <div id="stripeCheckout" style="min-height:480px"></div>
+    <button class="secondary" style="width:100%;margin-top:10px" onclick="backPaywall()">Retour</button>
+  </div>
 </div></div>
 
 <div id="onboard" class="onboard"><div class="onboard-card">
@@ -310,20 +315,15 @@ body{padding-bottom:100px}
   <p class="code-desc" id="onboardText">Découvre les codes promo et parrainages partagés par la communauté.</p>
   <button class="primary" onclick="nextOnboard()">Suivant</button>
 </div></div>
-
-<div id="stripeModal" class="modal"><div class="sheet" style="height:90vh">
-  <div class="sheet-head"><div class="section-title">Paiement sécurisé</div><button class="close" onclick="closeModal('stripeModal')">✕</button></div>
-  <div id="stripeCheckout" style="min-height:500px"></div>
-</div></div>
 <div id="toast" class="toast"></div>
 
 <script>
 let currentUser=null,currentStats=null,currentChallenge=null,currentCategory="TOUS",currentKind="",pendingPhoto="",onboardStep=0;
 const ONBOARD=[
   {ico:"🏠",title:"Accueil",text:"Retrouve les meilleurs codes promo et parrainages."},
-  {ico:"➕",title:"Publier",text:"Ajoute un code promo ou un lien de parrainage pour aider les autres."},
-  {ico:"🏆",title:"Challenge",text:"Partage ton code. Chaque inscription = 1 point, jusqu’à 1 500 €."},
-  {ico:"👤",title:"Profil",text:"Copie ton lien, change ta photo et ta bio, suis tes stats."}
+  {ico:"➕",title:"Publier",text:"Ajoute un code promo ou un lien de parrainage."},
+  {ico:"🏆",title:"Challenge",text:"Chaque inscription avec ton code = 1 point."},
+  {ico:"👤",title:"Profil",text:"Photo, bio, lien de parrainage et stats."}
 ];
 async function api(url,options={}){
   const config={credentials:"same-origin",...options};
@@ -489,22 +489,34 @@ async function sendSupport(){const r=await api("/api/support",{method:"POST",bod
 function openFAQ(){closeAllModals();document.getElementById("faqModal").classList.add("open")}
 function openMenu(){document.getElementById("menuModal").classList.add("open")}
 function openCodeMenu(id){window._menuCodeId=id;document.getElementById("codeMenuModal").classList.add("open")}
-async function reportCode(id){const r=await api(`/api/codes/${id}/report`,{method:"POST",body:JSON.stringify({hide:true})});toast(r.ok?"Signalement enregistré":r.error);loadFeed()}
+async function reportCode(id){const r=await api(`/api/codes/${id}/report`,{method:"POST"});toast(r.ok?"Signalement enregistré":r.error);loadFeed()}
 async function hideCode(id){await api(`/api/codes/${id}/hide`,{method:"POST"});loadFeed()}
 async function startPayment(){
   const uid=currentUser&&currentUser.id?currentUser.id:localStorage.getItem("codia_user_id");
+  toast("Ouverture du paiement...");
   const r=await api("/api/create-checkout",{method:"POST",body:JSON.stringify({user_id:uid})});
-  if(!r.ok){toast(r.error);return}
+  if(!r.ok){toast(r.error||"Paiement impossible");return}
   if(r.already_paid){document.getElementById("paywall").classList.remove("show");await boot();return}
-  const secret=r.client_secret||r.clientSecret; if(!secret){toast("Stripe n'a pas retourné de session.");return}
-  initializeStripe(secret);
+  const secret=r.client_secret||r.clientSecret;
+  if(!secret){toast("Stripe n'a pas renvoyé de session.");return}
+  document.getElementById("paywallIntro").style.display="none";
+  document.getElementById("stripeBox").style.display="block";
+  try{await initializeStripe(secret)}
+  catch(e){toast("Stripe JS : "+e.message);backPaywall()}
 }
 async function initializeStripe(clientSecret){
-  let cfg=await api("/config"); if(!cfg.stripe_pk) cfg=await api("/api/stripe-config");
-  const key=cfg.stripe_pk||cfg.publishable_key; if(!key){toast("Clé Stripe manquante.");return}
+  let cfg=await api("/config");
+  if(!cfg.stripe_pk) cfg=await api("/api/stripe-config");
+  const key=cfg.stripe_pk||cfg.publishable_key;
+  if(!key) throw new Error("STRIPE_PUBLISHABLE_KEY manquante");
   const checkout=await Stripe(key).initEmbeddedCheckout({clientSecret});
-  document.getElementById("stripeCheckout").innerHTML=""; checkout.mount("#stripeCheckout");
-  document.getElementById("stripeModal").classList.add("open");
+  document.getElementById("stripeCheckout").innerHTML="";
+  checkout.mount("#stripeCheckout");
+}
+function backPaywall(){
+  document.getElementById("stripeBox").style.display="none";
+  document.getElementById("paywallIntro").style.display="block";
+  document.getElementById("stripeCheckout").innerHTML="";
 }
 function nextOnboard(){
   onboardStep++;
