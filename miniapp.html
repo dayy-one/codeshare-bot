@@ -6,23 +6,21 @@
 <title>COD.IA — Un monde tous ensemble</title>
 <script src="https://js.stripe.com/v3/"></script>
 <style>
-:root{--green:#617b35;--green-dark:#405824;--green-light:#edf2e3;--cream:#f8f7f1;--white:#fff;--text:#172014;--muted:#777d72;--border:#e7e8df;--danger:#c75b55;--shadow:0 10px 35px rgba(50,65,30,.08);--radius:24px}
+:root{--green:#617b35;--green-dark:#405824;--green-light:#edf2e3;--cream:#f8f7f1;--white:#fff;--text:#172014;--muted:#777d72;--border:#e7e8df;--shadow:0 10px 35px rgba(50,65,30,.08);--radius:24px}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;padding:0;min-height:100%;background:var(--cream);color:var(--text);font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
 button,input,textarea,select{font:inherit}button{border:0;cursor:pointer}
 body{padding-bottom:100px}
-body.dark{--cream:#12140f;--white:#1b1e16;--text:#f3f5ee;--muted:#a3aa98;--border:#2c3226}
 .app{max-width:520px;margin:auto;min-height:100vh}
 .header{position:sticky;top:0;z-index:50;height:72px;background:rgba(248,247,241,.94);backdrop-filter:blur(18px);border-bottom:1px solid rgba(0,0,0,.05);display:flex;align-items:center;justify-content:space-between;padding:0 18px}
 .logo{display:flex;align-items:center;gap:9px;font-family:Georgia,serif;font-weight:700;font-size:25px;color:var(--green-dark);background:transparent}
-.logo-globe{width:39px;height:39px;border:2px solid var(--green);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px}
-.header-actions{display:flex;align-items:center;gap:10px}
-.icon-btn{width:42px;height:42px;border-radius:50%;background:transparent;color:var(--text);position:relative;font-size:21px}
+.logo-globe{width:39px;height:39px;border:2px solid var(--green);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:var(--green-dark)}
+.icon-btn{width:42px;height:42px;border-radius:50%;background:transparent;font-size:21px;position:relative}
 .notification-dot{position:absolute;top:7px;right:8px;width:9px;height:9px;border-radius:50%;background:#d64b45;display:none}
 .content{padding:16px}.page{display:none}.page.active{display:block}
 .profile-hero{background:linear-gradient(135deg,#f0f2e7,#fff);border:1px solid var(--border);border-radius:28px;padding:22px;box-shadow:var(--shadow)}
 .profile-top{display:flex;gap:16px;align-items:center}
-.avatar{width:86px;height:86px;flex:none;border-radius:50%;background:var(--green);color:#fff;border:5px solid #fff;display:flex;justify-content:center;align-items:center;font-size:27px;font-weight:800}
+.avatar{width:86px;height:86px;flex:none;border-radius:50%;background:var(--green);color:#fff;border:5px solid #fff;display:flex;justify-content:center;align-items:center;font-size:27px;font-weight:800;overflow:hidden;background-size:cover;background-position:center}
 .eyebrow{text-transform:uppercase;letter-spacing:1.5px;font-size:11px;color:var(--green);font-weight:800}
 .profile-name{font-family:Georgia,serif;font-size:27px;font-weight:700;margin:4px 0}
 .member{color:var(--green-dark);font-size:13px;font-weight:700}
@@ -35,7 +33,6 @@ body.dark{--cream:#12140f;--white:#1b1e16;--text:#f3f5ee;--muted:#a3aa98;--borde
 .copy-small{width:45px;height:45px;border-radius:13px;background:var(--green-light);color:var(--green-dark);font-size:18px}
 .primary{width:100%;background:var(--green);color:#fff;border-radius:14px;padding:14px;font-weight:800;margin-top:10px}
 .secondary{background:#f4f5ef;color:var(--green-dark);border-radius:13px;padding:12px 14px;font-weight:700}
-.ref-code{margin-top:15px;padding-top:15px;border-top:1px solid var(--border)}
 .stats{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:14px}
 .stat{background:#fff;border:1px solid var(--border);border-radius:20px;padding:15px}
 .stat-number{font-size:24px;font-weight:800;margin-top:9px}.stat-label{font-size:12px;color:var(--muted)}
@@ -44,11 +41,9 @@ body.dark{--cream:#12140f;--white:#1b1e16;--text:#f3f5ee;--muted:#a3aa98;--borde
 .timer{background:var(--green);color:#fff;border-radius:12px;padding:9px 11px;font-size:12px;font-weight:800}
 .challenge-desc{color:#62695e;font-size:13px;line-height:1.5;margin:10px 0}
 .progress-track{height:10px;background:#dce2d2;border-radius:20px;overflow:hidden}
-.progress-bar{height:100%;width:0;background:var(--green);border-radius:20px}
-.progress-label{display:flex;justify-content:space-between;font-size:12px;margin-top:7px}
+.progress-bar{height:100%;width:0;background:var(--green)}
 .levels{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:18px}
 .level{text-align:center;background:#fff;border-radius:15px;padding:12px 5px;border:1px solid #e5e7df}
-.medal{width:42px;height:42px;border-radius:50%;margin:auto;display:flex;align-items:center;justify-content:center;font-size:20px}
 .section-head{display:flex;justify-content:space-between;align-items:center;margin:24px 2px 12px}
 .section-title{font-family:Georgia,serif;font-size:22px;font-weight:700}
 .see-all{color:var(--green);font-size:13px;font-weight:800;background:transparent}
@@ -67,19 +62,14 @@ body.dark{--cream:#12140f;--white:#1b1e16;--text:#f3f5ee;--muted:#a3aa98;--borde
 .code-chip{flex:1;min-width:0;border:1px dashed #ccd2c3;background:#f8f9f4;padding:10px;border-radius:11px;font-size:12px;font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .code-copy{width:42px;height:42px;background:var(--green);color:#fff;border-radius:12px}
 .code-actions{display:flex;align-items:center;justify-content:space-between;margin-top:12px;padding-top:11px;border-top:1px solid #eef0e9}
-.action{background:transparent;color:#697066;font-size:12px}.action.active{color:var(--green);font-weight:800}
+.action{background:transparent;color:#697066;font-size:12px}
 .more{position:absolute;right:13px;top:13px;background:transparent;font-size:19px}
-.top-card{border:1px solid #dfe7d2;background:linear-gradient(135deg,#fff,#f0f4e7)}
 .stories{display:flex;gap:13px;overflow-x:auto;scrollbar-width:none}
 .story{flex:none;width:68px;text-align:center}
 .story-circle{width:62px;height:62px;margin:auto;border-radius:50%;padding:3px;background:linear-gradient(135deg,var(--green),#d6dfbe)}
 .story-inner{width:100%;height:100%;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;font-size:18px}
 .story-name{font-size:10px;margin-top:5px}
-.tabs{display:flex;gap:4px;background:#eceee7;padding:4px;border-radius:16px;margin-top:18px}
-.tab{flex:1;padding:11px 5px;border-radius:12px;background:transparent;color:#747b70;font-size:11px;font-weight:800}
-.tab.active{background:#fff;color:var(--green-dark)}
 .rank-card{display:flex;align-items:center;gap:11px;padding:12px;background:#fff;border:1px solid var(--border);border-radius:17px;margin-bottom:8px}
-.rank-me{border:2px solid var(--green);background:#f5f8ee}
 .menu-card{background:#fff;border:1px solid var(--border);border-radius:22px;overflow:hidden;margin-top:15px}
 .menu-item{width:100%;background:#fff;padding:17px;display:flex;align-items:center;gap:13px;text-align:left;border-bottom:1px solid #eef0e9}
 .menu-icon{width:38px;height:38px;border-radius:12px;background:var(--green-light);display:flex;align-items:center;justify-content:center}
@@ -94,12 +84,11 @@ body.dark{--cream:#12140f;--white:#1b1e16;--text:#f3f5ee;--muted:#a3aa98;--borde
 .close{width:38px;height:38px;border-radius:50%;background:#f0f2ec}
 .field{margin-bottom:13px}.field label{display:block;font-size:12px;font-weight:800;margin-bottom:6px}
 .field input,.field textarea,.field select{width:100%;border:1px solid #dfe3d8;background:#f9faf6;border-radius:13px;padding:13px;outline:0}
-.paywall{position:fixed;inset:0;z-index:300;background:radial-gradient(circle at 50% 0%,#e8eddc,#f8f7f1 55%);display:none;align-items:center;justify-content:center;padding:22px}
-.paywall.show{display:flex}
-.paywall-card{width:min(450px,100%);background:#fff;border-radius:30px;padding:30px 22px;text-align:center}
-.paywall-logo{width:74px;height:74px;margin:auto;border-radius:50%;background:var(--green);color:#fff;display:flex;align-items:center;justify-content:center;font-size:30px}
+.paywall,.verify,.onboard,.auth{position:fixed;inset:0;z-index:300;background:radial-gradient(circle at 50% 0%,#e8eddc,#f8f7f1 55%);display:none;align-items:center;justify-content:center;padding:22px}
+.paywall.show,.verify.show,.onboard.show,.auth.show{display:flex}
+.paywall-card,.verify-card{width:min(450px,100%);background:#fff;border-radius:30px;padding:30px 22px;text-align:center}
 .price{font-size:38px;font-weight:900;color:var(--green-dark);margin:15px 0}
-.auth{position:fixed;inset:0;z-index:250;background:var(--cream);overflow:auto;display:none}
+.auth{display:none;overflow:auto;align-items:flex-start}
 .auth.show{display:block}
 .auth-inner{max-width:480px;margin:auto;padding:40px 20px}
 .auth-logo{text-align:center;font-family:Georgia,serif;color:var(--green-dark);font-size:34px;font-weight:800}
@@ -107,7 +96,9 @@ body.dark{--cream:#12140f;--white:#1b1e16;--text:#f3f5ee;--muted:#a3aa98;--borde
 .auth-switch{display:flex;gap:5px;background:#eef0e8;padding:4px;border-radius:14px;margin-bottom:20px}
 .auth-switch button{flex:1;background:transparent;padding:11px;border-radius:11px;color:#777;font-weight:800}
 .auth-switch button.active{background:#fff;color:var(--green-dark)}
-.toast{position:fixed;left:50%;bottom:100px;transform:translateX(-50%);background:#1f281b;color:#fff;padding:12px 17px;border-radius:14px;font-size:12px;font-weight:700;z-index:500;opacity:0;pointer-events:none}
+.onboard-card{width:min(420px,100%);background:#fff;border-radius:28px;padding:28px 22px;text-align:center;min-height:360px}
+.onboard-ico{width:72px;height:72px;border-radius:24px;background:var(--green-light);display:flex;align-items:center;justify-content:center;font-size:32px;margin:0 auto 16px}
+.toast{position:fixed;left:50%;bottom:100px;transform:translateX(-50%);background:#1f281b;color:#fff;padding:12px 17px;border-radius:14px;font-size:12px;font-weight:700;z-index:500;opacity:0}
 .toast.show{opacity:1}
 .loading{padding:40px;text-align:center;color:var(--muted)}
 .spinner{width:30px;height:30px;border:3px solid #dfe4d6;border-top-color:var(--green);border-radius:50%;margin:0 auto 12px;animation:spin .8s linear infinite}
@@ -119,10 +110,9 @@ body.dark{--cream:#12140f;--white:#1b1e16;--text:#f3f5ee;--muted:#a3aa98;--borde
 <body>
 <div class="app">
 <header class="header">
-  <button class="logo" onclick="goPage('home')"><div class="logo-globe">🌐</div>COD.IA</button>
-  <div class="header-actions">
+  <button class="logo" onclick="goPage('home')"><div class="logo-globe">C.</div>COD.IA</button>
+  <div style="display:flex;gap:8px">
     <button class="icon-btn" onclick="openNotifications()">🔔<span id="notificationDot" class="notification-dot"></span></button>
-    <button class="icon-btn" onclick="toggleTheme()">◐</button>
     <button class="icon-btn" onclick="openMenu()">☰</button>
   </div>
 </header>
@@ -153,35 +143,34 @@ body.dark{--cream:#12140f;--white:#1b1e16;--text:#f3f5ee;--muted:#a3aa98;--borde
   <div id="promoFeed" class="loading"><div class="spinner"></div>Chargement...</div>
 </section>
 <section id="page-challenge" class="page">
-  <div class="section-head"><div><div class="eyebrow">CHALLENGE COD.IA</div><div class="section-title">Parrain. Progresse. Gagne.</div></div></div>
+  <div class="section-head"><div><div class="eyebrow">CHALLENGE</div><div class="section-title">Parrain. Progresse. Gagne.</div></div></div>
   <div class="challenge">
     <div style="display:flex;justify-content:space-between;gap:12px">
-      <div><div class="challenge-title">21 jours</div><div class="challenge-desc">Lorsqu’un utilisateur rejoint COD.IA et utilise ton code de parrainage, 1 point t’est attribué.</div></div>
+      <div><div class="challenge-title">21 jours</div><div class="challenge-desc">Quand quelqu’un rejoint COD.IA avec ton code, 1 point t’est attribué.</div></div>
       <div id="challengeTimer" class="timer">--</div>
     </div>
     <div class="progress-track"><div id="challengeProgress" class="progress-bar"></div></div>
-    <div class="progress-label"><span id="challengePoints">0 points</span><strong>1 500</strong></div>
+    <div class="progress-label" style="display:flex;justify-content:space-between;font-size:12px;margin-top:7px"><span id="challengePoints">0 points</span><strong>1 500</strong></div>
     <div class="levels">
-      <div class="level"><div class="medal">🥉</div><strong>500</strong><span>500 €</span></div>
-      <div class="level"><div class="medal">🥈</div><strong>1 000</strong><span>1 000 €</span></div>
-      <div class="level"><div class="medal">🥇</div><strong>1 500</strong><span>1 500 €</span></div>
+      <div class="level"><div>🥉</div><strong>500</strong><span>500 €</span></div>
+      <div class="level"><div>🥈</div><strong>1 000</strong><span>1 000 €</span></div>
+      <div class="level"><div>🥇</div><strong>1 500</strong><span>1 500 €</span></div>
     </div>
   </div>
   <div class="card" style="cursor:pointer" onclick="document.getElementById('copiesModal').classList.add('open')"><div class="card-title">Offre Copies</div><div class="code-desc">250 copies sur un même code = 100 €</div></div>
   <div class="card"><div class="card-title">Mon classement</div><div id="myRank">Chargement...</div></div>
-  <div class="tabs"><button class="tab active" onclick="loadLeaderboard('challenge',this)">Challenge</button><button class="tab" onclick="loadLeaderboard('weekly',this)">Cette semaine</button></div>
   <div id="leaderboard" style="margin-top:12px"></div>
 </section>
 <section id="page-profile" class="page">
   <div class="profile-hero"><div class="profile-top">
     <div id="profileAvatar" class="avatar">CO</div>
-    <div class="profile-info"><div class="eyebrow">MON ESPACE</div><div id="profileName" class="profile-name">Chargement...</div><div class="member">👑 Membre COD.IA</div><div id="profileBio" class="bio">Bienvenue sur COD.IA.</div></div>
+    <div><div class="eyebrow">MON ESPACE</div><div id="profileName" class="profile-name">Chargement...</div><div class="member">👑 Membre COD.IA</div><div id="profileBio" class="bio">Bienvenue sur COD.IA.</div></div>
     <button class="edit-btn" onclick="openEditProfile()">✎</button>
   </div></div>
   <div class="card"><div class="card-title">Mon lien de parrainage</div>
     <div class="referral-row"><input id="referralLink" class="referral-input" readonly><button class="copy-small" onclick="copyReferral()">⧉</button></div>
     <button class="primary" onclick="shareReferral()">Partager mon lien</button>
-    <div class="ref-code"><div class="card-title">Mon code parrainage</div>
+    <div style="margin-top:15px;padding-top:15px;border-top:1px solid var(--border)"><div class="card-title">Mon code parrainage</div>
       <div class="referral-row"><input id="referralCode" class="referral-input" readonly><button class="copy-small" onclick="copyReferralCode()">⧉</button></div>
     </div>
   </div>
@@ -192,12 +181,12 @@ body.dark{--cream:#12140f;--white:#1b1e16;--text:#f3f5ee;--muted:#a3aa98;--borde
     <div class="stat"><div id="statClicks" class="stat-number">0</div><div class="stat-label">Clics</div></div>
   </div>
   <div class="menu-card">
-    <button class="menu-item" onclick="openMyCodes()"><div class="menu-icon">🏷️</div><div class="menu-text"><div class="menu-title">Mes codes</div></div>→</button>
-    <button class="menu-item" onclick="openFavorites()"><div class="menu-icon">❤️</div><div class="menu-text"><div class="menu-title">Mes favoris</div></div>→</button>
-    <button class="menu-item" onclick="openNotifications()"><div class="menu-icon">🔔</div><div class="menu-text"><div class="menu-title">Notifications</div></div>→</button>
-    <button class="menu-item" onclick="openSupport()"><div class="menu-icon">🎧</div><div class="menu-text"><div class="menu-title">Support</div></div>→</button>
-    <button class="menu-item" onclick="openFAQ()"><div class="menu-icon">❓</div><div class="menu-text"><div class="menu-title">FAQ</div></div>→</button>
-    <button class="menu-item" onclick="logout()"><div class="menu-icon">🚪</div><div class="menu-text"><div class="menu-title">Déconnexion</div></div>→</button>
+    <button class="menu-item" onclick="openMyCodes()"><div class="menu-icon">🏷️</div>Mes codes</button>
+    <button class="menu-item" onclick="openFavorites()"><div class="menu-icon">❤️</div>Mes favoris</button>
+    <button class="menu-item" onclick="openNotifications()"><div class="menu-icon">🔔</div>Notifications</button>
+    <button class="menu-item" onclick="openSupport()"><div class="menu-icon">🎧</div>Support</button>
+    <button class="menu-item" onclick="openFAQ()"><div class="menu-icon">❓</div>FAQ</button>
+    <button class="menu-item" onclick="logout()"><div class="menu-icon">🚪</div>Déconnexion</button>
   </div>
 </section>
 </main>
@@ -225,38 +214,33 @@ body.dark{--cream:#12140f;--white:#1b1e16;--text:#f3f5ee;--muted:#a3aa98;--borde
 
 <div id="editModal" class="modal"><div class="sheet">
   <div class="sheet-head"><div class="section-title">Modifier mon profil</div><button class="close" onclick="closeModal('editModal')">✕</button></div>
-  <div class="field"><label>Nom</label><input id="editName"></div>
-  <div class="field"><label>Bio</label><textarea id="editBio"></textarea></div>
+  <div class="field"><label>Photo de profil</label><input id="editPhoto" type="file" accept="image/*"></div>
+  <div class="field"><label>Bio</label><textarea id="editBio" placeholder="Quelques mots sur toi"></textarea></div>
+  <div class="field"><label>Email</label><input id="editEmail" type="email"></div>
+  <p class="code-desc">Le nom d’utilisateur ne peut pas être modifié.</p>
   <button class="primary" onclick="saveProfile()">Enregistrer</button>
 </div></div>
 
 <div id="supportModal" class="modal"><div class="sheet">
-  <div class="sheet-head"><div class="section-title">Support COD.IA</div><button class="close" onclick="closeModal('supportModal')">✕</button></div>
+  <div class="sheet-head"><div class="section-title">Support</div><button class="close" onclick="closeModal('supportModal')">✕</button></div>
   <div class="field"><label>Sujet</label><input id="supportSubject"></div>
   <div class="field"><label>Message</label><textarea id="supportMessage"></textarea></div>
-  <button class="primary" onclick="sendSupport()">Envoyer au support</button>
+  <button class="primary" onclick="sendSupport()">Envoyer</button>
 </div></div>
-
 <div id="notificationModal" class="modal"><div class="sheet">
   <div class="sheet-head"><div class="section-title">Notifications</div><button class="close" onclick="closeModal('notificationModal')">✕</button></div>
   <div id="notificationsList"></div>
 </div></div>
-
 <div id="launchModal" class="modal"><div class="sheet">
   <div class="sheet-head"><div class="section-title">Offre de Lancement</div><button class="close" onclick="closeModal('launchModal')">✕</button></div>
-  <p class="code-desc">Lorsqu’un utilisateur <b>rejoint COD.IA</b> et <b>utilise ton code de parrainage</b>, <b>1 point</b> t’est attribué.</p>
-  <div class="card">500 points → 500 €<br>1 000 points → 1 000 €<br>1 500 points → 1 500 €</div>
-  <p class="code-desc">Offre limitée à 3 semaines.</p>
+  <p class="code-desc">1 point quand quelqu’un rejoint avec ton code. 500 / 1 000 / 1 500 points = 500 € / 1 000 € / 1 500 €.</p>
   <button class="primary" onclick="closeModal('launchModal')">C’est compris</button>
 </div></div>
-
 <div id="copiesModal" class="modal"><div class="sheet">
   <div class="sheet-head"><div class="section-title">Offre Copies</div><button class="close" onclick="closeModal('copiesModal')">✕</button></div>
-  <p class="code-desc">Quand <b>un même code</b> est copié <b>250 fois</b>, tu gagnes <b>100 €</b>.</p>
-  <div class="card">Un code · 250 copies · 100 €</div>
+  <p class="code-desc">250 copies sur un même code = 100 €.</p>
   <button class="primary" onclick="closeModal('copiesModal')">Compris</button>
 </div></div>
-
 <div id="codeMenuModal" class="modal"><div class="sheet">
   <div class="sheet-head"><div class="section-title">Actions</div><button class="close" onclick="closeModal('codeMenuModal')">✕</button></div>
   <button class="primary" onclick="copyCode(window._menuCodeId);closeModal('codeMenuModal')">Copier</button>
@@ -264,26 +248,24 @@ body.dark{--cream:#12140f;--white:#1b1e16;--text:#f3f5ee;--muted:#a3aa98;--borde
   <button class="secondary" style="width:100%;margin-top:8px" onclick="reportCode(window._menuCodeId);closeModal('codeMenuModal')">Signaler</button>
   <button class="secondary" style="width:100%;margin-top:8px" onclick="hideCode(window._menuCodeId);closeModal('codeMenuModal')">Ne plus voir</button>
 </div></div>
-
 <div id="faqModal" class="modal"><div class="sheet">
-  <div class="sheet-head"><div class="section-title">FAQ COD.IA</div><button class="close" onclick="closeModal('faqModal')">✕</button></div>
-  <div class="card"><strong>Comment fonctionne le challenge ?</strong><p class="code-desc">Lorsqu’un utilisateur rejoint COD.IA et utilise ton code, 1 point t’est attribué.</p></div>
-  <div class="card"><strong>Récompenses</strong><p class="code-desc">500 = 500 € · 1 000 = 1 000 € · 1 500 = 1 500 €</p></div>
-  <div class="card"><strong>Offre Copies</strong><p class="code-desc">250 copies sur un même code = 100 €.</p></div>
+  <div class="sheet-head"><div class="section-title">FAQ</div><button class="close" onclick="closeModal('faqModal')">✕</button></div>
+  <div class="card"><strong>Challenge</strong><p class="code-desc">1 point par inscription avec ton code.</p></div>
+  <div class="card"><strong>Copies</strong><p class="code-desc">250 copies = 100 €.</p></div>
 </div></div>
-
 <div id="menuModal" class="modal"><div class="sheet">
   <div class="sheet-head"><div class="section-title">Menu</div><button class="close" onclick="closeModal('menuModal')">✕</button></div>
   <div class="menu-card">
-    <button class="menu-item" onclick="goPage('profile');closeModal('menuModal')"><div class="menu-text"><div class="menu-title">Mon profil</div></div></button>
-    <button class="menu-item" onclick="openNotifications()"><div class="menu-text"><div class="menu-title">Notifications</div></div></button>
-    <button class="menu-item" onclick="openSupport()"><div class="menu-text"><div class="menu-title">Support</div></div></button>
-    <button class="menu-item" onclick="openFAQ()"><div class="menu-text"><div class="menu-title">FAQ</div></div></button>
+    <button class="menu-item" onclick="goPage('profile');closeModal('menuModal')">Mon profil</button>
+    <button class="menu-item" onclick="openEditProfile()">Modifier email / photo / bio</button>
+    <button class="menu-item" onclick="openNotifications()">Notifications</button>
+    <button class="menu-item" onclick="openSupport()">Support</button>
+    <button class="menu-item" onclick="openFAQ()">FAQ</button>
   </div>
 </div></div>
 
 <div id="auth" class="auth"><div class="auth-inner">
-  <div class="auth-logo">🌐 COD.IA</div>
+  <div class="auth-logo"><span class="logo-globe" style="display:inline-flex;margin-right:8px;vertical-align:middle">C.</span>COD.IA</div>
   <div style="text-align:center;color:#6f766a;margin-top:7px;font-size:13px">Un monde tous ensemble</div>
   <div class="auth-card">
     <div class="auth-switch">
@@ -306,22 +288,35 @@ body.dark{--cream:#12140f;--white:#1b1e16;--text:#f3f5ee;--muted:#a3aa98;--borde
   </div>
 </div></div>
 
+<div id="verify" class="verify"><div class="verify-card">
+  <div class="logo-globe" style="margin:0 auto 12px">C.</div>
+  <h2>Confirme ton email</h2>
+  <p class="code-desc">Entre le code à 6 chiffres reçu par email. Sans SMTP, il est dans les logs Railway.</p>
+  <div class="field"><input id="verifyCode" inputmode="numeric" maxlength="6" placeholder="000000" style="text-align:center;letter-spacing:8px;font-size:22px;font-weight:800"></div>
+  <button class="primary" onclick="confirmEmail()">Valider mon email</button>
+</div></div>
+
 <div id="paywall" class="paywall"><div class="paywall-card">
-  <div class="paywall-logo">🌐</div>
+  <div class="logo-globe" style="margin:0 auto 12px">C.</div>
   <h1>Bienvenue sur COD.IA</h1>
-  <p style="color:#70776b;font-size:13px">Rejoins une communauté où entraide, partage et opportunités se rencontrent.</p>
+  <p style="color:#70776b;font-size:13px">Email confirmé. Rejoins la communauté.</p>
   <div class="price">9,99 € <small>accès unique</small></div>
   <div class="compare">
     <div><b>Ce que tu obtiens</b><b>Gratuit</b><b>COD.IA</b></div>
     <div><span>Voir tous les codes</span><span>✗</span><span>✓</span></div>
     <div><span>Publier</span><span>✗</span><span>✓</span></div>
-    <div><span>Favoris</span><span>✗</span><span>✓</span></div>
     <div><span>Offre Lancement 1 500 €</span><span>✗</span><span>✓</span></div>
     <div><span>250 copies = 100 €</span><span>✗</span><span>✓</span></div>
   </div>
   <button class="primary" onclick="startPayment()">Rejoindre COD.IA — 9,99 €</button>
   <button class="secondary" style="width:100%;margin-top:10px" onclick="location.href='/'">Retour au site</button>
-  <button class="secondary" style="width:100%;margin-top:8px" onclick="logout()">Changer de compte</button>
+</div></div>
+
+<div id="onboard" class="onboard"><div class="onboard-card">
+  <div class="onboard-ico" id="onboardIco">🏠</div>
+  <h2 id="onboardTitle">Accueil</h2>
+  <p class="code-desc" id="onboardText">Découvre les codes promo et parrainages partagés par la communauté.</p>
+  <button class="primary" onclick="nextOnboard()">Suivant</button>
 </div></div>
 
 <div id="stripeModal" class="modal"><div class="sheet" style="height:90vh">
@@ -331,82 +326,91 @@ body.dark{--cream:#12140f;--white:#1b1e16;--text:#f3f5ee;--muted:#a3aa98;--borde
 <div id="toast" class="toast"></div>
 
 <script>
-let currentUser=null,currentStats=null,currentChallenge=null,currentCategory="TOUS",currentKind="";
+let currentUser=null,currentStats=null,currentChallenge=null,currentCategory="TOUS",currentKind="",pendingPhoto="",onboardStep=0;
+const ONBOARD=[
+  {ico:"🏠",title:"Accueil",text:"Retrouve les meilleurs codes promo et parrainages."},
+  {ico:"➕",title:"Publier",text:"Ajoute un code promo ou un lien de parrainage pour aider les autres."},
+  {ico:"🏆",title:"Challenge",text:"Partage ton code. Chaque inscription = 1 point, jusqu’à 1 500 €."},
+  {ico:"👤",title:"Profil",text:"Copie ton lien, change ta photo et ta bio, suis tes stats."}
+];
 async function api(url,options={}){
   const config={credentials:"same-origin",...options};
   config.headers={"Content-Type":"application/json",...(options.headers||{})};
   const response=await fetch(url,config);
   const raw=await response.text();
-  let data;
-  try{data=JSON.parse(raw)}catch(e){data={ok:false,error:"Réponse serveur invalide ("+response.status+")."}}
+  let data; try{data=JSON.parse(raw)}catch(e){data={ok:false,error:"Réponse serveur invalide ("+response.status+")"}}
   if(!response.ok&&!data.error) data.error="Erreur "+response.status;
   return data;
 }
-async function apiFirst(urls,options={}){
-  let last={ok:false,error:"Aucune route disponible."};
-  for(const url of urls){
-    last=await api(url,options);
-    if(last.ok) return last;
-    if(last.error&&!String(last.error).includes("invalide")&&!String(last.error).includes("404")) return last;
-  }
-  return last;
-}
+async function apiFirst(urls,options={}){let last={ok:false,error:"Erreur"};for(const u of urls){last=await api(u,options);if(last.ok)return last;}return last;}
 function toast(m){const el=document.getElementById("toast");el.textContent=m;el.classList.add("show");clearTimeout(window.toastTimer);window.toastTimer=setTimeout(()=>el.classList.remove("show"),2800)}
 function escapeHtml(v){return String(v??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;")}
 function formatNumber(v){return new Intl.NumberFormat("fr-FR").format(Number(v||0))}
-function formatDate(v){if(!v)return"";return new Date(v).toLocaleDateString("fr-FR")}
+function formatDate(v){return v?new Date(v).toLocaleDateString("fr-FR"):""}
+function saveUserLocal(u){if(u&&u.id) localStorage.setItem("codia_user_id",String(u.id))}
 function showAuth(mode="login"){
   document.getElementById("auth").classList.add("show");
+  document.getElementById("verify").classList.remove("show");
+  document.getElementById("paywall").classList.remove("show");
   document.getElementById("loginForm").style.display=mode==="login"?"block":"none";
   document.getElementById("registerForm").style.display=mode==="register"?"block":"none";
   document.getElementById("loginTab").classList.toggle("active",mode==="login");
   document.getElementById("registerTab").classList.toggle("active",mode==="register");
-  const ref=new URLSearchParams(location.search).get("ref");
-  if(ref) document.getElementById("registerReferral").value=ref;
+  const ref=new URLSearchParams(location.search).get("ref"); if(ref) document.getElementById("registerReferral").value=ref;
 }
+function showVerify(){document.getElementById("auth").classList.remove("show");document.getElementById("verify").classList.add("show");document.getElementById("paywall").classList.remove("show")}
+function showPaywall(){document.getElementById("auth").classList.remove("show");document.getElementById("verify").classList.remove("show");document.getElementById("paywall").classList.add("show")}
 async function login(){
-  const payload={identifier:document.getElementById("loginIdentifier").value.trim(),password:document.getElementById("loginPassword").value};
-  const result=await apiFirst(["/api/login","/auth/login"],{method:"POST",body:JSON.stringify(payload)});
-  if(!result.ok){toast(result.error||"Connexion impossible");return}
-  document.getElementById("auth").classList.remove("show");
+  const result=await apiFirst(["/api/login","/auth/login"],{method:"POST",body:JSON.stringify({identifier:document.getElementById("loginIdentifier").value.trim(),password:document.getElementById("loginPassword").value})});
+  if(!result.ok){toast(result.error);return}
+  saveUserLocal(result.user); currentUser=result.user;
+  if(result.needs_verification){showVerify();return}
   await boot();
 }
 async function register(){
-  const payload={
+  const result=await apiFirst(["/api/register","/auth/register"],{method:"POST",body:JSON.stringify({
     display_name:document.getElementById("registerName").value.trim(),
     username:document.getElementById("registerUsername").value.trim(),
     email:document.getElementById("registerEmail").value.trim(),
     password:document.getElementById("registerPassword").value,
     referral_code:document.getElementById("registerReferral").value.trim().toUpperCase()
-  };
-  const result=await apiFirst(["/api/register","/auth/register"],{method:"POST",body:JSON.stringify(payload)});
-  if(!result.ok){toast(result.error||"Inscription impossible");return}
-  document.getElementById("auth").classList.remove("show");
-  currentUser=result.user||{is_paid:false,is_admin:false};
-  if(!currentUser.is_paid&&!currentUser.is_admin){
-    document.getElementById("paywall").classList.add("show");
-    return;
-  }
-  toast("Bienvenue sur COD.IA");
-  await boot();
+  })});
+  if(!result.ok){toast(result.error);return}
+  saveUserLocal(result.user); currentUser=result.user;
+  if(result.needs_verification){toast("Un code a été envoyé.");showVerify();return}
+  showPaywall();
+}
+async function confirmEmail(){
+  const result=await api("/api/verify-email",{method:"POST",body:JSON.stringify({code:document.getElementById("verifyCode").value.trim()})});
+  if(!result.ok){toast(result.error);return}
+  toast("Email confirmé. Compte créé.");
+  showPaywall();
 }
 function logout(){location.href="/logout"}
 async function boot(){
+  const params=new URLSearchParams(location.search);
+  if(params.get("paid")==="1"&&params.get("session_id")) await api("/api/confirm-payment?session_id="+encodeURIComponent(params.get("session_id")));
   const result=await api("/api/me");
   if(!result.ok||!result.user){showAuth();return}
-  currentUser=result.user;
+  saveUserLocal(result.user); currentUser=result.user;
   currentStats=result.stats||{referrals:0,points:0,likes:0,clicks:0};
-  currentChallenge=result.challenge||{points:0,remaining_seconds:0,level:"EN COURSE",reward:0};
-  if(!currentStats.points&&currentChallenge.points){currentStats.points=currentChallenge.points;currentStats.referrals=currentChallenge.points}
+  currentChallenge=result.challenge||{points:0,remaining_seconds:0};
   document.getElementById("auth").classList.remove("show");
   updateProfileUI();
-  if(!currentUser.is_paid&&!currentUser.is_admin){document.getElementById("paywall").classList.add("show");return}
+  if(!currentUser.email_verified&&!currentUser.is_admin){showVerify();return}
+  if(!currentUser.is_paid&&!currentUser.is_admin){showPaywall();return}
+  document.getElementById("verify").classList.remove("show");
   document.getElementById("paywall").classList.remove("show");
-  loadFeed();loadNotificationsCount();startCountdown();
+  if(!localStorage.getItem("codia_onboard")) document.getElementById("onboard").classList.add("show");
+  loadFeed();loadNotificationsCount();startCountdown();loadLeaderboard();
+}
+function setAvatarEl(el,user){
+  if(user.avatar_url){el.style.backgroundImage="url("+user.avatar_url+")";el.textContent=""}
+  else{el.style.backgroundImage="";el.textContent=user.avatar_initials||"CO"}
 }
 function updateProfileUI(){
-  if(!currentUser) return;
-  document.getElementById("profileAvatar").textContent=currentUser.avatar_initials||"CO";
+  if(!currentUser)return;
+  setAvatarEl(document.getElementById("profileAvatar"),currentUser);
   document.getElementById("profileName").textContent=currentUser.display_name||currentUser.username||"Membre";
   document.getElementById("profileBio").textContent=currentUser.bio||"Bienvenue sur COD.IA.";
   document.getElementById("referralLink").value=currentUser.referral_link||"";
@@ -421,17 +425,12 @@ function goPage(page){
   document.querySelectorAll(".page").forEach(el=>el.classList.remove("active"));
   const t=document.getElementById("page-"+page); if(t) t.classList.add("active");
   document.querySelectorAll(".nav-item[data-page]").forEach(el=>el.classList.toggle("active",el.dataset.page===page));
-  if(page==="home") loadFeed();
-  if(page==="promos") loadFeed("promoFeed");
-  if(page==="challenge") loadLeaderboard("challenge");
-  window.scrollTo({top:0,behavior:"smooth"});
+  if(page==="home") loadFeed(); if(page==="promos") loadFeed("promoFeed"); if(page==="challenge") loadLeaderboard();
 }
 async function loadFeed(targetId="feed"){
-  const target=document.getElementById(targetId); if(!target) return;
-  target.innerHTML=`<div class="loading"><div class="spinner"></div>Chargement...</div>`;
+  const target=document.getElementById(targetId); if(!target)return;
   const search=targetId==="promoFeed"?(document.getElementById("promoSearch")?.value||""):(document.getElementById("searchInput")?.value||"");
   const result=await api(`/api/feed?category=${encodeURIComponent(currentCategory)}&kind=${encodeURIComponent(currentKind)}&search=${encodeURIComponent(search)}`);
-  if(!result.ok){target.innerHTML=`<div class="card">${escapeHtml(result.error)}</div>`;return}
   renderCodes(target,result.codes||[]);
 }
 function renderCodes(target,codes){
@@ -439,98 +438,104 @@ function renderCodes(target,codes){
   target.innerHTML=codes.map(codeCard).join("");
 }
 function codeCard(code){
-  const kind=code.kind==="PARRAINAGE"?"PARRAINAGE":"PROMO";
   const brand=code.brand||"COD.IA";
-  return `<article class="code-card ${code.likes>=100||code.copies>=100?"top-card":""}" data-code="${code.id}" ontouchstart="swipeStart(event)" ontouchend="swipeEnd(event)">
-    <div class="code-top"><div class="brand-logo">${escapeHtml(brand.substring(0,12))}</div>
-    <div><span class="badge">${kind}</span><div class="code-title">${escapeHtml(code.title||"")}</div><div class="code-desc">${escapeHtml(code.description||"")}</div></div></div>
+  return `<article class="code-card">
+    <div class="code-top"><div class="brand-logo">${escapeHtml(String(brand).substring(0,12))}</div>
+    <div><span class="badge">${code.kind==="PARRAINAGE"?"PARRAINAGE":"PROMO"}</span>
+    <div class="code-title">${escapeHtml(code.title||"")}</div><div class="code-desc">${escapeHtml(code.description||"")}</div></div></div>
     <button class="more" onclick="openCodeMenu(${code.id})">⋮</button>
     ${code.code?`<div class="code-bottom"><div class="code-chip">${escapeHtml(code.code)}</div><button class="code-copy" onclick="copyCode(${code.id})">⧉</button></div>`:""}
     <div class="code-actions">
-      <button class="action ${code.liked?"active":""}" onclick="likeCode(${code.id})">❤️ ${formatNumber(code.likes)}</button>
-      <button class="action ${code.favorite?"active":""}" onclick="favoriteCode(${code.id})">☆ ${code.favorite?"Favori":"Favoris"}</button>
+      <button class="action" onclick="likeCode(${code.id})">❤️ ${formatNumber(code.likes)}</button>
+      <button class="action" onclick="favoriteCode(${code.id})">☆ Favoris</button>
       <button class="action" onclick="copyAndOpen(${code.id})">↗ Ouvrir</button>
       <span class="action">⧉ ${formatNumber(code.copies)}</span>
     </div>
-    ${code.expires_at?`<div class="code-desc">Expire le ${formatDate(code.expires_at)}</div>`:""}
   </article>`;
 }
-function setCategory(button){document.querySelectorAll(".filter").forEach(el=>el.classList.remove("active"));button.classList.add("active");currentCategory=button.dataset.category;loadFeed()}
+function setCategory(btn){document.querySelectorAll(".filter").forEach(el=>el.classList.remove("active"));btn.classList.add("active");currentCategory=btn.dataset.category;loadFeed()}
 function setKind(k){currentKind=k;loadFeed()}
 let searchTimer;
 document.getElementById("searchInput").addEventListener("input",()=>{clearTimeout(searchTimer);searchTimer=setTimeout(()=>loadFeed(),300)});
 document.getElementById("promoSearch").addEventListener("input",()=>{clearTimeout(searchTimer);searchTimer=setTimeout(()=>loadFeed("promoFeed"),300)});
-async function copyCode(id){const result=await api(`/api/codes/${id}/copy`,{method:"POST"});if(!result.ok){toast(result.error);return}if(result.code){try{await navigator.clipboard.writeText(result.code)}catch(e){}toast("Code copié")}loadFeed()}
-async function copyAndOpen(id){const result=await api(`/api/codes/${id}/copy`,{method:"POST"});if(!result.ok){toast(result.error);return}if(result.code){try{await navigator.clipboard.writeText(result.code)}catch(e){}}if(result.url) window.open(result.url,"_blank","noopener");toast("Code copié")}
-async function likeCode(id){const result=await api(`/api/codes/${id}/like`,{method:"POST"});if(!result.ok){toast(result.error);return}loadFeed()}
-async function favoriteCode(id){const result=await api(`/api/codes/${id}/favorite`,{method:"POST"});if(!result.ok){toast(result.error);return}toast(result.favorite?"Ajouté aux favoris":"Retiré des favoris");loadFeed()}
-async function openFavorites(){closeAllModals();goPage("profile");const result=await api("/api/favorites");if(!result.ok){toast(result.error);return}let el=document.getElementById("favoriteSection");if(el)el.remove();const div=document.createElement("div");div.id="favoriteSection";div.innerHTML=`<div class="section-title">Mes favoris</div>${(result.codes||[]).map(codeCard).join("")}`;document.getElementById("page-profile").appendChild(div)}
-async function openMyCodes(){closeAllModals();goPage("profile");const result=await api("/api/my-codes");if(!result.ok){toast(result.error);return}let el=document.getElementById("myCodesSection");if(el)el.remove();const div=document.createElement("div");div.id="myCodesSection";div.innerHTML=`<div class="section-title">Mes publications</div>${(result.codes||[]).map(codeCard).join("")||'<div class="card">Aucun code</div>'}`;document.getElementById("page-profile").appendChild(div)}
+async function copyCode(id){const r=await api(`/api/codes/${id}/copy`,{method:"POST"});if(!r.ok){toast(r.error);return}if(r.code){try{await navigator.clipboard.writeText(r.code)}catch(e){}}toast("Code copié");loadFeed()}
+async function copyAndOpen(id){const r=await api(`/api/codes/${id}/copy`,{method:"POST"});if(r.code){try{await navigator.clipboard.writeText(r.code)}catch(e){}}if(r.url) window.open(r.url,"_blank","noopener")}
+async function likeCode(id){await api(`/api/codes/${id}/like`,{method:"POST"});loadFeed()}
+async function favoriteCode(id){const r=await api(`/api/codes/${id}/favorite`,{method:"POST"});toast(r.favorite?"Ajouté aux favoris":"Retiré");loadFeed()}
+async function openFavorites(){closeAllModals();goPage("profile");const r=await api("/api/favorites");const d=document.createElement("div");d.innerHTML=`<div class="section-title">Mes favoris</div>${(r.codes||[]).map(codeCard).join("")||'<div class="card">Aucun favori</div>'}`;document.getElementById("page-profile").appendChild(d)}
+async function openMyCodes(){closeAllModals();goPage("profile");const r=await api("/api/my-codes");const d=document.createElement("div");d.innerHTML=`<div class="section-title">Mes publications</div>${(r.codes||[]).map(codeCard).join("")||'<div class="card">Aucun code</div>'}`;document.getElementById("page-profile").appendChild(d)}
 function openPublish(){document.getElementById("publishModal").classList.add("open")}
 async function publishCode(){
-  const payload={kind:document.getElementById("publishKind").value,brand:document.getElementById("publishBrand").value,title:document.getElementById("publishTitle").value,description:document.getElementById("publishDescription").value,category:document.getElementById("publishCategory").value,code:document.getElementById("publishCode").value,url:document.getElementById("publishUrl").value,expires_at:document.getElementById("publishExpiration").value?new Date(document.getElementById("publishExpiration").value).toISOString():null};
-  const result=await api("/api/codes",{method:"POST",body:JSON.stringify(payload)});
-  if(!result.ok){toast(result.error);return}
-  closeModal("publishModal");toast("Ton offre est publiée");loadFeed();
+  const payload={kind:document.getElementById("publishKind").value,brand:document.getElementById("publishBrand").value,title:document.getElementById("publishTitle").value||document.getElementById("publishBrand").value,description:document.getElementById("publishDescription").value,category:document.getElementById("publishCategory").value,code:document.getElementById("publishCode").value,url:document.getElementById("publishUrl").value,expires_at:document.getElementById("publishExpiration").value?new Date(document.getElementById("publishExpiration").value).toISOString():null};
+  const r=await api("/api/codes",{method:"POST",body:JSON.stringify(payload)});
+  if(!r.ok){toast(r.error||"Publication impossible");return}
+  closeModal("publishModal");toast("Offre publiée");loadFeed();
 }
 async function copyReferral(){await navigator.clipboard.writeText(currentUser.referral_link);toast("Lien copié")}
 async function copyReferralCode(){await navigator.clipboard.writeText(currentUser.referral_code);toast("Code copié")}
-async function shareReferral(){if(navigator.share){try{await navigator.share({title:"COD.IA",text:"Rejoins COD.IA",url:currentUser.referral_link})}catch(e){}}else copyReferral()}
+async function shareReferral(){if(navigator.share){try{await navigator.share({title:"COD.IA",url:currentUser.referral_link})}catch(e){}}else copyReferral()}
 function startCountdown(){
-  function update(){if(!currentChallenge)return;let s=currentChallenge.remaining_seconds||0;if(s<=0){document.getElementById("challengeTimer").textContent="Terminé";return}s--;currentChallenge.remaining_seconds=s;const d=Math.floor(s/86400),h=Math.floor((s%86400)/3600),m=Math.floor((s%3600)/60);document.getElementById("challengeTimer").textContent=`${d}j ${String(h).padStart(2,"0")}h ${String(m).padStart(2,"0")}m`;document.getElementById("challengePoints").textContent=formatNumber(currentChallenge.points)+" points";document.getElementById("challengeProgress").style.width=Math.min(100,currentChallenge.points/1500*100)+"%"}
+  function update(){if(!currentChallenge)return;let s=currentChallenge.remaining_seconds||0;if(s<=0){document.getElementById("challengeTimer").textContent="Terminé";return}s--;currentChallenge.remaining_seconds=s;const d=Math.floor(s/86400),h=Math.floor((s%86400)/3600),m=Math.floor((s%3600)/60);document.getElementById("challengeTimer").textContent=`${d}j ${String(h).padStart(2,"0")}h ${String(m).padStart(2,"0")}m`;document.getElementById("challengePoints").textContent=formatNumber(currentChallenge.points)+" points";document.getElementById("challengeProgress").style.width=Math.min(100,(currentChallenge.points||0)/1500*100)+"%"}
   update();clearInterval(window.challengeInterval);window.challengeInterval=setInterval(update,1000);
 }
-async function loadLeaderboard(type="challenge",btn=null){
-  if(btn){document.querySelectorAll(".tab").forEach(el=>el.classList.remove("active"));btn.classList.add("active")}
-  const result=await api("/api/leaderboard"); if(!result.ok){toast(result.error);return}
-  const list=type==="weekly"?(result.weekly||[]):(result.challenge||[]).slice(0,3);
-  document.getElementById("leaderboard").innerHTML=list.map(row=>`<div class="rank-card ${row.me?"rank-me":""}"><div>${row.rank<=3?["🥇","🥈","🥉"][row.rank-1]:"#"+row.rank}</div><div class="avatar" style="width:42px;height:42px;font-size:12px;border:0">${escapeHtml(row.initials||"CO")}</div><div><div class="card-title" style="margin:0">${escapeHtml(row.name||"Membre")}</div><div class="code-desc">${formatNumber(row.points)} point(s)</div></div></div>`).join("");
+async function loadLeaderboard(){
+  const result=await api("/api/leaderboard");
+  const list=(result.challenge||[]).slice(0,3);
+  document.getElementById("leaderboard").innerHTML=list.map(row=>`<div class="rank-card"><div>${["🥇","🥈","🥉"][row.rank-1]||"#"+row.rank}</div><div class="avatar" style="width:42px;height:42px;font-size:12px;border:0">${escapeHtml(row.initials||"CO")}</div><div><div class="card-title" style="margin:0">${escapeHtml(row.name||"Membre")}</div><div class="code-desc">${formatNumber(row.points)} point(s)</div></div></div>`).join("");
   const me=list.find(r=>r.me);
   document.getElementById("myRank").textContent=me?`Tu es #${me.rank} avec ${formatNumber(me.points)} point(s).`:"Ton classement apparaîtra ici.";
 }
-async function loadTopCodes(){goPage("home");const result=await api("/api/top-codes");if(!result.ok){toast(result.error);return}document.getElementById("feed").innerHTML=(result.codes||[]).map(codeCard).join("")||`<div class="card">Les Top Codes apparaissent à 100 likes ou 100 copies.</div>`}
-async function loadNotificationsCount(){const result=await api("/api/notifications");if(!result.ok)return;document.getElementById("notificationDot").style.display=result.unread>0?"block":"none"}
+async function loadTopCodes(){goPage("home");const r=await api("/api/top-codes");document.getElementById("feed").innerHTML=(r.codes||[]).map(codeCard).join("")||`<div class="card">Les Top Codes apparaissent à 100 likes ou 100 copies.</div>`}
+async function loadNotificationsCount(){const r=await api("/api/notifications");if(r.ok) document.getElementById("notificationDot").style.display=r.unread>0?"block":"none"}
 async function openNotifications(){
   closeAllModals();document.getElementById("notificationModal").classList.add("open");
-  const result=await api("/api/notifications");
-  const offers=`<div class="card" style="cursor:pointer" onclick="closeModal('notificationModal');document.getElementById('launchModal').classList.add('open')"><div class="card-title">OFFRE DE LANCEMENT</div><div class="code-desc">Jusqu’à 1 500 €. 1 point quand quelqu’un rejoint avec ton code.</div></div><div class="card" style="cursor:pointer" onclick="closeModal('notificationModal');document.getElementById('copiesModal').classList.add('open')"><div class="card-title">OFFRE COPIES</div><div class="code-desc">250 copies sur un même code = 100 €</div></div>`;
-  document.getElementById("notificationsList").innerHTML=offers+((result.notifications||[]).map(n=>`<div class="card"><div class="card-title">${escapeHtml(n.title)}</div><div class="code-desc">${escapeHtml(n.message)}</div></div>`).join("")||"");
+  const r=await api("/api/notifications");
+  document.getElementById("notificationsList").innerHTML=`<div class="card" onclick="closeModal('notificationModal');document.getElementById('launchModal').classList.add('open')"><div class="card-title">OFFRE DE LANCEMENT</div></div><div class="card" onclick="closeModal('notificationModal');document.getElementById('copiesModal').classList.add('open')"><div class="card-title">OFFRE COPIES</div></div>`+((r.notifications||[]).map(n=>`<div class="card"><div class="card-title">${escapeHtml(n.title)}</div><div class="code-desc">${escapeHtml(n.message)}</div></div>`).join(""));
   await api("/api/notifications/read",{method:"POST"});
-  document.getElementById("notificationDot").style.display="none";
 }
-function openEditProfile(){document.getElementById("editName").value=currentUser.display_name||"";document.getElementById("editBio").value=currentUser.bio||"";document.getElementById("editModal").classList.add("open")}
-async function saveProfile(){const result=await api("/api/profile",{method:"PATCH",body:JSON.stringify({display_name:document.getElementById("editName").value,bio:document.getElementById("editBio").value})});if(!result.ok){toast(result.error);return}closeModal("editModal");toast("Profil mis à jour");await boot()}
+function openEditProfile(){pendingPhoto=currentUser.avatar_url||"";document.getElementById("editBio").value=currentUser.bio||"";document.getElementById("editEmail").value=currentUser.email||"";document.getElementById("editModal").classList.add("open");closeModal("menuModal")}
+document.getElementById("editPhoto").addEventListener("change",e=>{
+  const f=e.target.files[0]; if(!f)return;
+  if(f.size>250000){toast("Image trop lourde (max 250 Ko).");return}
+  const reader=new FileReader(); reader.onload=()=>{pendingPhoto=reader.result}; reader.readAsDataURL(f);
+});
+async function saveProfile(){
+  const r=await api("/api/profile",{method:"PATCH",body:JSON.stringify({bio:document.getElementById("editBio").value,email:document.getElementById("editEmail").value,avatar_url:pendingPhoto})});
+  if(!r.ok){toast(r.error);return}
+  closeModal("editModal");toast("Profil mis à jour");await boot();
+}
 function openSupport(){closeAllModals();document.getElementById("supportModal").classList.add("open")}
-async function sendSupport(){const result=await api("/api/support",{method:"POST",body:JSON.stringify({subject:document.getElementById("supportSubject").value,message:document.getElementById("supportMessage").value})});if(!result.ok){toast(result.error);return}closeModal("supportModal");toast("Message envoyé")}
+async function sendSupport(){const r=await api("/api/support",{method:"POST",body:JSON.stringify({subject:document.getElementById("supportSubject").value,message:document.getElementById("supportMessage").value})});if(!r.ok){toast(r.error);return}closeModal("supportModal");toast("Message envoyé")}
 function openFAQ(){closeAllModals();document.getElementById("faqModal").classList.add("open")}
 function openMenu(){document.getElementById("menuModal").classList.add("open")}
 function openCodeMenu(id){window._menuCodeId=id;document.getElementById("codeMenuModal").classList.add("open")}
-async function reportCode(id){const result=await api(`/api/codes/${id}/report`,{method:"POST",body:JSON.stringify({reason:"Signalement",hide:true})});toast(result.ok?(result.removed?"Publication retirée.":"Signalement enregistré."):result.error);loadFeed()}
-async function hideCode(id){const result=await api(`/api/codes/${id}/hide`,{method:"POST"});if(!result.ok){toast(result.error);return}toast("Cette publication ne te sera plus proposée.");loadFeed()}
-let swipeStartX=0;
-function swipeStart(e){if(e.touches&&e.touches.length) swipeStartX=e.touches[0].clientX}
-function swipeEnd(e){if(!e.changedTouches)return;const d=e.changedTouches[0].clientX-swipeStartX;if(Math.abs(d)<80)return;const id=e.currentTarget.dataset.code;if(d>0) favoriteCode(id);else hideCode(id)}
+async function reportCode(id){const r=await api(`/api/codes/${id}/report`,{method:"POST",body:JSON.stringify({hide:true})});toast(r.ok?"Signalement enregistré":r.error);loadFeed()}
+async function hideCode(id){await api(`/api/codes/${id}/hide`,{method:"POST"});loadFeed()}
 async function startPayment(){
-  const result=await api("/api/create-checkout",{method:"POST"});
-  if(!result.ok){toast(result.error);return}
-  if(result.already_paid){document.getElementById("paywall").classList.remove("show");await boot();return}
-  const secret=result.client_secret||result.clientSecret;
-  if(!secret){toast("Stripe n'a pas retourné de session.");return}
-  if(!window.Stripe){const s=document.createElement("script");s.src="https://js.stripe.com/v3/";s.onload=()=>initializeStripe(secret);document.head.appendChild(s)}
-  else initializeStripe(secret);
+  const uid=currentUser&&currentUser.id?currentUser.id:localStorage.getItem("codia_user_id");
+  const r=await api("/api/create-checkout",{method:"POST",body:JSON.stringify({user_id:uid})});
+  if(!r.ok){toast(r.error);return}
+  if(r.already_paid){document.getElementById("paywall").classList.remove("show");await boot();return}
+  const secret=r.client_secret||r.clientSecret; if(!secret){toast("Stripe n'a pas retourné de session.");return}
+  initializeStripe(secret);
 }
 async function initializeStripe(clientSecret){
   let cfg=await api("/config"); if(!cfg.stripe_pk) cfg=await api("/api/stripe-config");
   const key=cfg.stripe_pk||cfg.publishable_key; if(!key){toast("Clé Stripe manquante.");return}
   const checkout=await Stripe(key).initEmbeddedCheckout({clientSecret});
-  document.getElementById("stripeCheckout").innerHTML="";
-  checkout.mount("#stripeCheckout");
+  document.getElementById("stripeCheckout").innerHTML=""; checkout.mount("#stripeCheckout");
   document.getElementById("stripeModal").classList.add("open");
 }
-function closeModal(id){const m=document.getElementById(id);if(m)m.classList.remove("open")}
+function nextOnboard(){
+  onboardStep++;
+  if(onboardStep>=ONBOARD.length){localStorage.setItem("codia_onboard","1");document.getElementById("onboard").classList.remove("show");return}
+  const s=ONBOARD[onboardStep];
+  document.getElementById("onboardIco").textContent=s.ico;
+  document.getElementById("onboardTitle").textContent=s.title;
+  document.getElementById("onboardText").textContent=s.text;
+}
+function closeModal(id){document.getElementById(id)?.classList.remove("open")}
 function closeAllModals(){document.querySelectorAll(".modal").forEach(el=>el.classList.remove("open"))}
-function toggleTheme(){document.body.classList.toggle("dark");localStorage.setItem("theme",document.body.classList.contains("dark")?"dark":"light")}
-if(localStorage.getItem("theme")==="dark") document.body.classList.add("dark");
 document.addEventListener("DOMContentLoaded",()=>{const ref=new URLSearchParams(location.search).get("ref");if(ref) document.getElementById("registerReferral").value=ref;boot()});
 </script>
 </body>
