@@ -54,7 +54,7 @@ body{padding-bottom:100px}
 .search input{border:0;outline:0;flex:1;background:transparent;font-size:14px}
 .code-card{background:#fff;border:1px solid var(--border);border-radius:22px;padding:15px;margin-bottom:11px;position:relative}
 .code-top{display:flex;gap:12px}
-.brand-logo{width:54px;height:54px;flex:none;border-radius:17px;background:#111;color:#fff;display:flex;justify-content:center;align-items:center;font-size:10px;font-weight:800;text-align:center;padding:4px}
+.brand-logo{width:54px;height:54px;flex:none;border-radius:17px;background:#fff;border:1px solid #eee;object-fit:contain;padding:6px}
 .badge{display:inline-flex;padding:5px 8px;border-radius:30px;background:#e8f0dc;color:var(--green-dark);font-size:9px;font-weight:900}
 .code-title{font-size:15px;font-weight:800;margin:6px 0 4px}
 .code-desc{font-size:12px;color:#747b70;line-height:1.4}
@@ -105,6 +105,32 @@ body{padding-bottom:100px}
 @keyframes spin{to{transform:rotate(360deg)}}
 .compare{margin-top:16px;text-align:left;font-size:12px}
 .compare div{display:grid;grid-template-columns:1.6fr .5fr .5fr;padding:8px 0;border-bottom:1px solid var(--border)}
+.detail{position:fixed;inset:0;z-index:220;background:#f7f6f1;display:none;overflow:auto;padding-bottom:92px}
+.detail.show{display:block}
+.detail-top{position:sticky;top:0;z-index:2;background:rgba(247,246,241,.96);backdrop-filter:blur(16px);height:64px;display:flex;align-items:center;justify-content:space-between;padding:0 14px}
+.detail-wrap{max-width:520px;margin:auto;padding:12px 16px 24px}
+.detail-hero{background:#fff;border:1px solid var(--border);border-radius:26px;padding:16px;box-shadow:var(--shadow)}
+.detail-head{display:grid;grid-template-columns:64px 1fr auto;gap:12px;align-items:start}
+.brand-mark{width:64px;height:64px;border-radius:16px;background:#fff;border:1px solid #eee;object-fit:contain;padding:6px}
+.trend{background:#f4f6ee;border:1px solid #e4ead8;border-radius:16px;padding:8px 10px;font-size:11px;color:var(--green-dark);text-align:center;font-weight:800}
+.chips{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin:14px 0}
+.chip{background:#f7f8f3;border:1px solid #eceee6;border-radius:14px;padding:8px 6px;text-align:center;font-size:10px;color:#5f665c}
+.chip b{display:block;color:#1b2218;font-size:11px;margin-top:3px}
+.code-box{background:#f3f6ec;border:1px dashed #cfd8bf;border-radius:18px;padding:16px;text-align:center;position:relative}
+.code-box .big{font-size:28px;font-weight:900;letter-spacing:.08em;margin:6px 0}
+.copy-big{position:absolute;right:12px;top:12px;width:54px;height:54px;border-radius:14px;background:var(--green);color:#fff;font-size:11px;font-weight:800}
+.two-btns{display:grid;grid-template-columns:1.1fr .9fr;gap:8px;margin-top:12px}
+.stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}
+.stat-row div{background:#f8f8f4;border-radius:16px;padding:10px 4px;text-align:center;font-size:11px;color:#6a7166}
+.stat-row b{display:block;font-size:16px;color:#172014;margin-bottom:3px}
+.dtabs{display:flex;gap:18px;margin:18px 4px 10px;border-bottom:1px solid #eceee6}
+.dtab{background:transparent;padding:8px 0;color:#8a9084;font-weight:800;font-size:13px}
+.dtab.on{color:var(--green-dark);border-bottom:2px solid var(--green)}
+.checks{display:flex;flex-direction:column;gap:8px;font-size:13px;color:#3f463b}
+.comment{display:flex;gap:10px;padding:12px 0;border-top:1px solid #eef0e9}
+.c-ava{width:36px;height:36px;border-radius:50%;background:#dfe4d4;display:flex;align-items:center;justify-content:center;font-weight:800}
+.use-bar{position:fixed;left:50%;bottom:0;transform:translateX(-50%);width:min(520px,100%);background:#fff;border-top:1px solid var(--border);padding:10px 14px 18px;display:grid;grid-template-columns:48px 1fr 48px;gap:8px;z-index:230}
+.use-bar button{height:48px;border-radius:16px}
 </style>
 </head>
 <body>
@@ -202,12 +228,12 @@ body{padding-bottom:100px}
 <div id="publishModal" class="modal"><div class="sheet">
   <div class="sheet-head"><div class="section-title">Publier une offre</div><button class="close" onclick="closeModal('publishModal')">✕</button></div>
   <div class="field"><label>Type</label><select id="publishKind"><option value="PROMO">Code promo</option><option value="PARRAINAGE">Parrainage</option></select></div>
-  <div class="field"><label>Marque</label><input id="publishBrand" placeholder="Ex : Nike"></div>
+  <div class="field"><label>Marque</label><input id="publishBrand" placeholder="Ex : Nike, Uber..."></div>
   <div class="field"><label>Titre</label><input id="publishTitle" placeholder="-20% sur toute la boutique"></div>
   <div class="field"><label>Description</label><textarea id="publishDescription"></textarea></div>
   <div class="field"><label>Catégorie</label><select id="publishCategory"><option>MODE</option><option>SHOPPING</option><option>FOOD</option><option>VOYAGE</option><option>TECH</option><option>AUTRES</option></select></div>
   <div class="field"><label>Code</label><input id="publishCode" placeholder="NIKE20"></div>
-  <div class="field"><label>Lien</label><input id="publishUrl" type="url" placeholder="https://"></div>
+  <div class="field"><label>Lien du site</label><input id="publishUrl" type="url" placeholder="https://nike.com"></div>
   <div class="field"><label>Expiration</label><input id="publishExpiration" type="datetime-local"></div>
   <button class="primary" onclick="publishCode()">Publier mon offre</button>
 </div></div>
@@ -231,7 +257,7 @@ body{padding-bottom:100px}
 </div></div>
 <div id="launchModal" class="modal"><div class="sheet">
   <div class="sheet-head"><div class="section-title">Offre de Lancement</div><button class="close" onclick="closeModal('launchModal')">✕</button></div>
-  <p class="code-desc">1 point par inscription avec ton code. 500 / 1000 / 1500 points = 500 € / 1000 € / 1500 €.</p>
+  <p class="code-desc">1 point par inscription avec ton code.</p>
   <button class="primary" onclick="closeModal('launchModal')">C’est compris</button>
 </div></div>
 <div id="copiesModal" class="modal"><div class="sheet">
@@ -249,7 +275,6 @@ body{padding-bottom:100px}
 <div id="faqModal" class="modal"><div class="sheet">
   <div class="sheet-head"><div class="section-title">FAQ</div><button class="close" onclick="closeModal('faqModal')">✕</button></div>
   <div class="card"><strong>Challenge</strong><p class="code-desc">1 point par inscription avec ton code.</p></div>
-  <div class="card"><strong>Copies</strong><p class="code-desc">250 copies = 100 €.</p></div>
 </div></div>
 <div id="menuModal" class="modal"><div class="sheet">
   <div class="sheet-head"><div class="section-title">Menu</div><button class="close" onclick="closeModal('menuModal')">✕</button></div>
@@ -290,15 +315,7 @@ body{padding-bottom:100px}
   <div class="logo-globe" style="margin:0 auto 12px">C.</div>
   <div id="paywallIntro">
     <h1>Bienvenue sur COD.IA</h1>
-    <p style="color:#70776b;font-size:13px">Rejoins la communauté.</p>
     <div class="price">9,99 € <small>accès unique</small></div>
-    <div class="compare">
-      <div><b>Ce que tu obtiens</b><b>Gratuit</b><b>COD.IA</b></div>
-      <div><span>Voir tous les codes</span><span>✗</span><span>✓</span></div>
-      <div><span>Publier</span><span>✗</span><span>✓</span></div>
-      <div><span>Offre Lancement 1 500 €</span><span>✗</span><span>✓</span></div>
-      <div><span>250 copies = 100 €</span><span>✗</span><span>✓</span></div>
-    </div>
     <button class="primary" onclick="startPayment()">Rejoindre COD.IA — 9,99 €</button>
     <button class="secondary" style="width:100%;margin-top:10px" onclick="location.href='/'">Retour au site</button>
   </div>
@@ -312,178 +329,77 @@ body{padding-bottom:100px}
 <div id="onboard" class="onboard"><div class="onboard-card">
   <div class="onboard-ico" id="onboardIco">🏠</div>
   <h2 id="onboardTitle">Accueil</h2>
-  <p class="code-desc" id="onboardText">Découvre les codes promo et parrainages partagés par la communauté.</p>
+  <p class="code-desc" id="onboardText">Découvre les codes promo et parrainages.</p>
   <button class="primary" onclick="nextOnboard()">Suivant</button>
 </div></div>
+
+<div id="detailPage" class="detail">
+  <div class="detail-top">
+    <button class="icon-btn" onclick="closeDetail()">‹</button>
+    <button class="logo" onclick="closeDetail()"><div class="logo-globe">C.</div>COD.IA</button>
+    <button class="icon-btn" onclick="shareCurrent()">↗</button>
+  </div>
+  <div class="detail-wrap" id="detailContent"></div>
+  <div class="use-bar">
+    <button class="secondary" onclick="likeCurrent()">♡</button>
+    <button class="primary" style="margin:0" onclick="useCurrent()">Utiliser ce code</button>
+    <button class="secondary" onclick="shareCurrent()">↗</button>
+  </div>
+</div>
 <div id="toast" class="toast"></div>
 
 <script>
-let currentUser=null,currentStats=null,currentChallenge=null,currentCategory="TOUS",currentKind="",pendingPhoto="",onboardStep=0;
-const ONBOARD=[
-  {ico:"🏠",title:"Accueil",text:"Retrouve les meilleurs codes promo et parrainages."},
-  {ico:"➕",title:"Publier",text:"Ajoute un code promo ou un lien de parrainage."},
-  {ico:"🏆",title:"Challenge",text:"Chaque inscription avec ton code = 1 point."},
-  {ico:"👤",title:"Profil",text:"Photo, bio, lien de parrainage et stats."}
-];
-async function api(url,options={}){
-  const config={credentials:"same-origin",...options};
-  config.headers={"Content-Type":"application/json",...(options.headers||{})};
-  const response=await fetch(url,config);
-  const raw=await response.text();
-  let data; try{data=JSON.parse(raw)}catch(e){data={ok:false,error:"Réponse serveur invalide ("+response.status+")"}}
-  if(!response.ok&&!data.error) data.error="Erreur "+response.status;
-  return data;
-}
-async function apiFirst(urls,options={}){let last={ok:false,error:"Erreur"};for(const u of urls){last=await api(u,options);if(last.ok)return last;}return last;}
+let currentUser=null,currentStats=null,currentChallenge=null,currentCategory="TOUS",currentKind="",pendingPhoto="",onboardStep=0,currentCode=null,detailTab="details";
+const ONBOARD=[{ico:"🏠",title:"Accueil",text:"Les meilleurs codes."},{ico:"➕",title:"Publier",text:"Ajoute une offre."},{ico:"🏆",title:"Challenge",text:"1 point par parrainage."},{ico:"👤",title:"Profil",text:"Photo, bio et lien."}];
+const BRAND_DOMAINS={nike:"nike.com",adidas:"adidas.com",uber:"uber.com","uber eats":"ubereats.com",amazon:"amazon.fr",booking:"booking.com",airbnb:"airbnb.com",shein:"shein.com",zalando:"zalando.fr",deliveroo:"deliveroo.fr",mcdonald:"mcdonalds.fr",spotify:"spotify.com",netflix:"netflix.com",disney:"disneyplus.com",fnac:"fnac.com",darty:"darty.com",boulanger:"boulanger.com",carrefour:"carrefour.fr",leclerc:"e.leclerc",temu:"temu.com",aliexpress:"aliexpress.com",sncf:"sncf-connect.com",ryanair:"ryanair.com","air france":"airfrance.fr",sephora:"sephora.fr",decathlon:"decathlon.fr",cdiscount:"cdiscount.com",dominos:"dominos.fr","burger king":"burgerking.fr",kfc:"kfc.fr",paypal:"paypal.com",revolut:"revolut.com"};
+async function api(url,options={}){const config={credentials:"same-origin",...options};config.headers={"Content-Type":"application/json",...(options.headers||{})};const response=await fetch(url,config);const raw=await response.text();let data;try{data=JSON.parse(raw)}catch(e){data={ok:false,error:"Réponse serveur invalide ("+response.status+")"}}if(!response.ok&&!data.error)data.error="Erreur "+response.status;return data}
+async function apiFirst(urls,options={}){let last={ok:false,error:"Erreur"};for(const u of urls){last=await api(u,options);if(last.ok)return last}return last}
 function toast(m){const el=document.getElementById("toast");el.textContent=m;el.classList.add("show");clearTimeout(window.toastTimer);window.toastTimer=setTimeout(()=>el.classList.remove("show"),2800)}
 function escapeHtml(v){return String(v??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;")}
 function formatNumber(v){return new Intl.NumberFormat("fr-FR").format(Number(v||0))}
-function saveUserLocal(u){if(u&&u.id) localStorage.setItem("codia_user_id",String(u.id))}
-function showAuth(mode="login"){
-  document.getElementById("auth").classList.add("show");
-  document.getElementById("paywall").classList.remove("show");
-  document.getElementById("loginForm").style.display=mode==="login"?"block":"none";
-  document.getElementById("registerForm").style.display=mode==="register"?"block":"none";
-  document.getElementById("loginTab").classList.toggle("active",mode==="login");
-  document.getElementById("registerTab").classList.toggle("active",mode==="register");
-  const ref=new URLSearchParams(location.search).get("ref"); if(ref) document.getElementById("registerReferral").value=ref;
-}
-async function login(){
-  const result=await apiFirst(["/api/login","/auth/login"],{method:"POST",body:JSON.stringify({identifier:document.getElementById("loginIdentifier").value.trim(),password:document.getElementById("loginPassword").value})});
-  if(!result.ok){toast(result.error);return}
-  saveUserLocal(result.user); currentUser=result.user;
-  document.getElementById("auth").classList.remove("show");
-  await boot();
-}
-async function register(){
-  const result=await apiFirst(["/api/register","/auth/register"],{method:"POST",body:JSON.stringify({
-    display_name:document.getElementById("registerName").value.trim(),
-    username:document.getElementById("registerUsername").value.trim(),
-    email:document.getElementById("registerEmail").value.trim(),
-    password:document.getElementById("registerPassword").value,
-    referral_code:document.getElementById("registerReferral").value.trim().toUpperCase()
-  })});
-  if(!result.ok){toast(result.error);return}
-  saveUserLocal(result.user); currentUser=result.user;
-  document.getElementById("auth").classList.remove("show");
-  document.getElementById("paywall").classList.add("show");
-}
+function saveUserLocal(u){if(u&&u.id)localStorage.setItem("codia_user_id",String(u.id))}
+function brandDomain(code){if(code.url){try{return new URL(code.url.startsWith("http")?code.url:"https://"+code.url).hostname.replace(/^www\./,"")}catch(e){}}const key=String(code.brand||code.title||"").toLowerCase();for(const name in BRAND_DOMAINS){if(key.includes(name))return BRAND_DOMAINS[name]}return key.replace(/[^a-z0-9]/g,"")+".com"}
+function logoUrl(code){return "https://www.google.com/s2/favicons?sz=128&domain_url=https://"+brandDomain(code)}
+function showAuth(mode="login"){document.getElementById("auth").classList.add("show");document.getElementById("paywall").classList.remove("show");document.getElementById("loginForm").style.display=mode==="login"?"block":"none";document.getElementById("registerForm").style.display=mode==="register"?"block":"none";document.getElementById("loginTab").classList.toggle("active",mode==="login");document.getElementById("registerTab").classList.toggle("active",mode==="register");const ref=new URLSearchParams(location.search).get("ref");if(ref)document.getElementById("registerReferral").value=ref}
+async function login(){const result=await apiFirst(["/api/login","/auth/login"],{method:"POST",body:JSON.stringify({identifier:document.getElementById("loginIdentifier").value.trim(),password:document.getElementById("loginPassword").value})});if(!result.ok){toast(result.error);return}saveUserLocal(result.user);currentUser=result.user;document.getElementById("auth").classList.remove("show");await boot()}
+async function register(){const result=await apiFirst(["/api/register","/auth/register"],{method:"POST",body:JSON.stringify({display_name:document.getElementById("registerName").value.trim(),username:document.getElementById("registerUsername").value.trim(),email:document.getElementById("registerEmail").value.trim(),password:document.getElementById("registerPassword").value,referral_code:document.getElementById("registerReferral").value.trim().toUpperCase()})});if(!result.ok){toast(result.error);return}saveUserLocal(result.user);currentUser=result.user;document.getElementById("auth").classList.remove("show");document.getElementById("paywall").classList.add("show")}
 function logout(){location.href="/logout"}
-async function boot(){
-  const params=new URLSearchParams(location.search);
-  if(params.get("paid")==="1"&&params.get("session_id")) await api("/api/confirm-payment?session_id="+encodeURIComponent(params.get("session_id")));
-  const result=await api("/api/me");
-  if(!result.ok||!result.user){showAuth();return}
-  saveUserLocal(result.user); currentUser=result.user;
-  currentStats=result.stats||{referrals:0,points:0,likes:0,clicks:0};
-  currentChallenge=result.challenge||{points:0,remaining_seconds:0};
-  document.getElementById("auth").classList.remove("show");
-  updateProfileUI();
-  if(!currentUser.is_paid&&!currentUser.is_admin){document.getElementById("paywall").classList.add("show");return}
-  document.getElementById("paywall").classList.remove("show");
-  if(!localStorage.getItem("codia_onboard")) document.getElementById("onboard").classList.add("show");
-  loadFeed();loadNotificationsCount();startCountdown();loadLeaderboard();
-}
-function setAvatarEl(el,user){
-  if(user.avatar_url){el.style.backgroundImage="url("+user.avatar_url+")";el.textContent=""}
-  else{el.style.backgroundImage="";el.textContent=user.avatar_initials||"CO"}
-}
-function updateProfileUI(){
-  if(!currentUser)return;
-  setAvatarEl(document.getElementById("profileAvatar"),currentUser);
-  document.getElementById("profileName").textContent=currentUser.display_name||currentUser.username||"Membre";
-  document.getElementById("profileBio").textContent=currentUser.bio||"Bienvenue sur COD.IA.";
-  document.getElementById("referralLink").value=currentUser.referral_link||"";
-  document.getElementById("referralCode").value=currentUser.referral_code||"";
-  const s=currentStats||{};
-  document.getElementById("statReferrals").textContent=formatNumber(s.referrals);
-  document.getElementById("statPoints").textContent=formatNumber(s.points);
-  document.getElementById("statLikes").textContent=formatNumber(s.likes);
-  document.getElementById("statClicks").textContent=formatNumber(s.clicks);
-}
-function goPage(page){
-  document.querySelectorAll(".page").forEach(el=>el.classList.remove("active"));
-  const t=document.getElementById("page-"+page); if(t) t.classList.add("active");
-  document.querySelectorAll(".nav-item[data-page]").forEach(el=>el.classList.toggle("active",el.dataset.page===page));
-  if(page==="home") loadFeed(); if(page==="promos") loadFeed("promoFeed"); if(page==="challenge") loadLeaderboard();
-}
-async function loadFeed(targetId="feed"){
-  const target=document.getElementById(targetId); if(!target)return;
-  const search=targetId==="promoFeed"?(document.getElementById("promoSearch")?.value||""):(document.getElementById("searchInput")?.value||"");
-  const result=await api(`/api/feed?category=${encodeURIComponent(currentCategory)}&kind=${encodeURIComponent(currentKind)}&search=${encodeURIComponent(search)}`);
-  renderCodes(target,result.codes||[]);
-}
-function renderCodes(target,codes){
-  if(!codes.length){target.innerHTML=`<div class="card"><div class="card-title">Aucun code trouvé</div><button class="primary" onclick="openPublish()">+ Publier un code</button></div>`;return}
-  target.innerHTML=codes.map(codeCard).join("");
-}
-function codeCard(code){
-  const brand=code.brand||"COD.IA";
-  return `<article class="code-card">
-    <div class="code-top"><div class="brand-logo">${escapeHtml(String(brand).substring(0,12))}</div>
-    <div><span class="badge">${code.kind==="PARRAINAGE"?"PARRAINAGE":"PROMO"}</span>
-    <div class="code-title">${escapeHtml(code.title||"")}</div><div class="code-desc">${escapeHtml(code.description||"")}</div></div></div>
-    <button class="more" onclick="openCodeMenu(${code.id})">⋮</button>
-    ${code.code?`<div class="code-bottom"><div class="code-chip">${escapeHtml(code.code)}</div><button class="code-copy" onclick="copyCode(${code.id})">⧉</button></div>`:""}
-    <div class="code-actions">
-      <button class="action" onclick="likeCode(${code.id})">❤️ ${formatNumber(code.likes)}</button>
-      <button class="action" onclick="favoriteCode(${code.id})">☆ Favoris</button>
-      <button class="action" onclick="copyAndOpen(${code.id})">↗ Ouvrir</button>
-      <span class="action">⧉ ${formatNumber(code.copies)}</span>
-    </div>
-  </article>`;
-}
+async function boot(){const params=new URLSearchParams(location.search);if(params.get("paid")==="1"&&params.get("session_id"))await api("/api/confirm-payment?session_id="+encodeURIComponent(params.get("session_id")));const result=await api("/api/me");if(!result.ok||!result.user){showAuth();return}saveUserLocal(result.user);currentUser=result.user;currentStats=result.stats||{referrals:0,points:0,likes:0,clicks:0};currentChallenge=result.challenge||{points:0,remaining_seconds:0};document.getElementById("auth").classList.remove("show");updateProfileUI();if(!currentUser.is_paid&&!currentUser.is_admin){document.getElementById("paywall").classList.add("show");return}document.getElementById("paywall").classList.remove("show");if(!localStorage.getItem("codia_onboard"))document.getElementById("onboard").classList.add("show");loadFeed();loadNotificationsCount();startCountdown();loadLeaderboard();if(params.get("code"))openDetail(Number(params.get("code")))}
+function setAvatarEl(el,user){if(user.avatar_url){el.style.backgroundImage="url("+user.avatar_url+")";el.textContent=""}else{el.style.backgroundImage="";el.textContent=user.avatar_initials||"CO"}}
+function updateProfileUI(){if(!currentUser)return;setAvatarEl(document.getElementById("profileAvatar"),currentUser);document.getElementById("profileName").textContent=currentUser.display_name||currentUser.username||"Membre";document.getElementById("profileBio").textContent=currentUser.bio||"Bienvenue sur COD.IA.";document.getElementById("referralLink").value=currentUser.referral_link||"";document.getElementById("referralCode").value=currentUser.referral_code||"";const s=currentStats||{};document.getElementById("statReferrals").textContent=formatNumber(s.referrals);document.getElementById("statPoints").textContent=formatNumber(s.points);document.getElementById("statLikes").textContent=formatNumber(s.likes);document.getElementById("statClicks").textContent=formatNumber(s.clicks)}
+function goPage(page){document.querySelectorAll(".page").forEach(el=>el.classList.remove("active"));const t=document.getElementById("page-"+page);if(t)t.classList.add("active");document.querySelectorAll(".nav-item[data-page]").forEach(el=>el.classList.toggle("active",el.dataset.page===page));if(page==="home")loadFeed();if(page==="promos")loadFeed("promoFeed");if(page==="challenge")loadLeaderboard()}
+async function loadFeed(targetId="feed"){const target=document.getElementById(targetId);if(!target)return;const search=targetId==="promoFeed"?(document.getElementById("promoSearch")?.value||""):(document.getElementById("searchInput")?.value||"");const result=await api(`/api/feed?category=${encodeURIComponent(currentCategory)}&kind=${encodeURIComponent(currentKind)}&search=${encodeURIComponent(search)}`);renderCodes(target,result.codes||[])}
+function renderCodes(target,codes){window._lastCodes=codes;if(!codes.length){target.innerHTML=`<div class="card"><div class="card-title">Aucun code trouvé</div><button class="primary" onclick="openPublish()">+ Publier un code</button></div>`;return}target.innerHTML=codes.map(codeCard).join("")}
+function codeCard(code){return `<article class="code-card" onclick="openDetail(${code.id})"><div class="code-top"><img class="brand-logo" src="${logoUrl(code)}" alt=""><div><span class="badge">${code.kind==="PARRAINAGE"?"PARRAINAGE":"PROMO"}</span><div class="code-title">${escapeHtml(code.title||"")}</div><div class="code-desc">${escapeHtml(code.brand||code.description||"")}</div></div></div><button class="more" onclick="event.stopPropagation();openCodeMenu(${code.id})">⋮</button>${code.code?`<div class="code-bottom"><div class="code-chip">${escapeHtml(code.code)}</div><button class="code-copy" onclick="event.stopPropagation();copyCode(${code.id})">⧉</button></div>`:""}<div class="code-actions"><button class="action" onclick="event.stopPropagation();likeCode(${code.id})">❤️ ${formatNumber(code.likes)}</button><button class="action" onclick="event.stopPropagation();favoriteCode(${code.id})">☆ Favoris</button><button class="action" onclick="event.stopPropagation();copyAndOpen(${code.id})">↗ Ouvrir</button><span class="action">⧉ ${formatNumber(code.copies)}</span></div></article>`}
+async function openDetail(id){let code=(window._lastCodes||[]).find(c=>c.id===id);if(!code){const r=await api("/api/codes/"+id);if(!r.ok||!r.code){toast(r.error||"Code introuvable");return}code=r.code}currentCode=code;detailTab="details";renderDetail();document.getElementById("detailPage").classList.add("show");api("/api/codes/"+id+"/click",{method:"POST"})}
+function closeDetail(){document.getElementById("detailPage").classList.remove("show");currentCode=null}
+function setDetailTab(t){detailTab=t;renderDetail()}
+function renderDetail(){const c=currentCode;if(!c)return;const date=c.expires_at?new Date(c.expires_at).toLocaleDateString("fr-FR"):"Sans date";const author=c.added_by||"Membre";document.getElementById("detailContent").innerHTML=`<div class="detail-hero"><div class="detail-head"><img class="brand-mark" src="${logoUrl(c)}" alt=""><div><span class="badge">${c.kind==="PARRAINAGE"?"PARRAINAGE":"PROMO"}</span><div class="code-title" style="font-size:22px;margin-top:6px">${escapeHtml(c.title||"")}</div><div class="code-desc">${escapeHtml(c.brand||"")} ✓</div></div><div class="trend">🔥<br>Top tendance</div></div><p class="code-desc" style="margin:12px 0">${escapeHtml(c.description||"")}</p><div class="chips"><div class="chip">⏳ Expire le<b>${date}</b></div><div class="chip">🛡 Vérifié<b>Aujourd'hui</b></div><div class="chip">👤 Ajouté par<b>${escapeHtml(author)}</b></div><div class="chip">🏅 Confiance<b>98%</b></div></div><div class="code-box"><div class="code-desc">Code promo</div><div class="big">${escapeHtml(c.code||"—")}</div><div class="code-desc">Le code a été copié ${formatNumber(c.copies)} fois</div><button class="copy-big" onclick="copyCode(${c.id})">⧉<br>Copier</button></div><div class="two-btns"><button class="primary" style="margin:0" onclick="copyAndOpen(${c.id})">↗ Voir l'offre</button><button class="secondary" onclick="copyAndOpen(${c.id})">⧉ Copier et aller sur le site</button></div><div class="stat-row"><div><b>${formatNumber(c.likes)}</b>Likes</div><div><b>${formatNumber(c.copies)}</b>Copies</div><div><b>${formatNumber(c.clicks)}</b>Clics</div><div><b>${formatNumber(c.reports||0)}</b>Signalements</div></div><div class="dtabs"><button class="dtab ${detailTab==="details"?"on":""}" onclick="setDetailTab('details')">Détails</button><button class="dtab ${detailTab==="comments"?"on":""}" onclick="setDetailTab('comments')">Commentaires</button><button class="dtab ${detailTab==="history"?"on":""}" onclick="setDetailTab('history')">Historique</button></div><div>${detailTab==="details"?`<div class="card-title">Détails de l'offre</div><div class="checks"><div>✓ Valable selon les conditions du site</div><div>✓ Hors produits déjà en promotion</div><div>✓ Non cumulable avec d'autres codes</div><div>✓ Utilisable plusieurs fois selon le site</div></div>`:detailTab==="comments"?`<div class="comment"><div class="c-ava">C</div><div><b>Communauté</b><div class="code-desc">Les avis arriveront ici.</div></div></div>`:`<div class="code-desc">Ajouté ${c.created_at?new Date(c.created_at).toLocaleDateString("fr-FR"):""}</div>`}</div></div>`}
+function likeCurrent(){if(currentCode)likeCode(currentCode.id)}
+function useCurrent(){if(currentCode)copyAndOpen(currentCode.id)}
+async function shareCurrent(){if(!currentCode)return;const url=location.origin+"/app?code="+currentCode.id;if(navigator.share){try{await navigator.share({title:currentCode.title,text:currentCode.code,url})}catch(e){}}else{await navigator.clipboard.writeText(url);toast("Lien copié")}}
 function setCategory(btn){document.querySelectorAll(".filter").forEach(el=>el.classList.remove("active"));btn.classList.add("active");currentCategory=btn.dataset.category;loadFeed()}
 function setKind(k){currentKind=k;loadFeed()}
-let searchTimer;
-document.getElementById("searchInput").addEventListener("input",()=>{clearTimeout(searchTimer);searchTimer=setTimeout(()=>loadFeed(),300)});
-document.getElementById("promoSearch").addEventListener("input",()=>{clearTimeout(searchTimer);searchTimer=setTimeout(()=>loadFeed("promoFeed"),300)});
+let searchTimer;document.getElementById("searchInput").addEventListener("input",()=>{clearTimeout(searchTimer);searchTimer=setTimeout(()=>loadFeed(),300)});document.getElementById("promoSearch").addEventListener("input",()=>{clearTimeout(searchTimer);searchTimer=setTimeout(()=>loadFeed("promoFeed"),300)});
 async function copyCode(id){const r=await api(`/api/codes/${id}/copy`,{method:"POST"});if(!r.ok){toast(r.error);return}if(r.code){try{await navigator.clipboard.writeText(r.code)}catch(e){}}toast("Code copié");loadFeed()}
-async function copyAndOpen(id){const r=await api(`/api/codes/${id}/copy`,{method:"POST"});if(r.code){try{await navigator.clipboard.writeText(r.code)}catch(e){}}if(r.url) window.open(r.url,"_blank","noopener")}
+async function copyAndOpen(id){const r=await api(`/api/codes/${id}/copy`,{method:"POST"});if(r.code){try{await navigator.clipboard.writeText(r.code)}catch(e){}}if(r.url)window.open(r.url,"_blank","noopener")}
 async function likeCode(id){await api(`/api/codes/${id}/like`,{method:"POST"});loadFeed()}
 async function favoriteCode(id){const r=await api(`/api/codes/${id}/favorite`,{method:"POST"});toast(r.favorite?"Ajouté aux favoris":"Retiré");loadFeed()}
 async function openFavorites(){closeAllModals();goPage("profile");const r=await api("/api/favorites");const d=document.createElement("div");d.innerHTML=`<div class="section-title">Mes favoris</div>${(r.codes||[]).map(codeCard).join("")||'<div class="card">Aucun favori</div>'}`;document.getElementById("page-profile").appendChild(d)}
 async function openMyCodes(){closeAllModals();goPage("profile");const r=await api("/api/my-codes");const d=document.createElement("div");d.innerHTML=`<div class="section-title">Mes publications</div>${(r.codes||[]).map(codeCard).join("")||'<div class="card">Aucun code</div>'}`;document.getElementById("page-profile").appendChild(d)}
 function openPublish(){document.getElementById("publishModal").classList.add("open")}
-async function publishCode(){
-  const payload={kind:document.getElementById("publishKind").value,brand:document.getElementById("publishBrand").value,title:document.getElementById("publishTitle").value||document.getElementById("publishBrand").value,description:document.getElementById("publishDescription").value,category:document.getElementById("publishCategory").value,code:document.getElementById("publishCode").value,url:document.getElementById("publishUrl").value,expires_at:document.getElementById("publishExpiration").value?new Date(document.getElementById("publishExpiration").value).toISOString():null};
-  const r=await api("/api/codes",{method:"POST",body:JSON.stringify(payload)});
-  if(!r.ok){toast(r.error||"Publication impossible");return}
-  closeModal("publishModal");toast("Offre publiée");loadFeed();
-}
+async function publishCode(){const payload={kind:document.getElementById("publishKind").value,brand:document.getElementById("publishBrand").value,title:document.getElementById("publishTitle").value||document.getElementById("publishBrand").value,description:document.getElementById("publishDescription").value,category:document.getElementById("publishCategory").value,code:document.getElementById("publishCode").value,url:document.getElementById("publishUrl").value,expires_at:document.getElementById("publishExpiration").value?new Date(document.getElementById("publishExpiration").value).toISOString():null};const r=await api("/api/codes",{method:"POST",body:JSON.stringify(payload)});if(!r.ok){toast(r.error||"Publication impossible");return}closeModal("publishModal");toast("Offre publiée");loadFeed()}
 async function copyReferral(){await navigator.clipboard.writeText(currentUser.referral_link);toast("Lien copié")}
 async function copyReferralCode(){await navigator.clipboard.writeText(currentUser.referral_code);toast("Code copié")}
 async function shareReferral(){if(navigator.share){try{await navigator.share({title:"COD.IA",url:currentUser.referral_link})}catch(e){}}else copyReferral()}
-function startCountdown(){
-  function update(){if(!currentChallenge)return;let s=currentChallenge.remaining_seconds||0;if(s<=0){document.getElementById("challengeTimer").textContent="Terminé";return}s--;currentChallenge.remaining_seconds=s;const d=Math.floor(s/86400),h=Math.floor((s%86400)/3600),m=Math.floor((s%3600)/60);document.getElementById("challengeTimer").textContent=`${d}j ${String(h).padStart(2,"0")}h ${String(m).padStart(2,"0")}m`;document.getElementById("challengePoints").textContent=formatNumber(currentChallenge.points)+" points";document.getElementById("challengeProgress").style.width=Math.min(100,(currentChallenge.points||0)/1500*100)+"%"}
-  update();clearInterval(window.challengeInterval);window.challengeInterval=setInterval(update,1000);
-}
-async function loadLeaderboard(){
-  const result=await api("/api/leaderboard");
-  const list=(result.challenge||[]).slice(0,3);
-  document.getElementById("leaderboard").innerHTML=list.map(row=>`<div class="rank-card"><div>${["🥇","🥈","🥉"][row.rank-1]||"#"+row.rank}</div><div class="avatar" style="width:42px;height:42px;font-size:12px;border:0">${escapeHtml(row.initials||"CO")}</div><div><div class="card-title" style="margin:0">${escapeHtml(row.name||"Membre")}</div><div class="code-desc">${formatNumber(row.points)} point(s)</div></div></div>`).join("");
-  const me=list.find(r=>r.me);
-  document.getElementById("myRank").textContent=me?`Tu es #${me.rank} avec ${formatNumber(me.points)} point(s).`:"Ton classement apparaîtra ici.";
-}
-async function loadTopCodes(){goPage("home");const r=await api("/api/top-codes");document.getElementById("feed").innerHTML=(r.codes||[]).map(codeCard).join("")||`<div class="card">Les Top Codes apparaissent à 100 likes ou 100 copies.</div>`}
-async function loadNotificationsCount(){const r=await api("/api/notifications");if(r.ok) document.getElementById("notificationDot").style.display=r.unread>0?"block":"none"}
-async function openNotifications(){
-  closeAllModals();document.getElementById("notificationModal").classList.add("open");
-  const r=await api("/api/notifications");
-  document.getElementById("notificationsList").innerHTML=`<div class="card" onclick="closeModal('notificationModal');document.getElementById('launchModal').classList.add('open')"><div class="card-title">OFFRE DE LANCEMENT</div></div><div class="card" onclick="closeModal('notificationModal');document.getElementById('copiesModal').classList.add('open')"><div class="card-title">OFFRE COPIES</div></div>`+((r.notifications||[]).map(n=>`<div class="card"><div class="card-title">${escapeHtml(n.title)}</div><div class="code-desc">${escapeHtml(n.message)}</div></div>`).join(""));
-  await api("/api/notifications/read",{method:"POST"});
-}
+function startCountdown(){function update(){if(!currentChallenge)return;let s=currentChallenge.remaining_seconds||0;if(s<=0){document.getElementById("challengeTimer").textContent="Terminé";return}s--;currentChallenge.remaining_seconds=s;const d=Math.floor(s/86400),h=Math.floor((s%86400)/3600),m=Math.floor((s%3600)/60);document.getElementById("challengeTimer").textContent=`${d}j ${String(h).padStart(2,"0")}h ${String(m).padStart(2,"0")}m`;document.getElementById("challengePoints").textContent=formatNumber(currentChallenge.points)+" points";document.getElementById("challengeProgress").style.width=Math.min(100,(currentChallenge.points||0)/1500*100)+"%"}update();clearInterval(window.challengeInterval);window.challengeInterval=setInterval(update,1000)}
+async function loadLeaderboard(){const result=await api("/api/leaderboard");const list=(result.challenge||[]).slice(0,3);document.getElementById("leaderboard").innerHTML=list.map(row=>`<div class="rank-card"><div>${["🥇","🥈","🥉"][row.rank-1]||"#"+row.rank}</div><div class="avatar" style="width:42px;height:42px;font-size:12px;border:0">${escapeHtml(row.initials||"CO")}</div><div><div class="card-title" style="margin:0">${escapeHtml(row.name||"Membre")}</div><div class="code-desc">${formatNumber(row.points)} point(s)</div></div></div>`).join("");const me=list.find(r=>r.me);document.getElementById("myRank").textContent=me?`Tu es #${me.rank} avec ${formatNumber(me.points)} point(s).`:"Ton classement apparaîtra ici."}
+async function loadTopCodes(){goPage("home");const r=await api("/api/top-codes");renderCodes(document.getElementById("feed"),r.codes||[])}
+async function loadNotificationsCount(){const r=await api("/api/notifications");if(r.ok)document.getElementById("notificationDot").style.display=r.unread>0?"block":"none"}
+async function openNotifications(){closeAllModals();document.getElementById("notificationModal").classList.add("open");const r=await api("/api/notifications");document.getElementById("notificationsList").innerHTML=`<div class="card" onclick="closeModal('notificationModal');document.getElementById('launchModal').classList.add('open')"><div class="card-title">OFFRE DE LANCEMENT</div></div><div class="card" onclick="closeModal('notificationModal');document.getElementById('copiesModal').classList.add('open')"><div class="card-title">OFFRE COPIES</div></div>`+((r.notifications||[]).map(n=>`<div class="card"><div class="card-title">${escapeHtml(n.title)}</div><div class="code-desc">${escapeHtml(n.message)}</div></div>`).join(""));await api("/api/notifications/read",{method:"POST"})}
 function openEditProfile(){pendingPhoto=currentUser.avatar_url||"";document.getElementById("editBio").value=currentUser.bio||"";document.getElementById("editEmail").value=currentUser.email||"";document.getElementById("editModal").classList.add("open");closeModal("menuModal")}
-document.getElementById("editPhoto").addEventListener("change",e=>{
-  const f=e.target.files[0]; if(!f)return;
-  if(f.size>250000){toast("Image trop lourde (max 250 Ko).");return}
-  const reader=new FileReader(); reader.onload=()=>{pendingPhoto=reader.result}; reader.readAsDataURL(f);
-});
-async function saveProfile(){
-  const r=await api("/api/profile",{method:"PATCH",body:JSON.stringify({bio:document.getElementById("editBio").value,email:document.getElementById("editEmail").value,avatar_url:pendingPhoto})});
-  if(!r.ok){toast(r.error);return}
-  closeModal("editModal");toast("Profil mis à jour");await boot();
-}
+document.getElementById("editPhoto").addEventListener("change",e=>{const f=e.target.files[0];if(!f)return;if(f.size>250000){toast("Image trop lourde (max 250 Ko).");return}const reader=new FileReader();reader.onload=()=>{pendingPhoto=reader.result};reader.readAsDataURL(f)});
+async function saveProfile(){const r=await api("/api/profile",{method:"PATCH",body:JSON.stringify({bio:document.getElementById("editBio").value,email:document.getElementById("editEmail").value,avatar_url:pendingPhoto})});if(!r.ok){toast(r.error);return}closeModal("editModal");toast("Profil mis à jour");await boot()}
 function openSupport(){closeAllModals();document.getElementById("supportModal").classList.add("open")}
 async function sendSupport(){const r=await api("/api/support",{method:"POST",body:JSON.stringify({subject:document.getElementById("supportSubject").value,message:document.getElementById("supportMessage").value})});if(!r.ok){toast(r.error);return}closeModal("supportModal");toast("Message envoyé")}
 function openFAQ(){closeAllModals();document.getElementById("faqModal").classList.add("open")}
@@ -491,44 +407,13 @@ function openMenu(){document.getElementById("menuModal").classList.add("open")}
 function openCodeMenu(id){window._menuCodeId=id;document.getElementById("codeMenuModal").classList.add("open")}
 async function reportCode(id){const r=await api(`/api/codes/${id}/report`,{method:"POST"});toast(r.ok?"Signalement enregistré":r.error);loadFeed()}
 async function hideCode(id){await api(`/api/codes/${id}/hide`,{method:"POST"});loadFeed()}
-async function startPayment(){
-  const uid=currentUser&&currentUser.id?currentUser.id:localStorage.getItem("codia_user_id");
-  toast("Ouverture du paiement...");
-  const r=await api("/api/create-checkout",{method:"POST",body:JSON.stringify({user_id:uid})});
-  if(!r.ok){toast(r.error||"Paiement impossible");return}
-  if(r.already_paid){document.getElementById("paywall").classList.remove("show");await boot();return}
-  const secret=r.client_secret||r.clientSecret;
-  if(!secret){toast("Stripe n'a pas renvoyé de session.");return}
-  document.getElementById("paywallIntro").style.display="none";
-  document.getElementById("stripeBox").style.display="block";
-  try{await initializeStripe(secret)}
-  catch(e){toast("Stripe JS : "+e.message);backPaywall()}
-}
-async function initializeStripe(clientSecret){
-  let cfg=await api("/config");
-  if(!cfg.stripe_pk) cfg=await api("/api/stripe-config");
-  const key=cfg.stripe_pk||cfg.publishable_key;
-  if(!key) throw new Error("STRIPE_PUBLISHABLE_KEY manquante");
-  const checkout=await Stripe(key).initEmbeddedCheckout({clientSecret});
-  document.getElementById("stripeCheckout").innerHTML="";
-  checkout.mount("#stripeCheckout");
-}
-function backPaywall(){
-  document.getElementById("stripeBox").style.display="none";
-  document.getElementById("paywallIntro").style.display="block";
-  document.getElementById("stripeCheckout").innerHTML="";
-}
-function nextOnboard(){
-  onboardStep++;
-  if(onboardStep>=ONBOARD.length){localStorage.setItem("codia_onboard","1");document.getElementById("onboard").classList.remove("show");return}
-  const s=ONBOARD[onboardStep];
-  document.getElementById("onboardIco").textContent=s.ico;
-  document.getElementById("onboardTitle").textContent=s.title;
-  document.getElementById("onboardText").textContent=s.text;
-}
+async function startPayment(){const uid=currentUser&&currentUser.id?currentUser.id:localStorage.getItem("codia_user_id");toast("Ouverture du paiement...");const r=await api("/api/create-checkout",{method:"POST",body:JSON.stringify({user_id:uid})});if(!r.ok){toast(r.error||"Paiement impossible");return}if(r.already_paid){document.getElementById("paywall").classList.remove("show");await boot();return}const secret=r.client_secret||r.clientSecret;if(!secret){toast("Stripe n'a pas renvoyé de session.");return}document.getElementById("paywallIntro").style.display="none";document.getElementById("stripeBox").style.display="block";try{await initializeStripe(secret)}catch(e){toast("Stripe JS : "+e.message);backPaywall()}}
+async function initializeStripe(clientSecret){let cfg=await api("/config");if(!cfg.stripe_pk)cfg=await api("/api/stripe-config");const key=cfg.stripe_pk||cfg.publishable_key;if(!key)throw new Error("STRIPE_PUBLISHABLE_KEY manquante");const checkout=await Stripe(key).initEmbeddedCheckout({clientSecret});document.getElementById("stripeCheckout").innerHTML="";checkout.mount("#stripeCheckout")}
+function backPaywall(){document.getElementById("stripeBox").style.display="none";document.getElementById("paywallIntro").style.display="block";document.getElementById("stripeCheckout").innerHTML=""}
+function nextOnboard(){onboardStep++;if(onboardStep>=ONBOARD.length){localStorage.setItem("codia_onboard","1");document.getElementById("onboard").classList.remove("show");return}const s=ONBOARD[onboardStep];document.getElementById("onboardIco").textContent=s.ico;document.getElementById("onboardTitle").textContent=s.title;document.getElementById("onboardText").textContent=s.text}
 function closeModal(id){document.getElementById(id)?.classList.remove("open")}
 function closeAllModals(){document.querySelectorAll(".modal").forEach(el=>el.classList.remove("open"))}
-document.addEventListener("DOMContentLoaded",()=>{const ref=new URLSearchParams(location.search).get("ref");if(ref) document.getElementById("registerReferral").value=ref;boot()});
+document.addEventListener("DOMContentLoaded",()=>{const ref=new URLSearchParams(location.search).get("ref");if(ref)document.getElementById("registerReferral").value=ref;boot()});
 </script>
 </body>
 </html>
