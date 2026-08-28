@@ -28,6 +28,7 @@ app.config.update(SESSION_COOKIE_HTTPONLY=True, SESSION_COOKIE_SECURE=True, SESS
 DATABASE_URL = os.getenv("DATABASE_URL", "")
 SERVER_URL = os.getenv("SERVER_URL", "https://cod-ia.fr").rstrip("/")
 ADMIN_EMAILS = {x.strip().lower() for x in os.getenv("ADMIN_EMAILS", "contact@cod-ia.fr").split(",") if x.strip()}
+PROTECTED_USERNAMES = {"codiaadmin", "codiaamin", "admin", "contact"}
 try:
     PRICE_CENTS = int(os.getenv("PRICE_CENTS", "999"))
 except ValueError:
@@ -68,6 +69,32 @@ def ensure_column(cur, table, column, definition):
         cur.execute(f"ALTER TABLE {table} ADD COLUMN {column} {definition}")
 
 
+def is_protected_user(email=None, username=None, is_admin_flag=False):
+    if is_admin_flag:
+        return True
+    if normalize_email(email) in ADMIN_EMAILS:
+        return True
+    if clean_username(username) in PROTECTED_USERNAMES:
+        return True
+    return False
+
+
+def cleanup_unpaid(cur):
+    emails = list(ADMIN_EMAILS) or ["contact@cod-ia.fr"]
+    names = list(PROTECTED_USERNAMES)
+    cur.execute(
+        """DELETE FROM users
+           WHERE COALESCE(is_paid, FALSE) = FALSE
+             AND COALESCE(is_admin, FALSE) = FALSE
+             AND LOWER(email) <> ALL(%s)
+             AND LOWER(username) <> ALL(%s)""",
+        (emails, names),
+    )
+    deleted = cur.rowcount
+    if deleted:
+        logging.info("Comptes non payés supprimés: %s", deleted)
+
+
 def init_db():
     conn = db()
     try:
@@ -86,6 +113,10 @@ def init_db():
                          ("is_paid","BOOLEAN DEFAULT FALSE"),("stripe_session_id","TEXT"),
                          ("hidden_codes","JSONB DEFAULT '[]'::jsonb")]:
                 ensure_column(cur, "users", c, d)
+            cur.execute("""CREATE TABLE IF NOT EXISTS pending_signups (
+                id BIGSERIAL PRIMARY KEY, email TEXT NOT NULL, username TEXT NOT NULL,
+                password_hash TEXT NOT NULL, display_name TEXT DEFAULT '',
+                referral_code TEXT DEFAULT '', created_at TIMESTAMPTZ DEFAULT NOW())""")
             cur.execute("""CREATE TABLE IF NOT EXISTS codes (
                 id BIGSERIAL PRIMARY KEY, user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
                 kind TEXT DEFAULT 'PROMO', category TEXT DEFAULT 'Autres', brand TEXT DEFAULT '',
@@ -109,6 +140,8 @@ def init_db():
                 CREATE TABLE IF NOT EXISTS support_tickets(id BIGSERIAL PRIMARY KEY, user_id BIGINT, subject TEXT, message TEXT, status TEXT DEFAULT 'OPEN', created_at TIMESTAMPTZ DEFAULT NOW());
                 CREATE TABLE IF NOT EXISTS settings(key TEXT PRIMARY KEY, value TEXT NOT NULL);""")
             cur.execute("INSERT INTO settings(key,value) VALUES('challenge_start',%s) ON CONFLICT DO NOTHING", (now_utc().isoformat(),))
+            cleanup_unpaid(cur)
+            cur.execute("DELETE FROM pending_signups WHERE created_at < NOW() - INTERVAL '24 hours'")
             for email in ADMIN_EMAILS:
                 cur.execute("UPDATE users SET is_admin=TRUE, is_paid=TRUE WHERE LOWER(email)=%s", (email,))
         conn.commit()
@@ -155,6 +188,8 @@ def require_auth(fn):
         user = get_current_user()
         if not user:
             return jsonify({"ok": False, "error": "AUTH_REQUIRED"}), 401
+        if not user.get("is_paid") and not is_admin(user):
+            return jsonify({"ok": False, "error": "Paiement requis."}), 402
         return fn(user, *args, **kwargs)
     return wrapper
 
@@ -259,6 +294,52 @@ def serialize_code(row, uid=None):
     }
 
 
+def activate_paid_user(pending_id=None, user_id=None, stripe_session_id=None):
+    conn = db()
+    try:
+        with conn.cursor() as cur:
+            user = None
+            if user_id:
+                cur.execute("UPDATE users SET is_paid=TRUE, stripe_session_id=COALESCE(%s, stripe_session_id) WHERE id=%s RETURNING *", (stripe_session_id, user_id))
+                user = cur.fetchone()
+            if not user and pending_id:
+                cur.execute("SELECT * FROM pending_signups WHERE id=%s", (pending_id,))
+                pending = cur.fetchone()
+                if not pending:
+                    conn.commit()
+                    return None
+                cur.execute("SELECT * FROM users WHERE LOWER(email)=LOWER(%s) OR LOWER(username)=LOWER(%s)", (pending["email"], pending["username"]))
+                existing = cur.fetchone()
+                if existing:
+                    cur.execute("UPDATE users SET is_paid=TRUE, stripe_session_id=%s WHERE id=%s RETURNING *", (stripe_session_id, existing["id"]))
+                    user = cur.fetchone()
+                else:
+                    referred_by = None
+                    if pending.get("referral_code"):
+                        cur.execute("SELECT id FROM users WHERE referral_code=%s", (pending["referral_code"],))
+                        ref = cur.fetchone()
+                        if ref:
+                            referred_by = ref["id"]
+                    initials = "".join(x[0] for x in (pending.get("display_name") or pending["username"]).split() if x)[:2].upper() or "CO"
+                    admin = is_protected_user(pending["email"], pending["username"])
+                    cur.execute("""INSERT INTO users(email,username,password_hash,display_name,avatar_initials,referral_code,referred_by,is_admin,is_paid,stripe_session_id)
+                        VALUES(%s,%s,%s,%s,%s,%s,%s,%s,TRUE,%s) RETURNING *""",
+                        (pending["email"], pending["username"], pending["password_hash"], pending.get("display_name") or pending["username"],
+                         initials, make_referral_code(), referred_by, admin, stripe_session_id))
+                    user = cur.fetchone()
+                    if referred_by:
+                        create_notification(cur, referred_by, "Nouveau parrainage", f"{user['display_name']} a rejoint avec ton code. +1 point.", "REFERRAL")
+                cur.execute("DELETE FROM pending_signups WHERE id=%s", (pending_id,))
+            conn.commit()
+            return user
+    except Exception as exc:
+        logging.error("ACTIVATE PAID: %s", exc)
+        conn.rollback()
+        return None
+    finally:
+        conn.close()
+
+
 @app.route("/")
 def landing():
     return send_from_directory(BASE_DIR, "landing.html")
@@ -302,27 +383,20 @@ def register():
         return json_error("Nom utilisateur trop court.")
     if len(password) < 8:
         return json_error("Mot de passe : 8 caractères minimum.")
-    admin = email in ADMIN_EMAILS
+    if is_protected_user(email, username):
+        return json_error("Ce compte est réservé.")
     conn = db()
     try:
         with conn.cursor() as cur:
+            cleanup_unpaid(cur)
             cur.execute("SELECT id FROM users WHERE LOWER(email)=LOWER(%s) OR LOWER(username)=LOWER(%s)", (email, username))
             if cur.fetchone():
                 return json_error("Cet email ou ce nom utilisateur existe déjà.", 409)
-            referred_by = None
-            if referral_code:
-                cur.execute("SELECT id FROM users WHERE referral_code=%s", (referral_code,))
-                ref = cur.fetchone()
-                if ref:
-                    referred_by = ref["id"]
-            cur.execute("""INSERT INTO users(email,username,password_hash,display_name,avatar_initials,referral_code,referred_by,is_admin,is_paid)
-                VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s) RETURNING id""",
-                (email, username, generate_password_hash(password), display_name or username,
-                 "".join(x[0] for x in (display_name or username).split() if x)[:2].upper() or "CO",
-                 make_referral_code(), referred_by, admin, admin))
-            user_id = cur.fetchone()["id"]
-            if referred_by:
-                create_notification(cur, referred_by, "Nouveau parrainage", f"{display_name} a rejoint avec ton code. +1 point.", "REFERRAL")
+            cur.execute("DELETE FROM pending_signups WHERE LOWER(email)=LOWER(%s) OR LOWER(username)=LOWER(%s)", (email, username))
+            cur.execute("""INSERT INTO pending_signups(email,username,password_hash,display_name,referral_code)
+                VALUES(%s,%s,%s,%s,%s) RETURNING id""",
+                (email, username, generate_password_hash(password), display_name or username, referral_code))
+            pending_id = cur.fetchone()["id"]
         conn.commit()
     except Exception as exc:
         logging.error("REGISTER ERROR: %s", exc)
@@ -331,8 +405,24 @@ def register():
     finally:
         conn.close()
     session.permanent = True
-    session["user_id"] = user_id
-    return jsonify({"ok": True, "user": {"id": user_id, "email": email, "username": username, "is_paid": admin, "is_admin": admin}})
+    session.pop("user_id", None)
+    session["pending_id"] = pending_id
+    return jsonify({"ok": True, "pending": True, "user": {"email": email, "username": username, "is_paid": False, "is_admin": False}})
+
+
+@app.post("/api/cancel-signup")
+def cancel_signup():
+    pending_id = session.pop("pending_id", None)
+    session.pop("user_id", None)
+    if pending_id:
+        conn = db()
+        try:
+            with conn.cursor() as cur:
+                cur.execute("DELETE FROM pending_signups WHERE id=%s", (pending_id,))
+            conn.commit()
+        finally:
+            conn.close()
+    return jsonify({"ok": True})
 
 
 @app.post("/api/login")
@@ -344,25 +434,32 @@ def login():
     conn = db()
     try:
         with conn.cursor() as cur:
+            cleanup_unpaid(cur)
+            conn.commit()
             cur.execute("SELECT * FROM users WHERE LOWER(email)=LOWER(%s) OR LOWER(username)=LOWER(%s)", (identifier, identifier.lstrip("@")))
             user = cur.fetchone()
     finally:
         conn.close()
     if not user or not user.get("password_hash") or not check_password_hash(user["password_hash"], password):
         return json_error("Email/username ou mot de passe incorrect.", 401)
+    admin = is_admin(user)
+    if not user.get("is_paid") and not admin:
+        return json_error("Ce compte n'est pas activé. Inscris-toi puis paie 9,99 €.", 401)
     session.permanent = True
     session["user_id"] = user["id"]
-    admin = is_admin(user)
-    return jsonify({"ok": True, "user": {"id": user["id"], "email": user.get("email"), "is_paid": bool(user.get("is_paid")) or admin, "is_admin": admin}})
+    session.pop("pending_id", None)
+    return jsonify({"ok": True, "user": {"id": user["id"], "email": user.get("email"), "is_paid": True, "is_admin": admin}})
 
 
 @app.get("/api/me")
 def me_any():
     user = get_current_user()
     if not user:
-        return jsonify({"ok": True, "user": None})
+        return jsonify({"ok": True, "user": None, "pending": bool(session.get("pending_id"))})
     admin = is_admin(user)
     paid = bool(user.get("is_paid")) or admin
+    if not paid:
+        return jsonify({"ok": True, "user": None, "pending": True})
     return jsonify({"ok": True, "user": {
         "id": user["id"], "email": user.get("email"), "username": user.get("username"),
         "display_name": user.get("display_name"), "bio": user.get("bio") or "",
@@ -376,22 +473,11 @@ def me_any():
 @app.post("/api/create-checkout")
 def create_checkout():
     user = get_current_user()
-    data = request.get_json(silent=True) or {}
-    if not user and data.get("user_id"):
-        conn = db()
-        try:
-            with conn.cursor() as cur:
-                cur.execute("SELECT * FROM users WHERE id=%s", (data.get("user_id"),))
-                user = cur.fetchone()
-        finally:
-            conn.close()
-        if user:
-            session.permanent = True
-            session["user_id"] = user["id"]
-    if not user:
-        return json_error("Connecte-toi d'abord.", 401)
-    if user.get("is_paid") or is_admin(user):
+    pending_id = session.get("pending_id")
+    if user and (user.get("is_paid") or is_admin(user)):
         return jsonify({"ok": True, "already_paid": True})
+    if not pending_id and not user:
+        return json_error("Inscris-toi d'abord.", 401)
     if not stripe or not STRIPE_SECRET_KEY:
         return json_error("Stripe n'est pas configuré sur Railway.", 503)
     items = [{"price": STRIPE_PRICE_ID, "quantity": 1}] if STRIPE_PRICE_ID else [{
@@ -399,6 +485,11 @@ def create_checkout():
         "quantity": 1,
     }]
     return_url = f"{SERVER_URL}/app?paid=1&session_id={{CHECKOUT_SESSION_ID}}"
+    meta = {}
+    if pending_id:
+        meta["pending_id"] = str(pending_id)
+    if user:
+        meta["user_id"] = str(user["id"])
     last_error = None
     for ui_mode in ("embedded", "embedded_page"):
         try:
@@ -407,7 +498,7 @@ def create_checkout():
                 line_items=items,
                 ui_mode=ui_mode,
                 return_url=return_url,
-                metadata={"user_id": str(user["id"]), "email": user.get("email") or ""},
+                metadata=meta,
             )
             secret = getattr(checkout, "client_secret", None)
             if not secret:
@@ -426,17 +517,13 @@ def confirm_payment():
         try:
             checkout = stripe.checkout.Session.retrieve(sid)
             if checkout.get("payment_status") == "paid":
-                uid = int((checkout.get("metadata") or {}).get("user_id"))
-                conn = db()
-                try:
-                    with conn.cursor() as cur:
-                        cur.execute("UPDATE users SET is_paid=TRUE, stripe_session_id=%s WHERE id=%s", (sid, uid))
-                    conn.commit()
-                finally:
-                    conn.close()
-                session["user_id"] = uid
-                session.permanent = True
-                return jsonify({"ok": True, "paid": True})
+                meta = checkout.get("metadata") or {}
+                user = activate_paid_user(pending_id=int(meta["pending_id"]) if meta.get("pending_id") else session.get("pending_id"), user_id=int(meta["user_id"]) if meta.get("user_id") else None, stripe_session_id=sid)
+                if user:
+                    session["user_id"] = user["id"]
+                    session.pop("pending_id", None)
+                    session.permanent = True
+                    return jsonify({"ok": True, "paid": True})
         except Exception as exc:
             logging.error("Confirm payment: %s", exc)
     return jsonify({"ok": False, "paid": False})
@@ -451,15 +538,13 @@ def stripe_webhook():
     except Exception:
         return "invalid", 400
     if event["type"] in ("checkout.session.completed", "checkout.session.async_payment_succeeded"):
-        uid = (event["data"]["object"].get("metadata") or {}).get("user_id")
-        if uid:
-            conn = db()
-            try:
-                with conn.cursor() as cur:
-                    cur.execute("UPDATE users SET is_paid=TRUE WHERE id=%s", (int(uid),))
-                conn.commit()
-            finally:
-                conn.close()
+        obj = event["data"]["object"]
+        meta = obj.get("metadata") or {}
+        activate_paid_user(
+            pending_id=int(meta["pending_id"]) if meta.get("pending_id") else None,
+            user_id=int(meta["user_id"]) if meta.get("user_id") else None,
+            stripe_session_id=obj.get("id"),
+        )
     return "ok", 200
 
 
@@ -476,18 +561,14 @@ def feed(user):
             params = [user["id"]]
             q = "SELECT * FROM codes c WHERE COALESCE(status,'VALIDEE')='VALIDEE' AND (expires_at IS NULL OR expires_at>NOW()) AND NOT EXISTS (SELECT 1 FROM reports r WHERE r.user_id=%s AND r.code_id=c.id)"
             if hidden:
-                q += " AND id <> ALL(%s)"
-                params.append(hidden)
+                q += " AND id <> ALL(%s)"; params.append(hidden)
             if category not in ("TOUS", ""):
-                q += " AND UPPER(category)=UPPER(%s)"
-                params.append(category)
+                q += " AND UPPER(category)=UPPER(%s)"; params.append(category)
             if kind in ("PROMO", "PARRAINAGE"):
-                q += " AND kind=%s"
-                params.append(kind)
+                q += " AND kind=%s"; params.append(kind)
             if search:
                 q += " AND (title ILIKE %s OR description ILIKE %s OR COALESCE(brand,site,'') ILIKE %s OR code ILIKE %s)"
-                t = f"%{search}%"
-                params.extend([t, t, t, t])
+                t = f"%{search}%"; params.extend([t, t, t, t])
             q += " ORDER BY created_at DESC LIMIT 80"
             cur.execute(q, params)
             rows = cur.fetchall()
@@ -531,8 +612,6 @@ def get_code(user, code_id):
 @app.post("/api/codes")
 @require_auth
 def create_code(user):
-    if not user.get("is_paid") and not is_admin(user):
-        return json_error("Paiement requis.", 402)
     data = request.get_json(silent=True) or {}
     kind = "PARRAINAGE" if (data.get("kind") or "").upper() == "PARRAINAGE" else "PROMO"
     title = (data.get("title") or data.get("brand") or "").strip()
