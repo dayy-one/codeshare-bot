@@ -472,8 +472,8 @@ function startCountdown(){
 }
 async function loadLeaderboard(type="challenge",btn=null){
   if(btn){document.querySelectorAll(".tab").forEach(el=>el.classList.remove("active"));btn.classList.add("active")}
-  const result=await api("/api/leaderboard"); if(!result.ok){toast(result.error);return}
-  const list=type==="weekly"?(result.weekly||[]):(result.challenge||[]);
+    const result=await api("/api/leaderboard"); if(!result.ok){toast(result.error);return}
+  const list=type==="weekly"?(result.weekly||[]):(result.challenge||[]).slice(0,3);
   document.getElementById("leaderboard").innerHTML=list.map(row=>`<div class="rank-card ${row.me?"rank-me":""}"><div>${row.rank<=3?["🥇","🥈","🥉"][row.rank-1]:"#"+row.rank}</div><div class="avatar" style="width:42px;height:42px;font-size:12px;border:0">${escapeHtml(row.initials||"CO")}</div><div><div class="card-title" style="margin:0">${escapeHtml(row.name||"Membre")}</div><div class="code-desc">${formatNumber(row.points)} point(s)</div></div></div>`).join("");
   const me=list.find(r=>r.me);
   document.getElementById("myRank").textContent=me?`Tu es #${me.rank} avec ${formatNumber(me.points)} point(s).`:"Ton classement apparaîtra ici.";
