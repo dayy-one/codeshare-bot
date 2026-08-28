@@ -363,30 +363,41 @@ def create_notification(cur, user_id, title, message, kind="INFO"):
 
 
 def user_stats(user_id):
+    referrals = likes = clicks = copies = 0
     conn = db()
     try:
         with conn.cursor() as cur:
-            cur.execute("SELECT COUNT(*) AS c FROM users WHERE referred_by=%s", (user_id,))
-            referrals = int(cur.fetchone()["c"] or 0)
-            cur.execute(
-                """
-                SELECT COALESCE(SUM(likes_count),0) AS likes,
-                       COALESCE(SUM(clicks_count),0) AS clicks,
-                       COALESCE(SUM(copies_count),0) AS copies
-                FROM codes WHERE user_id=%s
-                """,
-                (user_id,),
-            )
-            row = cur.fetchone() or {}
-        return {
-            "referrals": referrals,
-            "points": referrals,
-            "likes": int(row.get("likes") or 0),
-            "clicks": int(row.get("clicks") or 0),
-            "copies": int(row.get("copies") or 0),
-        }
+            try:
+                cur.execute("SELECT COUNT(*) AS c FROM users WHERE referred_by=%s", (user_id,))
+                referrals = int(cur.fetchone()["c"] or 0)
+            except Exception:
+                conn.rollback()
+            try:
+                cur.execute(
+                    """
+                    SELECT COALESCE(SUM(likes_count),0) AS likes,
+                           COALESCE(SUM(clicks_count),0) AS clicks,
+                           COALESCE(SUM(copies_count),0) AS copies
+                    FROM codes WHERE user_id=%s
+                    """,
+                    (user_id,),
+                )
+                row = cur.fetchone() or {}
+                likes = int(row.get("likes") or 0)
+                clicks = int(row.get("clicks") or 0)
+                copies = int(row.get("copies") or 0)
+            except Exception:
+                conn.rollback()
     finally:
         conn.close()
+    return {
+        "referrals": referrals,
+        "points": referrals,
+        "likes": likes,
+        "clicks": clicks,
+        "copies": copies,
+    }
+
 
 
 def challenge_start():
