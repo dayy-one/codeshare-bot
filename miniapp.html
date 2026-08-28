@@ -84,9 +84,9 @@ body{padding-bottom:100px}
 .close{width:38px;height:38px;border-radius:50%;background:#f0f2ec}
 .field{margin-bottom:13px}.field label{display:block;font-size:12px;font-weight:800;margin-bottom:6px}
 .field input,.field textarea,.field select{width:100%;border:1px solid #dfe3d8;background:#f9faf6;border-radius:13px;padding:13px;outline:0}
-.paywall,.verify,.onboard,.auth{position:fixed;inset:0;z-index:300;background:radial-gradient(circle at 50% 0%,#e8eddc,#f8f7f1 55%);display:none;align-items:center;justify-content:center;padding:22px}
-.paywall.show,.verify.show,.onboard.show,.auth.show{display:flex}
-.paywall-card,.verify-card{width:min(450px,100%);background:#fff;border-radius:30px;padding:30px 22px;text-align:center}
+.paywall,.onboard,.auth{position:fixed;inset:0;z-index:300;background:radial-gradient(circle at 50% 0%,#e8eddc,#f8f7f1 55%);display:none;align-items:center;justify-content:center;padding:22px}
+.paywall.show,.onboard.show{display:flex}
+.paywall-card{width:min(450px,100%);background:#fff;border-radius:30px;padding:30px 22px;text-align:center}
 .price{font-size:38px;font-weight:900;color:var(--green-dark);margin:15px 0}
 .auth{display:none;overflow:auto;align-items:flex-start}
 .auth.show{display:block}
@@ -150,7 +150,7 @@ body{padding-bottom:100px}
       <div id="challengeTimer" class="timer">--</div>
     </div>
     <div class="progress-track"><div id="challengeProgress" class="progress-bar"></div></div>
-    <div class="progress-label" style="display:flex;justify-content:space-between;font-size:12px;margin-top:7px"><span id="challengePoints">0 points</span><strong>1 500</strong></div>
+    <div style="display:flex;justify-content:space-between;font-size:12px;margin-top:7px"><span id="challengePoints">0 points</span><strong>1 500</strong></div>
     <div class="levels">
       <div class="level"><div>🥉</div><strong>500</strong><span>500 €</span></div>
       <div class="level"><div>🥈</div><strong>1 000</strong><span>1 000 €</span></div>
@@ -288,18 +288,10 @@ body{padding-bottom:100px}
   </div>
 </div></div>
 
-<div id="verify" class="verify"><div class="verify-card">
-  <div class="logo-globe" style="margin:0 auto 12px">C.</div>
-  <h2>Confirme ton email</h2>
-  <p class="code-desc">Entre le code à 6 chiffres reçu par email. Sans SMTP, il est dans les logs Railway.</p>
-  <div class="field"><input id="verifyCode" inputmode="numeric" maxlength="6" placeholder="000000" style="text-align:center;letter-spacing:8px;font-size:22px;font-weight:800"></div>
-  <button class="primary" onclick="confirmEmail()">Valider mon email</button>
-</div></div>
-
 <div id="paywall" class="paywall"><div class="paywall-card">
   <div class="logo-globe" style="margin:0 auto 12px">C.</div>
   <h1>Bienvenue sur COD.IA</h1>
-  <p style="color:#70776b;font-size:13px">Email confirmé. Rejoins la communauté.</p>
+  <p style="color:#70776b;font-size:13px">Rejoins la communauté.</p>
   <div class="price">9,99 € <small>accès unique</small></div>
   <div class="compare">
     <div><b>Ce que tu obtiens</b><b>Gratuit</b><b>COD.IA</b></div>
@@ -346,11 +338,9 @@ async function apiFirst(urls,options={}){let last={ok:false,error:"Erreur"};for(
 function toast(m){const el=document.getElementById("toast");el.textContent=m;el.classList.add("show");clearTimeout(window.toastTimer);window.toastTimer=setTimeout(()=>el.classList.remove("show"),2800)}
 function escapeHtml(v){return String(v??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;")}
 function formatNumber(v){return new Intl.NumberFormat("fr-FR").format(Number(v||0))}
-function formatDate(v){return v?new Date(v).toLocaleDateString("fr-FR"):""}
 function saveUserLocal(u){if(u&&u.id) localStorage.setItem("codia_user_id",String(u.id))}
 function showAuth(mode="login"){
   document.getElementById("auth").classList.add("show");
-  document.getElementById("verify").classList.remove("show");
   document.getElementById("paywall").classList.remove("show");
   document.getElementById("loginForm").style.display=mode==="login"?"block":"none";
   document.getElementById("registerForm").style.display=mode==="register"?"block":"none";
@@ -358,13 +348,11 @@ function showAuth(mode="login"){
   document.getElementById("registerTab").classList.toggle("active",mode==="register");
   const ref=new URLSearchParams(location.search).get("ref"); if(ref) document.getElementById("registerReferral").value=ref;
 }
-function showVerify(){document.getElementById("auth").classList.remove("show");document.getElementById("verify").classList.add("show");document.getElementById("paywall").classList.remove("show")}
-function showPaywall(){document.getElementById("auth").classList.remove("show");document.getElementById("verify").classList.remove("show");document.getElementById("paywall").classList.add("show")}
 async function login(){
   const result=await apiFirst(["/api/login","/auth/login"],{method:"POST",body:JSON.stringify({identifier:document.getElementById("loginIdentifier").value.trim(),password:document.getElementById("loginPassword").value})});
   if(!result.ok){toast(result.error);return}
   saveUserLocal(result.user); currentUser=result.user;
-  if(result.needs_verification){showVerify();return}
+  document.getElementById("auth").classList.remove("show");
   await boot();
 }
 async function register(){
@@ -377,14 +365,8 @@ async function register(){
   })});
   if(!result.ok){toast(result.error);return}
   saveUserLocal(result.user); currentUser=result.user;
-  if(result.needs_verification){toast("Un code a été envoyé.");showVerify();return}
-  showPaywall();
-}
-async function confirmEmail(){
-  const result=await api("/api/verify-email",{method:"POST",body:JSON.stringify({code:document.getElementById("verifyCode").value.trim()})});
-  if(!result.ok){toast(result.error);return}
-  toast("Email confirmé. Compte créé.");
-  showPaywall();
+  document.getElementById("auth").classList.remove("show");
+  document.getElementById("paywall").classList.add("show");
 }
 function logout(){location.href="/logout"}
 async function boot(){
@@ -397,9 +379,7 @@ async function boot(){
   currentChallenge=result.challenge||{points:0,remaining_seconds:0};
   document.getElementById("auth").classList.remove("show");
   updateProfileUI();
-  if(!currentUser.email_verified&&!currentUser.is_admin){showVerify();return}
-  if(!currentUser.is_paid&&!currentUser.is_admin){showPaywall();return}
-  document.getElementById("verify").classList.remove("show");
+  if(!currentUser.is_paid&&!currentUser.is_admin){document.getElementById("paywall").classList.add("show");return}
   document.getElementById("paywall").classList.remove("show");
   if(!localStorage.getItem("codia_onboard")) document.getElementById("onboard").classList.add("show");
   loadFeed();loadNotificationsCount();startCountdown();loadLeaderboard();
