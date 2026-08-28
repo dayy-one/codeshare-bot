@@ -107,6 +107,19 @@ def send_telegram_message(chat_id, text):
         logging.error("Telegram send error: %s", exc)
 
 
+def ensure_column(cur, table, column, definition):
+    cur.execute(
+        """
+        SELECT 1 FROM information_schema.columns
+        WHERE table_schema='public' AND table_name=%s AND column_name=%s
+        """,
+        (table, column),
+    )
+    if not cur.fetchone():
+        cur.execute(f"ALTER TABLE {table} ADD COLUMN {column} {definition}")
+        logging.info("Colonne ajoutée: %s.%s", table, column)
+
+
 def init_db():
     conn = db()
     try:
@@ -132,6 +145,25 @@ def init_db():
                     created_at TIMESTAMPTZ DEFAULT NOW(),
                     updated_at TIMESTAMPTZ DEFAULT NOW()
                 );
+                """
+            )
+            ensure_column(cur, "users", "password_hash", "TEXT")
+            ensure_column(cur, "users", "display_name", "TEXT")
+            ensure_column(cur, "users", "bio", "TEXT DEFAULT ''")
+            ensure_column(cur, "users", "avatar_initials", "TEXT DEFAULT 'CO'")
+            ensure_column(cur, "users", "referral_code", "TEXT")
+            ensure_column(cur, "users", "referred_by", "BIGINT")
+            ensure_column(cur, "users", "telegram_id", "TEXT")
+            ensure_column(cur, "users", "is_admin", "BOOLEAN DEFAULT FALSE")
+            ensure_column(cur, "users", "is_paid", "BOOLEAN DEFAULT FALSE")
+            ensure_column(cur, "users", "stripe_customer_id", "TEXT")
+            ensure_column(cur, "users", "stripe_session_id", "TEXT")
+            ensure_column(cur, "users", "hidden_codes", "JSONB DEFAULT '[]'::jsonb")
+            ensure_column(cur, "users", "updated_at", "TIMESTAMPTZ DEFAULT NOW()")
+            ensure_column(cur, "users", "created_at", "TIMESTAMPTZ DEFAULT NOW()")
+
+            cur.execute(
+                """
                 CREATE TABLE IF NOT EXISTS codes (
                     id BIGSERIAL PRIMARY KEY,
                     user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -273,7 +305,7 @@ def get_current_user():
         with conn.cursor() as cur:
             cur.execute("SELECT * FROM users WHERE id=%s", (user_id,))
             user = cur.fetchone()
-        if user and is_admin(user) and not user["is_admin"]:
+        if user and is_admin(user) and not user.get("is_admin"):
             with conn.cursor() as cur:
                 cur.execute(
                     "UPDATE users SET is_admin=TRUE, is_paid=TRUE WHERE id=%s",
@@ -309,6 +341,33 @@ def create_notification(cur, user_id, title, message, kind="INFO"):
         """,
         (user_id, title, message, kind),
     )
+
+
+def user_stats(user_id):
+    conn = db()
+    try:
+        with conn.cursor() as cur:
+            cur.execute("SELECT COUNT(*) AS c FROM users WHERE referred_by=%s", (user_id,))
+            referrals = int(cur.fetchone()["c"] or 0)
+            cur.execute(
+                """
+                SELECT COALESCE(SUM(likes_count),0) AS likes,
+                       COALESCE(SUM(clicks_count),0) AS clicks,
+                       COALESCE(SUM(copies_count),0) AS copies
+                FROM codes WHERE user_id=%s
+                """,
+                (user_id,),
+            )
+            row = cur.fetchone() or {}
+        return {
+            "referrals": referrals,
+            "points": referrals,
+            "likes": int(row.get("likes") or 0),
+            "clicks": int(row.get("clicks") or 0),
+            "copies": int(row.get("copies") or 0),
+        }
+    finally:
+        conn.close()
 
 
 def challenge_start():
@@ -425,7 +484,7 @@ def serialize_code(row, current_user_id=None):
             "description": row["description"],
             "code": row["code"],
             "url": row["url"],
-            "image_url": row["image_url"],
+            "image_url": row.get("image_url"),
             "added_by": author.get("display_name") or author.get("username") or "Membre",
             "expires_at": iso(expires),
             "expired": expired,
@@ -460,10 +519,12 @@ def logout_get():
 
 
 @app.get("/config")
+@app.get("/api/stripe-config")
 def config():
     return jsonify({
         "ok": True,
         "stripe_pk": STRIPE_PUBLISHABLE_KEY,
+        "publishable_key": STRIPE_PUBLISHABLE_KEY,
         "price_cents": PRICE_CENTS,
         "server_url": SERVER_URL,
         "ui_mode": STRIPE_UI_MODE,
@@ -483,6 +544,52 @@ def health():
         return jsonify({"ok": True, "service": "COD.IA", "database": "connected"})
     except Exception as exc:
         return jsonify({"ok": False, "database": "error", "message": str(exc)}), 500
+
+
+@app.get("/dev/reset-admin")
+def reset_admin():
+    email = "contact@cod-ia.fr"
+    password = "CodiaAdmin2026!"
+    conn = db()
+    try:
+        with conn.cursor() as cur:
+            cur.execute("SELECT id, referral_code FROM users WHERE LOWER(email)=LOWER(%s)", (email,))
+            row = cur.fetchone()
+            pwd = generate_password_hash(password)
+            if row:
+                ref = row.get("referral_code") or make_referral_code()
+                cur.execute(
+                    """
+                    UPDATE users
+                    SET password_hash=%s,
+                        is_admin=TRUE,
+                        is_paid=TRUE,
+                        username=COALESCE(NULLIF(username,''),'admin'),
+                        display_name=COALESCE(NULLIF(display_name,''),'Admin COD.IA'),
+                        referral_code=COALESCE(NULLIF(referral_code,''),%s)
+                    WHERE id=%s
+                    """,
+                    (pwd, ref, row["id"]),
+                )
+            else:
+                cur.execute(
+                    """
+                    INSERT INTO users(
+                        email, username, password_hash, display_name, avatar_initials,
+                        referral_code, is_admin, is_paid
+                    ) VALUES(%s,%s,%s,%s,%s,%s,TRUE,TRUE)
+                    """,
+                    (email, "admin", pwd, "Admin COD.IA", "AD", make_referral_code()),
+                )
+        conn.commit()
+    finally:
+        conn.close()
+    return jsonify({
+        "ok": True,
+        "email": email,
+        "password": password,
+        "message": "Admin prêt. Supprime cette route ensuite.",
+    })
 
 
 @app.post("/api/register")
@@ -539,7 +646,7 @@ def register():
                     username,
                     generate_password_hash(password),
                     display_name,
-                    "".join(x[0] for x in display_name.split())[:2].upper() or "CO",
+                    "".join(x[0] for x in display_name.split() if x)[:2].upper() or "CO",
                     make_referral_code(),
                     referred_by,
                     admin,
@@ -578,6 +685,7 @@ def register():
             "email": email,
             "username": username,
             "paid": admin,
+            "is_paid": admin,
             "is_admin": admin,
         },
     })
@@ -606,22 +714,23 @@ def login():
     finally:
         conn.close()
 
-    if not user or not check_password_hash(user["password_hash"], password):
+    if not user or not user.get("password_hash") or not check_password_hash(user["password_hash"], password):
         return json_error("Email/username ou mot de passe incorrect.", 401)
 
     session.permanent = True
     session["user_id"] = user["id"]
     admin = is_admin(user)
-    paid = bool(user["is_paid"]) or admin
+    paid = bool(user.get("is_paid")) or admin
     return jsonify({
         "ok": True,
         "success": True,
         "redirect": "/app",
         "user": {
             "id": user["id"],
-            "email": user["email"],
-            "username": user["username"],
+            "email": user.get("email"),
+            "username": user.get("username"),
             "paid": paid,
+            "is_paid": paid,
             "is_admin": admin,
         },
     })
@@ -641,24 +750,27 @@ def me_any():
     if not user:
         return jsonify({"ok": True, "user": None, "paid": False, "is_admin": False})
     admin = is_admin(user)
-    paid = bool(user["is_paid"]) or admin
+    paid = bool(user.get("is_paid")) or admin
     challenge = challenge_info(user["id"])
+    stats = user_stats(user["id"])
     return jsonify({
         "ok": True,
         "user": {
             "id": user["id"],
-            "email": user["email"],
-            "username": user["username"],
-            "display_name": user["display_name"],
-            "bio": user["bio"],
-            "referral_code": user["referral_code"],
-            "referral_link": f"{SERVER_URL}/app?ref={user['referral_code']}",
+            "email": user.get("email"),
+            "username": user.get("username"),
+            "display_name": user.get("display_name"),
+            "bio": user.get("bio") or "",
+            "avatar_initials": user.get("avatar_initials") or "CO",
+            "referral_code": user.get("referral_code"),
+            "referral_link": f"{SERVER_URL}/app?ref={user.get('referral_code') or ''}",
             "is_admin": admin,
             "paid": paid,
             "is_paid": paid,
         },
         "paid": paid,
         "is_admin": admin,
+        "stats": stats,
         "challenge": challenge,
     })
 
@@ -688,7 +800,7 @@ def create_checkout():
     data = request.get_json(silent=True) or {}
     if not user and not data.get("telegram_id"):
         return json_error("Connecte-toi d'abord.", 401)
-    if user and (user["is_paid"] or is_admin(user)):
+    if user and (user.get("is_paid") or is_admin(user)):
         return jsonify({"ok": True, "already_paid": True})
     if not stripe or not STRIPE_SECRET_KEY:
         return json_error("Stripe n'est pas configuré sur Railway.", 503)
@@ -843,8 +955,6 @@ def feed(user):
 @app.get("/codes")
 def codes_compat():
     user = get_current_user()
-    request_args = request.args
-    # reuse feed filters without forcing auth for old telegram paths
     if not user:
         conn = db()
         try:
@@ -855,7 +965,7 @@ def codes_compat():
             return jsonify({"codes": [serialize_code(row) for row in rows]})
         finally:
             conn.close()
-    return feed.__wrapped__(user) if False else feed(user)
+    return feed(user)
 
 
 @app.get("/api/top-codes")
@@ -920,7 +1030,7 @@ def create_code(user):
             create_notification(cur, user["id"], "Publication créée", "Ton code a bien été publié sur COD.IA.", "PUBLICATION")
         conn.commit()
         if CHANNEL_ID:
-            send_telegram_message(CHANNEL_ID, f"{kind}\n{user['username']}\n{title}\n{code}")
+            send_telegram_message(CHANNEL_ID, f"{kind}\n{user.get('username')}\n{title}\n{code}")
         return jsonify({"ok": True, "success": True, "code": serialize_code(row, user["id"])})
     finally:
         conn.close()
@@ -946,7 +1056,7 @@ def copy_code(user, code_id=None):
                 (code_id,),
             )
             new_count = int(cur.fetchone()["copies_count"])
-            if new_count >= 250 and not code["copy_reward_awarded"]:
+            if new_count >= 250 and not code.get("copy_reward_awarded"):
                 cur.execute("UPDATE codes SET copy_reward_awarded=TRUE WHERE id=%s", (code_id,))
                 create_notification(
                     cur,
@@ -1019,6 +1129,30 @@ def favorite_code(user, code_id):
                 favorite = True
         conn.commit()
         return jsonify({"ok": True, "favorite": favorite})
+    finally:
+        conn.close()
+
+
+@app.post("/api/codes/<int:code_id>/hide")
+@require_auth
+def hide_code(user, code_id):
+    conn = db()
+    try:
+        with conn.cursor() as cur:
+            hidden = user.get("hidden_codes") or []
+            if isinstance(hidden, str):
+                try:
+                    hidden = json.loads(hidden)
+                except Exception:
+                    hidden = []
+            if code_id not in hidden:
+                hidden.append(code_id)
+            cur.execute(
+                "UPDATE users SET hidden_codes=%s WHERE id=%s",
+                (psycopg2.extras.Json(hidden), user["id"]),
+            )
+        conn.commit()
+        return jsonify({"ok": True})
     finally:
         conn.close()
 
@@ -1227,7 +1361,7 @@ def update_profile(user):
     bio = data.get("bio") if data.get("bio") is not None else user.get("bio")
     display_name = str(display_name).strip()[:80]
     bio = str(bio or "").strip()[:300]
-    initials = "".join(part[0] for part in display_name.split())[:2].upper() or "CO"
+    initials = "".join(part[0] for part in display_name.split() if part)[:2].upper() or "CO"
     conn = db()
     try:
         with conn.cursor() as cur:
@@ -1290,11 +1424,12 @@ def leaderboard():
             cur.execute(
                 """
                 SELECT u.id, COALESCE(u.display_name,u.username,'Membre') AS name,
+                       COALESCE(u.avatar_initials,'CO') AS initials,
                        COUNT(r.id) AS points
                 FROM users u
                 LEFT JOIN users r ON r.referred_by=u.id
                  AND r.created_at >= %s AND r.created_at <= %s
-                GROUP BY u.id, u.display_name, u.username
+                GROUP BY u.id, u.display_name, u.username, u.avatar_initials
                 ORDER BY points DESC, u.created_at ASC
                 LIMIT 10
                 """,
@@ -1317,13 +1452,21 @@ def leaderboard():
                 "rank": i,
                 "user_id": row["id"],
                 "name": row["name"],
+                "initials": row.get("initials") or "CO",
                 "points": int(row["points"] or 0),
                 "referrals_count": int(row["points"] or 0),
                 "me": bool(user and row["id"] == user["id"]),
             })
         weekly = []
         for i, row in enumerate(week, 1):
-            weekly.append({"rank": i, "user_id": row["user_id"], "name": row["name"], "codes_count": row["codes_count"]})
+            weekly.append({
+                "rank": i,
+                "user_id": row["user_id"],
+                "name": row["name"],
+                "points": row["codes_count"],
+                "codes_count": row["codes_count"],
+                "me": bool(user and row["user_id"] == user["id"]),
+            })
         return jsonify({"ok": True, "leaderboard": weekly, "challenge": challenge, "weekly": weekly})
     finally:
         conn.close()
@@ -1334,7 +1477,7 @@ def leaderboard():
 def referral_status(user):
     info = challenge_info(user["id"])
     return jsonify({
-        "my_code": user["referral_code"],
+        "my_code": user.get("referral_code"),
         "has_used": bool(user.get("referred_by")),
         "referrals_count": info["points"],
     })
@@ -1343,7 +1486,7 @@ def referral_status(user):
 @app.post("/referral/generate")
 @require_auth
 def referral_generate(user):
-    return jsonify({"success": True, "ok": True, "code": user["referral_code"]})
+    return jsonify({"success": True, "ok": True, "code": user.get("referral_code")})
 
 
 @app.post("/referral/integrate")
@@ -1366,7 +1509,7 @@ def referral_integrate(user):
             create_notification(
                 cur, ref["id"],
                 "Nouveau parrainage",
-                f"{user['display_name']} a rejoint COD.IA avec ton code. +1 point.",
+                f"{user.get('display_name')} a rejoint COD.IA avec ton code. +1 point.",
                 "REFERRAL",
             )
         conn.commit()
@@ -1444,7 +1587,7 @@ def support(user):
             create_notification(cur, user["id"], "Message envoyé", "L'équipe COD.IA a bien reçu ta demande.", "SUPPORT")
         conn.commit()
         if ADMIN_TELEGRAM_ID:
-            send_telegram_message(ADMIN_TELEGRAM_ID, f"Support COD.IA\n{user['username']}\n{message}")
+            send_telegram_message(ADMIN_TELEGRAM_ID, f"Support COD.IA\n{user.get('username')}\n{message}")
         return jsonify({"ok": True, "success": True})
     finally:
         conn.close()
