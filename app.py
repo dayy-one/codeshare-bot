@@ -164,6 +164,22 @@ def init_db():
             ensure_column(cur, "users", "hidden_codes", "JSONB DEFAULT '[]'::jsonb")
             ensure_column(cur, "users", "updated_at", "TIMESTAMPTZ DEFAULT NOW()")
             ensure_column(cur, "users", "created_at", "TIMESTAMPTZ DEFAULT NOW()")
+            ensure_column(cur, "codes", "kind", "TEXT DEFAULT 'PROMO'")
+            ensure_column(cur, "codes", "category", "TEXT DEFAULT 'Autres'")
+            ensure_column(cur, "codes", "brand", "TEXT DEFAULT ''")
+            ensure_column(cur, "codes", "title", "TEXT")
+            ensure_column(cur, "codes", "description", "TEXT DEFAULT ''")
+            ensure_column(cur, "codes", "code", "TEXT DEFAULT ''")
+            ensure_column(cur, "codes", "url", "TEXT DEFAULT ''")
+            ensure_column(cur, "codes", "image_url", "TEXT DEFAULT ''")
+            ensure_column(cur, "codes", "expires_at", "TIMESTAMPTZ")
+            ensure_column(cur, "codes", "status", "TEXT DEFAULT 'VALIDEE'")
+            ensure_column(cur, "codes", "likes_count", "INTEGER DEFAULT 0")
+            ensure_column(cur, "codes", "copies_count", "INTEGER DEFAULT 0")
+            ensure_column(cur, "codes", "clicks_count", "INTEGER DEFAULT 0")
+            ensure_column(cur, "codes", "reports_count", "INTEGER DEFAULT 0")
+            ensure_column(cur, "codes", "copy_reward_awarded", "BOOLEAN DEFAULT FALSE")
+            ensure_column(cur, "codes", "created_at", "TIMESTAMPTZ DEFAULT NOW()")
 
             cur.execute(
                 """
