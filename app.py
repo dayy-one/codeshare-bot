@@ -1,4 +1,3 @@
-import json
 import logging
 import os
 import re
@@ -223,6 +222,7 @@ def challenge_info(user_id=None):
 
 def serialize_code(row, uid=None):
     liked = favorite = False
+    added_by = None
     if uid:
         conn = db()
         try:
@@ -233,11 +233,30 @@ def serialize_code(row, uid=None):
                 favorite = bool(cur.fetchone())
         finally:
             conn.close()
-    return {"id": row["id"], "kind": row.get("kind") or "PROMO", "brand": row.get("brand") or row.get("site"),
-            "title": row.get("title"), "description": row.get("description"), "code": row.get("code"),
-            "url": row.get("url"), "expires_at": iso(row.get("expires_at")),
-            "likes": row.get("likes_count") or 0, "copies": row.get("copies_count") or 0,
-            "liked": liked, "favorite": favorite}
+    conn = db()
+    try:
+        with conn.cursor() as cur:
+            cur.execute("SELECT username, display_name FROM users WHERE id=%s", (row.get("user_id"),))
+            author = cur.fetchone()
+            if author:
+                added_by = author.get("display_name") or author.get("username")
+    except Exception:
+        pass
+    finally:
+        conn.close()
+    return {
+        "id": row["id"], "kind": row.get("kind") or "PROMO",
+        "brand": row.get("brand") or row.get("site"),
+        "title": row.get("title"), "description": row.get("description"),
+        "code": row.get("code"), "url": row.get("url"),
+        "expires_at": iso(row.get("expires_at")),
+        "created_at": iso(row.get("created_at")),
+        "likes": row.get("likes_count") or 0,
+        "copies": row.get("copies_count") or 0,
+        "clicks": row.get("clicks_count") or 0,
+        "reports": row.get("reports_count") or 0,
+        "liked": liked, "favorite": favorite, "added_by": added_by or "Membre",
+    }
 
 
 @app.route("/")
@@ -457,14 +476,18 @@ def feed(user):
             params = [user["id"]]
             q = "SELECT * FROM codes c WHERE COALESCE(status,'VALIDEE')='VALIDEE' AND (expires_at IS NULL OR expires_at>NOW()) AND NOT EXISTS (SELECT 1 FROM reports r WHERE r.user_id=%s AND r.code_id=c.id)"
             if hidden:
-                q += " AND id <> ALL(%s)"; params.append(hidden)
+                q += " AND id <> ALL(%s)"
+                params.append(hidden)
             if category not in ("TOUS", ""):
-                q += " AND UPPER(category)=UPPER(%s)"; params.append(category)
+                q += " AND UPPER(category)=UPPER(%s)"
+                params.append(category)
             if kind in ("PROMO", "PARRAINAGE"):
-                q += " AND kind=%s"; params.append(kind)
+                q += " AND kind=%s"
+                params.append(kind)
             if search:
                 q += " AND (title ILIKE %s OR description ILIKE %s OR COALESCE(brand,site,'') ILIKE %s OR code ILIKE %s)"
-                t = f"%{search}%"; params.extend([t, t, t, t])
+                t = f"%{search}%"
+                params.extend([t, t, t, t])
             q += " ORDER BY created_at DESC LIMIT 80"
             cur.execute(q, params)
             rows = cur.fetchall()
@@ -486,6 +509,21 @@ def top_codes():
             cur.execute("SELECT * FROM codes WHERE COALESCE(likes_count,0)>=100 OR COALESCE(copies_count,0)>=100 ORDER BY (COALESCE(likes_count,0)+COALESCE(copies_count,0)) DESC LIMIT 30")
             rows = cur.fetchall()
         return jsonify({"ok": True, "codes": [serialize_code(r, uid) for r in rows]})
+    finally:
+        conn.close()
+
+
+@app.get("/api/codes/<int:code_id>")
+@require_auth
+def get_code(user, code_id):
+    conn = db()
+    try:
+        with conn.cursor() as cur:
+            cur.execute("SELECT * FROM codes WHERE id=%s", (code_id,))
+            row = cur.fetchone()
+        if not row:
+            return json_error("Code introuvable.", 404)
+        return jsonify({"ok": True, "code": serialize_code(row, user["id"])})
     finally:
         conn.close()
 
@@ -539,6 +577,19 @@ def copy_code(user, code_id):
             cur.execute("UPDATE codes SET copies_count=COALESCE(copies_count,0)+1 WHERE id=%s", (code_id,))
         conn.commit()
         return jsonify({"ok": True, "code": code.get("code"), "url": code.get("url")})
+    finally:
+        conn.close()
+
+
+@app.post("/api/codes/<int:code_id>/click")
+@require_auth
+def click_code(user, code_id):
+    conn = db()
+    try:
+        with conn.cursor() as cur:
+            cur.execute("UPDATE codes SET clicks_count=COALESCE(clicks_count,0)+1 WHERE id=%s", (code_id,))
+        conn.commit()
+        return jsonify({"ok": True})
     finally:
         conn.close()
 
@@ -631,6 +682,7 @@ def report_code(user, code_id):
             cur.execute("INSERT INTO reports(user_id,code_id,reason) VALUES(%s,%s,%s) ON CONFLICT DO NOTHING", (user["id"], code_id, "Signalement"))
             cur.execute("SELECT COUNT(*) AS c FROM reports WHERE code_id=%s", (code_id,))
             total = int(cur.fetchone()["c"])
+            cur.execute("UPDATE codes SET reports_count=%s WHERE id=%s", (total, code_id))
             if total >= 10:
                 cur.execute("UPDATE codes SET status='SUPPRIMEE' WHERE id=%s", (code_id,))
         conn.commit()
