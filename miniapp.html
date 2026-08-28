@@ -99,7 +99,6 @@ body.dark{--cream:#12140f;--white:#1b1e16;--text:#f3f5ee;--muted:#a3aa98;--borde
 .paywall-card{width:min(450px,100%);background:#fff;border-radius:30px;padding:30px 22px;text-align:center}
 .paywall-logo{width:74px;height:74px;margin:auto;border-radius:50%;background:var(--green);color:#fff;display:flex;align-items:center;justify-content:center;font-size:30px}
 .price{font-size:38px;font-weight:900;color:var(--green-dark);margin:15px 0}
-.benefit{padding:9px 0;font-size:13px;text-align:left}
 .auth{position:fixed;inset:0;z-index:250;background:var(--cream);overflow:auto;display:none}
 .auth.show{display:block}
 .auth-inner{max-width:480px;margin:auto;padding:40px 20px}
@@ -373,10 +372,21 @@ async function login(){
   await boot();
 }
 async function register(){
-  const payload={display_name:document.getElementById("registerName").value.trim(),username:document.getElementById("registerUsername").value.trim(),email:document.getElementById("registerEmail").value.trim(),password:document.getElementById("registerPassword").value,referral_code:document.getElementById("registerReferral").value.trim().toUpperCase()};
+  const payload={
+    display_name:document.getElementById("registerName").value.trim(),
+    username:document.getElementById("registerUsername").value.trim(),
+    email:document.getElementById("registerEmail").value.trim(),
+    password:document.getElementById("registerPassword").value,
+    referral_code:document.getElementById("registerReferral").value.trim().toUpperCase()
+  };
   const result=await apiFirst(["/api/register","/auth/register"],{method:"POST",body:JSON.stringify(payload)});
   if(!result.ok){toast(result.error||"Inscription impossible");return}
   document.getElementById("auth").classList.remove("show");
+  currentUser=result.user||{is_paid:false,is_admin:false};
+  if(!currentUser.is_paid&&!currentUser.is_admin){
+    document.getElementById("paywall").classList.add("show");
+    return;
+  }
   toast("Bienvenue sur COD.IA");
   await boot();
 }
@@ -472,7 +482,7 @@ function startCountdown(){
 }
 async function loadLeaderboard(type="challenge",btn=null){
   if(btn){document.querySelectorAll(".tab").forEach(el=>el.classList.remove("active"));btn.classList.add("active")}
-    const result=await api("/api/leaderboard"); if(!result.ok){toast(result.error);return}
+  const result=await api("/api/leaderboard"); if(!result.ok){toast(result.error);return}
   const list=type==="weekly"?(result.weekly||[]):(result.challenge||[]).slice(0,3);
   document.getElementById("leaderboard").innerHTML=list.map(row=>`<div class="rank-card ${row.me?"rank-me":""}"><div>${row.rank<=3?["🥇","🥈","🥉"][row.rank-1]:"#"+row.rank}</div><div class="avatar" style="width:42px;height:42px;font-size:12px;border:0">${escapeHtml(row.initials||"CO")}</div><div><div class="card-title" style="margin:0">${escapeHtml(row.name||"Membre")}</div><div class="code-desc">${formatNumber(row.points)} point(s)</div></div></div>`).join("");
   const me=list.find(r=>r.me);
