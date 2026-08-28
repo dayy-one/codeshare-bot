@@ -37,7 +37,6 @@ STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY", "")
 STRIPE_PUBLISHABLE_KEY = os.getenv("STRIPE_PUBLISHABLE_KEY", "")
 STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET", "")
 STRIPE_PRICE_ID = os.getenv("STRIPE_PRICE_ID", "")
-STRIPE_UI_MODE = os.getenv("STRIPE_UI_MODE", "embedded_page")
 if stripe and STRIPE_SECRET_KEY:
     stripe.api_key = STRIPE_SECRET_KEY
 
@@ -368,21 +367,37 @@ def create_checkout():
         finally:
             conn.close()
         if user:
-            session["user_id"] = user["id"]
             session.permanent = True
+            session["user_id"] = user["id"]
     if not user:
         return json_error("Connecte-toi d'abord.", 401)
     if user.get("is_paid") or is_admin(user):
         return jsonify({"ok": True, "already_paid": True})
     if not stripe or not STRIPE_SECRET_KEY:
         return json_error("Stripe n'est pas configuré sur Railway.", 503)
-    try:
-        items = [{"price": STRIPE_PRICE_ID, "quantity": 1}] if STRIPE_PRICE_ID else [{"price_data": {"currency": "eur", "product_data": {"name": "Accès COD.IA"}, "unit_amount": PRICE_CENTS}, "quantity": 1}]
-        checkout = stripe.checkout.Session.create(mode="payment", line_items=items, ui_mode=STRIPE_UI_MODE,
-            metadata={"user_id": str(user["id"])}, return_url=f"{SERVER_URL}/app?paid=1&session_id={{CHECKOUT_SESSION_ID}}")
-        return jsonify({"ok": True, "client_secret": getattr(checkout, "client_secret", None), "clientSecret": getattr(checkout, "client_secret", None)})
-    except Exception as exc:
-        return json_error("Stripe : " + str(exc), 500)
+    items = [{"price": STRIPE_PRICE_ID, "quantity": 1}] if STRIPE_PRICE_ID else [{
+        "price_data": {"currency": "eur", "product_data": {"name": "Accès COD.IA"}, "unit_amount": PRICE_CENTS},
+        "quantity": 1,
+    }]
+    return_url = f"{SERVER_URL}/app?paid=1&session_id={{CHECKOUT_SESSION_ID}}"
+    last_error = None
+    for ui_mode in ("embedded", "embedded_page"):
+        try:
+            checkout = stripe.checkout.Session.create(
+                mode="payment",
+                line_items=items,
+                ui_mode=ui_mode,
+                return_url=return_url,
+                metadata={"user_id": str(user["id"]), "email": user.get("email") or ""},
+            )
+            secret = getattr(checkout, "client_secret", None)
+            if not secret:
+                raise RuntimeError("Pas de client_secret")
+            return jsonify({"ok": True, "client_secret": secret, "clientSecret": secret})
+        except Exception as exc:
+            last_error = exc
+            logging.error("Stripe %s: %s", ui_mode, exc)
+    return json_error("Stripe : " + str(last_error), 500)
 
 
 @app.get("/api/confirm-payment")
@@ -522,9 +537,6 @@ def copy_code(user, code_id):
             if not code:
                 return json_error("Code introuvable.", 404)
             cur.execute("UPDATE codes SET copies_count=COALESCE(copies_count,0)+1 WHERE id=%s", (code_id,))
-            if int(code.get("copies_count") or 0) + 1 >= 250 and not code.get("copy_reward_awarded"):
-                cur.execute("UPDATE codes SET copy_reward_awarded=TRUE WHERE id=%s", (code_id,))
-                create_notification(cur, code["user_id"], "Récompense Copies", "250 copies atteintes. Récompense : 100 €.", "REWARD")
         conn.commit()
         return jsonify({"ok": True, "code": code.get("code"), "url": code.get("url")})
     finally:
@@ -635,7 +647,7 @@ def update_profile(user):
     email = normalize_email(data.get("email") if data.get("email") is not None else user.get("email"))
     avatar_url = data.get("avatar_url") if data.get("avatar_url") is not None else user.get("avatar_url")
     if avatar_url and len(str(avatar_url)) > 350000:
-        return json_error("Photo trop lourde. Choisis une image plus légère.")
+        return json_error("Photo trop lourde.")
     if "@" not in email:
         return json_error("Adresse email invalide.")
     conn = db()
