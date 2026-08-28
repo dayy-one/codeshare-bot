@@ -6,100 +6,132 @@
 <title>COD.IA — Un monde tous ensemble</title>
 <script src="https://js.stripe.com/v3/"></script>
 <style>
-:root{--green:#617b35;--green-dark:#405824;--cream:#f7f6f1;--text:#172014;--muted:#777d72;--border:#e7e8df;--shadow:0 10px 28px rgba(50,65,30,.08)}
+:root{--green:#617b35;--green-dark:#405824;--green-light:#edf2e3;--cream:#f8f7f1;--text:#172014;--muted:#777d72;--border:#e7e8df;--shadow:0 10px 35px rgba(50,65,30,.08);--radius:24px}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;background:var(--cream);color:var(--text);font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+html,body{margin:0;padding:0;min-height:100%;background:var(--cream);color:var(--text);font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
 button,input,textarea,select{font:inherit}button{border:0;cursor:pointer}
 body{padding-bottom:100px}
 .app{max-width:520px;margin:auto;min-height:100vh}
-.header{position:sticky;top:0;z-index:50;height:72px;background:rgba(247,246,241,.95);backdrop-filter:blur(16px);display:flex;align-items:center;justify-content:space-between;padding:0 16px;border-bottom:1px solid rgba(0,0,0,.04)}
-.logo{display:flex;align-items:center;gap:8px;background:transparent;font-family:Georgia,serif;font-size:24px;font-weight:700;color:var(--green-dark)}
-.logo-globe{width:36px;height:36px;border:2px solid var(--green);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800}
-.icon-btn{width:40px;height:40px;border-radius:50%;background:#fff;border:1px solid var(--border);font-size:16px;position:relative}
-.notification-dot{position:absolute;top:6px;right:7px;width:8px;height:8px;border-radius:50%;background:#d64b45;display:none}
-.content{padding:14px 16px}.page{display:none}.page.active{display:block}
-.card{background:#fff;border:1px solid var(--border);border-radius:22px;padding:16px;margin-top:12px;box-shadow:var(--shadow)}
-.card-title{font-size:16px;font-weight:800;margin:0 0 8px}
-.primary{width:100%;background:var(--green);color:#fff;border-radius:14px;padding:13px;font-weight:800;margin-top:8px}
-.secondary{background:#f3f4ee;color:var(--green-dark);border-radius:13px;padding:11px 13px;font-weight:700}
+.header{position:sticky;top:0;z-index:50;height:72px;background:rgba(248,247,241,.94);backdrop-filter:blur(18px);border-bottom:1px solid rgba(0,0,0,.05);display:flex;align-items:center;justify-content:space-between;padding:0 18px}
+.logo{display:flex;align-items:center;gap:9px;font-family:Georgia,serif;font-weight:700;font-size:25px;color:var(--green-dark);background:transparent}
+.logo-globe{width:39px;height:39px;border:2px solid var(--green);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:var(--green-dark)}
+.icon-btn{width:42px;height:42px;border-radius:50%;background:transparent;font-size:21px;position:relative}
+.notification-dot{position:absolute;top:7px;right:8px;width:9px;height:9px;border-radius:50%;background:#d64b45;display:none}
+.content{padding:16px}.page{display:none}.page.active{display:block}
+.eyebrow{text-transform:uppercase;letter-spacing:1.5px;font-size:11px;color:var(--green);font-weight:800}
+.card{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:18px;margin-top:14px;box-shadow:var(--shadow)}
+.card-title{font-size:17px;font-weight:800;margin-bottom:12px}
+.referral-row{display:flex;align-items:center;gap:9px}
+.referral-input{flex:1;min-width:0;background:#f7f8f2;border:1px solid #e0e3d8;border-radius:13px;padding:13px;font-size:13px}
+.copy-small{width:45px;height:45px;border-radius:13px;background:var(--green-light);color:var(--green-dark);font-size:18px}
+.primary{width:100%;background:var(--green);color:#fff;border-radius:14px;padding:14px;font-weight:800;margin-top:10px}
+.secondary{background:#f4f5ef;color:var(--green-dark);border-radius:13px;padding:12px 14px;font-weight:700}
 .danger{width:100%;background:#f8ecec;color:#8a2f2f;border-radius:13px;padding:12px;font-weight:800;margin-top:8px}
-.search{display:flex;gap:8px;background:#fff;border:1px solid var(--border);border-radius:16px;padding:11px 13px;margin:10px 0}
-.search input{border:0;outline:0;flex:1;background:transparent}
-.filters,.stories,.chip-row{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none}
-.filter,.pchip{flex:none;background:#fff;border:1px solid var(--border);border-radius:22px;padding:8px 12px;font-size:12px;font-weight:700;color:#667}
-.filter.active,.pchip.on,.ptab.on{background:var(--green);color:#fff;border-color:var(--green)}
-.section-title{font-family:Georgia,serif;font-size:22px;font-weight:700;margin:16px 0 10px}
-.code-card,.mine-card{background:#fff;border:1px solid var(--border);border-radius:20px;padding:12px;margin-bottom:10px}
-.code-top,.mine-card{display:grid;grid-template-columns:54px 1fr auto;gap:10px;align-items:start}
-.brand-logo,.brand-mark{width:54px;height:54px;border-radius:14px;object-fit:contain;background:#fff;border:1px solid #eee;padding:5px}
-.badge{display:inline-flex;background:#e8f0dc;color:var(--green-dark);border-radius:20px;padding:3px 8px;font-size:9px;font-weight:900}
-.code-title{font-weight:800;margin:4px 0}
-.code-desc{font-size:12px;color:#747b70;line-height:1.45}
-.code-chip,.mini-code{display:inline-flex;border:1px dashed #ccd2c3;background:#f8f9f4;border-radius:10px;padding:5px 8px;font-size:11px;font-weight:800;margin-top:6px}
-.story{flex:none;width:66px;text-align:center;font-size:10px}
-.story-circle{width:58px;height:58px;margin:auto;border-radius:50%;padding:3px;background:linear-gradient(135deg,var(--green),#d6dfbe)}
-.story-inner{height:100%;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center}
-.challenge{background:linear-gradient(135deg,#eef2e3,#fafbf6);border:1px solid #dfe6d2;border-radius:22px;padding:16px;margin-top:12px}
-.timer{background:var(--green);color:#fff;border-radius:12px;padding:8px 10px;font-size:11px;font-weight:800}
-.progress-track{height:8px;background:#dce2d2;border-radius:20px;overflow:hidden;margin:8px 0}
+.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:14px}
+.stat{background:#fff;border:1px solid var(--border);border-radius:20px;padding:15px}
+.stat-number{font-size:24px;font-weight:800;margin-top:9px}.stat-label{font-size:12px;color:var(--muted)}
+.challenge{margin-top:14px;border-radius:25px;padding:19px;background:linear-gradient(135deg,#eef2e3,#fafbf6);border:1px solid #dfe6d2}
+.challenge-title{font-family:Georgia,serif;font-size:21px;font-weight:700}
+.timer{background:var(--green);color:#fff;border-radius:12px;padding:9px 11px;font-size:12px;font-weight:800}
+.challenge-desc{color:#62695e;font-size:13px;line-height:1.5;margin:10px 0}
+.progress-track{height:10px;background:#dce2d2;border-radius:20px;overflow:hidden}
 .progress-bar{height:100%;width:0;background:var(--green);transition:width .7s ease}
-.bronze-row{display:grid;grid-template-columns:120px 1fr;gap:8px;margin-top:10px}
-.level{background:#fff;border-radius:14px;padding:10px;text-align:center;border:1px solid #e5e7df}
-.rank-card{display:flex;justify-content:space-between;align-items:center;background:#fff;border:1px solid var(--border);border-radius:12px;padding:8px 10px;margin-bottom:6px;font-size:12px}
-.bottom-nav{position:fixed;left:50%;bottom:0;transform:translateX(-50%);width:min(520px,100%);height:83px;background:#fff;border-top:1px solid var(--border);display:grid;grid-template-columns:repeat(5,1fr);z-index:100}
-.nav-item{background:transparent;color:#747b70;font-size:10px;font-weight:700;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px}
-.nav-item.active{color:var(--green);background:#f3f6ec;margin:8px;border-radius:16px}
-.publish-float{width:56px;height:56px;margin-top:-20px;border-radius:50%;background:var(--green);color:#fff;font-size:28px;border:5px solid var(--cream)}
-.modal{position:fixed;inset:0;background:rgba(20,27,16,.45);display:none;align-items:flex-end;justify-content:center;z-index:200}
+.levels{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:18px}
+.level{text-align:center;background:#fff;border-radius:15px;padding:12px 5px;border:1px solid #e5e7df}
+.bronze-row{display:grid;grid-template-columns:120px 1fr;gap:10px;margin-top:12px}
+.section-head{display:flex;justify-content:space-between;align-items:center;margin:24px 2px 12px}
+.section-title{font-family:Georgia,serif;font-size:22px;font-weight:700}
+.see-all{color:var(--green);font-size:13px;font-weight:800;background:transparent}
+.filters,.stories,.chip-row{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none}
+.filter,.pchip{flex:none;background:#fff;border:1px solid var(--border);color:#6d7468;border-radius:30px;padding:10px 15px;font-size:12px;font-weight:700}
+.filter.active,.pchip.on{background:var(--green);border-color:var(--green);color:#fff}
+.search{display:flex;align-items:center;gap:9px;background:#fff;border:1px solid var(--border);border-radius:17px;padding:12px 14px;margin-top:14px}
+.search input{border:0;outline:0;flex:1;background:transparent;font-size:14px}
+.code-card{background:#fff;border:1px solid var(--border);border-radius:22px;padding:15px;margin-bottom:11px;position:relative}
+.code-top{display:flex;gap:12px}
+.brand-logo,.brand-mark{width:54px;height:54px;flex:none;border-radius:17px;background:#fff;border:1px solid #eee;object-fit:contain;padding:6px}
+.badge{display:inline-flex;padding:5px 8px;border-radius:30px;background:#e8f0dc;color:var(--green-dark);font-size:9px;font-weight:900}
+.code-title{font-size:15px;font-weight:800;margin:6px 0 4px}
+.code-desc{font-size:12px;color:#747b70;line-height:1.4}
+.code-bottom{margin-top:13px;display:flex;align-items:center;gap:8px}
+.code-chip,.mini-code{flex:1;min-width:0;border:1px dashed #ccd2c3;background:#f8f9f4;padding:10px;border-radius:11px;font-size:12px;font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.code-copy{width:42px;height:42px;background:var(--green);color:#fff;border-radius:12px}
+.code-actions{display:flex;align-items:center;justify-content:space-between;margin-top:12px;padding-top:11px;border-top:1px solid #eef0e9}
+.action{background:transparent;color:#697066;font-size:12px}
+.more{position:absolute;right:13px;top:13px;background:transparent;font-size:19px}
+.story{flex:none;width:68px;text-align:center}
+.story-circle{width:62px;height:62px;margin:auto;border-radius:50%;padding:3px;background:linear-gradient(135deg,var(--green),#d6dfbe)}
+.story-inner{width:100%;height:100%;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;font-size:18px}
+.story-name{font-size:10px;margin-top:5px}
+.rank-card{display:flex;align-items:center;justify-content:space-between;gap:11px;padding:10px 12px;background:#fff;border:1px solid var(--border);border-radius:17px;margin-bottom:8px;font-size:13px}
+.menu-card{background:#fff;border:1px solid var(--border);border-radius:22px;overflow:hidden;margin-top:15px}
+.menu-item{width:100%;background:#fff;padding:17px;display:flex;align-items:center;gap:13px;text-align:left;border-bottom:1px solid #eef0e9}
+.menu-icon{width:38px;height:38px;border-radius:12px;background:var(--green-light);display:flex;align-items:center;justify-content:center}
+.bottom-nav{position:fixed;left:50%;bottom:0;transform:translateX(-50%);width:min(520px,100%);height:83px;background:rgba(255,255,255,.97);border-top:1px solid var(--border);z-index:100;display:grid;grid-template-columns:1fr 1fr 1fr 1fr 1fr;align-items:center}
+.nav-item{height:60px;background:transparent;color:#747b70;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:10px;font-weight:700}
+.nav-item.active{color:var(--green)}
+.publish-float{width:58px;height:58px;margin-top:-22px;border-radius:50%;background:var(--green);color:#fff;font-size:30px;border:5px solid var(--cream)}
+.modal{position:fixed;inset:0;background:rgba(20,27,16,.45);z-index:200;display:none;align-items:flex-end;justify-content:center}
 .modal.open{display:flex}
-.sheet{width:min(520px,100%);max-height:90vh;overflow:auto;background:#fff;border-radius:26px 26px 0 0;padding:18px}
-.field{margin-bottom:12px}.field label{display:block;font-size:12px;font-weight:800;margin-bottom:5px}
-.field input,.field textarea,.field select{width:100%;border:1px solid #dfe3d8;background:#f9faf6;border-radius:12px;padding:12px}
-.auth,.paywall,.onboard{position:fixed;inset:0;z-index:300;background:var(--cream);display:none;overflow:auto}
-.auth.show{display:block}.paywall.show,.onboard.show{display:flex;align-items:center;justify-content:center;padding:16px}
-.auth-inner,.paywall-card,.onboard-card{max-width:460px;margin:auto;padding:24px 18px}
-.paywall-card,.auth-card,.onboard-card{background:#fff;border-radius:28px;padding:22px}
-.auth-switch{display:flex;background:#eef0e8;padding:4px;border-radius:14px;margin:16px 0}
-.auth-switch button{flex:1;background:transparent;padding:10px;border-radius:10px;font-weight:800;color:#777}
+.sheet{width:min(520px,100%);max-height:90vh;overflow:auto;background:#fff;border-radius:28px 28px 0 0;padding:20px}
+.sheet-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:15px}
+.close{width:38px;height:38px;border-radius:50%;background:#f0f2ec}
+.field{margin-bottom:13px}.field label{display:block;font-size:12px;font-weight:800;margin-bottom:6px}
+.field input,.field textarea,.field select{width:100%;border:1px solid #dfe3d8;background:#f9faf6;border-radius:13px;padding:13px;outline:0}
+.paywall,.onboard{position:fixed;inset:0;z-index:300;background:radial-gradient(circle at 50% 0%,#e8eddc,#f8f7f1 55%);display:none;align-items:center;justify-content:center;padding:16px;overflow:auto}
+.paywall.show,.onboard.show{display:flex}
+.paywall-card,.onboard-card{width:min(480px,100%);background:#fff;border-radius:30px;padding:24px 18px;text-align:center}
+.price{font-size:38px;font-weight:900;color:var(--green-dark);margin:15px 0}
+.auth{position:fixed;inset:0;z-index:300;background:var(--cream);display:none;overflow:auto}
+.auth.show{display:block}
+.auth-inner{max-width:480px;margin:auto;padding:40px 20px}
+.auth-logo{text-align:center;font-family:Georgia,serif;color:var(--green-dark);font-size:34px;font-weight:800}
+.auth-card{background:#fff;border:1px solid var(--border);border-radius:28px;padding:24px;margin-top:25px}
+.auth-switch{display:flex;gap:5px;background:#eef0e8;padding:4px;border-radius:14px;margin-bottom:20px}
+.auth-switch button{flex:1;background:transparent;padding:11px;border-radius:11px;color:#777;font-weight:800}
 .auth-switch button.active{background:#fff;color:var(--green-dark)}
-.price{font-size:36px;font-weight:900;color:var(--green-dark);text-align:center}
-.toast{position:fixed;left:50%;bottom:100px;transform:translateX(-50%);background:#1f281b;color:#fff;padding:11px 16px;border-radius:14px;font-size:12px;opacity:0;z-index:500}
+.onboard-ico{width:72px;height:72px;border-radius:24px;background:var(--green-light);display:flex;align-items:center;justify-content:center;font-size:32px;margin:0 auto 16px}
+.toast{position:fixed;left:50%;bottom:100px;transform:translateX(-50%);background:#1f281b;color:#fff;padding:12px 17px;border-radius:14px;font-size:12px;font-weight:700;z-index:500;opacity:0}
 .toast.show{opacity:1}
-.detail{position:fixed;inset:0;z-index:220;background:var(--cream);display:none;overflow:auto;padding-bottom:90px}
+.loading{padding:40px;text-align:center;color:var(--muted)}
+.compare{margin-top:16px;text-align:left;font-size:12px}
+.compare div{display:grid;grid-template-columns:1.6fr .5fr .5fr;padding:8px 0;border-bottom:1px solid var(--border)}
+.detail{position:fixed;inset:0;z-index:220;background:#f7f6f1;display:none;overflow:auto;padding-bottom:92px}
 .detail.show{display:block}
-.detail-top{position:sticky;top:0;height:60px;display:flex;align-items:center;justify-content:space-between;padding:0 12px;background:rgba(247,246,241,.95)}
-.use-bar{position:fixed;left:50%;bottom:0;transform:translateX(-50%);width:min(520px,100%);background:#fff;padding:10px 14px 16px;display:grid;grid-template-columns:48px 1fr 48px;gap:8px}
-.p-row{display:flex;gap:12px;align-items:flex-start}
-.p-ava{width:82px;height:82px;border-radius:50%;background:var(--green);color:#fff;border:4px solid #fff;box-shadow:0 0 0 2px #c8d4b4;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:24px;position:relative;overflow:hidden;background-size:cover;flex:none}
-.p-crown{position:absolute;right:-2px;bottom:-2px;width:22px;height:22px;border-radius:50%;background:#2f4a1c;color:#f3e3a6;display:flex;align-items:center;justify-content:center;font-size:11px;border:2px solid #fff}
+.detail-top{position:sticky;top:0;z-index:2;background:rgba(247,246,241,.96);height:64px;display:flex;align-items:center;justify-content:space-between;padding:0 14px}
+.detail-wrap{max-width:520px;margin:auto;padding:12px 16px 24px}
+.detail-hero{background:#fff;border:1px solid var(--border);border-radius:26px;padding:16px;box-shadow:var(--shadow)}
+.detail-head{display:grid;grid-template-columns:64px 1fr auto;gap:12px}
+.use-bar{position:fixed;left:50%;bottom:0;transform:translateX(-50%);width:min(520px,100%);background:#fff;border-top:1px solid var(--border);padding:10px 14px 18px;display:grid;grid-template-columns:48px 1fr 48px;gap:8px;z-index:230}
+.p-row{display:flex;gap:14px;align-items:flex-start}
+.p-ava{width:82px;height:82px;border-radius:50%;background:var(--green);color:#fff;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:800;position:relative;overflow:hidden;background-size:cover;flex:none;border:4px solid #fff;box-shadow:0 0 0 2px #c8d4b4}
+.p-crown{position:absolute;right:-2px;bottom:-2px;width:22px;height:22px;border-radius:50%;background:#2f4a1c;display:flex;align-items:center;justify-content:center;font-size:11px;border:2px solid #fff}
 .p-name{font-family:Georgia,serif;font-size:26px;margin:0}
-.p-badge{display:inline-flex;background:#eef3e4;color:var(--green-dark);border-radius:16px;padding:3px 8px;font-size:11px;font-weight:800}
-.edit-pill{margin-left:auto;background:#fff;border:1px solid #d7dccd;border-radius:20px;padding:8px 12px;font-size:12px;font-weight:700}
+.p-badge{display:inline-flex;background:#eef3e4;color:var(--green-dark);border-radius:16px;padding:4px 10px;font-size:12px;font-weight:800;margin:6px 0}
+.edit-pill{margin-left:auto;background:#fff;border:1px solid #d7dccd;border-radius:22px;padding:10px 14px;font-weight:700;font-size:13px}
 .p-stats{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;background:#fff;border:1px solid var(--border);border-radius:20px;padding:12px 6px;margin:14px 0}
 .p-stat{text-align:center;font-size:10px;color:#6d7468}.p-stat b{display:block;font-size:15px;color:var(--text);margin:3px 0}
 .ptabs{display:flex;background:#fff;border:1px solid var(--border);border-radius:18px;padding:8px 4px;margin-bottom:12px}
 .ptab{flex:1;background:transparent;color:#8a9084;font-size:11px;font-weight:800}
-.ptab.on{background:transparent;color:var(--green);border-bottom:2px solid var(--green);border-radius:0}
+.ptab.on{color:var(--green);border-bottom:2px solid var(--green)}
 .ov-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .social{display:block;width:100%;text-align:left;background:#f7f8f3;border-radius:12px;padding:10px 12px;margin-top:8px;font-weight:700;font-size:13px;color:var(--green-dark)}
 .impact{display:flex;gap:10px;align-items:center;background:linear-gradient(135deg,#eef4e4,#f7f8f2);border-radius:20px;padding:14px;margin-top:12px}
 .globe{width:64px;height:64px;border-radius:50%;background:radial-gradient(circle at 30% 30%,#d7e4c4,#8aa56a);flex:none}
 .badges3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center}
 .hex{width:46px;height:46px;margin:auto;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px}
-.act{display:flex;justify-content:space-between;gap:8px;padding:8px 0;border-bottom:1px solid #eef0e9;font-size:12px}
-.st-actif{background:#e7f3dc;color:#3f6b28;border-radius:8px;padding:3px 6px;font-size:10px;font-weight:900}
-.st-expire{background:#fde8d8;color:#9a4b1c;border-radius:8px;padding:3px 6px;font-size:10px;font-weight:900}
+.act{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #eef0e9;font-size:12px}
+.mine-card{display:grid;grid-template-columns:56px 1fr auto;gap:10px;background:#fff;border:1px solid var(--border);border-radius:20px;padding:12px;margin-bottom:10px}
+.st-actif{background:#e7f3dc;color:#3f6b28;border-radius:10px;padding:4px 8px;font-size:10px;font-weight:900}
+.st-expire{background:#fde8d8;color:#9a4b1c;border-radius:10px;padding:4px 8px;font-size:10px;font-weight:900}
 @media (prefers-reduced-motion:no-preference){
-  .page,.card,.code-card,.mine-card{animation:fadeUp .4s ease both}
+  .page,.card,.code-card{animation:fadeUp .38s ease both}
   .logo-globe{animation:float 4.5s ease-in-out infinite}
   .modal .sheet{animation:sheetUp .35s ease}
-  .paywall-card,.onboard-card{animation:pop .4s ease}
-  .primary:active,.nav-item:active{transform:scale(.97)}
 }
 @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
 @keyframes float{50%{transform:translateY(-3px)}}
 @keyframes sheetUp{from{transform:translateY(24px);opacity:0}to{transform:none;opacity:1}}
-@keyframes pop{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:none}}
 </style>
 </head>
 <body>
@@ -108,19 +140,21 @@ body{padding-bottom:100px}
   <button class="logo" onclick="goPage('home')"><div class="logo-globe">C.</div>COD.IA</button>
   <div style="display:flex;gap:8px">
     <button class="icon-btn" onclick="openNotifications()">🔔<span id="notificationDot" class="notification-dot"></span></button>
-    <button class="icon-btn" onclick="openMenu()">⋯</button>
+    <button class="icon-btn" onclick="openMenu()">☰</button>
   </div>
 </header>
 <main class="content">
 <section id="page-home" class="page active">
-  <div class="section-title">Un monde tous ensemble</div>
-  <div class="search">🔎 <input id="searchInput" placeholder="Rechercher un code..."></div>
+  <div class="section-head"><div><div class="eyebrow">COD.IA</div><div class="section-title">Un monde tous ensemble</div></div></div>
+  <div class="search">🔎 <input id="searchInput" type="search" placeholder="Rechercher un code, une marque..."></div>
+  <div class="section-head"><div class="section-title">Les stories</div></div>
   <div class="stories">
-    <div class="story" onclick="goPage('promos')"><div class="story-circle"><div class="story-inner">🔥</div></div>Top</div>
-    <div class="story" onclick="setKind('PROMO')"><div class="story-circle"><div class="story-inner">💸</div></div>Promos</div>
-    <div class="story" onclick="setKind('PARRAINAGE')"><div class="story-circle"><div class="story-inner">🤝</div></div>Parrainages</div>
+    <div class="story" onclick="loadTopCodes()"><div class="story-circle"><div class="story-inner">🔥</div></div><div class="story-name">Populaires</div></div>
+    <div class="story" onclick="setKind('PROMO')"><div class="story-circle"><div class="story-inner">💸</div></div><div class="story-name">Promos</div></div>
+    <div class="story" onclick="setKind('PARRAINAGE')"><div class="story-circle"><div class="story-inner">🤝</div></div><div class="story-name">Parrainages</div></div>
   </div>
-  <div class="filters" style="margin-top:12px">
+  <div class="section-head"><div class="section-title">Les meilleurs codes</div><button class="see-all" onclick="loadTopCodes()">Voir tout</button></div>
+  <div class="filters">
     <button class="filter active" data-category="TOUS" onclick="setCategory(this)">Tout</button>
     <button class="filter" data-category="MODE" onclick="setCategory(this)">Mode</button>
     <button class="filter" data-category="SHOPPING" onclick="setCategory(this)">Shopping</button>
@@ -128,23 +162,36 @@ body{padding-bottom:100px}
     <button class="filter" data-category="VOYAGE" onclick="setCategory(this)">Voyage</button>
     <button class="filter" data-category="TECH" onclick="setCategory(this)">Tech</button>
   </div>
-  <div id="feed"></div>
+  <div id="feed" class="loading">Chargement des offres...</div>
 </section>
 <section id="page-promos" class="page">
-  <div class="section-title">Top Codes</div>
-  <div id="promoFeed"></div>
+  <div class="section-head"><div><div class="eyebrow">COMMUNAUTÉ</div><div class="section-title">Top Codes</div></div><button class="secondary" onclick="openPublish()">+ Publier</button></div>
+  <div class="search">🔎 <input id="promoSearch" type="search" placeholder="Chercher une offre..."></div>
+  <div id="promoFeed" class="loading">Chargement...</div>
 </section>
 <section id="page-challenge" class="page">
-  <div class="section-title">Challenge</div>
+  <div class="section-head"><div><div class="eyebrow">CHALLENGE</div><div class="section-title">Parrain. Progresse. Gagne.</div></div></div>
   <div class="challenge">
-    <div style="display:flex;justify-content:space-between"><div><b>21 jours</b><div class="code-desc">1 parrainage = 1 point</div></div><div id="challengeTimer" class="timer">--</div></div>
+    <div style="display:flex;justify-content:space-between;gap:12px">
+      <div><div class="challenge-title">21 jours</div><div class="challenge-desc">Quand quelqu’un rejoint COD.IA avec ton code, 1 point t’est attribué.</div></div>
+      <div id="challengeTimer" class="timer">--</div>
+    </div>
     <div class="progress-track"><div id="challengeProgress" class="progress-bar"></div></div>
+    <div style="display:flex;justify-content:space-between;font-size:12px;margin-top:7px"><span id="challengePoints">0 points</span><strong>1 500</strong></div>
     <div class="bronze-row">
-      <div class="level">🥉<br><b>Bronze</b><div class="code-desc">500 pts</div></div>
+      <div class="level"><div>🥉</div><strong>500</strong><span>500 €</span></div>
       <div id="miniRank"></div>
     </div>
+    <div class="levels">
+      <div class="level"><div>🥈</div><strong>1 000</strong><span>1 000 €</span></div>
+      <div class="level"><div>🥇</div><strong>1 500</strong><span>1 500 €</span></div>
+      <div class="level"><div>★</div><strong>Top 3</strong><span>classement</span></div>
+    </div>
   </div>
-  <div id="leaderboard"></div>
+  <div class="card" style="cursor:pointer" onclick="document.getElementById('copiesModal').classList.add('open')"><div class="card-title">Offre Copies</div><div class="code-desc">250 copies sur un même code = 100 €</div></div>
+  <div class="card" style="cursor:pointer" onclick="document.getElementById('launchModal').classList.add('open')"><div class="card-title">Offre de Lancement</div><div class="code-desc">1 point par inscription avec ton code.</div></div>
+  <div class="card"><div class="card-title">Mon classement</div><div id="myRank">Chargement...</div></div>
+  <div id="leaderboard" style="margin-top:12px"></div>
 </section>
 <section id="page-profile" class="page">
   <div class="p-row">
@@ -153,9 +200,9 @@ body{padding-bottom:100px}
       <h2 id="profileName" class="p-name">Profil</h2>
       <div class="p-badge">👑 Membre COD.IA</div>
       <div id="profileMeta" class="code-desc">📍 Communauté COD.IA</div>
-      <div id="profileBio" class="code-desc" style="margin-top:6px">Passionné de bons plans.</div>
+      <div id="profileBio" class="code-desc">Passionné de bons plans.</div>
     </div>
-    <button class="edit-pill" onclick="openEditProfile()">✎ Éditer</button>
+    <button class="edit-pill" onclick="openEditProfile()">✎ Éditer le profil</button>
   </div>
   <div class="p-stats">
     <div class="p-stat">👥<b id="statFollowers">0</b>Abonnés</div>
@@ -184,144 +231,218 @@ body{padding-bottom:100px}
 </div>
 
 <div id="publishModal" class="modal"><div class="sheet">
-  <b>Publier une offre</b>
+  <div class="sheet-head"><div class="section-title">Publier une offre</div><button class="close" onclick="closeModal('publishModal')">✕</button></div>
   <div class="field"><label>Type</label><select id="publishKind"><option value="PROMO">Code promo</option><option value="PARRAINAGE">Parrainage</option></select></div>
-  <div class="field"><label>Marque</label><input id="publishBrand"></div>
-  <div class="field"><label>Titre</label><input id="publishTitle"></div>
+  <div class="field"><label>Marque</label><input id="publishBrand" placeholder="Ex : Nike, Uber..."></div>
+  <div class="field"><label>Titre</label><input id="publishTitle" placeholder="-20% sur toute la boutique"></div>
   <div class="field"><label>Description</label><textarea id="publishDescription"></textarea></div>
-  <div class="field"><label>Catégorie</label><select id="publishCategory"><option>MODE</option><option>SHOPPING</option><option>FOOD</option><option>VOYAGE</option><option>TECH</option></select></div>
-  <div class="field"><label>Code</label><input id="publishCode"></div>
-  <div class="field"><label>Lien</label><input id="publishUrl" placeholder="https://nike.com"></div>
+  <div class="field"><label>Catégorie</label><select id="publishCategory"><option>MODE</option><option>SHOPPING</option><option>FOOD</option><option>VOYAGE</option><option>TECH</option><option>AUTRES</option></select></div>
+  <div class="field"><label>Code</label><input id="publishCode" placeholder="NIKE20"></div>
+  <div class="field"><label>Lien du site</label><input id="publishUrl" type="url" placeholder="https://nike.com"></div>
   <div class="field"><label>Expiration</label><input id="publishExpiration" type="datetime-local"></div>
-  <button class="primary" onclick="publishCode()">Publier</button>
-  <button class="secondary" style="width:100%;margin-top:8px" onclick="closeModal('publishModal')">Fermer</button>
+  <button class="primary" onclick="publishCode()">Publier mon offre</button>
 </div></div>
 <div id="editModal" class="modal"><div class="sheet">
-  <b>Éditer le profil</b>
-  <div class="field"><label>Photo</label><input id="editPhoto" type="file" accept="image/*"></div>
+  <div class="sheet-head"><div class="section-title">Modifier mon profil</div><button class="close" onclick="closeModal('editModal')">✕</button></div>
+  <div class="field"><label>Photo de profil</label><input id="editPhoto" type="file" accept="image/*"></div>
   <div class="field"><label>Bio / À propos</label><textarea id="editBio"></textarea></div>
   <div class="field"><label>Ville</label><input id="editCity" placeholder="Lyon, France"></div>
   <div class="field"><label>Instagram</label><input id="editIg" placeholder="@compte"></div>
-  <div class="field"><label>Snapchat</label><input id="editSnap" placeholder="compte"></div>
+  <div class="field"><label>Snapchat</label><input id="editSnap"></div>
   <div class="field"><label>Email</label><input id="editEmail" type="email"></div>
+  <p class="code-desc">Le nom d’utilisateur ne peut pas être modifié.</p>
   <button class="primary" onclick="saveProfile()">Enregistrer</button>
 </div></div>
-<div id="supportModal" class="modal"><div class="sheet"><b>Support</b><div class="field"><input id="supportSubject" placeholder="Sujet"></div><div class="field"><textarea id="supportMessage" placeholder="Message"></textarea></div><button class="primary" onclick="sendSupport()">Envoyer</button></div></div>
-<div id="notificationModal" class="modal"><div class="sheet"><b>Notifications</b><div id="notificationsList"></div></div></div>
-<div id="copiesModal" class="modal"><div class="sheet"><b>Offre Copies</b><p class="code-desc">250 copies = 100 €.</p><button class="primary" onclick="closeModal('copiesModal')">OK</button></div></div>
+<div id="supportModal" class="modal"><div class="sheet">
+  <div class="sheet-head"><div class="section-title">Support</div><button class="close" onclick="closeModal('supportModal')">✕</button></div>
+  <div class="field"><label>Sujet</label><input id="supportSubject"></div>
+  <div class="field"><label>Message</label><textarea id="supportMessage"></textarea></div>
+  <button class="primary" onclick="sendSupport()">Envoyer</button>
+</div></div>
+<div id="notificationModal" class="modal"><div class="sheet">
+  <div class="sheet-head"><div class="section-title">Notifications</div><button class="close" onclick="closeModal('notificationModal')">✕</button></div>
+  <div id="notificationsList"></div>
+</div></div>
+<div id="launchModal" class="modal"><div class="sheet">
+  <div class="sheet-head"><div class="section-title">Offre de Lancement</div><button class="close" onclick="closeModal('launchModal')">✕</button></div>
+  <p class="code-desc">1 point est attribué à chaque personne qui s’inscrit avec ton code de parrainage pendant le challenge de 21 jours.</p>
+  <div class="levels"><div class="level">🥉<br>500 pts<br>500 €</div><div class="level">🥈<br>1000 pts<br>1000 €</div><div class="level">🥇<br>1500 pts<br>1500 €</div></div>
+  <button class="primary" onclick="closeModal('launchModal');goPage('challenge')">Voir le challenge</button>
+</div></div>
+<div id="copiesModal" class="modal"><div class="sheet">
+  <div class="sheet-head"><div class="section-title">Offre Copies</div><button class="close" onclick="closeModal('copiesModal')">✕</button></div>
+  <p class="code-desc">Dès qu’un de tes codes atteint 250 copies, tu gagnes 100 €.</p>
+  <button class="primary" onclick="closeModal('copiesModal')">C’est compris</button>
+</div></div>
+<div id="faqModal" class="modal"><div class="sheet">
+  <div class="sheet-head"><div class="section-title">FAQ</div><button class="close" onclick="closeModal('faqModal')">✕</button></div>
+  <div class="card"><strong>Comment ça marche ?</strong><p class="code-desc">Tu publies tes codes promo et parrainages. La communauté les utilise.</p></div>
+  <div class="card"><strong>Challenge</strong><p class="code-desc">1 point par inscription avec ton code. Palier Bronze / Argent / Or.</p></div>
+  <div class="card"><strong>Offre Copies</strong><p class="code-desc">250 copies sur un même code = 100 €.</p></div>
+</div></div>
 <div id="codeMenuModal" class="modal"><div class="sheet">
-  <b>Actions</b>
+  <div class="sheet-head"><div class="section-title">Actions</div><button class="close" onclick="closeModal('codeMenuModal')">✕</button></div>
   <button class="primary" onclick="copyCode(window._menuCodeId);closeModal('codeMenuModal')">Copier</button>
   <button class="secondary" style="width:100%;margin-top:8px" onclick="favoriteCode(window._menuCodeId);closeModal('codeMenuModal')">Favori</button>
   <button class="secondary" style="width:100%;margin-top:8px" onclick="reportCode(window._menuCodeId);closeModal('codeMenuModal')">Signaler</button>
+  <button class="secondary" style="width:100%;margin-top:8px" onclick="hideCode(window._menuCodeId);closeModal('codeMenuModal')">Ne plus voir</button>
   <button class="danger" onclick="deleteCode(window._menuCodeId)">Supprimer définitivement</button>
 </div></div>
 <div id="menuModal" class="modal"><div class="sheet">
-  <button class="secondary" style="width:100%;margin:6px 0" onclick="goPage('profile');closeModal('menuModal')">Profil</button>
-  <button class="secondary" style="width:100%;margin:6px 0" onclick="openNotifications()">Notifications</button>
-  <button class="secondary" style="width:100%;margin:6px 0" onclick="openSupport()">Support</button>
-  <button class="danger" onclick="logout()">Déconnexion</button>
+  <div class="sheet-head"><div class="section-title">Menu</div><button class="close" onclick="closeModal('menuModal')">✕</button></div>
+  <div class="menu-card">
+    <button class="menu-item" onclick="goPage('profile');closeModal('menuModal')"><div class="menu-icon">👤</div>Mon profil</button>
+    <button class="menu-item" onclick="openEditProfile()"><div class="menu-icon">✎</div>Modifier email / photo / bio</button>
+    <button class="menu-item" onclick="openNotifications()"><div class="menu-icon">🔔</div>Notifications</button>
+    <button class="menu-item" onclick="document.getElementById('launchModal').classList.add('open');closeModal('menuModal')"><div class="menu-icon">🚀</div>Offre de Lancement</button>
+    <button class="menu-item" onclick="document.getElementById('copiesModal').classList.add('open');closeModal('menuModal')"><div class="menu-icon">⧉</div>Offre Copies</button>
+    <button class="menu-item" onclick="openSupport()"><div class="menu-icon">🎧</div>Support</button>
+    <button class="menu-item" onclick="openFAQ()"><div class="menu-icon">❓</div>FAQ</button>
+    <button class="menu-item" onclick="logout()"><div class="menu-icon">🚪</div>Déconnexion</button>
+  </div>
 </div></div>
 
 <div id="auth" class="auth"><div class="auth-inner">
-  <div class="logo" style="justify-content:center"><div class="logo-globe">C.</div>COD.IA</div>
+  <div class="auth-logo"><span class="logo-globe" style="display:inline-flex;margin-right:8px;vertical-align:middle">C.</span>COD.IA</div>
+  <div style="text-align:center;color:#6f766a;margin-top:7px;font-size:13px">Un monde tous ensemble</div>
   <div class="auth-card">
-    <div class="auth-switch"><button id="loginTab" class="active" onclick="showAuth('login')">Connexion</button><button id="registerTab" onclick="showAuth('register')">Inscription</button></div>
-    <div id="loginForm"><div class="field"><input id="loginIdentifier" placeholder="Email ou username"></div><div class="field"><input id="loginPassword" type="password" placeholder="Mot de passe"></div><button class="primary" onclick="login()">Se connecter</button></div>
+    <div class="auth-switch">
+      <button id="loginTab" class="active" onclick="showAuth('login')">Connexion</button>
+      <button id="registerTab" onclick="showAuth('register')">Inscription</button>
+    </div>
+    <div id="loginForm">
+      <div class="field"><label>Email ou username</label><input id="loginIdentifier"></div>
+      <div class="field"><label>Mot de passe</label><input id="loginPassword" type="password"></div>
+      <button class="primary" onclick="login()">Se connecter</button>
+    </div>
     <div id="registerForm" style="display:none">
-      <div class="field"><input id="registerName" placeholder="Nom"></div>
-      <div class="field"><input id="registerUsername" placeholder="Username"></div>
-      <div class="field"><input id="registerEmail" type="email" placeholder="Email"></div>
-      <div class="field"><input id="registerPassword" type="password" placeholder="Mot de passe"></div>
-      <div class="field"><input id="registerReferral" placeholder="Code parrainage"></div>
+      <div class="field"><label>Nom</label><input id="registerName"></div>
+      <div class="field"><label>Username</label><input id="registerUsername"></div>
+      <div class="field"><label>Email</label><input id="registerEmail" type="email"></div>
+      <div class="field"><label>Mot de passe</label><input id="registerPassword" type="password"></div>
+      <div class="field"><label>Code de parrainage</label><input id="registerReferral" placeholder="CODIAXXXXXX"></div>
       <button class="primary" onclick="register()">Créer mon compte</button>
-      <button class="secondary" style="width:100%;margin-top:8px" onclick="showAuth('login')">← Retour à la connexion</button>
+      <button class="secondary" style="width:100%;margin-top:10px" onclick="showAuth('login')">← Retour à la connexion</button>
     </div>
   </div>
 </div></div>
 <div id="paywall" class="paywall"><div class="paywall-card">
+  <div class="logo-globe" style="margin:0 auto 12px">C.</div>
   <div id="paywallIntro">
-    <div class="logo" style="justify-content:center"><div class="logo-globe">C.</div></div>
-    <div class="price">9,99 €</div>
+    <h1>Bienvenue sur COD.IA</h1>
+    <div class="price">9,99 € <small>accès unique</small></div>
+    <div class="compare">
+      <div><b>Ce que tu obtiens</b><b>Gratuit</b><b>COD.IA</b></div>
+      <div><span>Voir tous les codes</span><span>✗</span><span>✓</span></div>
+      <div><span>Publier</span><span>✗</span><span>✓</span></div>
+      <div><span>Challenge & récompenses</span><span>✗</span><span>✓</span></div>
+    </div>
     <button class="primary" onclick="startPayment()">Rejoindre COD.IA — 9,99 €</button>
-    <button class="secondary" style="width:100%;margin-top:8px" onclick="cancelSignup()">← Retour à la connexion</button>
+    <button class="secondary" style="width:100%;margin-top:10px" onclick="cancelSignup()">← Retour à la connexion</button>
+    <button class="secondary" style="width:100%;margin-top:8px" onclick="location.href='/'">Retour au site</button>
   </div>
-  <div id="stripeBox" style="display:none"><div id="stripeCheckout" style="min-height:460px"></div><button class="secondary" style="width:100%" onclick="backPaywall()">Retour</button></div>
+  <div id="stripeBox" style="display:none;text-align:left">
+    <h2 style="text-align:center">Paiement 9,99 €</h2>
+    <div id="stripeCheckout" style="min-height:480px"></div>
+    <button class="secondary" style="width:100%;margin-top:10px" onclick="backPaywall()">Retour</button>
+  </div>
 </div></div>
-<div id="onboard" class="onboard"><div class="onboard-card"><div id="onboardIco" style="font-size:36px;text-align:center">🏠</div><h2 id="onboardTitle">Accueil</h2><p class="code-desc" id="onboardText">Les codes de la communauté.</p><button class="primary" onclick="nextOnboard()">Suivant</button></div></div>
+<div id="onboard" class="onboard"><div class="onboard-card">
+  <div class="onboard-ico" id="onboardIco">🏠</div>
+  <h2 id="onboardTitle">Accueil</h2>
+  <p class="code-desc" id="onboardText">Découvre les codes promo et parrainages.</p>
+  <button class="primary" onclick="nextOnboard()">Suivant</button>
+</div></div>
 <div id="detailPage" class="detail">
-  <div class="detail-top"><button class="icon-btn" onclick="closeDetail()">‹</button><div class="logo"><div class="logo-globe">C.</div>COD.IA</div><button class="icon-btn" onclick="shareCurrent()">↗</button></div>
-  <div class="content" id="detailContent"></div>
-  <div class="use-bar"><button class="secondary" onclick="likeCurrent()">♡</button><button class="primary" style="margin:0" onclick="useCurrent()">Utiliser ce code</button><button class="secondary" onclick="shareCurrent()">↗</button></div>
+  <div class="detail-top">
+    <button class="icon-btn" onclick="closeDetail()">‹</button>
+    <button class="logo" onclick="closeDetail()"><div class="logo-globe">C.</div>COD.IA</button>
+    <button class="icon-btn" onclick="shareCurrent()">↗</button>
+  </div>
+  <div class="detail-wrap" id="detailContent"></div>
+  <div class="use-bar">
+    <button class="secondary" onclick="likeCurrent()">♡</button>
+    <button class="primary" style="margin:0" onclick="useCurrent()">Utiliser ce code</button>
+    <button class="secondary" onclick="shareCurrent()">↗</button>
+  </div>
 </div>
 <div id="toast" class="toast"></div>
 
 <script>
-let currentUser=null,currentStats=null,currentChallenge=null,currentCategory="TOUS",currentKind="",pendingPhoto="",onboardStep=0,currentCode=null,profileTab="overview",myCodesCache=[],myFavsCache=[],leaderRows=[];
-const ONBOARD=[{ico:"🏠",title:"Accueil",text:"Découvre les offres."},{ico:"➕",title:"Publier",text:"Partage un code."},{ico:"🏆",title:"Challenge",text:"Parraine et gagne."},{ico:"👤",title:"Profil",text:"Gère ton espace."}];
-const BRAND_DOMAINS={nike:"nike.com",adidas:"adidas.com",uber:"uber.com",amazon:"amazon.fr",airbnb:"airbnb.com",shein:"shein.com",temu:"temu.com",zalando:"zalando.fr",netflix:"netflix.com",decathlon:"decathlon.fr",sephora:"sephora.fr"};
-async function api(url,options={}){const c={credentials:"same-origin",...options};c.headers={"Content-Type":"application/json",...(options.headers||{})};const r=await fetch(url,c);const t=await r.text();let d;try{d=JSON.parse(t)}catch(e){d={ok:false,error:"Réponse invalide ("+r.status+")"}}if(!r.ok&&!d.error)d.error="Erreur "+r.status;return d}
-async function apiFirst(urls,o={}){let last={ok:false};for(const u of urls){last=await api(u,o);if(last.ok)return last}return last}
-function toast(m){const e=document.getElementById("toast");e.textContent=m;e.classList.add("show");clearTimeout(window.tt);window.tt=setTimeout(()=>e.classList.remove("show"),2600)}
-function escapeHtml(v){return String(v??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")}
+let currentUser=null,currentStats=null,currentChallenge=null,currentCategory="TOUS",currentKind="",pendingPhoto="",onboardStep=0,currentCode=null,detailTab="details",profileTab="overview",myCodesCache=[],myFavsCache=[],leaderRows=[];
+const ONBOARD=[{ico:"🏠",title:"Accueil",text:"Les meilleurs codes."},{ico:"➕",title:"Publier",text:"Ajoute une offre."},{ico:"🏆",title:"Challenge",text:"1 point par parrainage."},{ico:"👤",title:"Profil",text:"Photo, bio et lien."}];
+const BRAND_DOMAINS={nike:"nike.com",adidas:"adidas.com",uber:"uber.com","uber eats":"ubereats.com",amazon:"amazon.fr",booking:"booking.com",airbnb:"airbnb.com",shein:"shein.com",zalando:"zalando.fr",deliveroo:"deliveroo.fr",temu:"temu.com",netflix:"netflix.com",spotify:"spotify.com",decathlon:"decathlon.fr",cdiscount:"cdiscount.com",sephora:"sephora.fr"};
+async function api(url,options={}){const config={credentials:"same-origin",...options};config.headers={"Content-Type":"application/json",...(options.headers||{})};const response=await fetch(url,config);const raw=await response.text();let data;try{data=JSON.parse(raw)}catch(e){data={ok:false,error:"Réponse serveur invalide ("+response.status+")"}}if(!response.ok&&!data.error)data.error="Erreur "+response.status;return data}
+async function apiFirst(urls,options={}){let last={ok:false,error:"Erreur"};for(const u of urls){last=await api(u,options);if(last.ok)return last}return last}
+function toast(m){const el=document.getElementById("toast");el.textContent=m;el.classList.add("show");clearTimeout(window.toastTimer);window.toastTimer=setTimeout(()=>el.classList.remove("show"),2800)}
+function escapeHtml(v){return String(v??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;")}
 function formatNumber(v){return new Intl.NumberFormat("fr-FR").format(Number(v||0))}
-function brandDomain(code){if(code.url){try{return new URL(code.url.startsWith("http")?code.url:"https://"+code.url).hostname.replace(/^www\./,"")}catch(e){}}const k=String(code.brand||code.title||"").toLowerCase();for(const n in BRAND_DOMAINS){if(k.includes(n))return BRAND_DOMAINS[n]}return k.replace(/[^a-z0-9]/g,"")+".com"}
-function logoUrl(code){return "https://www.google.com/s2/favicons?sz=128&domain_url=https://"+brandDomain(code)}
 function extra(){try{return JSON.parse(localStorage.getItem("codia_profile_extra")||"{}")}catch(e){return {}}}
-function showAuth(mode="login"){document.getElementById("auth").classList.add("show");document.getElementById("paywall").classList.remove("show");document.getElementById("loginForm").style.display=mode==="login"?"block":"none";document.getElementById("registerForm").style.display=mode==="register"?"block":"none";document.getElementById("loginTab").classList.toggle("active",mode==="login");document.getElementById("registerTab").classList.toggle("active",mode==="register")}
-async function login(){const r=await apiFirst(["/api/login","/auth/login"],{method:"POST",body:JSON.stringify({identifier:document.getElementById("loginIdentifier").value.trim(),password:document.getElementById("loginPassword").value})});if(!r.ok){toast(r.error);return}document.getElementById("auth").classList.remove("show");await boot()}
-async function register(){const r=await apiFirst(["/api/register","/auth/register"],{method:"POST",body:JSON.stringify({display_name:document.getElementById("registerName").value.trim(),username:document.getElementById("registerUsername").value.trim(),email:document.getElementById("registerEmail").value.trim(),password:document.getElementById("registerPassword").value,referral_code:document.getElementById("registerReferral").value.trim().toUpperCase()})});if(!r.ok){toast(r.error);return}document.getElementById("auth").classList.remove("show");document.getElementById("paywall").classList.add("show")}
+function brandDomain(code){if(code.url){try{return new URL(code.url.startsWith("http")?code.url:"https://"+code.url).hostname.replace(/^www\./,"")}catch(e){}}const key=String(code.brand||code.title||"").toLowerCase();for(const name in BRAND_DOMAINS){if(key.includes(name))return BRAND_DOMAINS[name]}return key.replace(/[^a-z0-9]/g,"")+".com"}
+function logoUrl(code){return "https://www.google.com/s2/favicons?sz=128&domain_url=https://"+brandDomain(code)}
+function showAuth(mode="login"){document.getElementById("auth").classList.add("show");document.getElementById("paywall").classList.remove("show");document.getElementById("loginForm").style.display=mode==="login"?"block":"none";document.getElementById("registerForm").style.display=mode==="register"?"block":"none";document.getElementById("loginTab").classList.toggle("active",mode==="login");document.getElementById("registerTab").classList.toggle("active",mode==="register");const ref=new URLSearchParams(location.search).get("ref");if(ref)document.getElementById("registerReferral").value=ref}
+async function login(){const result=await apiFirst(["/api/login","/auth/login"],{method:"POST",body:JSON.stringify({identifier:document.getElementById("loginIdentifier").value.trim(),password:document.getElementById("loginPassword").value})});if(!result.ok){toast(result.error);return}currentUser=result.user;document.getElementById("auth").classList.remove("show");await boot()}
+async function register(){const result=await apiFirst(["/api/register","/auth/register"],{method:"POST",body:JSON.stringify({display_name:document.getElementById("registerName").value.trim(),username:document.getElementById("registerUsername").value.trim(),email:document.getElementById("registerEmail").value.trim(),password:document.getElementById("registerPassword").value,referral_code:document.getElementById("registerReferral").value.trim().toUpperCase()})});if(!result.ok){toast(result.error);return}document.getElementById("auth").classList.remove("show");document.getElementById("paywall").classList.add("show")}
 async function cancelSignup(){await api("/api/cancel-signup",{method:"POST"});backPaywall();document.getElementById("paywall").classList.remove("show");showAuth("login")}
 function logout(){location.href="/logout"}
-async function boot(){const p=new URLSearchParams(location.search);if(p.get("paid")==="1"&&p.get("session_id"))await api("/api/confirm-payment?session_id="+encodeURIComponent(p.get("session_id")));const r=await api("/api/me");if(r.pending&&(!r.user||!r.user.is_paid)){document.getElementById("auth").classList.remove("show");document.getElementById("paywall").classList.add("show");return}if(!r.ok||!r.user){showAuth();return}currentUser=r.user;currentStats=r.stats||{};currentChallenge=r.challenge||{points:0,remaining_seconds:0};document.getElementById("auth").classList.remove("show");updateProfileUI();if(!currentUser.is_paid&&!currentUser.is_admin){document.getElementById("paywall").classList.add("show");return}document.getElementById("paywall").classList.remove("show");if(!localStorage.getItem("codia_onboard"))document.getElementById("onboard").classList.add("show");loadFeed();loadNotificationsCount();startCountdown();loadLeaderboard();if(p.get("code"))openDetail(Number(p.get("code")))}
-function updateProfileUI(){if(!currentUser)return;const av=document.getElementById("profileAvatar");if(currentUser.avatar_url){av.style.backgroundImage="url("+currentUser.avatar_url+")";av.firstChild&&av.firstChild.nodeType===3&&(av.firstChild.textContent="")}else{av.style.backgroundImage=""}document.getElementById("profileName").textContent=currentUser.display_name||currentUser.username||"Membre";document.getElementById("profileBio").textContent=currentUser.bio||"Passionné de bons plans & d’opportunités.";const x=extra();document.getElementById("profileMeta").textContent=(x.city?"📍 "+x.city+" · ":"📍 Communauté COD.IA · ")+"Membre COD.IA";const pts=(currentChallenge&&currentChallenge.points)||(currentStats&&currentStats.points)||0;document.getElementById("statPoints").textContent=formatNumber(pts);document.getElementById("statRankName").textContent=pts>=1500?"Or":pts>=1000?"Argent":"Bronze"}
-function goPage(page){document.querySelectorAll(".page").forEach(e=>e.classList.remove("active"));document.getElementById("page-"+page).classList.add("active");document.querySelectorAll(".nav-item[data-page]").forEach(e=>e.classList.toggle("active",e.dataset.page===page));if(page==="home")loadFeed();if(page==="promos")loadTop();if(page==="challenge")loadLeaderboard();if(page==="profile")loadProfileExtras()}
-async function loadFeed(){const s=document.getElementById("searchInput").value||"";const r=await api(`/api/feed?category=${encodeURIComponent(currentCategory)}&kind=${encodeURIComponent(currentKind)}&search=${encodeURIComponent(s)}`);renderCodes(document.getElementById("feed"),r.codes||[])}
-async function loadTop(){const r=await api("/api/top-codes");renderCodes(document.getElementById("promoFeed"),r.codes||[])}
-function renderCodes(t,codes){window._lastCodes=codes;t.innerHTML=codes.length?codes.map(codeCard).join(""):`<div class="card">Aucun code.<button class="primary" onclick="openPublish()">Publier</button></div>`}
-function codeCard(c){return `<article class="code-card" onclick="openDetail(${c.id})"><img class="brand-logo" src="${logoUrl(c)}" alt=""><div><span class="badge">${c.kind==="PARRAINAGE"?"PARRAINAGE":"PROMO"}</span><div class="code-title">${escapeHtml(c.title||"")}</div><div class="code-desc">${escapeHtml(c.brand||"")}</div>${c.code?`<div class="mini-code">${escapeHtml(c.code)}</div>`:""}</div><button class="icon-btn" onclick="event.stopPropagation();openCodeMenu(${c.id})">⋮</button></article>`}
-async function openDetail(id){let c=(window._lastCodes||[]).concat(myCodesCache).find(x=>x.id===id);if(!c){const r=await api("/api/codes/"+id);if(!r.ok){toast(r.error);return}c=r.code}currentCode=c;const canDel=currentUser&&(currentUser.is_admin||true);document.getElementById("detailContent").innerHTML=`<div class="card"><div style="display:flex;gap:10px"><img class="brand-mark" src="${logoUrl(c)}"><div><span class="badge">${c.kind||"PROMO"}</span><div class="code-title" style="font-size:22px">${escapeHtml(c.title||"")}</div></div></div><p class="code-desc">${escapeHtml(c.description||"")}</p><div class="card" style="text-align:center"><div style="font-size:28px;font-weight:900">${escapeHtml(c.code||"—")}</div><button class="primary" onclick="copyCode(${c.id})">Copier</button></div><div class="code-desc">♡ ${formatNumber(c.likes)} · ⧉ ${formatNumber(c.copies)} · ↗ ${formatNumber(c.clicks)}</div>${canDel?`<button class="danger" onclick="deleteCode(${c.id})">Supprimer définitivement</button>`:""}</div>`;document.getElementById("detailPage").classList.add("show");api("/api/codes/"+id+"/click",{method:"POST"})}
-function closeDetail(){document.getElementById("detailPage").classList.remove("show")}
+async function boot(){const params=new URLSearchParams(location.search);if(params.get("paid")==="1"&&params.get("session_id"))await api("/api/confirm-payment?session_id="+encodeURIComponent(params.get("session_id")));const result=await api("/api/me");if(result.pending&&(!result.user||!result.user.is_paid)){document.getElementById("auth").classList.remove("show");document.getElementById("paywall").classList.add("show");return}if(!result.ok||!result.user){showAuth();return}currentUser=result.user;currentStats=result.stats||{referrals:0,points:0,likes:0,clicks:0};currentChallenge=result.challenge||{points:0,remaining_seconds:0};document.getElementById("auth").classList.remove("show");updateProfileUI();if(!currentUser.is_paid&&!currentUser.is_admin){document.getElementById("paywall").classList.add("show");return}document.getElementById("paywall").classList.remove("show");if(!localStorage.getItem("codia_onboard"))document.getElementById("onboard").classList.add("show");loadFeed();loadNotificationsCount();startCountdown();loadLeaderboard();if(params.get("code"))openDetail(Number(params.get("code")))}
+function updateProfileUI(){if(!currentUser)return;const av=document.getElementById("profileAvatar");if(currentUser.avatar_url)av.style.backgroundImage="url("+currentUser.avatar_url+")";document.getElementById("profileName").textContent=currentUser.display_name||currentUser.username||"Membre";document.getElementById("profileBio").textContent=currentUser.bio||"Passionné de bons plans & d’opportunités.";const x=extra();document.getElementById("profileMeta").textContent=(x.city?"📍 "+x.city+" · ":"📍 Communauté COD.IA · ")+"Membre COD.IA";const pts=(currentChallenge&&currentChallenge.points)||(currentStats&&currentStats.points)||0;document.getElementById("statPoints").textContent=formatNumber(pts);document.getElementById("statRankName").textContent=pts>=1500?"Or":pts>=1000?"Argent":"Bronze"}
+function goPage(page){document.querySelectorAll(".page").forEach(el=>el.classList.remove("active"));document.getElementById("page-"+page).classList.add("active");document.querySelectorAll(".nav-item[data-page]").forEach(el=>el.classList.toggle("active",el.dataset.page===page));if(page==="home")loadFeed();if(page==="promos")loadFeed("promoFeed");if(page==="challenge")loadLeaderboard();if(page==="profile")loadProfileExtras()}
+async function loadFeed(targetId="feed"){const target=document.getElementById(targetId);if(!target)return;const search=targetId==="promoFeed"?(document.getElementById("promoSearch")?.value||""):(document.getElementById("searchInput")?.value||"");const result=await api(`/api/feed?category=${encodeURIComponent(currentCategory)}&kind=${encodeURIComponent(currentKind)}&search=${encodeURIComponent(search)}`);renderCodes(target,result.codes||[])}
+function renderCodes(target,codes){window._lastCodes=codes;if(!codes.length){target.innerHTML=`<div class="card"><div class="card-title">Aucun code trouvé</div><button class="primary" onclick="openPublish()">+ Publier un code</button></div>`;return}target.innerHTML=codes.map(codeCard).join("")}
+function codeCard(code){return `<article class="code-card" onclick="openDetail(${code.id})"><div class="code-top"><img class="brand-logo" src="${logoUrl(code)}" alt=""><div><span class="badge">${code.kind==="PARRAINAGE"?"PARRAINAGE":"PROMO"}</span><div class="code-title">${escapeHtml(code.title||"")}</div><div class="code-desc">${escapeHtml(code.brand||code.description||"")}</div></div></div><button class="more" onclick="event.stopPropagation();openCodeMenu(${code.id})">⋮</button>${code.code?`<div class="code-bottom"><div class="code-chip">${escapeHtml(code.code)}</div><button class="code-copy" onclick="event.stopPropagation();copyCode(${code.id})">⧉</button></div>`:""}<div class="code-actions"><button class="action" onclick="event.stopPropagation();likeCode(${code.id})">❤️ ${formatNumber(code.likes)}</button><button class="action" onclick="event.stopPropagation();favoriteCode(${code.id})">☆ Favoris</button><button class="action" onclick="event.stopPropagation();copyAndOpen(${code.id})">↗ Ouvrir</button><span class="action">⧉ ${formatNumber(code.copies)}</span></div></article>`}
+async function openDetail(id){let code=(window._lastCodes||[]).concat(myCodesCache).find(c=>c.id===id);if(!code){const r=await api("/api/codes/"+id);if(!r.ok||!r.code){toast(r.error||"Code introuvable");return}code=r.code}currentCode=code;detailTab="details";renderDetail();document.getElementById("detailPage").classList.add("show");api("/api/codes/"+id+"/click",{method:"POST"})}
+function closeDetail(){document.getElementById("detailPage").classList.remove("show");currentCode=null}
+function setDetailTab(t){detailTab=t;renderDetail()}
+function renderDetail(){const c=currentCode;if(!c)return;const date=c.expires_at?new Date(c.expires_at).toLocaleDateString("fr-FR"):"Sans date";document.getElementById("detailContent").innerHTML=`<div class="detail-hero"><div class="detail-head"><img class="brand-mark" src="${logoUrl(c)}" alt=""><div><span class="badge">${c.kind==="PARRAINAGE"?"PARRAINAGE":"PROMO"}</span><div class="code-title" style="font-size:22px">${escapeHtml(c.title||"")}</div><div class="code-desc">${escapeHtml(c.brand||"")}</div></div></div><p class="code-desc">${escapeHtml(c.description||"")}</p><div class="card" style="text-align:center"><div style="font-size:28px;font-weight:900;letter-spacing:.06em">${escapeHtml(c.code||"—")}</div><button class="primary" onclick="copyCode(${c.id})">Copier</button></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><button class="primary" style="margin:0" onclick="copyAndOpen(${c.id})">↗ Voir l'offre</button><button class="secondary" onclick="copyAndOpen(${c.id})">Copier + site</button></div><div class="code-desc" style="margin-top:10px">♡ ${formatNumber(c.likes)} · ⧉ ${formatNumber(c.copies)} · ↗ ${formatNumber(c.clicks)} · expire ${date}</div><button class="danger" onclick="deleteCode(${c.id})">Supprimer définitivement</button></div>`}
 function likeCurrent(){if(currentCode)likeCode(currentCode.id)}
 function useCurrent(){if(currentCode)copyAndOpen(currentCode.id)}
-async function shareCurrent(){if(!currentCode)return;const u=location.origin+"/app?code="+currentCode.id;if(navigator.share){try{await navigator.share({title:currentCode.title,url:u})}catch(e){}}else toast(u)}
-function setCategory(b){document.querySelectorAll(".filter").forEach(e=>e.classList.remove("active"));b.classList.add("active");currentCategory=b.dataset.category;loadFeed()}
+async function shareCurrent(){if(!currentCode)return;const url=location.origin+"/app?code="+currentCode.id;if(navigator.share){try{await navigator.share({title:currentCode.title,text:currentCode.code,url})}catch(e){}}else{await navigator.clipboard.writeText(url);toast("Lien copié")}}
+function setCategory(btn){document.querySelectorAll(".filter").forEach(el=>el.classList.remove("active"));btn.classList.add("active");currentCategory=btn.dataset.category;loadFeed()}
 function setKind(k){currentKind=k;loadFeed()}
-document.getElementById("searchInput").addEventListener("input",()=>{clearTimeout(window.st);window.st=setTimeout(loadFeed,280)});
-async function copyCode(id){const r=await api(`/api/codes/${id}/copy`,{method:"POST"});if(r.code){try{await navigator.clipboard.writeText(r.code)}catch(e){}}toast(r.ok?"Code copié":r.error)}
-async function copyAndOpen(id){const r=await api(`/api/codes/${id}/copy`,{method:"POST"});if(r.code){try{await navigator.clipboard.writeText(r.code)}catch(e){}}if(r.url)window.open(r.url,"_blank")}
+let searchTimer;document.getElementById("searchInput").addEventListener("input",()=>{clearTimeout(searchTimer);searchTimer=setTimeout(()=>loadFeed(),300)});document.getElementById("promoSearch").addEventListener("input",()=>{clearTimeout(searchTimer);searchTimer=setTimeout(()=>loadFeed("promoFeed"),300)});
+async function copyCode(id){const r=await api(`/api/codes/${id}/copy`,{method:"POST"});if(!r.ok){toast(r.error);return}if(r.code){try{await navigator.clipboard.writeText(r.code)}catch(e){}}toast("Code copié");loadFeed()}
+async function copyAndOpen(id){const r=await api(`/api/codes/${id}/copy`,{method:"POST"});if(r.code){try{await navigator.clipboard.writeText(r.code)}catch(e){}}if(r.url)window.open(r.url,"_blank","noopener")}
 async function likeCode(id){await api(`/api/codes/${id}/like`,{method:"POST"});loadFeed()}
-async function favoriteCode(id){await api(`/api/codes/${id}/favorite`,{method:"POST"});loadProfileExtras()}
-async function deleteCode(id){if(!id||!confirm("Supprimer définitivement ce code ?"))return;const r=await api("/api/codes/"+id,{method:"DELETE"});if(!r.ok){toast(r.error||"Impossible");return}toast("Code supprimé");closeModal("codeMenuModal");closeDetail();loadFeed();loadProfileExtras()}
+async function favoriteCode(id){const r=await api(`/api/codes/${id}/favorite`,{method:"POST"});toast(r.favorite?"Ajouté aux favoris":"Retiré");loadFeed();loadProfileExtras()}
+async function deleteCode(id){if(!id||!confirm("Supprimer définitivement ce code ?"))return;const r=await api("/api/codes/"+id+"/delete",{method:"POST"});if(!r.ok){toast(r.error||"Suppression impossible");return}toast("Code supprimé");closeModal("codeMenuModal");closeDetail();loadFeed();loadProfileExtras()}
 function openPublish(){document.getElementById("publishModal").classList.add("open")}
-async function publishCode(){const payload={kind:document.getElementById("publishKind").value,brand:document.getElementById("publishBrand").value,title:document.getElementById("publishTitle").value||document.getElementById("publishBrand").value,description:document.getElementById("publishDescription").value,category:document.getElementById("publishCategory").value,code:document.getElementById("publishCode").value,url:document.getElementById("publishUrl").value,expires_at:document.getElementById("publishExpiration").value?new Date(document.getElementById("publishExpiration").value).toISOString():null};const r=await api("/api/codes",{method:"POST",body:JSON.stringify(payload)});if(!r.ok){toast(r.error);return}closeModal("publishModal");toast("Publié");loadFeed();loadProfileExtras()}
-async function loadProfileExtras(){const mine=await api("/api/my-codes");const favs=await api("/api/favorites");myCodesCache=mine.codes||[];myFavsCache=favs.codes||[];const likes=myCodesCache.reduce((s,c)=>s+(c.likes||0),0);const clicks=myCodesCache.reduce((s,c)=>s+(c.clicks||0),0);window._contrib={likes,clicks,saved:myFavsCache.length,reports:myCodesCache.reduce((s,c)=>s+(c.reports||0),0)};renderProfilePanel()}
-function setProfileTab(t){profileTab=t;document.querySelectorAll(".ptab").forEach((e,i)=>e.classList.toggle("on",["overview","codes","favs","refs","badges"][i]===t));renderProfilePanel()}
-function codeStatus(c){return c.expires_at&&new Date(c.expires_at)<new Date()?"expire":"actif"}
-function mineCard(c){const st=codeStatus(c);return `<article class="mine-card" onclick="openDetail(${c.id})"><img class="brand-logo" src="${logoUrl(c)}"><div><span class="badge">${c.kind||"PROMO"}</span><div class="code-title">${escapeHtml(c.title||"")}</div><div class="mini-code">${escapeHtml(c.code||"")}</div></div><div><div class="${st==="expire"?"st-expire":"st-actif"}">${st==="expire"?"EXPIRÉ":"ACTIF"}</div><button class="danger" style="padding:6px;font-size:11px" onclick="event.stopPropagation();deleteCode(${c.id})">Supprimer</button></div></article>`}
-function renderProfilePanel(){const box=document.getElementById("profilePanel");const x=extra();const co=window._contrib||{likes:0,clicks:0,saved:0,reports:0};if(profileTab==="overview"){const top=(leaderRows||[]).slice(0,3).map((r,i)=>`<div class="rank-card"><span>${["🥇","🥈","🥉"][i]} ${escapeHtml(r.name)}</span><b>${formatNumber(r.points)}</b></div>`).join("")||"<div class='code-desc'>Pas encore de classement</div>";box.innerHTML=`<div class="ov-grid"><div class="card"><div class="card-title">À propos de moi</div><div class="code-desc">${escapeHtml(currentUser.bio||"J’adore chercher les meilleures offres et les partager avec la communauté COD.IA.")}</div>${x.ig?`<a class="social" href="https://instagram.com/${encodeURIComponent(x.ig.replace('@',''))}" target="_blank">Instagram ${escapeHtml(x.ig)}</a>`:`<div class="social">Instagram</div>`}${x.snap?`<div class="social">Snapchat ${escapeHtml(x.snap)}</div>`:`<div class="social">Snapchat</div>`}</div><div class="card"><div class="card-title">Ma contribution</div><div class="code-desc">👁 ${formatNumber(co.clicks)} vues<br>♡ ${formatNumber(co.likes)} likes reçus<br>☆ ${formatNumber(co.saved)} enregistrées<br>⚑ ${formatNumber(co.reports)} signalements</div></div></div><div class="impact"><div class="globe"></div><div><b>Un impact ensemble</b><div class="code-desc">Chacun partage et aide les autres à faire de meilleures économies.</div><div class="p-badge">+12K membres actifs</div></div></div><div class="ov-grid"><div class="card"><div class="card-title">Mes badges</div><div class="badges3"><div><div class="hex" style="background:#f3e0b8">★</div><b>Débutant</b></div><div><div class="hex" style="background:#d7e6c4">♡</div><b>Partageur</b></div><div><div class="hex" style="background:#ddd">🔥</div><b>Actif</b></div></div></div><div class="card"><div class="card-title">Activité récente</div><div class="act"><span>A publié ${myCodesCache.length} code(s)</span><span>toi</span></div><div class="act"><span>A enregistré ${myFavsCache.length} offre(s)</span><span>toi</span></div></div></div><div class="challenge"><div style="display:flex;justify-content:space-between"><b>Challenge</b><span class="timer" id="ovTimer">--</span></div><div class="bronze-row"><div class="level">🥉<br><b>Bronze</b></div><div>${top}</div></div></div>`;return}
-if(profileTab==="favs"){box.innerHTML=myFavsCache.map(mineCard).join("")||'<div class="card">Aucun favori</div>';return}
-if(profileTab==="refs"){box.innerHTML=`<div class="card"><div class="card-title">Parrainages</div><div class="code-desc">${escapeHtml(currentUser.referral_code||"")}</div><button class="primary" onclick="navigator.clipboard.writeText(currentUser.referral_link||'');toast('Lien copié')">Copier mon lien</button></div>`;return}
+async function publishCode(){const payload={kind:document.getElementById("publishKind").value,brand:document.getElementById("publishBrand").value,title:document.getElementById("publishTitle").value||document.getElementById("publishBrand").value,description:document.getElementById("publishDescription").value,category:document.getElementById("publishCategory").value,code:document.getElementById("publishCode").value,url:document.getElementById("publishUrl").value,expires_at:document.getElementById("publishExpiration").value?new Date(document.getElementById("publishExpiration").value).toISOString():null};const r=await api("/api/codes",{method:"POST",body:JSON.stringify(payload)});if(!r.ok){toast(r.error||"Publication impossible");return}closeModal("publishModal");toast("Offre publiée");loadFeed();loadProfileExtras()}
+async function copyReferral(){await navigator.clipboard.writeText(currentUser.referral_link||"");toast("Lien copié")}
+async function copyReferralCode(){await navigator.clipboard.writeText(currentUser.referral_code||"");toast("Code copié")}
+async function shareReferral(){if(navigator.share){try{await navigator.share({title:"COD.IA",url:currentUser.referral_link})}catch(e){}}else copyReferral()}
+async function loadProfileExtras(){const mine=await api("/api/my-codes");const favs=await api("/api/favorites");myCodesCache=mine.codes||[];myFavsCache=favs.codes||[];window._contrib={likes:myCodesCache.reduce((s,c)=>s+(c.likes||0),0),clicks:myCodesCache.reduce((s,c)=>s+(c.clicks||0),0),saved:myFavsCache.length,reports:myCodesCache.reduce((s,c)=>s+(c.reports||0),0)};renderProfilePanel()}
+function setProfileTab(tab){profileTab=tab;document.querySelectorAll(".ptab").forEach((el,i)=>el.classList.toggle("on",["overview","codes","favs","refs","badges"][i]===tab));renderProfilePanel()}
+function codeStatus(c){return (c.expires_at&&new Date(c.expires_at)<new Date())?"expire":"actif"}
+function mineCard(c){const st=codeStatus(c);return `<article class="mine-card" onclick="openDetail(${c.id})"><img class="brand-logo" src="${logoUrl(c)}" alt=""><div><span class="badge">${c.kind==="PARRAINAGE"?"PARRAINAGE":"PROMO"}</span><div class="code-title">${escapeHtml(c.title||"")}</div><div class="mini-code">${escapeHtml(c.code||"")}</div></div><div><div class="${st==="expire"?"st-expire":"st-actif"}">${st==="expire"?"EXPIRÉ":"ACTIF"}</div><button class="danger" style="padding:6px 8px;font-size:11px" onclick="event.stopPropagation();deleteCode(${c.id})">Supprimer</button></div></article>`}
+function renderProfilePanel(){const box=document.getElementById("profilePanel");const x=extra();const co=window._contrib||{likes:0,clicks:0,saved:0,reports:0};if(profileTab==="overview"){const top=(leaderRows||[]).slice(0,3).map((r,i)=>`<div class="rank-card"><span>${["🥇","🥈","🥉"][i]} ${escapeHtml(r.name)}</span><b>${formatNumber(r.points)}</b></div>`).join("")||"<div class='code-desc'>Pas encore de classement.</div>";box.innerHTML=`<div class="ov-grid"><div class="card"><div class="card-title">À propos de moi</div><div class="code-desc">${escapeHtml(currentUser.bio||"J’adore chercher les meilleures offres et les partager avec la communauté COD.IA.")}</div>${x.ig?`<a class="social" target="_blank" href="https://instagram.com/${encodeURIComponent(x.ig.replace('@',''))}">Instagram ${escapeHtml(x.ig)}</a>`:`<div class="social">Instagram</div>`}${x.snap?`<div class="social">Snapchat ${escapeHtml(x.snap)}</div>`:`<div class="social">Snapchat</div>`}</div><div class="card"><div class="card-title">Ma contribution</div><div class="code-desc">👁 ${formatNumber(co.clicks)} vues<br>♡ ${formatNumber(co.likes)} likes reçus<br>☆ ${formatNumber(co.saved)} enregistrées<br>⚑ ${formatNumber(co.reports)} signalements</div></div></div><div class="impact"><div class="globe"></div><div><b>Un impact ensemble 🌍</b><div class="code-desc">Grâce à la communauté COD.IA, chacun partage et aide les autres.</div><div class="p-badge">+12K membres actifs</div></div></div><div class="ov-grid"><div class="card"><div class="card-title">Mes badges</div><div class="badges3"><div><div class="hex" style="background:#f3e0b8">★</div><b>Débutant</b></div><div><div class="hex" style="background:#d7e6c4">♡</div><b>Partageur</b></div><div><div class="hex" style="background:#ddd">🔥</div><b>Actif</b></div></div></div><div class="card"><div class="card-title">Activité récente</div><div class="act"><span>A publié ${myCodesCache.length} code(s)</span><span>toi</span></div><div class="act"><span>A enregistré ${myFavsCache.length} offre(s)</span><span>toi</span></div></div></div><div class="challenge"><div style="display:flex;justify-content:space-between"><b>Challenge</b><span class="timer" id="ovTimer">--</span></div><div class="bronze-row"><div class="level">🥉<br><b>Bronze</b><div class="code-desc">500 pts</div></div><div>${top}</div></div></div><div class="card" onclick="document.getElementById('launchModal').classList.add('open')"><div class="card-title">Offre de Lancement</div><div class="code-desc">1 point par inscription avec ton code.</div></div><div class="card" onclick="document.getElementById('copiesModal').classList.add('open')"><div class="card-title">Offre Copies</div><div class="code-desc">250 copies = 100 €.</div></div>`;return}
+if(profileTab==="favs"){box.innerHTML=myFavsCache.map(codeCard).join("")||'<div class="card">Aucun favori</div>';return}
+if(profileTab==="refs"){box.innerHTML=`<div class="card"><div class="card-title">Mon lien de parrainage</div><div class="referral-row"><input class="referral-input" value="${escapeHtml(currentUser.referral_link||"")}" readonly><button class="copy-small" onclick="copyReferral()">⧉</button></div><div class="card-title" style="margin-top:14px">Mon code</div><div class="referral-row"><input class="referral-input" value="${escapeHtml(currentUser.referral_code||"")}" readonly><button class="copy-small" onclick="copyReferralCode()">⧉</button></div><button class="primary" onclick="shareReferral()">Partager mon lien</button></div>`;return}
 if(profileTab==="badges"){box.innerHTML=`<div class="card"><div class="badges3"><div><div class="hex" style="background:#f3e0b8">★</div>Débutant</div><div><div class="hex" style="background:#d7e6c4">♡</div>Partageur</div><div><div class="hex" style="background:#ddd">🔥</div>Actif</div></div></div>`;return}
-const f=window._mineFilter||"all";const list=myCodesCache.filter(c=>f==="all"||codeStatus(c)===f);
-box.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center"><b>Mes Codes</b><button class="primary" style="width:auto;margin:0" onclick="openPublish()">+ Publier</button></div><div class="chip-row" style="margin:10px 0"><button class="pchip ${f==="all"?"on":""}" onclick="window._mineFilter='all';renderProfilePanel()">Tous (${myCodesCache.length})</button><button class="pchip ${f==="actif"?"on":""}" onclick="window._mineFilter='actif';renderProfilePanel()">Actifs</button><button class="pchip ${f==="expire"?"on":""}" onclick="window._mineFilter='expire';renderProfilePanel()">Expirés</button></div>${list.map(mineCard).join("")||'<div class="card">Aucun code</div>'}`}
-function startCountdown(){function u(){if(!currentChallenge)return;let s=currentChallenge.remaining_seconds||0;if(s<=0)return;s--;currentChallenge.remaining_seconds=s;const d=Math.floor(s/86400),h=Math.floor((s%86400)/3600),m=Math.floor((s%3600)/60);const t=`${d}j ${String(h).padStart(2,"0")}h`;["challengeTimer","ovTimer"].forEach(id=>{const e=document.getElementById(id);if(e)e.textContent=t});const b=document.getElementById("challengeProgress");if(b)b.style.width=Math.min(100,(currentChallenge.points||0)/1500*100)+"%"}u();clearInterval(window.ci);window.ci=setInterval(u,1000)}
-async function loadLeaderboard(){const r=await api("/api/leaderboard");leaderRows=r.challenge||[];const html=leaderRows.slice(0,3).map((row,i)=>`<div class="rank-card"><span>${["🥇","🥈","🥉"][i]} ${escapeHtml(row.name)}</span><b>${formatNumber(row.points)}</b></div>`).join("");const a=document.getElementById("leaderboard");if(a)a.innerHTML=html;const m=document.getElementById("miniRank");if(m)m.innerHTML=html;const me=leaderRows.find(x=>x.me);if(me)document.getElementById("statTop").textContent="#"+me.rank}
+const filter=window._mineFilter||"all";const list=myCodesCache.filter(c=>filter==="all"||codeStatus(c)===filter);
+box.innerHTML=`<div class="section-head"><div><div class="section-title">Mes Codes</div><div class="code-desc">Gère tes codes publiés.</div></div><button class="primary" style="width:auto;margin:0" onclick="openPublish()">+ Publier un code</button></div><div class="chip-row"><button class="pchip ${filter==="all"?"on":""}" onclick="window._mineFilter='all';renderProfilePanel()">Tous (${myCodesCache.length})</button><button class="pchip ${filter==="actif"?"on":""}" onclick="window._mineFilter='actif';renderProfilePanel()">Actifs</button><button class="pchip ${filter==="expire"?"on":""}" onclick="window._mineFilter='expire';renderProfilePanel()">Expirés</button></div>${list.map(mineCard).join("")||'<div class="card">Aucun code publié</div>'}`}
+function startCountdown(){function update(){if(!currentChallenge)return;let s=currentChallenge.remaining_seconds||0;if(s<=0){const t=document.getElementById("challengeTimer");if(t)t.textContent="Terminé";return}s--;currentChallenge.remaining_seconds=s;const d=Math.floor(s/86400),h=Math.floor((s%86400)/3600),m=Math.floor((s%3600)/60);const txt=`${d}j ${String(h).padStart(2,"0")}h ${String(m).padStart(2,"0")}m`;["challengeTimer","ovTimer"].forEach(id=>{const e=document.getElementById(id);if(e)e.textContent=txt});const p=document.getElementById("challengePoints");if(p)p.textContent=formatNumber(currentChallenge.points)+" points";const bar=document.getElementById("challengeProgress");if(bar)bar.style.width=Math.min(100,(currentChallenge.points||0)/1500*100)+"%"}update();clearInterval(window.challengeInterval);window.challengeInterval=setInterval(update,1000)}
+async function loadLeaderboard(){const result=await api("/api/leaderboard");leaderRows=result.challenge||[];const html=leaderRows.slice(0,3).map((row,i)=>`<div class="rank-card"><span>${["🥇","🥈","🥉"][i]} ${escapeHtml(row.name||"Membre")}</span><b>${formatNumber(row.points)} pts</b></div>`).join("");const box=document.getElementById("leaderboard");if(box)box.innerHTML=html;const mini=document.getElementById("miniRank");if(mini)mini.innerHTML=html;const me=leaderRows.find(r=>r.me);document.getElementById("myRank").textContent=me?`Tu es #${me.rank} avec ${formatNumber(me.points)} point(s).`:"Ton classement apparaîtra ici.";if(me)document.getElementById("statTop").textContent="#"+me.rank}
+async function loadTopCodes(){goPage("promos");const r=await api("/api/top-codes");renderCodes(document.getElementById("promoFeed"),r.codes||[])}
 async function loadNotificationsCount(){const r=await api("/api/notifications");if(r.ok)document.getElementById("notificationDot").style.display=r.unread>0?"block":"none"}
-async function openNotifications(){document.getElementById("notificationModal").classList.add("open");const r=await api("/api/notifications");document.getElementById("notificationsList").innerHTML=(r.notifications||[]).map(n=>`<div class="card"><b>${escapeHtml(n.title)}</b><div class="code-desc">${escapeHtml(n.message)}</div></div>`).join("")||"<div class='card'>Rien pour le moment</div>"}
-function openEditProfile(){pendingPhoto=currentUser.avatar_url||"";const x=extra();document.getElementById("editBio").value=currentUser.bio||"";document.getElementById("editCity").value=x.city||"";document.getElementById("editIg").value=x.ig||"";document.getElementById("editSnap").value=x.snap||"";document.getElementById("editEmail").value=currentUser.email||"";document.getElementById("editModal").classList.add("open")}
-document.getElementById("editPhoto").addEventListener("change",e=>{const f=e.target.files[0];if(!f||f.size>250000){if(f)toast("Max 250 Ko");return}const rd=new FileReader();rd.onload=()=>pendingPhoto=rd.result;rd.readAsDataURL(f)});
+async function openNotifications(){closeAllModals();document.getElementById("notificationModal").classList.add("open");const r=await api("/api/notifications");document.getElementById("notificationsList").innerHTML=`<div class="card" onclick="closeModal('notificationModal');document.getElementById('launchModal').classList.add('open')"><div class="card-title">🚀 OFFRE DE LANCEMENT</div><div class="code-desc">1 point par inscription avec ton code.</div></div><div class="card" onclick="closeModal('notificationModal');document.getElementById('copiesModal').classList.add('open')"><div class="card-title">⧉ OFFRE COPIES</div><div class="code-desc">250 copies = 100 €.</div></div>`+((r.notifications||[]).map(n=>`<div class="card"><div class="card-title">${escapeHtml(n.title)}</div><div class="code-desc">${escapeHtml(n.message)}</div></div>`).join(""));await api("/api/notifications/read",{method:"POST"})}
+function openEditProfile(){pendingPhoto=currentUser.avatar_url||"";const x=extra();document.getElementById("editBio").value=currentUser.bio||"";document.getElementById("editCity").value=x.city||"";document.getElementById("editIg").value=x.ig||"";document.getElementById("editSnap").value=x.snap||"";document.getElementById("editEmail").value=currentUser.email||"";document.getElementById("editModal").classList.add("open");closeModal("menuModal")}
+document.getElementById("editPhoto").addEventListener("change",e=>{const f=e.target.files[0];if(!f)return;if(f.size>250000){toast("Image trop lourde (max 250 Ko).");return}const reader=new FileReader();reader.onload=()=>{pendingPhoto=reader.result};reader.readAsDataURL(f)});
 async function saveProfile(){localStorage.setItem("codia_profile_extra",JSON.stringify({city:document.getElementById("editCity").value,ig:document.getElementById("editIg").value,snap:document.getElementById("editSnap").value}));const r=await api("/api/profile",{method:"PATCH",body:JSON.stringify({bio:document.getElementById("editBio").value,email:document.getElementById("editEmail").value,avatar_url:pendingPhoto})});if(!r.ok){toast(r.error);return}closeModal("editModal");toast("Profil mis à jour");await boot();loadProfileExtras()}
-function openSupport(){document.getElementById("supportModal").classList.add("open")}
-async function sendSupport(){const r=await api("/api/support",{method:"POST",body:JSON.stringify({subject:document.getElementById("supportSubject").value,message:document.getElementById("supportMessage").value})});toast(r.ok?"Envoyé":r.error);if(r.ok)closeModal("supportModal")}
+function openSupport(){closeAllModals();document.getElementById("supportModal").classList.add("open")}
+async function sendSupport(){const r=await api("/api/support",{method:"POST",body:JSON.stringify({subject:document.getElementById("supportSubject").value,message:document.getElementById("supportMessage").value})});if(!r.ok){toast(r.error);return}closeModal("supportModal");toast("Message envoyé")}
+function openFAQ(){closeAllModals();document.getElementById("faqModal").classList.add("open")}
 function openMenu(){document.getElementById("menuModal").classList.add("open")}
 function openCodeMenu(id){window._menuCodeId=id;document.getElementById("codeMenuModal").classList.add("open")}
-async function reportCode(id){const r=await api(`/api/codes/${id}/report`,{method:"POST"});toast(r.ok?"Signalé":r.error)}
-async function startPayment(){const r=await api("/api/create-checkout",{method:"POST",body:"{}"});if(!r.ok){toast(r.error);return}if(r.already_paid){document.getElementById("paywall").classList.remove("show");await boot();return}const s=r.client_secret||r.clientSecret;if(!s){toast("Pas de session Stripe");return}document.getElementById("paywallIntro").style.display="none";document.getElementById("stripeBox").style.display="block";const cfg=await api("/config");(await Stripe(cfg.stripe_pk||cfg.publishable_key).initEmbeddedCheckout({clientSecret:s})).mount("#stripeCheckout")}
-function backPaywall(){document.getElementById("stripeBox").style.display="none";document.getElementById("paywallIntro").style.display="block"}
+async function reportCode(id){const r=await api(`/api/codes/${id}/report`,{method:"POST"});toast(r.ok?"Signalement enregistré":r.error);loadFeed()}
+async function hideCode(id){await api(`/api/codes/${id}/hide`,{method:"POST"});closeModal("codeMenuModal");loadFeed()}
+async function startPayment(){toast("Ouverture du paiement...");const r=await api("/api/create-checkout",{method:"POST",body:JSON.stringify({})});if(!r.ok){toast(r.error||"Paiement impossible");return}if(r.already_paid){document.getElementById("paywall").classList.remove("show");await boot();return}const secret=r.client_secret||r.clientSecret;if(!secret){toast("Stripe n'a pas renvoyé de session.");return}document.getElementById("paywallIntro").style.display="none";document.getElementById("stripeBox").style.display="block";try{await initializeStripe(secret)}catch(e){toast("Stripe JS : "+e.message);backPaywall()}}
+async function initializeStripe(clientSecret){let cfg=await api("/config");if(!cfg.stripe_pk)cfg=await api("/api/stripe-config");const key=cfg.stripe_pk||cfg.publishable_key;if(!key)throw new Error("STRIPE_PUBLISHABLE_KEY manquante");const checkout=await Stripe(key).initEmbeddedCheckout({clientSecret});document.getElementById("stripeCheckout").innerHTML="";checkout.mount("#stripeCheckout")}
+function backPaywall(){document.getElementById("stripeBox").style.display="none";document.getElementById("paywallIntro").style.display="block";document.getElementById("stripeCheckout").innerHTML=""}
 function nextOnboard(){onboardStep++;if(onboardStep>=ONBOARD.length){localStorage.setItem("codia_onboard","1");document.getElementById("onboard").classList.remove("show");return}const s=ONBOARD[onboardStep];document.getElementById("onboardIco").textContent=s.ico;document.getElementById("onboardTitle").textContent=s.title;document.getElementById("onboardText").textContent=s.text}
 function closeModal(id){document.getElementById(id)?.classList.remove("open")}
-document.addEventListener("DOMContentLoaded",boot);
+function closeAllModals(){document.querySelectorAll(".modal").forEach(el=>el.classList.remove("open"))}
+document.addEventListener("DOMContentLoaded",()=>{const ref=new URLSearchParams(location.search).get("ref");if(ref)document.getElementById("registerReferral").value=ref;boot()});
 </script>
 </body>
 </html>
