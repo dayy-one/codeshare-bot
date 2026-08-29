@@ -54,7 +54,7 @@ body{padding-bottom:100px}
 .code-bottom{margin-top:13px;display:flex;align-items:center;gap:8px}
 .code-chip,.mini-code{flex:1;min-width:0;border:1px dashed #ccd2c3;background:#f8f9f4;padding:10px;border-radius:11px;font-size:12px;font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .code-copy{width:42px;height:42px;background:var(--green);color:#fff;border-radius:12px}
-.code-actions{display:flex;align-items:center;justify-content:space-between;margin-top:12px;padding-top:11px;border-top:1px solid #eef0e9}
+.code-actions{display:flex;align-items:center;justify-content:space-between;margin-top:12px;padding-top:11px;border-top:1px solid #eef0e9;flex-wrap:wrap;gap:6px}
 .action{background:transparent;color:#697066;font-size:12px}
 .more{position:absolute;right:13px;top:13px;background:transparent;font-size:19px}
 .stories{display:flex;gap:13px;overflow-x:auto;scrollbar-width:none}
@@ -67,9 +67,10 @@ body{padding-bottom:100px}
 .menu-item{width:100%;background:#fff;padding:17px;display:flex;align-items:center;gap:13px;text-align:left;border-bottom:1px solid #eef0e9}
 .menu-icon{width:38px;height:38px;border-radius:12px;background:var(--green-light);display:flex;align-items:center;justify-content:center}
 .bottom-nav{position:fixed;left:50%;bottom:0;transform:translateX(-50%);width:min(520px,100%);height:83px;background:rgba(255,255,255,.97);border-top:1px solid var(--border);z-index:100;display:grid;grid-template-columns:1fr 1fr 1fr 1fr 1fr;align-items:center}
-.nav-item{height:60px;background:transparent;color:#747b70;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:10px;font-weight:700}
+.nav-item{height:60px;background:transparent;color:#747b70;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:10px;font-weight:700}
 .nav-item.active{color:var(--green)}
-.publish-float{width:58px;height:58px;margin-top:-22px;border-radius:50%;background:var(--green);color:#fff;font-size:30px;border:5px solid var(--cream)}
+.nav-ico{font-size:18px;line-height:1}
+.publish-float{width:58px;height:58px;margin-top:-22px;border-radius:50%;background:var(--green);color:#fff;font-size:28px;border:5px solid var(--cream);display:flex;align-items:center;justify-content:center}
 .modal{position:fixed;inset:0;background:rgba(20,27,16,.45);z-index:200;display:none;align-items:flex-end;justify-content:center}
 .modal.open{display:flex}
 .sheet{width:min(520px,100%);max-height:90vh;overflow:auto;background:#fff;border-radius:28px 28px 0 0;padding:20px}
@@ -125,6 +126,16 @@ body{padding-bottom:100px}
 .badges3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center}
 .hex{width:46px;height:46px;margin:auto;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px}
 .act{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #eef0e9;font-size:12px}
+.author-link{background:none;color:var(--green-dark);font-weight:800;padding:0;text-decoration:underline;text-underline-offset:2px}
+.follow-btn.on{background:#eef3e4;color:var(--green-dark)}
+.empty-box{text-align:center;padding:28px 16px}
+.empty-ico{font-size:40px;margin-bottom:8px}
+.comment-form{display:flex;gap:8px;margin:10px 0 4px;align-items:flex-end}
+.comment-form textarea{flex:1;min-height:48px;border:1px solid #dfe3d8;background:#f9faf6;border-radius:13px;padding:10px 12px;outline:0;resize:none}
+.comment-send{height:48px;padding:0 14px;border-radius:13px;background:var(--green);color:#fff;font-weight:800}
+.comment-meta{font-size:10px;color:#8a9084;margin-top:4px}
+.user-page{position:fixed;inset:0;z-index:225;background:#f7f6f1;display:none;overflow:auto;padding-bottom:24px}
+.user-page.show{display:block}
 .detail{position:fixed;inset:0;z-index:220;background:#f7f6f1;display:none;overflow:auto;padding-bottom:92px}
 .detail.show{display:block}
 .detail-top{position:sticky;top:0;z-index:2;background:rgba(247,246,241,.96);backdrop-filter:blur(16px);height:64px;display:flex;align-items:center;justify-content:space-between;padding:0 14px}
@@ -166,7 +177,7 @@ body{padding-bottom:100px}
 <header class="header">
   <button class="logo" onclick="goPage('home')"><div class="logo-globe">C.</div>COD.IA</button>
   <div style="display:flex;gap:8px">
-    <button class="icon-btn" onclick="openNotifications()"><span id="notificationDot" class="notification-dot"></span></button>
+    <button class="icon-btn" onclick="openNotifications()">🔔<span id="notificationDot" class="notification-dot"></span></button>
     <button class="icon-btn" onclick="openMenu()">☰</button>
   </div>
 </header>
@@ -176,9 +187,9 @@ body{padding-bottom:100px}
   <div class="search"><input id="searchInput" type="search" placeholder="Rechercher un code, une marque..."></div>
   <div class="section-head"><div class="section-title">Les stories</div></div>
   <div class="stories">
-    <div class="story" onclick="loadTopCodes()"><div class="story-circle"><div class="story-inner"></div></div><div class="story-name">Populaires</div></div>
-    <div class="story" onclick="setKind('PROMO')"><div class="story-circle"><div class="story-inner"></div></div><div class="story-name">Promos</div></div>
-    <div class="story" onclick="setKind('PARRAINAGE')"><div class="story-circle"><div class="story-inner"></div></div><div class="story-name">Parrainages</div></div>
+    <div class="story" onclick="loadTopCodes()"><div class="story-circle"><div class="story-inner">🔥</div></div><div class="story-name">Populaires</div></div>
+    <div class="story" onclick="setKind('PROMO')"><div class="story-circle"><div class="story-inner">🏷️</div></div><div class="story-name">Promos</div></div>
+    <div class="story" onclick="setKind('PARRAINAGE')"><div class="story-circle"><div class="story-inner">🤝</div></div><div class="story-name">Parrainages</div></div>
   </div>
   <div class="section-head"><div class="section-title">Les meilleurs codes</div><button class="see-all" onclick="loadTopCodes()">Voir tout</button></div>
   <div class="filters">
@@ -226,10 +237,10 @@ body{padding-bottom:100px}
 <section id="page-profile" class="page">
   <div class="p-hero">
     <div class="p-row">
-      <div id="profileAvatar" class="p-ava">CO<span class="p-crown"></span></div>
+      <div id="profileAvatar" class="p-ava">CO<span class="p-crown">👑</span></div>
       <div>
         <h2 id="profileName" class="p-name">Profil</h2>
-        <div class="p-badge">Membre COD.IA</div>
+        <div class="p-badge">🌱 Membre COD.IA</div>
         <div id="profileMeta" class="code-desc">Communauté COD.IA</div>
         <div id="profileBio" class="bio">Bienvenue sur COD.IA.</div>
       </div>
@@ -254,12 +265,21 @@ body{padding-bottom:100px}
 </section>
 </main>
 <nav class="bottom-nav">
-  <button class="nav-item active" data-page="home" onclick="goPage('home')">Accueil</button>
-  <button class="nav-item" data-page="promos" onclick="goPage('promos')">Top Codes</button>
-  <button class="nav-item" onclick="openPublish()"><div class="publish-float">+</div>Publier</button>
-  <button class="nav-item" data-page="challenge" onclick="goPage('challenge')">Challenge</button>
-  <button class="nav-item" data-page="profile" onclick="goPage('profile')">Profil</button>
+  <button class="nav-item active" data-page="home" onclick="goPage('home')"><span class="nav-ico">🏠</span>Accueil</button>
+  <button class="nav-item" data-page="promos" onclick="goPage('promos')"><span class="nav-ico">🔥</span>Top Codes</button>
+  <button class="nav-item" onclick="openPublish()"><div class="publish-float">＋</div>Publier</button>
+  <button class="nav-item" data-page="challenge" onclick="goPage('challenge')"><span class="nav-ico">🏆</span>Challenge</button>
+  <button class="nav-item" data-page="profile" onclick="goPage('profile')"><span class="nav-ico">👤</span>Profil</button>
 </nav>
+</div>
+
+<div id="userPage" class="user-page">
+  <div class="detail-top">
+    <button class="icon-btn" onclick="closeUserPage()">‹</button>
+    <button class="logo" onclick="closeUserPage()"><div class="logo-globe">C.</div>COD.IA</button>
+    <span></span>
+  </div>
+  <div class="detail-wrap" id="userPageContent"></div>
 </div>
 
 <div id="publishModal" class="modal"><div class="sheet">
@@ -317,12 +337,14 @@ body{padding-bottom:100px}
   <div class="card"><strong>Comment ça marche ?</strong><p class="code-desc">Tu publies tes codes promo et parrainages. La communauté les utilise.</p></div>
   <div class="card"><strong>Challenge</strong><p class="code-desc">1 point par inscription avec ton code. Palier Bronze / Argent / Or.</p></div>
   <div class="card"><strong>Offre Copies</strong><p class="code-desc">250 copies sur un même code = 100 €.</p></div>
+  <div class="card"><strong>Profils & commentaires</strong><p class="code-desc">Clique sur le nom de la personne qui a partagé un code pour voir son profil et t’abonner. L’onglet Commentaires permet de laisser un avis.</p></div>
 </div></div>
 
 <div id="codeMenuModal" class="modal"><div class="sheet">
   <div class="sheet-head"><div class="section-title">Actions</div><button class="close" onclick="closeModal('codeMenuModal')">✕</button></div>
   <button class="primary" onclick="copyCode(window._menuCodeId);closeModal('codeMenuModal')">Copier</button>
   <button class="secondary" style="width:100%;margin-top:8px" onclick="favoriteCode(window._menuCodeId);closeModal('codeMenuModal')">Favori</button>
+  <button class="secondary" style="width:100%;margin-top:8px" onclick="openDetail(window._menuCodeId,'comments');closeModal('codeMenuModal')">💬 Commenter</button>
   <button class="secondary" style="width:100%;margin-top:8px" onclick="reportCode(window._menuCodeId);closeModal('codeMenuModal')">Signaler</button>
   <button class="secondary" style="width:100%;margin-top:8px" onclick="hideCode(window._menuCodeId);closeModal('codeMenuModal')">Ne plus voir</button>
   <button class="danger" onclick="deleteCode(window._menuCodeId)">Supprimer définitivement</button>
@@ -331,14 +353,14 @@ body{padding-bottom:100px}
 <div id="menuModal" class="modal"><div class="sheet">
   <div class="sheet-head"><div class="section-title">Menu</div><button class="close" onclick="closeModal('menuModal')">✕</button></div>
   <div class="menu-card">
-    <button class="menu-item" onclick="goPage('profile');closeModal('menuModal')"><div class="menu-icon"></div>Mon profil</button>
+    <button class="menu-item" onclick="goPage('profile');closeModal('menuModal')"><div class="menu-icon">👤</div>Mon profil</button>
     <button class="menu-item" onclick="openEditProfile()"><div class="menu-icon">✎</div>Modifier email / photo / bio</button>
-    <button class="menu-item" onclick="openNotifications()"><div class="menu-icon"></div>Notifications</button>
-    <button class="menu-item" onclick="document.getElementById('launchModal').classList.add('open');closeModal('menuModal')"><div class="menu-icon"></div>Offre de Lancement</button>
+    <button class="menu-item" onclick="openNotifications()"><div class="menu-icon">🔔</div>Notifications</button>
+    <button class="menu-item" onclick="document.getElementById('launchModal').classList.add('open');closeModal('menuModal')"><div class="menu-icon">🚀</div>Offre de Lancement</button>
     <button class="menu-item" onclick="document.getElementById('copiesModal').classList.add('open');closeModal('menuModal')"><div class="menu-icon">⧉</div>Offre Copies</button>
-    <button class="menu-item" onclick="openSupport()"><div class="menu-icon"></div>Support</button>
-    <button class="menu-item" onclick="openFAQ()"><div class="menu-icon"></div>FAQ</button>
-    <button class="menu-item" onclick="logout()"><div class="menu-icon"></div>Déconnexion</button>
+    <button class="menu-item" onclick="openSupport()"><div class="menu-icon">💬</div>Support</button>
+    <button class="menu-item" onclick="openFAQ()"><div class="menu-icon">❓</div>FAQ</button>
+    <button class="menu-item" onclick="logout()"><div class="menu-icon">🚪</div>Déconnexion</button>
   </div>
 </div></div>
 
@@ -400,23 +422,69 @@ body{padding-bottom:100px}
   <div class="detail-top">
     <button class="icon-btn" onclick="closeDetail()">‹</button>
     <button class="logo" onclick="closeDetail()"><div class="logo-globe">C.</div>COD.IA</button>
-    <button class="icon-btn" onclick="shareCurrent()"></button>
+    <button class="icon-btn" onclick="shareCurrent()">📤</button>
   </div>
   <div class="detail-wrap" id="detailContent"></div>
   <div class="use-bar">
     <button class="secondary" onclick="likeCurrent()">♡</button>
     <button class="primary" style="margin:0" onclick="useCurrent()">Utiliser ce code</button>
-    <button class="secondary" onclick="shareCurrent()"></button>
+    <button class="secondary" onclick="setDetailTab('comments')">💬</button>
   </div>
 </div>
 <div id="toast" class="toast"></div>
 
 <script>
-let currentUser=null,currentStats=null,currentChallenge=null,currentCategory="TOUS",currentKind="",pendingPhoto="",onboardStep=0,currentCode=null,detailTab="details",profileTab="overview",myCodesCache=[],myFavsCache=[],leaderRows=[];
-const ONBOARD=[{ico:"",title:"Accueil",text:"Les meilleurs codes."},{ico:"",title:"Publier",text:"Ajoute une offre."},{ico:"",title:"Challenge",text:"1 point par parrainage."},{ico:"",title:"Profil",text:"Photo, bio et lien."}];
+const DEMO_USERS={
+  lea:{id:"lea",username:"lea",display_name:"Léa",bio:"Chasseuse de bons plans mode 💚",city:"Lyon",followers:128,following:42,points:820,initials:"LÉ"},
+  hugo:{id:"hugo",username:"hugo",display_name:"Hugo",bio:"Je partage mes codes voyage & mobilité.",city:"Paris",followers:96,following:31,points:610,initials:"HU"},
+  camille:{id:"camille",username:"camille",display_name:"Camille",bio:"Toujours un code sous le coude.",city:"Nantes",followers:54,following:20,points:210,initials:"CA"},
+  noah:{id:"noah",username:"noah",display_name:"Noah",bio:"Testeur officiel des promos.",followers:33,following:18,points:90,initials:"NO"},
+  ines:{id:"ines",username:"ines",display_name:"Inès",bio:"Food & sorties.",followers:41,following:22,points:140,initials:"IN"},
+  adam:{id:"adam",username:"adam",display_name:"Adam",bio:"Parrainages & cashback.",followers:29,following:15,points:75,initials:"AD"}
+};
+const DEMO_CODES=[
+  {id:101,kind:"PROMO",brand:"Nike",title:"-20% sur toute la boutique Nike",description:"Réduction de 20% sur sneakers, vêtements et accessoires Nike.",category:"MODE",code:"NIKE20",url:"https://www.nike.com",likes:254,clicks:300,copies:160,reports:2,added_by:"Léa",author_id:"lea",created_at:"2026-08-12T10:00:00.000Z",expires_at:"2026-12-31T23:59:00.000Z"},
+  {id:102,kind:"PARRAINAGE",brand:"Uber",title:"-15€ sur ta 1re course Uber",description:"Utilise le code de parrainage pour une réduction sur ta première course.",category:"VOYAGE",code:"UBER15",url:"https://www.uber.com",likes:238,clicks:276,copies:149,reports:1,added_by:"Hugo",author_id:"hugo",created_at:"2026-08-18T14:20:00.000Z",expires_at:"2026-11-30T23:59:00.000Z"}
+];
+const DEMO_COMMENTS={
+  101:[{author:"Camille",author_id:"camille",message:"Validé ce matin sur nike.com, -20% bien pris en compte.",created_at:"2026-08-20T09:12:00.000Z"},{author:"Noah",author_id:"noah",message:"Fonctionne aussi sur l’app Nike.",created_at:"2026-08-22T18:40:00.000Z"}],
+  102:[{author:"Inès",author_id:"ines",message:"-15€ reçus sur ma première course.",created_at:"2026-08-21T11:05:00.000Z"},{author:"Adam",author_id:"adam",message:"Pense à créer un nouveau compte Uber.",created_at:"2026-08-24T16:33:00.000Z"}]
+};
+
+let currentUser=null,currentStats=null,currentChallenge=null,currentCategory="TOUS",currentKind="",pendingPhoto="",onboardStep=0,currentCode=null,detailTab="details",profileTab="overview",myCodesCache=[],myFavsCache=[],leaderRows=[],viewedUser=null;
+const ONBOARD=[{ico:"🏠",title:"Accueil",text:"Les meilleurs codes."},{ico:"➕",title:"Publier",text:"Ajoute une offre."},{ico:"🏆",title:"Challenge",text:"1 point par parrainage."},{ico:"👤",title:"Profil",text:"Photo, bio et lien."}];
 const BRAND_DOMAINS={nike:"nike.com",adidas:"adidas.com",uber:"uber.com","uber eats":"ubereats.com",amazon:"amazon.fr",booking:"booking.com",airbnb:"airbnb.com",shein:"shein.com",zalando:"zalando.fr",deliveroo:"deliveroo.fr",mcdonald:"mcdonalds.fr",spotify:"spotify.com",netflix:"netflix.com",disney:"disneyplus.com",fnac:"fnac.com",darty:"darty.com",boulanger:"boulanger.com",carrefour:"carrefour.fr",leclerc:"e.leclerc",action:"action.com",temu:"temu.com",aliexpress:"aliexpress.com",wish:"wish.com",sncf:"sncf-connect.com",ryanair:"ryanair.com","air france":"airfrance.fr",sephora:"sephora.fr",nocibe:"nocibe.fr","yves rocher":"yves-rocher.fr",decathlon:"decathlon.fr",gosport:"gosport.fr",intersport:"intersport.fr",cdiscount:"cdiscount.com","la redoute":"laredoute.fr",vertbaudet:"vertbaudet.fr",dominos:"dominos.fr","burger king":"burgerking.fr",kfc:"kfc.fr",paypal:"paypal.com",revolut:"revolut.com"};
 
-async function api(url,options={}){const config={credentials:"same-origin",...options};config.headers={"Content-Type":"application/json",...(options.headers||{})};const response=await fetch(url,config);const raw=await response.text();let data;try{data=JSON.parse(raw)}catch(e){data={ok:false,error:"Réponse serveur invalide ("+response.status+")"}}if(!response.ok&&!data.error)data.error="Erreur "+response.status;return data}
+function norm(s){return String(s||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").trim()}
+function getFollows(){try{return JSON.parse(localStorage.getItem("codia_follows")||"[]")}catch(e){return []}}
+function setFollows(a){localStorage.setItem("codia_follows",JSON.stringify(a))}
+function isFollowing(id){return getFollows().includes(norm(id))}
+function getLocalComments(){try{return JSON.parse(localStorage.getItem("codia_comments")||"{}")}catch(e){return {}}}
+function setLocalComments(map){localStorage.setItem("codia_comments",JSON.stringify(map))}
+function commentsFor(id){return (DEMO_COMMENTS[id]||[]).concat(getLocalComments()[id]||[])}
+function findUserByName(name){
+  const q=norm(name);
+  return Object.values(DEMO_USERS).find(u=>norm(u.id)===q||norm(u.username)===q||norm(u.display_name)===q)
+    || {id:q,username:q,display_name:name||"Membre",bio:"Membre de la communauté COD.IA.",followers:0,following:0,points:0,initials:String(name||"M").slice(0,2).toUpperCase()};
+}
+function emptyMessage(kind){
+  const title=kind==="PARRAINAGE"?"Aucun parrainage pour le moment":kind==="PROMO"?"Aucune promo pour le moment":"Aucun code pour le moment";
+  return `<div class="card empty-box"><div class="empty-ico">🌱</div><div class="card-title">${title}</div><p class="code-desc">La communauté commence tout juste à s’installer ici. Soyez les premiers à poster : un petit code peut faire gagner du temps (et de l’argent) à tout le monde.</p><button class="primary" onclick="openPublish()">✨ Poster le premier code</button></div>`;
+}
+function mergeFeed(server){
+  const map=new Map();
+  DEMO_CODES.forEach(c=>map.set(String(c.id),{...c}));
+  (server||[]).forEach(c=>{
+    const key=String(c.id);
+    if(!map.has(key)) map.set(key,c);
+  });
+  let list=[...map.values()];
+  if(currentCategory!=="TOUS") list=list.filter(c=>c.category===currentCategory);
+  if(currentKind) list=list.filter(c=>c.kind===currentKind);
+  return list;
+}
+
+async function api(url,options={}){const config={credentials:"same-origin",...options};config.headers={"Content-Type":"application/json",...(options.headers||{})};try{const response=await fetch(url,config);const raw=await response.text();let data;try{data=JSON.parse(raw)}catch(e){data={ok:false,error:"Réponse serveur invalide ("+response.status+")"}}if(!response.ok&&!data.error)data.error="Erreur "+response.status;return data}catch(e){return {ok:false,error:"Hors ligne"}}}
 async function apiFirst(urls,options={}){let last={ok:false,error:"Erreur"};for(const u of urls){last=await api(u,options);if(last.ok)return last}return last}
 function toast(m){const el=document.getElementById("toast");el.textContent=m;el.classList.add("show");clearTimeout(window.toastTimer);window.toastTimer=setTimeout(()=>el.classList.remove("show"),2800)}
 function escapeHtml(v){return String(v??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;")}
@@ -426,6 +494,7 @@ function saveUserLocal(u){if(u&&u.id)localStorage.setItem("codia_user_id",String
 function brandDomain(code){if(code.url){try{return new URL(code.url.startsWith("http")?code.url:"https://"+code.url).hostname.replace(/^www\./,"")}catch(e){}}const key=String(code.brand||code.title||"").toLowerCase();for(const name in BRAND_DOMAINS){if(key.includes(name))return BRAND_DOMAINS[name]}return key.replace(/[^a-z0-9]/g,"")+".com"}
 function logoUrl(code){return "https://www.google.com/s2/favicons?sz=128&domain_url=https://"+brandDomain(code)}
 function rankName(pts){return pts>=1500?"Or":pts>=1000?"Argent":"Bronze"}
+function authorKey(code){return code.author_id||code.added_by||code.author||"membre"}
 
 function showAuth(mode="login"){document.getElementById("auth").classList.add("show");document.getElementById("paywall").classList.remove("show");document.getElementById("loginForm").style.display=mode==="login"?"block":"none";document.getElementById("registerForm").style.display=mode==="register"?"block":"none";document.getElementById("loginTab").classList.toggle("active",mode==="login");document.getElementById("registerTab").classList.toggle("active",mode==="register");const ref=new URLSearchParams(location.search).get("ref");if(ref)document.getElementById("registerReferral").value=ref}
 async function login(){const result=await apiFirst(["/api/login","/auth/login"],{method:"POST",body:JSON.stringify({identifier:document.getElementById("loginIdentifier").value.trim(),password:document.getElementById("loginPassword").value})});if(!result.ok){toast(result.error);return}saveUserLocal(result.user);currentUser=result.user;document.getElementById("auth").classList.remove("show");await boot()}
@@ -435,32 +504,133 @@ function logout(){location.href="/logout"}
 
 async function boot(){const params=new URLSearchParams(location.search);if(params.get("paid")==="1"&&params.get("session_id"))await api("/api/confirm-payment?session_id="+encodeURIComponent(params.get("session_id")));const result=await api("/api/me");if(result.pending&&(!result.user||!result.user.is_paid)){document.getElementById("auth").classList.remove("show");document.getElementById("paywall").classList.add("show");return}if(!result.ok||!result.user){showAuth();return}saveUserLocal(result.user);currentUser=result.user;currentStats=result.stats||{referrals:0,points:0,likes:0,clicks:0,followers:0,following:0};currentChallenge=result.challenge||{points:0,remaining_seconds:0};document.getElementById("auth").classList.remove("show");updateProfileUI();if(!currentUser.is_paid&&!currentUser.is_admin){document.getElementById("paywall").classList.add("show");return}document.getElementById("paywall").classList.remove("show");if(!localStorage.getItem("codia_onboard"))document.getElementById("onboard").classList.add("show");loadFeed();loadNotificationsCount();startCountdown();loadLeaderboard();if(params.get("code"))openDetail(Number(params.get("code")))}
 
-function setAvatarEl(el,user){if(!el)return;if(user.avatar_url){el.style.backgroundImage="url("+user.avatar_url+")";el.innerHTML='<span class="p-crown"></span>'}else{el.style.backgroundImage="";el.innerHTML=(user.avatar_initials||"CO")+'<span class="p-crown"></span>'}}
-function updateProfileUI(){if(!currentUser)return;setAvatarEl(document.getElementById("profileAvatar"),currentUser);document.getElementById("profileName").textContent=currentUser.display_name||currentUser.username||"Membre";document.getElementById("profileBio").textContent=currentUser.bio||"Passionné de bons plans & d’opportunités.";const x=extra();const meta=document.getElementById("profileMeta");if(meta)meta.textContent=(x.city?x.city+" · ":"Communauté COD.IA · ")+"Membre COD.IA";const pts=(currentChallenge&&currentChallenge.points)||(currentStats&&currentStats.points)||0;if(document.getElementById("statPoints"))document.getElementById("statPoints").textContent=formatNumber(pts)}
+function setAvatarEl(el,user){if(!el)return;if(user.avatar_url){el.style.backgroundImage="url("+user.avatar_url+")";el.innerHTML='<span class="p-crown">👑</span>'}else{el.style.backgroundImage="";el.innerHTML=(user.avatar_initials||user.initials||"CO")+'<span class="p-crown">👑</span>'}}
+function updateProfileUI(){if(!currentUser)return;setAvatarEl(document.getElementById("profileAvatar"),currentUser);document.getElementById("profileName").textContent=currentUser.display_name||currentUser.username||"Membre";document.getElementById("profileBio").textContent=currentUser.bio||"Passionné de bons plans & d’opportunités.";const x=extra();const meta=document.getElementById("profileMeta");if(meta)meta.textContent=(x.city?x.city+" · ":"Communauté COD.IA · ")+"Membre COD.IA";const pts=(currentChallenge&&currentChallenge.points)||(currentStats&&currentStats.points)||0;if(document.getElementById("statPoints"))document.getElementById("statPoints").textContent=formatNumber(pts);const fingEl=document.getElementById("statFollowing");if(fingEl)fingEl.textContent=formatNumber((currentStats&&currentStats.following)||getFollows().length)}
 
-function goPage(page){document.querySelectorAll(".page").forEach(el=>el.classList.remove("active"));const t=document.getElementById("page-"+page);if(t)t.classList.add("active");document.querySelectorAll(".nav-item[data-page]").forEach(el=>el.classList.toggle("active",el.dataset.page===page));if(page==="home")loadFeed();if(page==="promos")loadFeed("promoFeed");if(page==="challenge")loadLeaderboard();if(page==="profile")loadProfileExtras()}
+function goPage(page){closeUserPage();document.querySelectorAll(".page").forEach(el=>el.classList.remove("active"));const t=document.getElementById("page-"+page);if(t)t.classList.add("active");document.querySelectorAll(".nav-item[data-page]").forEach(el=>el.classList.toggle("active",el.dataset.page===page));if(page==="home")loadFeed();if(page==="promos")loadFeed("promoFeed");if(page==="challenge")loadLeaderboard();if(page==="profile")loadProfileExtras()}
 
-async function loadFeed(targetId="feed"){const target=document.getElementById(targetId);if(!target)return;const search=targetId==="promoFeed"?(document.getElementById("promoSearch")?.value||""):(document.getElementById("searchInput")?.value||"");const result=await api(`/api/feed?category=${encodeURIComponent(currentCategory)}&kind=${encodeURIComponent(currentKind)}&search=${encodeURIComponent(search)}`);renderCodes(target,result.codes||[])}
-function renderCodes(target,codes){window._lastCodes=codes;if(!codes.length){target.innerHTML=`<div class="card"><div class="card-title">Aucun code trouvé</div><button class="primary" onclick="openPublish()">+ Publier un code</button></div>`;return}target.innerHTML=codes.map(codeCard).join("")}
-function codeCard(code){return `<article class="code-card" onclick="openDetail(${code.id})"><div class="code-top"><img class="brand-logo" src="${logoUrl(code)}" alt="" onerror="this.style.display='none'"><div><span class="badge">${code.kind==="PARRAINAGE"?"PARRAINAGE":"PROMO"}</span><div class="code-title">${escapeHtml(code.title||"")}</div><div class="code-desc">${escapeHtml(code.brand||code.description||"")}</div></div></div><button class="more" onclick="event.stopPropagation();openCodeMenu(${code.id})">⋮</button>${code.code?`<div class="code-bottom"><div class="code-chip">${escapeHtml(code.code)}</div><button class="code-copy" onclick="event.stopPropagation();copyCode(${code.id})">⧉</button></div>`:""}<div class="code-actions"><button class="action" onclick="event.stopPropagation();likeCode(${code.id})">♡ ${formatNumber(code.likes)}</button><button class="action" onclick="event.stopPropagation();favoriteCode(${code.id})">☆ Favoris</button><button class="action" onclick="event.stopPropagation();copyAndOpen(${code.id})">Ouvrir</button><span class="action">⧉ ${formatNumber(code.copies)}</span></div></article>`}
+async function loadFeed(targetId="feed"){
+  const target=document.getElementById(targetId);if(!target)return;
+  const search=targetId==="promoFeed"?(document.getElementById("promoSearch")?.value||""):(document.getElementById("searchInput")?.value||"");
+  const result=await api(`/api/feed?category=${encodeURIComponent(currentCategory)}&kind=${encodeURIComponent(currentKind)}&search=${encodeURIComponent(search)}`);
+  let codes=mergeFeed(result.codes||[]);
+  const q=search.toLowerCase();
+  if(q) codes=codes.filter(c=>[c.title,c.brand,c.code,c.description,c.added_by].join(" ").toLowerCase().includes(q));
+  renderCodes(target,codes);
+}
+function renderCodes(target,codes){window._lastCodes=codes;if(!codes.length){target.innerHTML=emptyMessage(currentKind);return}target.innerHTML=codes.map(codeCard).join("")}
+function codeCard(code){
+  const nCom=code.comments_count||commentsFor(code.id).length;
+  const author=code.added_by||code.author||"Membre";
+  const key=authorKey(code);
+  return `<article class="code-card" onclick="openDetail(${code.id})"><div class="code-top"><img class="brand-logo" src="${logoUrl(code)}" alt="" onerror="this.style.display='none'"><div><span class="badge">${code.kind==="PARRAINAGE"?"PARRAINAGE":"PROMO"}</span><div class="code-title">${escapeHtml(code.title||"")}</div><div class="code-desc">${escapeHtml(code.brand||code.description||"")} · par <button class="author-link" onclick="event.stopPropagation();openUserPage('${escapeHtml(key)}')">${escapeHtml(author)}</button></div></div></div><button class="more" onclick="event.stopPropagation();openCodeMenu(${code.id})">⋮</button>${code.code?`<div class="code-bottom"><div class="code-chip">${escapeHtml(code.code)}</div><button class="code-copy" onclick="event.stopPropagation();copyCode(${code.id})">⧉</button></div>`:""}<div class="code-actions"><button class="action" onclick="event.stopPropagation();likeCode(${code.id})">♡ ${formatNumber(code.likes)}</button><button class="action" onclick="event.stopPropagation();openDetail(${code.id},'comments')">💬 ${formatNumber(nCom)}</button><button class="action" onclick="event.stopPropagation();favoriteCode(${code.id})">☆ Favoris</button><button class="action" onclick="event.stopPropagation();copyAndOpen(${code.id})">Ouvrir</button><span class="action">⧉ ${formatNumber(code.copies)}</span></div></article>`;
+}
 
-async function openDetail(id){let code=(window._lastCodes||[]).concat(myCodesCache||[]).concat(myFavsCache||[]).find(c=>c.id===id);if(!code){const r=await api("/api/codes/"+id);if(!r.ok||!r.code){toast(r.error||"Code introuvable");return}code=r.code}currentCode=code;detailTab="details";renderDetail();document.getElementById("detailPage").classList.add("show");api("/api/codes/"+id+"/click",{method:"POST"})}
+async function openDetail(id,tab){
+  let code=(window._lastCodes||[]).concat(myCodesCache||[]).concat(myFavsCache||[]).concat(DEMO_CODES).find(c=>Number(c.id)===Number(id));
+  if(!code){const r=await api("/api/codes/"+id);if(!r.ok||!r.code){toast(r.error||"Code introuvable");return}code=r.code}
+  currentCode=code;detailTab=tab||"details";
+  document.getElementById("detailPage").classList.add("show");
+  api("/api/codes/"+id+"/click",{method:"POST"});
+  if(detailTab==="comments") await loadComments();
+  else renderDetail();
+}
 function closeDetail(){document.getElementById("detailPage").classList.remove("show");currentCode=null}
-function setDetailTab(t){detailTab=t;renderDetail()}
-function renderDetail(){const c=currentCode;if(!c)return;const date=c.expires_at?new Date(c.expires_at).toLocaleDateString("fr-FR"):"Sans date";const author=c.added_by||"Membre";const details=c.details||["Valable selon les conditions du site","Hors produits déjà en promotion","Non cumulable avec d'autres codes","Utilisable plusieurs fois selon le site"];document.getElementById("detailContent").innerHTML=`<div class="detail-hero"><div class="detail-head"><img class="brand-mark" src="${logoUrl(c)}" alt=""><div><span class="badge">${c.kind==="PARRAINAGE"?"PARRAINAGE":"PROMO"}</span><div class="code-title" style="font-size:22px;margin-top:6px">${escapeHtml(c.title||"")}</div><div class="code-desc">${escapeHtml(c.brand||"")} ✓</div></div><div class="trend">Top tendance</div></div><p class="code-desc" style="margin:12px 0">${escapeHtml(c.description||"")}</p><div class="chips"><div class="chip">Expire le<b>${date}</b></div><div class="chip">Vérifié<b>Aujourd'hui</b></div><div class="chip">Ajouté par<b>${escapeHtml(author)}</b></div><div class="chip">Confiance<b>98%</b></div></div><div class="code-box"><div class="code-desc">Code promo</div><div class="big">${escapeHtml(c.code||"—")}</div><div class="code-desc">Le code a été copié ${formatNumber(c.copies)} fois</div><button class="copy-big" onclick="copyCode(${c.id})">⧉<br>Copier</button></div><div class="two-btns"><button class="primary" style="margin:0" onclick="copyAndOpen(${c.id})">Voir l'offre</button><button class="secondary" onclick="copyAndOpen(${c.id})">⧉ Copier et aller sur le site</button></div><div class="stat-row"><div><b>${formatNumber(c.likes)}</b>Likes</div><div><b>${formatNumber(c.copies)}</b>Copies</div><div><b>${formatNumber(c.clicks)}</b>Clics</div><div><b>${formatNumber(c.reports||0)}</b>Signalements</div></div><div class="dtabs"><button class="dtab ${detailTab==="details"?"on":""}" onclick="setDetailTab('details')">Détails</button><button class="dtab ${detailTab==="comments"?"on":""}" onclick="setDetailTab('comments')">Commentaires</button><button class="dtab ${detailTab==="history"?"on":""}" onclick="setDetailTab('history')">Historique</button></div><div>${detailTab==="details"?`<div class="card-title">Détails de l'offre</div><div class="checks">${details.map(x=>`<div>✓ ${escapeHtml(x)}</div>`).join("")}</div>`:detailTab==="comments"?`<div class="comment"><div class="c-ava">C</div><div><b>Communauté</b><div class="code-desc">Les avis arriveront ici.</div></div></div>`:`<div class="code-desc">Ajouté ${c.created_at?new Date(c.created_at).toLocaleDateString("fr-FR"):""}</div>`}</div><button class="danger" onclick="deleteCode(${c.id})">Supprimer définitivement</button></div>`}
+async function setDetailTab(t){detailTab=t;if(t==="comments") await loadComments();else renderDetail()}
+function renderDetail(){
+  const c=currentCode;if(!c)return;
+  const date=c.expires_at?new Date(c.expires_at).toLocaleDateString("fr-FR"):"Sans date";
+  const author=c.added_by||c.author||"Membre";
+  const key=authorKey(c);
+  const details=c.details||["Valable selon les conditions du site","Hors produits déjà en promotion","Non cumulable avec d'autres codes","Utilisable plusieurs fois selon le site"];
+  const comments=c.comments||commentsFor(c.id);
+  const commentsHtml=comments.length
+    ? comments.map(n=>`<div class="comment"><div class="c-ava">${escapeHtml((n.author||"C").slice(0,1).toUpperCase())}</div><div><button class="author-link" onclick="openUserPage('${escapeHtml(n.author_id||n.author)}')">${escapeHtml(n.author||"Membre")}</button><div class="code-desc">${escapeHtml(n.message||"")}</div><div class="comment-meta">${n.created_at?new Date(n.created_at).toLocaleString("fr-FR"):""}</div></div></div>`).join("")
+    : `<div class="comment"><div class="c-ava">💬</div><div><b>Aucun commentaire</b><div class="code-desc">Soyez le premier à donner votre avis.</div></div></div>`;
+  document.getElementById("detailContent").innerHTML=`<div class="detail-hero"><div class="detail-head"><img class="brand-mark" src="${logoUrl(c)}" alt=""><div><span class="badge">${c.kind==="PARRAINAGE"?"PARRAINAGE":"PROMO"}</span><div class="code-title" style="font-size:22px;margin-top:6px">${escapeHtml(c.title||"")}</div><div class="code-desc">${escapeHtml(c.brand||"")} · partagé par <button class="author-link" onclick="openUserPage('${escapeHtml(key)}')">${escapeHtml(author)}</button></div></div><div class="trend">🔥 Top tendance</div></div><p class="code-desc" style="margin:12px 0">${escapeHtml(c.description||"")}</p><div class="chips"><div class="chip">Expire le<b>${date}</b></div><div class="chip">Vérifié<b>Aujourd'hui</b></div><div class="chip">Ajouté par<b><button class="author-link" onclick="openUserPage('${escapeHtml(key)}')">${escapeHtml(author)}</button></b></div><div class="chip">Confiance<b>98%</b></div></div><div class="code-box"><div class="code-desc">Code promo</div><div class="big">${escapeHtml(c.code||"—")}</div><div class="code-desc">Le code a été copié ${formatNumber(c.copies)} fois</div><button class="copy-big" onclick="copyCode(${c.id})">⧉<br>Copier</button></div><div class="two-btns"><button class="primary" style="margin:0" onclick="copyAndOpen(${c.id})">Voir l'offre</button><button class="secondary" onclick="copyAndOpen(${c.id})">⧉ Copier et aller sur le site</button></div><div class="stat-row"><div><b>${formatNumber(c.likes)}</b>Likes</div><div><b>${formatNumber(c.copies)}</b>Copies</div><div><b>${formatNumber(c.clicks)}</b>Clics</div><div><b>${formatNumber(comments.length)}</b>Avis</div></div><div class="dtabs"><button class="dtab ${detailTab==="details"?"on":""}" onclick="setDetailTab('details')">Détails</button><button class="dtab ${detailTab==="comments"?"on":""}" onclick="setDetailTab('comments')">Commentaires</button><button class="dtab ${detailTab==="history"?"on":""}" onclick="setDetailTab('history')">Historique</button></div><div>${detailTab==="details"?`<div class="card-title">Détails de l'offre</div><div class="checks">${details.map(x=>`<div>✓ ${escapeHtml(x)}</div>`).join("")}</div>`:detailTab==="comments"?`<div class="card-title">Commentaires</div><div class="comment-form"><textarea id="commentInput" maxlength="400" placeholder="Écris un commentaire..."></textarea><button class="comment-send" onclick="sendComment()">Envoyer</button></div>${commentsHtml}`:`<div class="code-desc">Ajouté ${c.created_at?new Date(c.created_at).toLocaleDateString("fr-FR"):""}</div>`}</div><button class="danger" onclick="deleteCode(${c.id})">Supprimer définitivement</button></div>`;
+}
 function likeCurrent(){if(currentCode)likeCode(currentCode.id)}
 function useCurrent(){if(currentCode)copyAndOpen(currentCode.id)}
 async function shareCurrent(){if(!currentCode)return;const url=location.origin+"/app?code="+currentCode.id;if(navigator.share){try{await navigator.share({title:currentCode.title,text:currentCode.code,url})}catch(e){}}else{await navigator.clipboard.writeText(url);toast("Lien copié")}}
+async function loadComments(){
+  if(!currentCode)return;
+  const r=await api("/api/codes/"+currentCode.id+"/comments");
+  const server=r.ok?(r.comments||[]):[];
+  const local=commentsFor(currentCode.id);
+  const seen=new Set();const merged=[];
+  [...server,...local].forEach(n=>{const k=(n.author||"")+"|"+(n.message||"");if(!seen.has(k)){seen.add(k);merged.push(n)}});
+  currentCode.comments=merged;currentCode.comments_count=merged.length;renderDetail();
+}
+async function sendComment(){
+  if(!currentCode)return;
+  const input=document.getElementById("commentInput");
+  const message=(input&&input.value||"").trim();
+  if(!message){toast("Écris un commentaire");return}
+  const author=(currentUser&&(currentUser.display_name||currentUser.username))||"Toi";
+  const comment={author,author_id:currentUser&&currentUser.id,message,created_at:new Date().toISOString()};
+  const r=await api("/api/codes/"+currentCode.id+"/comments",{method:"POST",body:JSON.stringify({message})});
+  const map=getLocalComments();map[currentCode.id]=(map[currentCode.id]||[]).concat([comment]);setLocalComments(map);
+  if(input)input.value="";
+  toast(r.ok?"Commentaire publié":"Commentaire enregistré");
+  await loadComments();loadFeed();
+}
+
+function openUserPage(name){
+  viewedUser=findUserByName(name);
+  renderUserPage();
+  document.getElementById("userPage").classList.add("show");
+}
+function closeUserPage(){document.getElementById("userPage").classList.remove("show");viewedUser=null}
+async function toggleFollow(id){
+  id=norm(id);
+  const list=getFollows();
+  const i=list.indexOf(id);
+  if(i>=0){list.splice(i,1);toast("Désabonné");}
+  else{list.push(id);toast("Abonné 🎉");await api("/api/users/"+id+"/follow",{method:"POST"});}
+  setFollows(list);
+  if(currentStats) currentStats.following=list.length;
+  const fingEl=document.getElementById("statFollowing");
+  if(fingEl) fingEl.textContent=formatNumber(list.length);
+  if(viewedUser) renderUserPage();
+}
+function renderUserPage(){
+  const u=viewedUser;if(!u)return;
+  const mine=currentUser&&(String(currentUser.id)===String(u.id)||norm(currentUser.username)===norm(u.username)||norm(currentUser.display_name)===norm(u.display_name));
+  const followed=isFollowing(u.id);
+  const posts=(window._lastCodes||[]).concat(DEMO_CODES).filter(c=>norm(authorKey(c))===norm(u.id)||norm(c.added_by)===norm(u.display_name));
+  const uniq=[];const seen=new Set();posts.forEach(p=>{if(!seen.has(p.id)){seen.add(p.id);uniq.push(p)}});
+  const extraFollowers=(u.followers||0)+(followed?1:0);
+  document.getElementById("userPageContent").innerHTML=`
+    <div class="p-row">
+      <div class="p-ava">${escapeHtml(u.initials||"CO")}<span class="p-crown">👑</span></div>
+      <div>
+        <h2 class="p-name">${escapeHtml(u.display_name)}</h2>
+        <div class="p-badge">@${escapeHtml(u.username)} · ${rankName(u.points||0)}</div>
+        <div class="bio">${escapeHtml(u.bio||"Membre COD.IA")}</div>
+        <div class="code-desc">${u.city?escapeHtml(u.city)+" · ":""}${formatNumber(extraFollowers)} abonnés</div>
+      </div>
+    </div>
+    <div class="p-stats">
+      <div class="p-stat"><b>${uniq.length}</b><span>Codes</span></div>
+      <div class="p-stat"><b>${formatNumber(extraFollowers)}</b><span>Abonnés</span></div>
+      <div class="p-stat"><b>${formatNumber(u.following||0)}</b><span>Abonnements</span></div>
+      <div class="p-stat"><b>${formatNumber(u.points||0)}</b><span>Points</span></div>
+      <div class="p-stat"><b>${rankName(u.points||0)}</b><span>Rang</span></div>
+    </div>
+    ${mine?`<div class="card">C’est votre profil.</div>`:`<button class="primary follow-btn ${followed?"on":""}" onclick="toggleFollow('${escapeHtml(u.id)}')">${followed?"✓ Abonné — Ne plus suivre":"+ S’abonner"}</button>`}
+    <div class="section-title" style="margin-top:18px">Codes partagés</div>
+    ${uniq.length?uniq.map(codeCard).join(""):emptyMessage("")}`;
+}
 
 function setCategory(btn){document.querySelectorAll(".filter").forEach(el=>el.classList.remove("active"));btn.classList.add("active");currentCategory=btn.dataset.category;loadFeed()}
 function setKind(k){currentKind=k;loadFeed()}
 let searchTimer;document.getElementById("searchInput").addEventListener("input",()=>{clearTimeout(searchTimer);searchTimer=setTimeout(()=>loadFeed(),300)});document.getElementById("promoSearch").addEventListener("input",()=>{clearTimeout(searchTimer);searchTimer=setTimeout(()=>loadFeed("promoFeed"),300)});
 
-async function copyCode(id){const r=await api(`/api/codes/${id}/copy`,{method:"POST"});if(!r.ok){toast(r.error);return}if(r.code){try{await navigator.clipboard.writeText(r.code)}catch(e){}}toast("Code copié");loadFeed()}
-async function copyAndOpen(id){const r=await api(`/api/codes/${id}/copy`,{method:"POST"});if(r.code){try{await navigator.clipboard.writeText(r.code)}catch(e){}}if(r.url)window.open(r.url,"_blank","noopener")}
-async function likeCode(id){await api(`/api/codes/${id}/like`,{method:"POST"});loadFeed();if(document.getElementById("page-profile").classList.contains("active"))loadProfileExtras()}
-async function favoriteCode(id){const r=await api(`/api/codes/${id}/favorite`,{method:"POST"});toast(r.favorite?"Ajouté aux favoris":"Retiré");loadFeed();loadProfileExtras()}
-async function deleteCode(id){if(!id||!confirm("Supprimer définitivement ce code ?"))return;const r=await api("/api/codes/"+id+"/delete",{method:"POST"});if(!r.ok){toast(r.error||"Suppression impossible");return}toast("Code supprimé");closeModal("codeMenuModal");closeDetail();loadFeed();loadProfileExtras()}
+async function copyCode(id){const demo=DEMO_CODES.find(c=>Number(c.id)===Number(id));const r=await api(`/api/codes/${id}/copy`,{method:"POST"});const val=(r&&r.code)||(demo&&demo.code);if(val){try{await navigator.clipboard.writeText(val)}catch(e){}}if(!r.ok&&!demo){toast(r.error);return}toast("Code copié");loadFeed()}
+async function copyAndOpen(id){const demo=DEMO_CODES.find(c=>Number(c.id)===Number(id));const r=await api(`/api/codes/${id}/copy`,{method:"POST"});if(r.code){try{await navigator.clipboard.writeText(r.code)}catch(e){}}else if(demo&&demo.code){try{await navigator.clipboard.writeText(demo.code)}catch(e){}}const url=r.url||(demo&&demo.url);if(url)window.open(url,"_blank","noopener")}
+async function likeCode(id){await api(`/api/codes/${id}/like`,{method:"POST"});const demo=DEMO_CODES.find(c=>Number(c.id)===Number(id));if(demo)demo.likes=(demo.likes||0)+1;if(currentCode&&Number(currentCode.id)===Number(id)){currentCode.likes=(currentCode.likes||0)+1;renderDetail()}loadFeed();if(document.getElementById("page-profile").classList.contains("active"))loadProfileExtras()}
+async function favoriteCode(id){const r=await api(`/api/codes/${id}/favorite`,{method:"POST"});toast(r.favorite||r.ok?"Ajouté aux favoris":(r.error||"Favori mis à jour"));loadFeed();loadProfileExtras()}
+async function deleteCode(id){if(!id||!confirm("Supprimer définitivement ce code ?"))return;const r=await api("/api/codes/"+id+"/delete",{method:"POST"});if(!r.ok&&!DEMO_CODES.some(c=>Number(c.id)===Number(id))){toast(r.error||"Suppression impossible");return}toast("Code supprimé");closeModal("codeMenuModal");closeDetail();loadFeed();loadProfileExtras()}
 function openPublish(){document.getElementById("publishModal").classList.add("open")}
 async function publishCode(){const payload={kind:document.getElementById("publishKind").value,brand:document.getElementById("publishBrand").value,title:document.getElementById("publishTitle").value||document.getElementById("publishBrand").value,description:document.getElementById("publishDescription").value,category:document.getElementById("publishCategory").value,code:document.getElementById("publishCode").value,url:document.getElementById("publishUrl").value,expires_at:document.getElementById("publishExpiration").value?new Date(document.getElementById("publishExpiration").value).toISOString():null};const r=await api("/api/codes",{method:"POST",body:JSON.stringify(payload)});if(!r.ok){toast(r.error||"Publication impossible");return}closeModal("publishModal");toast("Offre publiée");loadFeed();loadProfileExtras()}
 
@@ -480,7 +650,7 @@ async function loadProfileExtras(){
   if(codesEl)codesEl.textContent=formatNumber(myCodesCache.length);
   if(favsEl)favsEl.textContent=formatNumber(myFavsCache.length);
   if(folEl)folEl.textContent=formatNumber(currentStats&&currentStats.followers||0);
-  if(fingEl)fingEl.textContent=formatNumber(currentStats&&currentStats.following||0);
+  if(fingEl)fingEl.textContent=formatNumber((currentStats&&currentStats.following)||getFollows().length);
   window._contrib={likes:myCodesCache.reduce((s,c)=>s+(c.likes||0),0),clicks:myCodesCache.reduce((s,c)=>s+(c.clicks||0),0),saved:myFavsCache.length,reports:myCodesCache.reduce((s,c)=>s+(c.reports||0),0)};
   renderProfilePanel();
 }
@@ -513,12 +683,12 @@ function mineCard(c){
 }
 function renderProfilePanel(){
   const box=document.getElementById("profilePanel");
-  if(!box)return;
+  if(!box||!currentUser)return;
   const x=extra();
   const co=window._contrib||{likes:0,clicks:0,saved:0,reports:0};
   const pts=(currentChallenge&&currentChallenge.points)||(currentStats&&currentStats.points)||0;
   if(profileTab==="overview"){
-    const top=(leaderRows||[]).slice(0,3).map((r,i)=>`<div class="rank-card"><span>#${r.rank||i+1} ${escapeHtml(r.name||"Membre")}</span><b>${formatNumber(r.points)} pts</b></div>`).join("")||"<div class='code-desc'>Pas encore de classement.</div>";
+    const top=(leaderRows||[]).slice(0,3).map((r,i)=>`<div class="rank-card"><span>#${r.rank||i+1} <button class="author-link" onclick="openUserPage('${escapeHtml(r.name||"")}')">${escapeHtml(r.name||"Membre")}</button></span><b>${formatNumber(r.points)} pts</b></div>`).join("")||"<div class='code-desc'>Pas encore de classement.</div>";
     const me=(leaderRows||[]).find(r=>r.me);
     box.innerHTML=`
       <div class="ov-grid">
@@ -590,14 +760,14 @@ function renderProfilePanel(){
       <button class="pchip ${filter==="actif"?"on":""}" onclick="window._mineFilter='actif';renderProfilePanel()">Actifs (${myCodesCache.filter(c=>codeStatus(c)==='actif').length})</button>
       <button class="pchip ${filter==="expire"?"on":""}" onclick="window._mineFilter='expire';renderProfilePanel()">Expirés (${myCodesCache.filter(c=>codeStatus(c)==='expire').length})</button>
     </div>
-    ${list.map(mineCard).join("")||'<div class="card">Aucun code publié</div>'}`;
+    ${list.map(mineCard).join("")||emptyMessage("")}`;
 }
 
 function startCountdown(){function update(){if(!currentChallenge)return;let s=currentChallenge.remaining_seconds||0;if(s<=0){["challengeTimer","ovTimer"].forEach(id=>{const e=document.getElementById(id);if(e)e.textContent="Terminé"});return}s--;currentChallenge.remaining_seconds=s;const d=Math.floor(s/86400),h=Math.floor((s%86400)/3600),m=Math.floor((s%3600)/60);const txt=`${d}j ${String(h).padStart(2,"0")}h ${String(m).padStart(2,"0")}m`;["challengeTimer","ovTimer"].forEach(id=>{const e=document.getElementById(id);if(e)e.textContent=txt});const p=document.getElementById("challengePoints");if(p)p.textContent=formatNumber(currentChallenge.points)+" points";const bar=document.getElementById("challengeProgress");if(bar)bar.style.width=Math.min(100,(currentChallenge.points||0)/1500*100)+"%"}update();clearInterval(window.challengeInterval);window.challengeInterval=setInterval(update,1000)}
 
-async function loadLeaderboard(){const result=await api("/api/leaderboard");leaderRows=result.challenge||[];const html=leaderRows.slice(0,3).map((row,i)=>`<div class="rank-card"><span>${["","",""][i]||"#"+row.rank} ${escapeHtml(row.name||"Membre")}</span><b>${formatNumber(row.points)} pts</b></div>`).join("");const box=document.getElementById("leaderboard");if(box)box.innerHTML=html;const mini=document.getElementById("miniRank");if(mini)mini.innerHTML=html||"";const me=leaderRows.find(r=>r.me);const my=document.getElementById("myRank");if(my)my.textContent=me?`Tu es #${me.rank} avec ${formatNumber(me.points)} point(s).`:"Ton classement apparaîtra ici."}
+async function loadLeaderboard(){const result=await api("/api/leaderboard");leaderRows=result.challenge||[];const html=leaderRows.slice(0,3).map((row,i)=>`<div class="rank-card"><span>${["","",""][i]||"#"+row.rank} <button class="author-link" onclick="openUserPage('${escapeHtml(row.name||"")}')">${escapeHtml(row.name||"Membre")}</button></span><b>${formatNumber(row.points)} pts</b></div>`).join("");const box=document.getElementById("leaderboard");if(box)box.innerHTML=html;const mini=document.getElementById("miniRank");if(mini)mini.innerHTML=html||"";const me=leaderRows.find(r=>r.me);const my=document.getElementById("myRank");if(my)my.textContent=me?`Tu es #${me.rank} avec ${formatNumber(me.points)} point(s).`:"Ton classement apparaîtra ici."}
 
-async function loadTopCodes(){goPage("promos");const r=await api("/api/top-codes");renderCodes(document.getElementById("promoFeed"),r.codes||[])}
+async function loadTopCodes(){goPage("promos");const r=await api("/api/top-codes");renderCodes(document.getElementById("promoFeed"),mergeFeed(r.codes||[]))}
 async function loadNotificationsCount(){const r=await api("/api/notifications");if(r.ok)document.getElementById("notificationDot").style.display=r.unread>0?"block":"none"}
 async function openNotifications(){closeAllModals();document.getElementById("notificationModal").classList.add("open");const r=await api("/api/notifications");document.getElementById("notificationsList").innerHTML=`<div class="card" onclick="closeModal('notificationModal');document.getElementById('launchModal').classList.add('open')"><div class="card-title">OFFRE DE LANCEMENT</div><div class="code-desc">1 point par inscription avec ton code.</div></div><div class="card" onclick="closeModal('notificationModal');document.getElementById('copiesModal').classList.add('open')"><div class="card-title">OFFRE COPIES</div><div class="code-desc">250 copies = 100 €.</div></div>`+((r.notifications||[]).map(n=>`<div class="card"><div class="card-title">${escapeHtml(n.title)}</div><div class="code-desc">${escapeHtml(n.message)}</div></div>`).join(""));await api("/api/notifications/read",{method:"POST"})}
 
