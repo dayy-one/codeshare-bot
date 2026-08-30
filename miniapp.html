@@ -986,8 +986,9 @@ function startCountdown(){
     const p=document.getElementById("challengePoints");if(p)p.textContent=formatNumber(currentChallenge.points)+" points";
     const bar=document.getElementById("challengeProgress");if(bar)bar.style.width=Math.min(100,(currentChallenge.points||0)/1500*100)+"%";
   }
-  update();clearInterval(window.challengeInterval);window.challengeInterval=setInterval(update,1000);
-  clearInterval(window.lbInterval);window.lbInterval=setInterval(()=>{lbTick=lbTick<=0?12:lbTick-1;const e=document.getElementById("lbAgo");if(e)e.textContent=lbTick},1000);
+  update();
+  clearInterval(window.challengeInterval);window.challengeInterval=setInterval(update,1000);
+  if(window.lbInterval){clearInterval(window.lbInterval);window.lbInterval=null}
 }
 
 async function loadLeaderboard(){
