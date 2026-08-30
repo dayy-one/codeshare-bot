@@ -162,6 +162,57 @@ body{padding-bottom:100px}
 .c-ava{width:36px;height:36px;border-radius:50%;background:#dfe4d4;display:flex;align-items:center;justify-content:center;font-weight:800}
 .use-bar{position:fixed;left:50%;bottom:0;transform:translateX(-50%);width:min(520px,100%);background:#fff;border-top:1px solid var(--border);padding:10px 14px 18px;display:grid;grid-template-columns:48px 1fr 48px;gap:8px;z-index:230}
 .use-bar button{height:48px;border-radius:16px}
+.ch-wrap{padding-bottom:8px}
+.ch-hero{background:linear-gradient(135deg,#16351c,#2f5a32 55%,#1a3d22);color:#fff;border-radius:22px;padding:16px;display:grid;grid-template-columns:1.15fr .85fr;gap:10px;align-items:center;position:relative}
+.ch-hero small{display:block;letter-spacing:.08em;font-size:10px;font-weight:800;opacity:.85;margin-bottom:8px}
+.ch-count{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.ch-count b{display:block;font-size:22px;font-weight:900;line-height:1}
+.ch-count span{font-size:8px;opacity:.75;font-weight:800}
+.ch-hero p{margin:10px 0 0;font-size:11px;opacity:.9}
+.ch-gift{background:radial-gradient(circle at 30% 20%,#3e6b3d,#1b3a20);border-radius:18px;min-height:92px;display:flex;align-items:center;justify-content:center;font-size:42px;position:relative}
+.ch-live{position:absolute;right:8px;bottom:8px;background:#7d9a4d;color:#fff;border-radius:20px;font-size:8px;font-weight:900;padding:4px 7px}
+.race{background:#fff;border:1px solid var(--border);border-radius:24px;padding:16px;margin-top:12px;box-shadow:var(--shadow)}
+.race-top{display:flex;justify-content:space-between;gap:10px;align-items:center}
+.race-ava-wrap{position:relative;width:78px;height:78px;flex:none}
+.race-ring{width:78px;height:78px;border-radius:50%;background:conic-gradient(#617b35 0 174deg,#e4ead8 174deg 360deg);padding:5px}
+.race-ava{width:100%;height:100%;border-radius:50%;background:#2f5a32;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;overflow:hidden;background-size:cover}
+.lvl-pill{position:absolute;left:50%;bottom:-7px;transform:translateX(-50%);background:#2f5a32;color:#fff;border-radius:20px;font-size:8px;font-weight:900;padding:3px 7px;white-space:nowrap}
+.race-pts{font-size:34px;font-weight:900;line-height:1;margin:0}
+.race-sub{font-size:12px;color:#6a7166}
+.next-box{background:#f6f8f1;border-radius:16px;padding:10px 12px;min-width:118px;text-align:right}
+.next-box small{display:block;font-size:10px;color:#7a8176}
+.track{margin-top:26px;position:relative;height:78px}
+.track-line{position:absolute;left:8%;right:8%;top:16px;height:6px;background:#e4ead8;border-radius:20px}
+.track-fill{height:100%;background:#617b35;border-radius:20px;width:49%}
+.track-pts{position:absolute;top:0;width:78px;margin-left:-39px;text-align:center}
+.me-pin{width:28px;height:28px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 2px #617b35;background:#2f5a32;color:#fff;font-size:9px;font-weight:800;display:flex;align-items:center;justify-content:center;margin:0 auto}
+.lock{width:22px;height:22px;margin:3px auto 0;border-radius:50%;background:#d9dece;color:#6a7166;font-size:10px;display:flex;align-items:center;justify-content:center}
+.track-label{margin-top:6px;font-size:9px;font-weight:800;color:#5d6558}
+.unlock{display:inline-block;background:#2f5a32;color:#fff;border-radius:20px;font-size:8px;padding:3px 7px;margin-top:3px}
+.share-bar{margin-top:18px;background:#16351c;color:#fff;border-radius:18px;padding:12px;display:grid;grid-template-columns:1.1fr .9fr;gap:8px;align-items:center}
+.share-bar .code{background:rgba(255,255,255,.08);border-radius:12px;padding:10px;display:flex;justify-content:space-between;align-items:center;font-weight:900}
+.share-bar .code button{background:#fff;color:#16351c;border-radius:8px;padding:6px 8px;font-size:11px;font-weight:800}
+.share-now{background:#617b35;color:#fff;border-radius:14px;padding:14px 10px;font-weight:800;width:100%}
+.ch-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.mini{background:#fff;border:1px solid var(--border);border-radius:20px;padding:13px}
+.mini h3{margin:0 0 10px;font-size:12px}
+.today{display:flex;justify-content:space-between;text-align:center;font-size:11px}
+.today b{display:block;font-size:16px}
+.prog{height:8px;background:#e6ebdb;border-radius:20px;overflow:hidden;margin:8px 0}
+.prog>div{height:100%;background:#617b35}
+.gold-prog>div{background:#c9a227}
+.live-dot{width:7px;height:7px;border-radius:50%;background:#e24b4b;display:inline-block;margin-right:5px;animation:pulse 1.2s infinite}
+@keyframes pulse{50%{opacity:.35}}
+.lb{background:#16351c;color:#fff;border-radius:20px;padding:14px}
+.lb-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.08);font-size:13px}
+.lb-ava{width:28px;height:28px;border-radius:50%;background:#3d6a40;display:inline-flex;align-items:center;justify-content:center;font-size:11px;margin-right:8px}
+.pos b{font-size:22px}
+.spark{width:100%;height:46px;margin-top:6px}
+.badges-row{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;text-align:center;font-size:9px;font-weight:700}
+.badge-ico{width:44px;height:44px;margin:0 auto 5px;border-radius:50%;background:#f3f6ec;display:flex;align-items:center;justify-content:center;font-size:20px}
+.badge-ico.off{filter:grayscale(1);opacity:.45}
+.help-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.help-row button{background:#fff;border:1px solid var(--border);border-radius:16px;padding:12px;text-align:left;font-size:12px;font-weight:700}
 @media (prefers-reduced-motion:no-preference){
   .page,.card,.code-card{animation:fadeUp .38s ease both}
   .logo-globe{animation:float 4.5s ease-in-out infinite}
@@ -210,28 +261,109 @@ body{padding-bottom:100px}
 </section>
 
 <section id="page-challenge" class="page">
-  <div class="section-head"><div><div class="eyebrow">CHALLENGE</div><div class="section-title">Parrain. Progresse. Gagne.</div></div></div>
-  <div class="challenge">
-    <div style="display:flex;justify-content:space-between;gap:12px">
-      <div><div class="challenge-title">21 jours</div><div class="challenge-desc">Quand quelqu’un rejoint COD.IA avec ton code, 1 point t’est attribué.</div></div>
-      <div id="challengeTimer" class="timer">--</div>
+  <div class="ch-wrap">
+    <div class="section-head" style="margin-top:4px"><div><div class="eyebrow">👑 CHALLENGE COD.IA</div><div class="section-title">Gagne des récompenses</div></div></div>
+    <div class="ch-hero">
+      <div>
+        <small>⏳ L’OFFRE DE LANCEMENT SE TERMINE DANS</small>
+        <div class="ch-count">
+          <div><b id="cdD">18</b><span>JOURS</span></div>
+          <div><b id="cdH">04</b><span>HEURES</span></div>
+          <div><b id="cdM">17</b><span>MINUTES</span></div>
+          <div><b id="cdS">36</b><span>SECONDES</span></div>
+        </div>
+        <p>Chaque inscription avec ton code = +1 point</p>
+      </div>
+      <div class="ch-gift">🎁<span class="ch-live">OFFRE ACTIVE</span></div>
     </div>
-    <div class="progress-track"><div id="challengeProgress" class="progress-bar"></div></div>
-    <div style="display:flex;justify-content:space-between;font-size:12px;margin-top:7px"><span id="challengePoints">0 points</span><strong>1 500</strong></div>
-    <div class="bronze-row">
-      <div class="level"><strong>500</strong><span>500 €</span><div class="code-desc">Bronze</div></div>
-      <div id="miniRank"></div>
+    <div class="race">
+      <div class="eyebrow">🏆 TA COURSE</div>
+      <div class="race-top">
+        <div class="race-ava-wrap">
+          <div class="race-ring"><div id="raceAvatar" class="race-ava">M</div></div>
+          <div class="lvl-pill" id="raceLevel">NIVEAU 7</div>
+        </div>
+        <div>
+          <div class="race-pts"><span id="racePoints">742</span> <small style="font-size:14px">points</small></div>
+          <div class="race-sub"><span id="raceRefs">742</span> filleuls validés</div>
+        </div>
+        <div class="next-box">
+          <small>Objectif suivant</small>
+          <b id="raceNext">🥈 1 000 €</b>
+          <div class="code-desc" id="raceRemain">Encore 258 filleuls pour Argent</div>
+        </div>
+      </div>
+      <div class="track">
+        <div class="track-line"><div class="track-fill" id="raceFill"></div></div>
+        <div class="track-pts" style="left:8%"><div class="lock" style="background:#617b35;color:#fff">✓</div><div class="track-label">🥉 500 € BRONZE<div class="unlock">DÉBLOQUÉ 🔓</div></div></div>
+        <div class="track-pts" id="mePinWrap" style="left:49.5%"><div id="mePin" class="me-pin">M</div></div>
+        <div class="track-pts" style="left:66.6%"><div class="lock">🥈</div><div class="track-label">1 000 € ARGENT</div></div>
+        <div class="track-pts" style="left:92%"><div class="lock">🥇</div><div class="track-label">1 500 € OR</div></div>
+      </div>
+      <div class="share-bar">
+        <div>
+          <small style="opacity:.7;font-size:10px">TON CODE DE PARRAINAGE</small>
+          <div class="code"><span id="raceCode">MARIE-CODIA</span><button type="button" onclick="copyReferralCode()">COPIER</button></div>
+        </div>
+        <div>
+          <button class="share-now" type="button" onclick="shareReferral()">📤 PARTAGER MON CODE</button>
+          <div style="font-size:10px;opacity:.8;margin-top:6px;text-align:center">Plus tu partages, plus tu gagnes</div>
+        </div>
+      </div>
     </div>
-    <div class="levels">
-      <div class="level"><strong>1 000</strong><span>1 000 €</span><div class="code-desc">Argent</div></div>
-      <div class="level"><strong>1 500</strong><span>1 500 €</span><div class="code-desc">Or</div></div>
-      <div class="level"><div>★</div><strong>Top 3</strong><span>classement</span></div>
+    <div class="ch-grid">
+      <div class="mini">
+        <h3>📈 TON ACTIVITÉ AUJOURD’HUI</h3>
+        <div class="today"><div>👥<b>+8</b>filleuls</div><div>📋<b>+34</b>copies</div><div>⭐<b>+42</b>points</div></div>
+      </div>
+      <div class="mini">
+        <h3>🎯 OBJECTIF DU JOUR · 10 filleuls</h3>
+        <div><b>7</b> / 10</div>
+        <div class="prog"><div style="width:70%"></div></div>
+        <div class="code-desc">Plus que 3 aujourd’hui 🚀</div>
+      </div>
+      <div class="mini">
+        <h3>🎁 OFFRE DE LANCEMENT</h3>
+        <div class="code-desc">🥉 500 filleuls = 500 €<br>🥈 1 000 filleuls = 1 000 €<br>🥇 1 500 filleuls = 1 500 €</div>
+        <button class="see-all" onclick="document.getElementById('rulesModal').classList.add('open')">Comment ça marche ? →</button>
+      </div>
+      <div class="mini">
+        <h3>📋 OFFRE DE COPIES</h3>
+        <div style="display:flex;justify-content:space-between;align-items:center"><b>ZARA20</b><span class="badge">MEILLEUR CODE</span></div>
+        <div>187 / 250 copies</div>
+        <div class="prog gold-prog"><div style="width:74.8%"></div></div>
+        <div class="code-desc">63 copies restantes · 🎁 100 € à 250</div>
+        <button class="see-all" onclick="setProfileTab('codes');goPage('profile')">Voir tous mes codes →</button>
+      </div>
     </div>
+    <div class="ch-grid">
+      <div class="lb">
+        <div style="display:flex;justify-content:space-between;margin-bottom:6px"><b>🏆 CLASSEMENT</b><small><span class="live-dot"></span>Actualisé il y a <span id="lbAgo">12</span> sec</small></div>
+        <div id="liveBoard"></div>
+        <button class="see-all" style="color:#d7e4b8;margin-top:8px" onclick="document.getElementById('fullRankModal').classList.add('open')">Voir le classement complet →</button>
+      </div>
+      <div class="mini">
+        <h3>👤 TA POSITION</h3>
+        <div class="pos"><b id="myPos">#4</b> · <span id="myPosPts">742</span> points</div>
+        <div class="code-desc" style="color:#3f6b28;font-weight:800">⬆️ Tu as gagné 7 places aujourd’hui</div>
+        <svg class="spark" viewBox="0 0 120 46" preserveAspectRatio="none"><polyline fill="none" stroke="#617b35" stroke-width="2.5" points="0,34 18,30 30,32 45,22 60,24 75,16 90,18 105,10 120,8"/></svg>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">TES BADGES</div>
+      <div class="badges-row" id="badgeRow"></div>
+    </div>
+    <div class="help-row">
+      <button type="button" onclick="document.getElementById('rulesModal').classList.add('open')">🛡️ Comment fonctionne le challenge ?</button>
+      <button type="button" onclick="openSupport()">🎧 Besoin d’aide ? Support COD.IA</button>
+    </div>
+    <div id="challengeTimer" class="timer" style="display:none">--</div>
+    <div id="challengePoints" style="display:none"></div>
+    <div id="challengeProgress" style="display:none"></div>
+    <div id="miniRank" style="display:none"></div>
+    <div id="myRank" style="display:none"></div>
+    <div id="leaderboard" style="display:none"></div>
   </div>
-  <div class="card" style="cursor:pointer" onclick="document.getElementById('copiesModal').classList.add('open')"><div class="card-title">Offre Copies</div><div class="code-desc">250 copies sur un même code = 100 €</div></div>
-  <div class="card" style="cursor:pointer" onclick="document.getElementById('launchModal').classList.add('open')"><div class="card-title">Offre de Lancement</div><div class="code-desc">1 point par inscription avec ton code.</div></div>
-  <div class="card"><div class="card-title">Mon classement</div><div id="myRank">Chargement...</div></div>
-  <div id="leaderboard" style="margin-top:12px"></div>
 </section>
 
 <section id="page-profile" class="page">
@@ -340,6 +472,15 @@ body{padding-bottom:100px}
   <div class="card"><strong>Profils & commentaires</strong><p class="code-desc">Clique sur le nom de la personne qui a partagé un code pour voir son profil et t’abonner. L’onglet Commentaires permet de laisser un avis.</p></div>
 </div></div>
 
+<div id="rulesModal" class="modal"><div class="sheet">
+  <div class="sheet-head"><div class="section-title">Comment fonctionne le challenge ?</div><button class="close" onclick="closeModal('rulesModal')">✕</button></div>
+  <div class="card"><p class="code-desc">• Offre active pendant 21 jours<br>• 1 inscription valide avec ton code = 1 point / 1 filleul<br>• Les inscriptions sont contrôlées<br>• Paliers : 500 / 1 000 / 1 500<br>• 250 copies sur un même code = 100 €</p></div>
+</div></div>
+<div id="fullRankModal" class="modal"><div class="sheet">
+  <div class="sheet-head"><div class="section-title">Classement complet</div><button class="close" onclick="closeModal('fullRankModal')">✕</button></div>
+  <div id="fullRankList"></div>
+</div></div>
+
 <div id="codeMenuModal" class="modal"><div class="sheet">
   <div class="sheet-head"><div class="section-title">Actions</div><button class="close" onclick="closeModal('codeMenuModal')">✕</button></div>
   <button class="primary" onclick="copyCode(window._menuCodeId);closeModal('codeMenuModal')">Copier</button>
@@ -434,14 +575,27 @@ body{padding-bottom:100px}
 <div id="toast" class="toast"></div>
 
 <script>
+const RACE_ONLY=new Set(["alexandre","maxime","sofia","karim"]);
 const DEMO_USERS={
-  lea:{id:"lea",username:"lea",display_name:"Léa",bio:"Chasseuse de bons plans mode 💚",city:"Lyon",followers:128,following:42,points:820,initials:"LÉ"},
-  hugo:{id:"hugo",username:"hugo",display_name:"Hugo",bio:"Je partage mes codes voyage & mobilité.",city:"Paris",followers:96,following:31,points:610,initials:"HU"},
-  camille:{id:"camille",username:"camille",display_name:"Camille",bio:"Toujours un code sous le coude.",city:"Nantes",followers:54,following:20,points:210,initials:"CA"},
-  noah:{id:"noah",username:"noah",display_name:"Noah",bio:"Testeur officiel des promos.",followers:33,following:18,points:90,initials:"NO"},
-  ines:{id:"ines",username:"ines",display_name:"Inès",bio:"Food & sorties.",followers:41,following:22,points:140,initials:"IN"},
-  adam:{id:"adam",username:"adam",display_name:"Adam",bio:"Parrainages & cashback.",followers:29,following:15,points:75,initials:"AD"}
+  lea:{id:"lea",username:"lea",display_name:"Léa",bio:"Chasseuse de bons plans mode 💚",city:"Lyon",followers:128,following:42,points:982,likes:410,copies:260,initials:"LÉ"},
+  hugo:{id:"hugo",username:"hugo",display_name:"Hugo",bio:"Je partage mes codes voyage & mobilité.",city:"Paris",followers:96,following:31,points:610,likes:238,copies:149,initials:"HU"},
+  camille:{id:"camille",username:"camille",display_name:"Camille",bio:"Toujours un code sous le coude.",city:"Nantes",followers:54,following:20,points:210,likes:90,copies:40,initials:"CA"},
+  noah:{id:"noah",username:"noah",display_name:"Noah",bio:"Testeur officiel des promos.",followers:33,following:18,points:90,likes:40,copies:22,initials:"NO"},
+  ines:{id:"ines",username:"ines",display_name:"Inès",bio:"Food & sorties.",followers:41,following:22,points:140,likes:70,copies:33,initials:"IN"},
+  adam:{id:"adam",username:"adam",display_name:"Adam",bio:"Parrainages & cashback.",followers:29,following:15,points:75,likes:20,copies:12,initials:"AD"},
+  alexandre:{id:"alexandre",username:"alexandre",display_name:"Alexandre",bio:"Ambassadeur COD.IA.",city:"Bordeaux",followers:840,following:120,points:1248,likes:920,copies:610,initials:"AL",no_codes:true},
+  maxime:{id:"maxime",username:"maxime",display_name:"Maxime",bio:"Course challenge en cours.",city:"Lille",followers:310,following:88,points:775,likes:540,copies:301,initials:"MA",no_codes:true},
+  sofia:{id:"sofia",username:"sofia",display_name:"Sofia",bio:"Active tous les jours.",followers:190,following:70,points:520,likes:260,copies:180,initials:"SO",no_codes:true},
+  karim:{id:"karim",username:"karim",display_name:"Karim",bio:"Objectif Or.",followers:150,following:40,points:430,likes:200,copies:140,initials:"KA",no_codes:true}
 };
+const DEMO_BOARD=[
+  {id:"alexandre",name:"Alexandre",points:1248,initials:"AL"},
+  {id:"lea",name:"Léa",points:982,initials:"LÉ"},
+  {id:"maxime",name:"Maxime",points:775,initials:"MA"},
+  {id:"me",name:"Toi",points:742,initials:"M",me:true},
+  {id:"sofia",name:"Sofia",points:520,initials:"SO"},
+  {id:"karim",name:"Karim",points:430,initials:"KA"}
+];
 const DEMO_CODES=[
   {id:101,kind:"PROMO",brand:"Nike",title:"-20% sur toute la boutique Nike",description:"Réduction de 20% sur sneakers, vêtements et accessoires Nike.",category:"MODE",code:"NIKE20",url:"https://www.nike.com",likes:254,clicks:300,copies:160,reports:2,added_by:"Léa",author_id:"lea",created_at:"2026-08-12T10:00:00.000Z",expires_at:"2026-12-31T23:59:00.000Z"},
   {id:102,kind:"PARRAINAGE",brand:"Uber",title:"-15€ sur ta 1re course Uber",description:"Utilise le code de parrainage pour une réduction sur ta première course.",category:"VOYAGE",code:"UBER15",url:"https://www.uber.com",likes:238,clicks:276,copies:149,reports:1,added_by:"Hugo",author_id:"hugo",created_at:"2026-08-18T14:20:00.000Z",expires_at:"2026-11-30T23:59:00.000Z"},
@@ -454,9 +608,9 @@ const DEMO_COMMENTS={
   103:[{author:"Léa",author_id:"lea",message:"Le -15% est passé sans souci au paiement.",created_at:"2026-08-26T10:18:00.000Z"},{author:"Hugo",author_id:"hugo",message:"Nickel sur l’app Shein aussi.",created_at:"2026-08-27T19:05:00.000Z"}],
   104:[{author:"Camille",author_id:"camille",message:"Le code frugsf082826 a bien pris -65% chez moi.",created_at:"2026-08-28T14:22:00.000Z"},{author:"Léa",author_id:"lea",message:"Valable sur une grosse partie du panier.",created_at:"2026-08-29T08:11:00.000Z"}]
 };
-let currentUser=null,currentStats=null,currentChallenge=null,currentCategory="TOUS",currentKind="",pendingPhoto="",onboardStep=0,currentCode=null,detailTab="details",profileTab="overview",myCodesCache=[],myFavsCache=[],leaderRows=[],viewedUser=null;
+let currentUser=null,currentStats=null,currentChallenge=null,currentCategory="TOUS",currentKind="",pendingPhoto="",onboardStep=0,currentCode=null,detailTab="details",profileTab="overview",myCodesCache=[],myFavsCache=[],leaderRows=[],viewedUser=null,lbTick=12;
 const ONBOARD=[{ico:"🏠",title:"Accueil",text:"Les meilleurs codes."},{ico:"➕",title:"Publier",text:"Ajoute une offre."},{ico:"🏆",title:"Challenge",text:"1 point par parrainage."},{ico:"👤",title:"Profil",text:"Photo, bio et lien."}];
-const BRAND_DOMAINS={nike:"nike.com",adidas:"adidas.com",uber:"uber.com","uber eats":"ubereats.com",amazon:"amazon.fr",booking:"booking.com",airbnb:"airbnb.com",shein:"shein.com",zalando:"zalando.fr",deliveroo:"deliveroo.fr",mcdonald:"mcdonalds.fr",spotify:"spotify.com",netflix:"netflix.com",disney:"disneyplus.com",fnac:"fnac.com",darty:"darty.com",boulanger:"boulanger.com",carrefour:"carrefour.fr",leclerc:"e.leclerc",action:"action.com",temu:"temu.com",aliexpress:"aliexpress.com",wish:"wish.com",sncf:"sncf-connect.com",ryanair:"ryanair.com","air france":"airfrance.fr",sephora:"sephora.fr",nocibe:"nocibe.fr","yves rocher":"yves-rocher.fr",decathlon:"decathlon.fr",gosport:"gosport.fr",intersport:"intersport.fr",cdiscount:"cdiscount.com","la redoute":"laredoute.fr",vertbaudet:"vertbaudet.fr",dominos:"dominos.fr","burger king":"burgerking.fr",kfc:"kfc.fr",paypal:"paypal.com",revolut:"revolut.com"};
+const BRAND_DOMAINS={nike:"nike.com",adidas:"adidas.com",uber:"uber.com","uber eats":"ubereats.com",amazon:"amazon.fr",booking:"booking.com",airbnb:"airbnb.com",shein:"shein.com",zalando:"zalando.fr",zara:"zara.com",deliveroo:"deliveroo.fr",mcdonald:"mcdonalds.fr",spotify:"spotify.com",netflix:"netflix.com",disney:"disneyplus.com",fnac:"fnac.com",darty:"darty.com",boulanger:"boulanger.com",carrefour:"carrefour.fr",leclerc:"e.leclerc",action:"action.com",temu:"temu.com",aliexpress:"aliexpress.com",wish:"wish.com",sncf:"sncf-connect.com",ryanair:"ryanair.com","air france":"airfrance.fr",sephora:"sephora.fr",nocibe:"nocibe.fr","yves rocher":"yves-rocher.fr",decathlon:"decathlon.fr",gosport:"gosport.fr",intersport:"intersport.fr",cdiscount:"cdiscount.com","la redoute":"laredoute.fr",vertbaudet:"vertbaudet.fr",dominos:"dominos.fr","burger king":"burgerking.fr",kfc:"kfc.fr",paypal:"paypal.com",revolut:"revolut.com"};
 
 function norm(s){return String(s||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").trim()}
 function getFollows(){try{return JSON.parse(localStorage.getItem("codia_follows")||"[]")}catch(e){return []}}
@@ -477,15 +631,13 @@ function emptyMessage(kind){
 function mergeFeed(server){
   const map=new Map();
   DEMO_CODES.forEach(c=>map.set(String(c.id),{...c}));
-  (server||[]).forEach(c=>{
-    const key=String(c.id);
-    if(!map.has(key)) map.set(key,c);
-  });
+  (server||[]).forEach(c=>{const key=String(c.id);if(!map.has(key)) map.set(key,c)});
   let list=[...map.values()];
   if(currentCategory!=="TOUS") list=list.filter(c=>c.category===currentCategory);
   if(currentKind) list=list.filter(c=>c.kind===currentKind);
   return list;
 }
+function myPoints(){return (currentChallenge&&currentChallenge.points)||(currentStats&&currentStats.points)||742}
 
 async function api(url,options={}){const config={credentials:"same-origin",...options};config.headers={"Content-Type":"application/json",...(options.headers||{})};try{const response=await fetch(url,config);const raw=await response.text();let data;try{data=JSON.parse(raw)}catch(e){data={ok:false,error:"Réponse serveur invalide ("+response.status+")"}}if(!response.ok&&!data.error)data.error="Erreur "+response.status;return data}catch(e){return {ok:false,error:"Hors ligne"}}}
 async function apiFirst(urls,options={}){let last={ok:false,error:"Erreur"};for(const u of urls){last=await api(u,options);if(last.ok)return last}return last}
@@ -496,7 +648,7 @@ function extra(){try{return JSON.parse(localStorage.getItem("codia_profile_extra
 function saveUserLocal(u){if(u&&u.id)localStorage.setItem("codia_user_id",String(u.id))}
 function brandDomain(code){if(code.url){try{return new URL(code.url.startsWith("http")?code.url:"https://"+code.url).hostname.replace(/^www\./,"")}catch(e){}}const key=String(code.brand||code.title||"").toLowerCase();for(const name in BRAND_DOMAINS){if(key.includes(name))return BRAND_DOMAINS[name]}return key.replace(/[^a-z0-9]/g,"")+".com"}
 function logoUrl(code){return "https://www.google.com/s2/favicons?sz=128&domain_url=https://"+brandDomain(code)}
-function rankName(pts){return pts>=1500?"Or":pts>=1000?"Argent":"Bronze"}
+function rankName(pts){return pts>=1500?"Or":pts>=1000?"Argent":pts>=500?"Bronze":"Départ"}
 function authorKey(code){return code.author_id||code.added_by||code.author||"membre"}
 
 function showAuth(mode="login"){document.getElementById("auth").classList.add("show");document.getElementById("paywall").classList.remove("show");document.getElementById("loginForm").style.display=mode==="login"?"block":"none";document.getElementById("registerForm").style.display=mode==="register"?"block":"none";document.getElementById("loginTab").classList.toggle("active",mode==="login");document.getElementById("registerTab").classList.toggle("active",mode==="register");const ref=new URLSearchParams(location.search).get("ref");if(ref)document.getElementById("registerReferral").value=ref}
@@ -505,12 +657,12 @@ async function register(){const result=await apiFirst(["/api/register","/auth/re
 async function cancelSignup(){await api("/api/cancel-signup",{method:"POST"});backPaywall();document.getElementById("paywall").classList.remove("show");showAuth("login")}
 function logout(){location.href="/logout"}
 
-async function boot(){const params=new URLSearchParams(location.search);if(params.get("paid")==="1"&&params.get("session_id"))await api("/api/confirm-payment?session_id="+encodeURIComponent(params.get("session_id")));const result=await api("/api/me");if(result.pending&&(!result.user||!result.user.is_paid)){document.getElementById("auth").classList.remove("show");document.getElementById("paywall").classList.add("show");return}if(!result.ok||!result.user){showAuth();return}saveUserLocal(result.user);currentUser=result.user;currentStats=result.stats||{referrals:0,points:0,likes:0,clicks:0,followers:0,following:0};currentChallenge=result.challenge||{points:0,remaining_seconds:0};document.getElementById("auth").classList.remove("show");updateProfileUI();if(!currentUser.is_paid&&!currentUser.is_admin){document.getElementById("paywall").classList.add("show");return}document.getElementById("paywall").classList.remove("show");if(!localStorage.getItem("codia_onboard"))document.getElementById("onboard").classList.add("show");loadFeed();loadNotificationsCount();startCountdown();loadLeaderboard();if(params.get("code"))openDetail(Number(params.get("code")))}
+async function boot(){const params=new URLSearchParams(location.search);if(params.get("paid")==="1"&&params.get("session_id"))await api("/api/confirm-payment?session_id="+encodeURIComponent(params.get("session_id")));const result=await api("/api/me");if(result.pending&&(!result.user||!result.user.is_paid)){document.getElementById("auth").classList.remove("show");document.getElementById("paywall").classList.add("show");return}if(!result.ok||!result.user){showAuth();loadFeed();return}saveUserLocal(result.user);currentUser=result.user;currentStats=result.stats||{referrals:0,points:0,likes:0,clicks:0,followers:0,following:0};currentChallenge=result.challenge||{points:currentStats.points||742,remaining_seconds:18*86400+4*3600+17*60+36};document.getElementById("auth").classList.remove("show");updateProfileUI();if(!currentUser.is_paid&&!currentUser.is_admin){document.getElementById("paywall").classList.add("show");return}document.getElementById("paywall").classList.remove("show");if(!localStorage.getItem("codia_onboard"))document.getElementById("onboard").classList.add("show");loadFeed();loadNotificationsCount();startCountdown();loadLeaderboard();renderChallenge();if(params.get("code"))openDetail(Number(params.get("code")))}
 
 function setAvatarEl(el,user){if(!el)return;if(user.avatar_url){el.style.backgroundImage="url("+user.avatar_url+")";el.innerHTML='<span class="p-crown">👑</span>'}else{el.style.backgroundImage="";el.innerHTML=(user.avatar_initials||user.initials||"CO")+'<span class="p-crown">👑</span>'}}
-function updateProfileUI(){if(!currentUser)return;setAvatarEl(document.getElementById("profileAvatar"),currentUser);document.getElementById("profileName").textContent=currentUser.display_name||currentUser.username||"Membre";document.getElementById("profileBio").textContent=currentUser.bio||"Passionné de bons plans & d’opportunités.";const x=extra();const meta=document.getElementById("profileMeta");if(meta)meta.textContent=(x.city?x.city+" · ":"Communauté COD.IA · ")+"Membre COD.IA";const pts=(currentChallenge&&currentChallenge.points)||(currentStats&&currentStats.points)||0;if(document.getElementById("statPoints"))document.getElementById("statPoints").textContent=formatNumber(pts);const fingEl=document.getElementById("statFollowing");if(fingEl)fingEl.textContent=formatNumber((currentStats&&currentStats.following)||getFollows().length)}
+function updateProfileUI(){if(!currentUser)return;setAvatarEl(document.getElementById("profileAvatar"),currentUser);document.getElementById("profileName").textContent=currentUser.display_name||currentUser.username||"Membre";document.getElementById("profileBio").textContent=currentUser.bio||"Passionné de bons plans & d’opportunités.";const x=extra();const meta=document.getElementById("profileMeta");if(meta)meta.textContent=(x.city?x.city+" · ":"Communauté COD.IA · ")+"Membre COD.IA";const pts=myPoints();if(document.getElementById("statPoints"))document.getElementById("statPoints").textContent=formatNumber(pts);const fingEl=document.getElementById("statFollowing");if(fingEl)fingEl.textContent=formatNumber((currentStats&&currentStats.following)||getFollows().length)}
 
-function goPage(page){closeUserPage();document.querySelectorAll(".page").forEach(el=>el.classList.remove("active"));const t=document.getElementById("page-"+page);if(t)t.classList.add("active");document.querySelectorAll(".nav-item[data-page]").forEach(el=>el.classList.toggle("active",el.dataset.page===page));if(page==="home")loadFeed();if(page==="promos")loadFeed("promoFeed");if(page==="challenge")loadLeaderboard();if(page==="profile")loadProfileExtras()}
+function goPage(page){closeUserPage();document.querySelectorAll(".page").forEach(el=>el.classList.remove("active"));const t=document.getElementById("page-"+page);if(t)t.classList.add("active");document.querySelectorAll(".nav-item[data-page]").forEach(el=>el.classList.toggle("active",el.dataset.page===page));if(page==="home")loadFeed();if(page==="promos")loadFeed("promoFeed");if(page==="challenge"){loadLeaderboard();renderChallenge()}if(page==="profile")loadProfileExtras()}
 
 async function loadFeed(targetId="feed"){
   const target=document.getElementById(targetId);if(!target)return;
@@ -578,18 +730,14 @@ async function sendComment(){
   await loadComments();loadFeed();
 }
 
-function openUserPage(name){
-  viewedUser=findUserByName(name);
-  renderUserPage();
-  document.getElementById("userPage").classList.add("show");
-}
+function openUserPage(name){viewedUser=findUserByName(name);renderUserPage();document.getElementById("userPage").classList.add("show")}
 function closeUserPage(){document.getElementById("userPage").classList.remove("show");viewedUser=null}
 async function toggleFollow(id){
   id=norm(id);
   const list=getFollows();
   const i=list.indexOf(id);
-  if(i>=0){list.splice(i,1);toast("Désabonné");}
-  else{list.push(id);toast("Abonné 🎉");await api("/api/users/"+id+"/follow",{method:"POST"});}
+  if(i>=0){list.splice(i,1);toast("Désabonné")}
+  else{list.push(id);toast("Abonné 🎉");await api("/api/users/"+id+"/follow",{method:"POST"})}
   setFollows(list);
   if(currentStats) currentStats.following=list.length;
   const fingEl=document.getElementById("statFollowing");
@@ -600,7 +748,8 @@ function renderUserPage(){
   const u=viewedUser;if(!u)return;
   const mine=currentUser&&(String(currentUser.id)===String(u.id)||norm(currentUser.username)===norm(u.username)||norm(currentUser.display_name)===norm(u.display_name));
   const followed=isFollowing(u.id);
-  const posts=(window._lastCodes||[]).concat(DEMO_CODES).filter(c=>norm(authorKey(c))===norm(u.id)||norm(c.added_by)===norm(u.display_name));
+  const noCodes=u.no_codes||RACE_ONLY.has(norm(u.id));
+  const posts=noCodes?[]:(window._lastCodes||[]).concat(DEMO_CODES).filter(c=>norm(authorKey(c))===norm(u.id)||norm(c.added_by)===norm(u.display_name));
   const uniq=[];const seen=new Set();posts.forEach(p=>{if(!seen.has(p.id)){seen.add(p.id);uniq.push(p)}});
   const extraFollowers=(u.followers||0)+(followed?1:0);
   document.getElementById("userPageContent").innerHTML=`
@@ -610,7 +759,7 @@ function renderUserPage(){
         <h2 class="p-name">${escapeHtml(u.display_name)}</h2>
         <div class="p-badge">@${escapeHtml(u.username)} · ${rankName(u.points||0)}</div>
         <div class="bio">${escapeHtml(u.bio||"Membre COD.IA")}</div>
-        <div class="code-desc">${u.city?escapeHtml(u.city)+" · ":""}${formatNumber(extraFollowers)} abonnés</div>
+        <div class="code-desc">${u.city?escapeHtml(u.city)+" · ":""}${formatNumber(extraFollowers)} abonnés · ${formatNumber(u.likes||0)} likes · ${formatNumber(u.copies||0)} copies</div>
       </div>
     </div>
     <div class="p-stats">
@@ -622,7 +771,7 @@ function renderUserPage(){
     </div>
     ${mine?`<div class="card">C’est votre profil.</div>`:`<button class="primary follow-btn ${followed?"on":""}" onclick="toggleFollow('${escapeHtml(u.id)}')">${followed?"✓ Abonné — Ne plus suivre":"+ S’abonner"}</button>`}
     <div class="section-title" style="margin-top:18px">Codes partagés</div>
-    ${uniq.length?uniq.map(codeCard).join(""):emptyMessage("")}`;
+    ${uniq.length?uniq.map(codeCard).join(""):`<div class="card empty-box"><div class="empty-ico">🏁</div><div class="card-title">Pas encore de code publié</div><p class="code-desc">${escapeHtml(u.display_name)} est actif sur la course (${formatNumber(u.points||0)} filleuls / points) mais n’a pas encore partagé d’offre.</p></div>`}`;
 }
 
 function setCategory(btn){document.querySelectorAll(".filter").forEach(el=>el.classList.remove("active"));btn.classList.add("active");currentCategory=btn.dataset.category;loadFeed()}
@@ -637,9 +786,31 @@ async function deleteCode(id){if(!id||!confirm("Supprimer définitivement ce cod
 function openPublish(){document.getElementById("publishModal").classList.add("open")}
 async function publishCode(){const payload={kind:document.getElementById("publishKind").value,brand:document.getElementById("publishBrand").value,title:document.getElementById("publishTitle").value||document.getElementById("publishBrand").value,description:document.getElementById("publishDescription").value,category:document.getElementById("publishCategory").value,code:document.getElementById("publishCode").value,url:document.getElementById("publishUrl").value,expires_at:document.getElementById("publishExpiration").value?new Date(document.getElementById("publishExpiration").value).toISOString():null};const r=await api("/api/codes",{method:"POST",body:JSON.stringify(payload)});if(!r.ok){toast(r.error||"Publication impossible");return}closeModal("publishModal");toast("Offre publiée");loadFeed();loadProfileExtras()}
 
-async function copyReferral(){await navigator.clipboard.writeText(currentUser.referral_link||"");toast("Lien copié")}
-async function copyReferralCode(){await navigator.clipboard.writeText(currentUser.referral_code||"");toast("Code copié")}
-async function shareReferral(){if(navigator.share){try{await navigator.share({title:"COD.IA",url:currentUser.referral_link})}catch(e){}}else copyReferral()}
+async function copyReferral(){await navigator.clipboard.writeText((currentUser&&currentUser.referral_link)||location.origin+"/?ref="+((currentUser&&currentUser.referral_code)||"MARIE-CODIA"));toast("✅ Lien copié ! Partage-le à tes amis pour gagner des points.")}
+async function copyReferralCode(){await navigator.clipboard.writeText((currentUser&&currentUser.referral_code)||"MARIE-CODIA");toast("✅ Code copié ! Partage-le à tes amis pour gagner des points.")}
+async function shareReferral(){const url=(currentUser&&currentUser.referral_link)||location.origin+"/?ref="+((currentUser&&currentUser.referral_code)||"MARIE-CODIA");if(navigator.share){try{await navigator.share({title:"COD.IA",url})}catch(e){copyReferral()}}else copyReferral()}
+
+function renderChallenge(){
+  const p=myPoints();
+  const next=p>=1500?1500:p>=1000?1500:p>=500?1000:500;
+  const remain=Math.max(0,next-p);
+  const el=id=>document.getElementById(id);
+  if(el("racePoints"))el("racePoints").textContent=formatNumber(p);
+  if(el("raceRefs"))el("raceRefs").textContent=formatNumber(p);
+  if(el("raceLevel"))el("raceLevel").textContent="NIVEAU "+Math.max(1,Math.min(10,Math.floor(p/100)+1));
+  if(el("raceNext"))el("raceNext").textContent=(next<=1000?"🥈 ":"🥇 ")+(next===1000?"1 000 €":"1 500 €");
+  if(el("raceRemain"))el("raceRemain").textContent=p>=1500?"Palier Or atteint":("Encore "+formatNumber(remain)+" filleuls pour "+(next===1000?"Argent":"Or"));
+  if(el("raceFill"))el("raceFill").style.width=Math.min(100,p/1500*100)+"%";
+  if(el("mePinWrap"))el("mePinWrap").style.left=Math.min(92,Math.max(8,8+(p/1500)*84))+"%";
+  const ini=((currentUser&&(currentUser.avatar_initials||currentUser.display_name))||"M").toString().slice(0,1).toUpperCase();
+  if(el("raceAvatar"))el("raceAvatar").textContent=ini;
+  if(el("mePin"))el("mePin").textContent=ini;
+  if(el("raceCode"))el("raceCode").textContent=(currentUser&&currentUser.referral_code)||"MARIE-CODIA";
+  if(el("badgeRow")){
+    const need=[1,10,50,100,500]; const ico=["🌱","🔥","🚀","💎","👑"]; const lab=["Départ","Ambassadeur","Actif","Influenceur","Élite"];
+    el("badgeRow").innerHTML=need.map((n,i)=>`<div><div class="badge-ico ${p>=n?"":"off"}">${ico[i]}</div>${lab[i]}<br>${n}</div>`).join("")+`<div><div class="badge-ico">⋯</div>Voir tous</div>`;
+  }
+}
 
 async function loadProfileExtras(){
   const mine=await api("/api/my-codes");
@@ -689,9 +860,9 @@ function renderProfilePanel(){
   if(!box||!currentUser)return;
   const x=extra();
   const co=window._contrib||{likes:0,clicks:0,saved:0,reports:0};
-  const pts=(currentChallenge&&currentChallenge.points)||(currentStats&&currentStats.points)||0;
+  const pts=myPoints();
   if(profileTab==="overview"){
-    const top=(leaderRows||[]).slice(0,3).map((r,i)=>`<div class="rank-card"><span>#${r.rank||i+1} <button class="author-link" onclick="openUserPage('${escapeHtml(r.name||"")}')">${escapeHtml(r.name||"Membre")}</button></span><b>${formatNumber(r.points)} pts</b></div>`).join("")||"<div class='code-desc'>Pas encore de classement.</div>";
+    const top=(leaderRows||[]).slice(0,3).map((r,i)=>`<div class="rank-card"><span>#${r.rank||i+1} <button class="author-link" onclick="openUserPage('${escapeHtml(r.id||r.name||"")}')">${escapeHtml(r.name||"Membre")}</button></span><b>${formatNumber(r.points)} pts</b></div>`).join("")||"<div class='code-desc'>Pas encore de classement.</div>";
     const me=(leaderRows||[]).find(r=>r.me);
     box.innerHTML=`
       <div class="ov-grid">
@@ -766,9 +937,44 @@ function renderProfilePanel(){
     ${list.map(mineCard).join("")||emptyMessage("")}`;
 }
 
-function startCountdown(){function update(){if(!currentChallenge)return;let s=currentChallenge.remaining_seconds||0;if(s<=0){["challengeTimer","ovTimer"].forEach(id=>{const e=document.getElementById(id);if(e)e.textContent="Terminé"});return}s--;currentChallenge.remaining_seconds=s;const d=Math.floor(s/86400),h=Math.floor((s%86400)/3600),m=Math.floor((s%3600)/60);const txt=`${d}j ${String(h).padStart(2,"0")}h ${String(m).padStart(2,"0")}m`;["challengeTimer","ovTimer"].forEach(id=>{const e=document.getElementById(id);if(e)e.textContent=txt});const p=document.getElementById("challengePoints");if(p)p.textContent=formatNumber(currentChallenge.points)+" points";const bar=document.getElementById("challengeProgress");if(bar)bar.style.width=Math.min(100,(currentChallenge.points||0)/1500*100)+"%"}update();clearInterval(window.challengeInterval);window.challengeInterval=setInterval(update,1000)}
+function startCountdown(){
+  if(!currentChallenge)currentChallenge={points:myPoints(),remaining_seconds:18*86400+4*3600+17*60+36};
+  function update(){
+    let s=currentChallenge.remaining_seconds||0;
+    if(s<=0){["cdD","cdH","cdM","cdS","challengeTimer","ovTimer"].forEach(id=>{const e=document.getElementById(id);if(e)e.textContent=id&&id.startsWith("cd")?"00":"Terminé"});return}
+    s--;currentChallenge.remaining_seconds=s;
+    const d=Math.floor(s/86400),h=Math.floor((s%86400)/3600),m=Math.floor((s%3600)/60),sec=s%60;
+    const pad=v=>String(v).padStart(2,"0");
+    const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v};
+    set("cdD",pad(d));set("cdH",pad(h));set("cdM",pad(m));set("cdS",pad(sec));
+    const txt=`${d}j ${pad(h)}h ${pad(m)}m`;
+    ["challengeTimer","ovTimer"].forEach(id=>set(id,txt));
+    const p=document.getElementById("challengePoints");if(p)p.textContent=formatNumber(currentChallenge.points)+" points";
+    const bar=document.getElementById("challengeProgress");if(bar)bar.style.width=Math.min(100,(currentChallenge.points||0)/1500*100)+"%";
+  }
+  update();clearInterval(window.challengeInterval);window.challengeInterval=setInterval(update,1000);
+  clearInterval(window.lbInterval);window.lbInterval=setInterval(()=>{lbTick=lbTick<=0?12:lbTick-1;const e=document.getElementById("lbAgo");if(e)e.textContent=lbTick},1000);
+}
 
-async function loadLeaderboard(){const result=await api("/api/leaderboard");leaderRows=result.challenge||[];const html=leaderRows.slice(0,3).map((row,i)=>`<div class="rank-card"><span>${["","",""][i]||"#"+row.rank} <button class="author-link" onclick="openUserPage('${escapeHtml(row.name||"")}')">${escapeHtml(row.name||"Membre")}</button></span><b>${formatNumber(row.points)} pts</b></div>`).join("");const box=document.getElementById("leaderboard");if(box)box.innerHTML=html;const mini=document.getElementById("miniRank");if(mini)mini.innerHTML=html||"";const me=leaderRows.find(r=>r.me);const my=document.getElementById("myRank");if(my)my.textContent=me?`Tu es #${me.rank} avec ${formatNumber(me.points)} point(s).`:"Ton classement apparaîtra ici."}
+async function loadLeaderboard(){
+  const result=await api("/api/leaderboard");
+  leaderRows=(result.challenge&&result.challenge.length)?result.challenge:DEMO_BOARD.map((r,i)=>({...r,rank:i+1}));
+  if(!leaderRows.some(r=>r.me))leaderRows.push({name:"Toi",points:myPoints(),me:true,id:"me"});
+  leaderRows.sort((a,b)=>(b.points||0)-(a.points||0));
+  leaderRows.forEach((r,i)=>r.rank=i+1);
+  const medals=["🥇","🥈","🥉"];
+  const live=document.getElementById("liveBoard");
+  if(live)live.innerHTML=leaderRows.slice(0,3).map((r,i)=>`<div class="lb-row"><span><span class="lb-ava">${escapeHtml((r.initials||r.name||"A").toString().slice(0,2))}</span><button class="author-link" style="color:#fff" onclick="openUserPage('${escapeHtml(r.id||r.name)}')">${medals[i]} ${escapeHtml(r.name)}</button></span><b>${formatNumber(r.points)} pts</b></div>`).join("");
+  const full=document.getElementById("fullRankList");
+  if(full)full.innerHTML=leaderRows.map(r=>`<div class="rank-card"><span>#${r.rank} <button class="author-link" onclick="openUserPage('${escapeHtml(r.id||r.name)}');closeModal('fullRankModal')">${escapeHtml(r.name)}</button></span><b>${formatNumber(r.points)} pts</b></div>`).join("");
+  const html=leaderRows.slice(0,3).map((row)=>`<div class="rank-card"><span>#${row.rank} <button class="author-link" onclick="openUserPage('${escapeHtml(row.id||row.name||"")}')">${escapeHtml(row.name||"Membre")}</button></span><b>${formatNumber(row.points)} pts</b></div>`).join("");
+  const box=document.getElementById("leaderboard");if(box)box.innerHTML=html;
+  const mini=document.getElementById("miniRank");if(mini)mini.innerHTML=html||"";
+  const me=leaderRows.find(r=>r.me);
+  const my=document.getElementById("myRank");if(my)my.textContent=me?`Tu es #${me.rank} avec ${formatNumber(me.points)} point(s).`:"Ton classement apparaîtra ici.";
+  if(me){const a=document.getElementById("myPos");const b=document.getElementById("myPosPts");if(a)a.textContent="#"+me.rank;if(b)b.textContent=formatNumber(me.points)}
+  renderChallenge();
+}
 
 async function loadTopCodes(){goPage("promos");const r=await api("/api/top-codes");renderCodes(document.getElementById("promoFeed"),mergeFeed(r.codes||[]))}
 async function loadNotificationsCount(){const r=await api("/api/notifications");if(r.ok)document.getElementById("notificationDot").style.display=r.unread>0?"block":"none"}
