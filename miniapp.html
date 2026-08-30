@@ -811,25 +811,39 @@ async function copyReferralCode(){await navigator.clipboard.writeText((currentUs
 async function shareReferral(){const url=(currentUser&&currentUser.referral_link)||location.origin+"/?ref="+((currentUser&&currentUser.referral_code)||"MARIE-CODIA");if(navigator.share){try{await navigator.share({title:"COD.IA",url})}catch(e){copyReferral()}}else copyReferral()}
 
 function renderChallenge(){
-  const p=myPoints();
-  const next=p>=1500?1500:p>=1000?1500:p>=500?1000:500;
+  const s=initCh();const p=Number(s.points||0);
+  const next=p>=1000?1500:p>=500?1000:500;
   const remain=Math.max(0,next-p);
   const el=id=>document.getElementById(id);
   if(el("racePoints"))el("racePoints").textContent=formatNumber(p);
   if(el("raceRefs"))el("raceRefs").textContent=formatNumber(p);
+  if(el("launchPts"))el("launchPts").textContent=formatNumber(p);
   if(el("raceLevel"))el("raceLevel").textContent="NIVEAU "+Math.max(1,Math.min(10,Math.floor(p/100)+1));
-  if(el("raceNext"))el("raceNext").textContent=(next<=1000?"🥈 ":"🥇 ")+(next===1000?"1 000 €":"1 500 €");
-  if(el("raceRemain"))el("raceRemain").textContent=p>=1500?"Palier Or atteint":("Encore "+formatNumber(remain)+" filleuls pour "+(next===1000?"Argent":"Or"));
+  if(el("raceNext"))el("raceNext").textContent=(p>=1000?"🥇 1 500 €":p>=500?"🥈 1 000 €":"🥉 500 €");
+  if(el("raceRemain"))el("raceRemain").textContent=p>=1500?"Palier Or atteint":("Encore "+formatNumber(remain)+" filleuls pour "+(p>=1000?"Or":p>=500?"Argent":"Bronze"));
   if(el("raceFill"))el("raceFill").style.width=Math.min(100,p/1500*100)+"%";
   if(el("mePinWrap"))el("mePinWrap").style.left=Math.min(92,Math.max(8,8+(p/1500)*84))+"%";
   const ini=((currentUser&&(currentUser.avatar_initials||currentUser.display_name))||"M").toString().slice(0,1).toUpperCase();
   if(el("raceAvatar"))el("raceAvatar").textContent=ini;
   if(el("mePin"))el("mePin").textContent=ini;
-  if(el("raceCode"))el("raceCode").textContent=(currentUser&&currentUser.referral_code)||"MARIE-CODIA";
+  if(el("raceCode"))el("raceCode").textContent=(currentUser&&currentUser.referral_code)||"—";
+  if(el("actRefs"))el("actRefs").textContent="+"+(s.todayRefs||0);
+  if(el("actCopies"))el("actCopies").textContent="+"+(s.todayCopies||0);
+  if(el("actPts"))el("actPts").textContent="+"+(s.todayPts||0);
+  if(el("actHint"))el("actHint").textContent=(s.todayRefs||s.todayCopies||s.todayPts)?"Activité enregistrée":"Aucune activité récente";
+  if(el("dailyNow"))el("dailyNow").textContent=s.todayRefs||0;
+  if(el("dailyBar"))el("dailyBar").style.width=Math.min(100,(s.todayRefs||0)/10*100)+"%";
+  if(el("dailyLeft"))el("dailyLeft").textContent=(s.todayRefs||0)>=10?"Objectif du jour atteint":("Plus que "+Math.max(0,10-(s.todayRefs||0)));
+  if(el("bestCodeName"))el("bestCodeName").textContent=s.bestCode||"—";
+  if(el("copyNow"))el("copyNow").textContent=s.copies||0;
+  if(el("copyBar"))el("copyBar").style.width=Math.min(100,(s.copies||0)/250*100)+"%";
+  if(el("copyLeft"))el("copyLeft").textContent=Math.max(0,250-(s.copies||0));
   if(el("badgeRow")){
-    const need=[1,10,50,100,500]; const ico=["🌱","🔥","🚀","💎","👑"]; const lab=["Départ","Ambassadeur","Actif","Influenceur","Élite"];
+    const need=[1,10,50,100,500],ico=["🌱","🔥","🚀","💎","👑"],lab=["Départ","Ambassadeur","Actif","Influenceur","Élite"];
     el("badgeRow").innerHTML=need.map((n,i)=>`<div><div class="badge-ico ${p>=n?"":"off"}">${ico[i]}</div>${lab[i]}<br>${n}</div>`).join("")+`<div><div class="badge-ico">⋯</div>Voir tous</div>`;
   }
+  if(document.getElementById("statPoints"))document.getElementById("statPoints").textContent=formatNumber(p);
+}
 }
 
 async function loadProfileExtras(){
