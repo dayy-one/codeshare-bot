@@ -189,10 +189,15 @@ body{padding-bottom:100px}
 .lock{width:22px;height:22px;margin:3px auto 0;border-radius:50%;background:#d9dece;color:#6a7166;font-size:10px;display:flex;align-items:center;justify-content:center}
 .track-label{margin-top:6px;font-size:9px;font-weight:800;color:#5d6558}
 .unlock{display:inline-block;background:#2f5a32;color:#fff;border-radius:20px;font-size:8px;padding:3px 7px;margin-top:3px}
-.share-bar{margin-top:18px;background:#16351c;color:#fff;border-radius:18px;padding:12px;display:grid;grid-template-columns:1.1fr .9fr;gap:8px;align-items:center}
-.share-bar .code{background:rgba(255,255,255,.08);border-radius:12px;padding:10px;display:flex;justify-content:space-between;align-items:center;font-weight:900}
-.share-bar .code button{background:#fff;color:#16351c;border-radius:8px;padding:6px 8px;font-size:11px;font-weight:800}
-.share-now{background:#617b35;color:#fff;border-radius:14px;padding:14px 10px;font-weight:800;width:100%}
+.share-bar{margin-top:16px;background:#16351c;color:#fff;border-radius:18px;padding:12px;display:flex;flex-direction:column;gap:8px}
+.share-bar small{opacity:.7;font-size:10px;letter-spacing:.04em}
+.share-code{background:rgba(255,255,255,.08);border-radius:12px;padding:8px 10px;display:flex;justify-content:space-between;align-items:center;gap:8px;font-weight:800;font-size:13px}
+.share-code button{background:#fff;color:#16351c;border-radius:999px;padding:5px 10px;font-size:10px;font-weight:800;flex:none}
+.share-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.share-now{background:#617b35;color:#fff;border-radius:12px;padding:9px 8px;font-weight:800;font-size:12px;width:100%}
+.share-hint{font-size:10px;opacity:.75;text-align:center}
+.gain-msg{color:#3f6b28;font-weight:800;font-size:12px;margin-top:6px}
+.lb-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px;font-size:12px}
 .ch-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
 .mini{background:#fff;border:1px solid var(--border);border-radius:20px;padding:13px}
 .mini h3{margin:0 0 10px;font-size:12px}
