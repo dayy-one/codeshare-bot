@@ -317,27 +317,33 @@ body{padding-bottom:100px}
       </div>
     </div>
     <div class="ch-grid">
-      <div class="mini">
-        <h3>📈 TON ACTIVITÉ AUJOURD’HUI</h3>
-        <div class="today"><div>👥<b>+8</b>filleuls</div><div>📋<b>+34</b>copies</div><div>⭐<b>+42</b>points</div></div>
+            <div class="mini">
+        <h3>📈 TON ACTIVITÉ</h3>
+        <div class="today">
+          <div>👥<b id="actRefs">0</b>filleuls</div>
+          <div>📋<b id="actCopies">0</b>copies</div>
+          <div>⭐<b id="actPts">0</b>points</div>
+        </div>
+        <div class="code-desc" id="actHint" style="margin-top:8px">Aucune activité récente</div>
       </div>
       <div class="mini">
         <h3>🎯 OBJECTIF DU JOUR · 10 filleuls</h3>
-        <div><b>7</b> / 10</div>
-        <div class="prog"><div style="width:70%"></div></div>
-        <div class="code-desc">Plus que 3 aujourd’hui 🚀</div>
+        <div><b id="dailyNow">0</b> / 10</div>
+        <div class="prog"><div id="dailyBar" style="width:0"></div></div>
+        <div class="code-desc" id="dailyLeft">Nouveau compte : 0</div>
       </div>
       <div class="mini">
         <h3>🎁 OFFRE DE LANCEMENT</h3>
-        <div class="code-desc">🥉 500 filleuls = 500 €<br>🥈 1 000 filleuls = 1 000 €<br>🥇 1 500 filleuls = 1 500 €</div>
+        <div class="code-desc">🥉 500 = 500 €<br>🥈 1 000 = 1 000 €<br>🥇 1 500 = 1 500 €</div>
+        <div class="p-badge" style="margin-top:8px"><span id="launchPts">0</span> points / filleuls</div>
         <button class="see-all" onclick="document.getElementById('rulesModal').classList.add('open')">Comment ça marche ? →</button>
       </div>
       <div class="mini">
         <h3>📋 OFFRE DE COPIES</h3>
-        <div style="display:flex;justify-content:space-between;align-items:center"><b>ZARA20</b><span class="badge">MEILLEUR CODE</span></div>
-        <div>187 / 250 copies</div>
-        <div class="prog gold-prog"><div style="width:74.8%"></div></div>
-        <div class="code-desc">63 copies restantes · 🎁 100 € à 250</div>
+        <div style="display:flex;justify-content:space-between;align-items:center"><b id="bestCodeName">—</b><span class="badge">MEILLEUR CODE</span></div>
+        <div><span id="copyNow">0</span> / 250 copies</div>
+        <div class="prog gold-prog"><div id="copyBar" style="width:0"></div></div>
+        <div class="code-desc"><span id="copyLeft">250</span> restantes · 🎁 100 € à 250</div>
         <button class="see-all" onclick="setProfileTab('codes');goPage('profile')">Voir tous mes codes →</button>
       </div>
     </div>
