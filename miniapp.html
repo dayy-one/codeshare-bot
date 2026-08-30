@@ -993,21 +993,27 @@ function startCountdown(){
 
 async function loadLeaderboard(){
   const result=await api("/api/leaderboard");
-  leaderRows=(result.challenge&&result.challenge.length)?result.challenge:DEMO_BOARD.map((r,i)=>({...r,rank:i+1}));
-  if(!leaderRows.some(r=>r.me))leaderRows.push({name:"Toi",points:myPoints(),me:true,id:"me"});
+  const meName=(currentUser&&(currentUser.display_name||currentUser.username))||"Toi";
+  leaderRows=(result.challenge&&result.challenge.length)?result.challenge.map(r=>({...r})):DEMO_BOARD.map(r=>({...r}));
+  leaderRows=leaderRows.filter(r=>!r.me);
+  leaderRows.push({id:"me",name:meName,points:myPoints(),initials:(meName||"T").slice(0,2).toUpperCase(),me:true});
   leaderRows.sort((a,b)=>(b.points||0)-(a.points||0));
   leaderRows.forEach((r,i)=>r.rank=i+1);
   const medals=["🥇","🥈","🥉"];
   const live=document.getElementById("liveBoard");
   if(live)live.innerHTML=leaderRows.slice(0,3).map((r,i)=>`<div class="lb-row"><span><span class="lb-ava">${escapeHtml((r.initials||r.name||"A").toString().slice(0,2))}</span><button class="author-link" style="color:#fff" onclick="openUserPage('${escapeHtml(r.id||r.name)}')">${medals[i]} ${escapeHtml(r.name)}</button></span><b>${formatNumber(r.points)} pts</b></div>`).join("");
   const full=document.getElementById("fullRankList");
-  if(full)full.innerHTML=leaderRows.map(r=>`<div class="rank-card"><span>#${r.rank} <button class="author-link" onclick="openUserPage('${escapeHtml(r.id||r.name)}');closeModal('fullRankModal')">${escapeHtml(r.name)}</button></span><b>${formatNumber(r.points)} pts</b></div>`).join("");
-  const html=leaderRows.slice(0,3).map((row)=>`<div class="rank-card"><span>#${row.rank} <button class="author-link" onclick="openUserPage('${escapeHtml(row.id||row.name||"")}')">${escapeHtml(row.name||"Membre")}</button></span><b>${formatNumber(row.points)} pts</b></div>`).join("");
-  const box=document.getElementById("leaderboard");if(box)box.innerHTML=html;
-  const mini=document.getElementById("miniRank");if(mini)mini.innerHTML=html||"";
+  if(full)full.innerHTML=leaderRows.map(r=>`<div class="rank-card"><span>#${r.rank} ${r.me?"(toi) ":""}<button class="author-link" onclick="openUserPage('${escapeHtml(r.id||r.name)}');closeModal('fullRankModal')">${escapeHtml(r.name)}</button></span><b>${formatNumber(r.points)} pts</b></div>`).join("");
   const me=leaderRows.find(r=>r.me);
-  const my=document.getElementById("myRank");if(my)my.textContent=me?`Tu es #${me.rank} avec ${formatNumber(me.points)} point(s).`:"Ton classement apparaîtra ici.";
-  if(me){const a=document.getElementById("myPos");const b=document.getElementById("myPosPts");if(a)a.textContent="#"+me.rank;if(b)b.textContent=formatNumber(me.points)}
+  if(me){
+    const a=document.getElementById("myPos"),b=document.getElementById("myPosPts");
+    if(a)a.textContent="#"+me.rank;if(b)b.textContent=formatNumber(me.points);
+    const st=initCh();let gained=0;
+    if(st.lastRank&&me.rank<st.lastRank)gained=st.lastRank-me.rank;
+    st.lastRank=me.rank;setCh(st);
+    const msg=document.getElementById("gainMsg");
+    if(msg){if(gained>0){msg.style.display="block";msg.textContent="⬆️ Tu as gagné "+gained+" place"+(gained>1?"s":"")}else msg.style.display="none"}
+  }
   renderChallenge();
 }
 
