@@ -980,7 +980,7 @@ async function loadLeaderboard(){
   leaderRows.forEach((r,i)=>r.rank=i+1);
   const medals=["🥇","🥈","🥉"];
   const live=document.getElementById("liveBoard");
-  if(live) live.innerHTML=leaderRows.slice(0,10).map((r,i)=>`<div class="lb-row"><span><span class="lb-ava">${escapeHtml((r.initials||r.name||"A").toString().slice(0,2))}</span><button class="author-link" style="color:#fff" onclick="openUserPage('${escapeHtml(String(r.id||r.name))}')">${i<3?medals[i]+" ":""}${escapeHtml(r.name)}${r.me?" (toi)":""}</button></span><b>${formatNumber(r.points)} pts</b></div>`).join("");
+  if(live) live.innerHTML=leaderRows.slice(0,4).map((r,i)=>`<div class="lb-row"><span><span class="lb-ava">${escapeHtml((r.initials||r.name||"A").toString().slice(0,2))}</span><button class="author-link" style="color:#fff" onclick="openUserPage('${escapeHtml(String(r.id||r.name))}')">${i<3?medals[i]+" ":""}${escapeHtml(r.name)}${r.me?" (toi)":""}</button></span><b>${formatNumber(r.points)} pts</b></div>`).join("");
   const full=document.getElementById("fullRankList");
   if(full) full.innerHTML=leaderRows.map(r=>`<div class="rank-card"><span>#${r.rank} ${r.me?"(toi) ":""}<button class="author-link" onclick="openUserPage('${escapeHtml(String(r.id||r.name))}');closeModal('fullRankModal')">${escapeHtml(r.name)}</button></span><b>${formatNumber(r.points)} pts</b></div>`).join("");
   const me=leaderRows.find(r=>r.me);
