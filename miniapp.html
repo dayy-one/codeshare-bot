@@ -305,7 +305,7 @@ body{padding-bottom:100px}
         <div class="track-pts" style="left:66.6%"><div class="lock">🥈</div><div class="track-label">1 000 € ARGENT</div></div>
         <div class="track-pts" style="left:92%"><div class="lock">🥇</div><div class="track-label">1 500 € OR</div></div>
       </div>
-          <div class="share-bar">
+      <div class="share-bar">
         <small>TON CODE DE PARRAINAGE</small>
         <div class="share-code"><span id="raceCode">MARIE-CODIA</span><button type="button" onclick="copyReferralCode()">Copier</button></div>
         <div class="share-actions">
@@ -314,10 +314,9 @@ body{padding-bottom:100px}
         </div>
         <div class="share-hint">Plus tu partages, plus tu gagnes</div>
       </div>
-      </div>
     </div>
     <div class="ch-grid">
-            <div class="mini">
+      <div class="mini">
         <h3>📈 TON ACTIVITÉ</h3>
         <div class="today">
           <div>👥<b id="actRefs">0</b>filleuls</div>
@@ -348,7 +347,7 @@ body{padding-bottom:100px}
       </div>
     </div>
     <div class="ch-grid">
-            <div class="lb">
+      <div class="lb">
         <div class="lb-head"><b>🏆 CLASSEMENT</b><small><span class="live-dot"></span>Actualisé en temps réel</small></div>
         <div id="liveBoard"></div>
         <button class="see-all" style="color:#d7e4b8;margin-top:8px" onclick="document.getElementById('fullRankModal').classList.add('open')">Voir le classement complet →</button>
@@ -618,7 +617,7 @@ const DEMO_COMMENTS={
   103:[{author:"Léa",author_id:"lea",message:"Le -15% est passé sans souci au paiement.",created_at:"2026-08-26T10:18:00.000Z"},{author:"Hugo",author_id:"hugo",message:"Nickel sur l’app Shein aussi.",created_at:"2026-08-27T19:05:00.000Z"}],
   104:[{author:"Camille",author_id:"camille",message:"Le code frugsf082826 a bien pris -65% chez moi.",created_at:"2026-08-28T14:22:00.000Z"},{author:"Léa",author_id:"lea",message:"Valable sur une grosse partie du panier.",created_at:"2026-08-29T08:11:00.000Z"}]
 };
-let currentUser=null,currentStats=null,currentChallenge=null,currentCategory="TOUS",currentKind="",pendingPhoto="",onboardStep=0,currentCode=null,detailTab="details",profileTab="overview",myCodesCache=[],myFavsCache=[],leaderRows=[],viewedUser=null,lbTick=12;
+let currentUser=null,currentStats=null,currentChallenge=null,currentCategory="TOUS",currentKind="",pendingPhoto="",onboardStep=0,currentCode=null,detailTab="details",profileTab="overview",myCodesCache=[],myFavsCache=[],leaderRows=[],viewedUser=null;
 const ONBOARD=[{ico:"🏠",title:"Accueil",text:"Les meilleurs codes."},{ico:"➕",title:"Publier",text:"Ajoute une offre."},{ico:"🏆",title:"Challenge",text:"1 point par parrainage."},{ico:"👤",title:"Profil",text:"Photo, bio et lien."}];
 const BRAND_DOMAINS={nike:"nike.com",adidas:"adidas.com",uber:"uber.com","uber eats":"ubereats.com",amazon:"amazon.fr",booking:"booking.com",airbnb:"airbnb.com",shein:"shein.com",zalando:"zalando.fr",zara:"zara.com",deliveroo:"deliveroo.fr",mcdonald:"mcdonalds.fr",spotify:"spotify.com",netflix:"netflix.com",disney:"disneyplus.com",fnac:"fnac.com",darty:"darty.com",boulanger:"boulanger.com",carrefour:"carrefour.fr",leclerc:"e.leclerc",action:"action.com",temu:"temu.com",aliexpress:"aliexpress.com",wish:"wish.com",sncf:"sncf-connect.com",ryanair:"ryanair.com","air france":"airfrance.fr",sephora:"sephora.fr",nocibe:"nocibe.fr","yves rocher":"yves-rocher.fr",decathlon:"decathlon.fr",gosport:"gosport.fr",intersport:"intersport.fr",cdiscount:"cdiscount.com","la redoute":"laredoute.fr",vertbaudet:"vertbaudet.fr",dominos:"dominos.fr","burger king":"burgerking.fr",kfc:"kfc.fr",paypal:"paypal.com",revolut:"revolut.com"};
 
@@ -842,7 +841,6 @@ function renderChallenge(){
     el("badgeRow").innerHTML=need.map((n,i)=>`<div><div class="badge-ico ${p>=n?"":"off"}">${ico[i]}</div>${lab[i]}<br>${n}</div>`).join("")+`<div><div class="badge-ico">⋯</div>Voir tous</div>`;
   }
   if(document.getElementById("statPoints"))document.getElementById("statPoints").textContent=formatNumber(p);
-}
 }
 
 async function loadProfileExtras(){
