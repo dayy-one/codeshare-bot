@@ -689,6 +689,12 @@ async function loadFeed(targetId="feed"){
   }catch(e){console.error(e);renderCodes(target,mergeFeed([]))}
 }
 function renderCodes(target,codes){window._lastCodes=codes;if(!codes.length){target.innerHTML=emptyMessage(currentKind);return}target.innerHTML=codes.map(codeCard).join("")}
+function renderCodes(target,codes){
+  window._lastCodes=codes;
+  if(target&&target.id==="feed") renderTrends(codes);
+  if(!codes.length){target.innerHTML=emptyMessage(currentKind);return}
+  target.innerHTML=codes.map(codeCard).join("");
+}
 function codeCard(code){
   const nCom=code.comments_count||commentsFor(code.id).length;
   const author=code.added_by||code.author||"Membre";
