@@ -257,24 +257,19 @@ body{padding-bottom:100px}
 </header>
 <main class="content">
 <section id="page-home" class="page active">
-  <div class="section-head"><div><div class="eyebrow">COD-IA</div><div class="section-title">Un monde tous ensemble</div></div></div>
-  <div class="search"><input id="searchInput" type="search" placeholder="Rechercher un code, une marque..."></div>
-  <div class="section-head"><div class="section-title">Les stories</div></div>
-  <div class="stories">
-    <div class="story" onclick="loadTopCodes()"><div class="story-circle"><div class="story-inner">🔥</div></div><div class="story-name">Populaires</div></div>
-    <div class="story" onclick="setKind('PROMO')"><div class="story-circle"><div class="story-inner">🏷️</div></div><div class="story-name">Promos</div></div>
-    <div class="story" onclick="setKind('PARRAINAGE')"><div class="story-circle"><div class="story-inner">🤝</div></div><div class="story-name">Parrainages</div></div>
+  <div class="home-tabs">
+    <button class="home-tab on" onclick="setKind('');setCategory(document.querySelector('.filter[data-category=TOUS]'))">⭐ Pour toi</button>
+    <button class="home-tab" onclick="loadTopCodes()">🔥 Top Codes</button>
+    <button class="home-tab" onclick="setKind('')">✨ Nouveautés</button>
+    <button class="home-tab" onclick="setKind('PARRAINAGE')">🤝 Parrainages</button>
+    <button class="home-tab" onclick="setKind('PROMO')">🏷️ Promos</button>
   </div>
-  <div class="section-head"><div class="section-title">Les meilleurs codes</div><button class="see-all" onclick="loadTopCodes()">Voir tout</button></div>
-  <div class="filters">
-    <button class="filter active" data-category="TOUS" onclick="setCategory(this)">Tout</button>
-    <button class="filter" data-category="MODE" onclick="setCategory(this)">Mode</button>
-    <button class="filter" data-category="SHOPPING" onclick="setCategory(this)">Shopping</button>
-    <button class="filter" data-category="FOOD" onclick="setCategory(this)">Food</button>
-    <button class="filter" data-category="VOYAGE" onclick="setCategory(this)">Voyage</button>
-    <button class="filter" data-category="TECH" onclick="setCategory(this)">Tech</button>
+  <div class="trend-head">
+    <div><div class="section-title" style="font-size:18px">🔥 Tendances</div><div class="code-desc">Les codes les plus populaires du moment</div></div>
+    <button class="see-all" onclick="loadTopCodes()">Voir plus →</button>
   </div>
-  <div id="feed" class="loading"><div class="spinner"></div>Chargement des offres...</div>
+  <div class="trend-row" id="trendRow"></div>
+  <div id="feed" class="loading" style="margin-top:16px"><div class="spinner"></div>Chargement des offres...</div>
 </section>
 <section id="page-promos" class="page">
   <div class="section-head"><div><div class="eyebrow">COMMUNAUTÉ</div><div class="section-title">Top Codes</div></div><button class="secondary" onclick="openPublish()">+ Publier</button></div>
