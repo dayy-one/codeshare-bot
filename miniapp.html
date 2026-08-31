@@ -689,11 +689,57 @@ async function loadFeed(targetId="feed"){
   }catch(e){console.error(e);renderCodes(target,mergeFeed([]))}
 }
 function renderCodes(target,codes){window._lastCodes=codes;if(target&&target.id==="feed")renderTrends(codes);if(!codes.length){target.innerHTML=emptyMessage(currentKind);return}target.innerHTML=codes.map(codeCard).join("")}
+function timeAgo(iso){
+  if(!iso)return "à l’instant";
+  const s=Math.max(0,(Date.now()-new Date(iso).getTime())/1000);
+  if(s<3600)return "il y a "+Math.max(1,Math.floor(s/60))+" min";
+  if(s<86400)return "il y a "+Math.floor(s/3600)+" h";
+  return "il y a "+Math.floor(s/86400)+" j";
+}
+function offerLabel(code){
+  const t=String(code.title||code.code||"");
+  const m=t.match(/(-?\d+\s?%|-?\d+\s?€|jusqu.?à\s?\d+)/i);
+  return m?m[0]: (code.kind==="PARRAINAGE"?"Parrainage":"Promo");
+}
+function renderTrends(codes){
+  const row=document.getElementById("trendRow");
+  if(!row)return;
+  const top=[...(codes||[])].sort((a,b)=>(b.likes||0)-(a.likes||0)).slice(0,4);
+  row.innerHTML=top.map(c=>`<button class="trend-card" onclick="openDetail(${c.id})"><div class="trend-wrap"><img class="trend-logo" src="${logoUrl(c)}" alt="" onerror="this.style.background='#111'"><span class="trend-off">${escapeHtml(offerLabel(c))}</span></div><b>${escapeHtml(c.brand||"")}</b><div class="code-desc">${escapeHtml(c.title||"")}</div><div class="code-desc">♡ ${formatNumber(c.likes)}</div></button>`).join("");
+}
 function codeCard(code){
   const nCom=code.comments_count||commentsFor(code.id).length;
   const author=code.added_by||code.author||"Membre";
   const key=authorKey(code);
-  return `<article class="code-card" onclick="openDetail(${code.id})"><div class="code-top"><img class="brand-logo" src="${logoUrl(code)}" alt="" onerror="this.style.display='none'"><div><span class="badge">${code.kind==="PARRAINAGE"?"PARRAINAGE":"PROMO"}</span><div class="code-title">${escapeHtml(code.title||"")}</div><div class="code-desc">${escapeHtml(code.brand||code.description||"")} · par <button class="author-link" onclick="event.stopPropagation();openUserPage('${escapeHtml(key)}')">${escapeHtml(author)}</button></div></div></div><button class="more" onclick="event.stopPropagation();openCodeMenu(${code.id})">⋮</button>${code.code?`<div class="code-bottom"><div class="code-chip">${escapeHtml(code.code)}</div><button class="code-copy" onclick="event.stopPropagation();copyCode(${code.id})">⧉</button></div>`:""}<div class="code-actions"><button class="action" onclick="event.stopPropagation();likeCode(${code.id})">♡ ${formatNumber(code.likes)}</button><button class="action" onclick="event.stopPropagation();openDetail(${code.id},'comments')">💬 ${formatNumber(nCom)}</button><button class="action" onclick="event.stopPropagation();favoriteCode(${code.id})">☆ Favoris</button><button class="action" onclick="event.stopPropagation();copyAndOpen(${code.id})">Ouvrir</button><span class="action">⧉ ${formatNumber(code.copies)}</span></div></article>`;
+  const u=findUserByName(key);
+  const exp=code.expires_at?new Date(code.expires_at).toLocaleDateString("fr-FR"):"Sans date";
+  const host=(()=>{try{return new URL(code.url||"https://"+brandDomain(code)).hostname.replace(/^www\./,"")}catch(e){return brandDomain(code)}})();
+  return `<article class="post" onclick="openDetail(${code.id})">
+    <div class="post-top">
+      <div class="post-ava">${escapeHtml((u.initials||author).toString().slice(0,2).toUpperCase())}</div>
+      <div style="flex:1">
+        <div><button class="author-link post-user" onclick="event.stopPropagation();openUserPage('${escapeHtml(key)}')">${escapeHtml(author)}</button> <span class="p-badge" style="margin-left:4px">Membre COD-IA</span></div>
+        <div class="post-time">${timeAgo(code.created_at)}</div>
+      </div>
+      <button class="more" onclick="event.stopPropagation();openCodeMenu(${code.id})">⋮</button>
+    </div>
+    <div class="post-body">
+      <img class="post-brand" src="${logoUrl(code)}" alt="" onerror="this.style.display='none'">
+      <div>
+        <span class="badge">${code.kind==="PARRAINAGE"?"PARRAINAGE":"PROMO"}</span>
+        <div class="code-title" style="margin-top:6px">${escapeHtml(code.title||"")}</div>
+        <div class="code-desc">${escapeHtml(code.description||code.brand||"")}</div>
+        ${code.code?`<div class="post-code">${escapeHtml(code.code)} <button class="copy-small" style="width:36px;height:36px" onclick="event.stopPropagation();copyCode(${code.id})">⧉</button></div>`:""}
+      </div>
+    </div>
+    <div class="post-meta"><span>📅 Expire le ${exp}</span><span>🛡️ Vérifié aujourd’hui</span><span>${escapeHtml(host)} ↗</span></div>
+    <div class="post-acts">
+      <button class="action" onclick="event.stopPropagation();likeCode(${code.id})">♡ ${formatNumber(code.likes)}</button>
+      <button class="action" onclick="event.stopPropagation();openDetail(${code.id},'comments')">💬 ${formatNumber(nCom)}</button>
+      <button class="action" onclick="event.stopPropagation();shareCurrent()">➤ ${formatNumber(code.clicks||0)}</button>
+      <button class="action" onclick="event.stopPropagation();favoriteCode(${code.id})">🔖</button>
+    </div>
+  </article>`;
 }
 async function openDetail(id,tab){
   let code=(window._lastCodes||[]).concat(myCodesCache||[]).concat(myFavsCache||[]).concat(DEMO_CODES).find(c=>Number(c.id)===Number(id));
