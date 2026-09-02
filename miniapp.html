@@ -1109,7 +1109,22 @@ function openEditProfile(){pendingPhoto=currentUser.avatar_url||"";const x=extra
 document.getElementById("editPhoto").addEventListener("change",e=>{const f=e.target.files[0];if(!f)return;if(f.size>250000){toast("Image trop lourde (max 250 Ko).");return}const reader=new FileReader();reader.onload=()=>{pendingPhoto=reader.result};reader.readAsDataURL(f)});
 async function saveProfile(){localStorage.setItem("codia_profile_extra",JSON.stringify({city:document.getElementById("editCity").value,ig:document.getElementById("editIg").value,snap:document.getElementById("editSnap").value}));const r=await api("/api/profile",{method:"PATCH",body:JSON.stringify({bio:document.getElementById("editBio").value,email:document.getElementById("editEmail").value,avatar_url:pendingPhoto})});if(!r.ok){toast(r.error);return}closeModal("editModal");toast("Profil mis à jour");await boot();loadProfileExtras()}
 
-function openSupport(){closeAllModals();document.getElementById("supportModal").classList.add("open")}
+async function openSupport(){
+  closeAllModals();
+  document.getElementById("supportModal").classList.add("open");
+  const box=document.getElementById("myTickets");
+  if(!box)return;
+  const r=await api("/api/support");
+  box.innerHTML=(r.tickets||[]).map(t=>`
+    <div class="card">
+      <div class="card-title">${escapeHtml(t.subject||"Support")}</div>
+      <div class="code-desc">${escapeHtml(t.status||"")}</div>
+      <p class="code-desc">${escapeHtml(t.message||"")}</p>
+      ${t.reply
+        ? `<p class="code-desc"><b>Réponse COD.IA :</b> ${escapeHtml(t.reply)}</p>`
+        : `<p class="code-desc">En attente de réponse.</p>`}
+    </div>`).join("")||'<div class="code-desc">Aucun message pour le moment.</div>';
+}
 async function sendSupport(){const r=await api("/api/support",{method:"POST",body:JSON.stringify({subject:document.getElementById("supportSubject").value,message:document.getElementById("supportMessage").value})});if(!r.ok){toast(r.error);return}closeModal("supportModal");toast("Message envoyé")}
 function openFAQ(){closeAllModals();document.getElementById("faqModal").classList.add("open")}
 function openMenu(){document.getElementById("menuModal").classList.add("open")}
