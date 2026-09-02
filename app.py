@@ -142,6 +142,7 @@ def init_db():
                 referred_by BIGINT,
                 is_admin BOOLEAN DEFAULT FALSE,
                 is_paid BOOLEAN DEFAULT FALSE,
+                is_blocked BOOLEAN DEFAULT FALSE,
                 stripe_session_id TEXT,
                 hidden_codes JSONB DEFAULT '[]'::jsonb,
                 created_at TIMESTAMPTZ DEFAULT NOW(),
@@ -157,6 +158,7 @@ def init_db():
                 ("referred_by", "BIGINT"),
                 ("is_admin", "BOOLEAN DEFAULT FALSE"),
                 ("is_paid", "BOOLEAN DEFAULT FALSE"),
+                ("is_blocked", "BOOLEAN DEFAULT FALSE"),
                 ("stripe_session_id", "TEXT"),
                 ("hidden_codes", "JSONB DEFAULT '[]'::jsonb"),
             ]:
@@ -218,9 +220,12 @@ def init_db():
                 CREATE TABLE IF NOT EXISTS favorites(user_id BIGINT, code_id BIGINT, PRIMARY KEY(user_id,code_id));
                 CREATE TABLE IF NOT EXISTS reports(id BIGSERIAL PRIMARY KEY, user_id BIGINT, code_id BIGINT, reason TEXT, UNIQUE(user_id,code_id));
                 CREATE TABLE IF NOT EXISTS notifications(id BIGSERIAL PRIMARY KEY, user_id BIGINT, title TEXT, message TEXT, type TEXT DEFAULT 'INFO', is_read BOOLEAN DEFAULT FALSE, created_at TIMESTAMPTZ DEFAULT NOW());
-                CREATE TABLE IF NOT EXISTS support_tickets(id BIGSERIAL PRIMARY KEY, user_id BIGINT, subject TEXT, message TEXT, status TEXT DEFAULT 'OPEN', created_at TIMESTAMPTZ DEFAULT NOW());
+                CREATE TABLE IF NOT EXISTS support_tickets(id BIGSERIAL PRIMARY KEY, user_id BIGINT, subject TEXT, message TEXT, reply TEXT DEFAULT '', replied_at TIMESTAMPTZ, replied_by BIGINT, status TEXT DEFAULT 'OPEN', created_at TIMESTAMPTZ DEFAULT NOW());
                 CREATE TABLE IF NOT EXISTS settings(key TEXT PRIMARY KEY, value TEXT NOT NULL);"""
             )
+            ensure_column(cur, "support_tickets", "reply", "TEXT DEFAULT ''")
+            ensure_column(cur, "support_tickets", "replied_at", "TIMESTAMPTZ")
+            ensure_column(cur, "support_tickets", "replied_by", "BIGINT")
             cur.execute(
                 "INSERT INTO settings(key,value) VALUES('challenge_start',%s) ON CONFLICT DO NOTHING",
                 (now_utc().isoformat(),),
@@ -283,6 +288,8 @@ def require_auth(fn):
         user = get_current_user()
         if not user:
             return jsonify({"ok": False, "error": "AUTH_REQUIRED"}), 401
+        if user.get("is_blocked") and not is_admin(user):
+            return jsonify({"ok": False, "error": "Compte bloqué."}), 403
         if not user.get("is_paid") and not is_admin(user):
             return jsonify({"ok": False, "error": "Paiement requis."}), 402
         return fn(user, *args, **kwargs)
@@ -663,6 +670,8 @@ def login():
     if not user or not user.get("password_hash") or not check_password_hash(user["password_hash"], password):
         return json_error("Email/username ou mot de passe incorrect.", 401)
     admin = is_admin(user)
+    if user.get("is_blocked") and not admin:
+        return json_error("Ce compte a été bloqué.", 403)
     if not user.get("is_paid") and not admin:
         return json_error("Ce compte n'est pas activé. Inscris-toi puis paie 9,99 €.", 401)
     session.permanent = True
@@ -687,6 +696,9 @@ def me_any():
     if not user:
         return jsonify({"ok": True, "user": None, "pending": bool(session.get("pending_id"))})
     admin = is_admin(user)
+    if user.get("is_blocked") and not admin:
+        session.clear()
+        return jsonify({"ok": False, "error": "Compte bloqué.", "blocked": True})
     paid = bool(user.get("is_paid")) or admin
     if not paid:
         return jsonify({"ok": True, "user": None, "pending": True})
@@ -706,6 +718,7 @@ def me_any():
                 "is_admin": admin,
                 "is_paid": paid,
                 "paid": paid,
+                "is_blocked": bool(user.get("is_blocked")),
             },
             "stats": user_stats(user["id"]),
             "challenge": challenge_info(user["id"]),
@@ -1273,6 +1286,40 @@ def support(user):
         conn.close()
 
 
+@app.get("/api/support")
+@require_auth
+def my_support(user):
+    conn = db()
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                """SELECT id,subject,message,reply,status,created_at,replied_at
+                   FROM support_tickets WHERE user_id=%s
+                   ORDER BY created_at DESC LIMIT 50""",
+                (user["id"],),
+            )
+            rows = cur.fetchall()
+        return jsonify(
+            {
+                "ok": True,
+                "tickets": [
+                    {
+                        "id": r["id"],
+                        "subject": r.get("subject"),
+                        "message": r.get("message"),
+                        "reply": r.get("reply") or "",
+                        "status": r.get("status") or "OPEN",
+                        "created_at": iso(r.get("created_at")),
+                        "replied_at": iso(r.get("replied_at")),
+                    }
+                    for r in rows
+                ],
+            }
+        )
+    finally:
+        conn.close()
+
+
 @app.get("/api/admin/overview")
 @require_admin
 def admin_overview(admin):
@@ -1314,7 +1361,7 @@ def admin_users(admin):
             if q:
                 like = f"%{q}%"
                 cur.execute(
-                    """SELECT id,email,username,display_name,is_admin,is_paid,
+                    """SELECT id,email,username,display_name,is_admin,is_paid,is_blocked,
                               referral_code,created_at
                        FROM users
                        WHERE email ILIKE %s OR username ILIKE %s OR display_name ILIKE %s
@@ -1323,7 +1370,7 @@ def admin_users(admin):
                 )
             else:
                 cur.execute(
-                    """SELECT id,email,username,display_name,is_admin,is_paid,
+                    """SELECT id,email,username,display_name,is_admin,is_paid,is_blocked,
                               referral_code,created_at
                        FROM users ORDER BY created_at DESC LIMIT 200"""
                 )
@@ -1339,6 +1386,7 @@ def admin_users(admin):
                         "display_name": r.get("display_name"),
                         "is_admin": bool(r.get("is_admin")),
                         "is_paid": bool(r.get("is_paid")),
+                        "is_blocked": bool(r.get("is_blocked")),
                         "referral_code": r.get("referral_code"),
                         "created_at": iso(r.get("created_at")),
                         "protected": is_protected_user(
@@ -1369,6 +1417,36 @@ def admin_toggle_paid(admin, user_id):
             cur.execute("UPDATE users SET is_paid=%s WHERE id=%s", (new_val, user_id))
         conn.commit()
         return jsonify({"ok": True, "is_paid": new_val})
+    finally:
+        conn.close()
+
+
+@app.post("/api/admin/users/<int:user_id>/block")
+@require_admin
+def admin_block_user(admin, user_id):
+    if user_id == admin["id"]:
+        return json_error("Tu ne peux pas te bloquer.")
+    conn = db()
+    try:
+        with conn.cursor() as cur:
+            cur.execute("SELECT * FROM users WHERE id=%s", (user_id,))
+            row = cur.fetchone()
+            if not row:
+                return json_error("Utilisateur introuvable.", 404)
+            if is_protected_user(row.get("email"), row.get("username"), row.get("is_admin")):
+                return json_error("Compte protégé.")
+            blocked = not bool(row.get("is_blocked"))
+            cur.execute("UPDATE users SET is_blocked=%s WHERE id=%s", (blocked, user_id))
+            if blocked:
+                create_notification(
+                    cur,
+                    user_id,
+                    "Compte bloqué",
+                    "Ton compte a été bloqué par l’équipe COD.IA.",
+                    "ALERT",
+                )
+        conn.commit()
+        return jsonify({"ok": True, "is_blocked": blocked})
     finally:
         conn.close()
 
@@ -1474,15 +1552,52 @@ def admin_tickets(admin):
                         "id": r["id"],
                         "subject": r.get("subject"),
                         "message": r.get("message"),
+                        "reply": r.get("reply") or "",
                         "status": r.get("status") or "OPEN",
                         "created_at": iso(r.get("created_at")),
+                        "replied_at": iso(r.get("replied_at")),
                         "user": r.get("display_name") or r.get("username") or "Membre",
                         "email": r.get("email"),
+                        "user_id": r.get("user_id"),
                     }
                     for r in rows
                 ],
             }
         )
+    finally:
+        conn.close()
+
+
+@app.post("/api/admin/tickets/<int:ticket_id>/reply")
+@require_admin
+def admin_reply_ticket(admin, ticket_id):
+    data = request.get_json(silent=True) or {}
+    reply = (data.get("message") or data.get("reply") or "").strip()
+    if len(reply) < 2:
+        return json_error("Réponse trop courte.")
+    conn = db()
+    try:
+        with conn.cursor() as cur:
+            cur.execute("SELECT * FROM support_tickets WHERE id=%s", (ticket_id,))
+            ticket = cur.fetchone()
+            if not ticket:
+                return json_error("Ticket introuvable.", 404)
+            cur.execute(
+                """UPDATE support_tickets
+                   SET reply=%s, replied_at=NOW(), replied_by=%s, status='REPLIED'
+                   WHERE id=%s""",
+                (reply, admin["id"], ticket_id),
+            )
+            if ticket.get("user_id"):
+                create_notification(
+                    cur,
+                    ticket["user_id"],
+                    "Réponse du support",
+                    reply[:280],
+                    "SUPPORT",
+                )
+        conn.commit()
+        return jsonify({"ok": True})
     finally:
         conn.close()
 
