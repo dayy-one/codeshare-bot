@@ -405,6 +405,23 @@ body{padding-bottom:100px}
   </div>
   <div id="profilePanel"></div>
 </section>
+
+<section id="page-admin" class="page">
+  <div class="section-head">
+    <div>
+      <div class="eyebrow">ADMIN</div>
+      <div class="section-title">Tableau de bord</div>
+    </div>
+  </div>
+  <div class="ov-grid" id="adminStats"></div>
+  <div class="ptabs" style="margin-top:14px">
+    <button class="ptab on" onclick="setAdminTab('users')">Utilisateurs</button>
+    <button class="ptab" onclick="setAdminTab('codes')">Codes</button>
+    <button class="ptab" onclick="setAdminTab('tickets')">Support</button>
+  </div>
+  <div class="search"><input id="adminSearch" type="search" placeholder="Rechercher..."></div>
+  <div id="adminPanel" class="loading"><div class="spinner"></div></div>
+</section>
 </main>
 <nav class="bottom-nav">
   <button class="nav-item active" data-page="home" onclick="goPage('home')"><span class="nav-ico">🏠</span>Accueil</button>
@@ -511,6 +528,7 @@ body{padding-bottom:100px}
     <button class="menu-item" onclick="document.getElementById('copiesModal').classList.add('open');closeModal('menuModal')"><div class="menu-icon">⧉</div>Offre Copies</button>
     <button class="menu-item" onclick="openSupport()"><div class="menu-icon">💬</div>Support</button>
     <button class="menu-item" onclick="openFAQ()"><div class="menu-icon">❓</div>FAQ</button>
+    <button class="menu-item" id="adminMenuBtn" style="display:none" onclick="goPage('admin');closeModal('menuModal')"><div class="menu-icon">🛡️</div>Admin</button>
     <button class="menu-item" onclick="logout()"><div class="menu-icon">🚪</div>Déconnexion</button>
   </div>
 </div></div>
@@ -617,7 +635,7 @@ const DEMO_COMMENTS={
   103:[{author:"Léa",author_id:"lea",message:"Le -15% est passé sans souci au paiement.",created_at:"2026-08-26T10:18:00.000Z"},{author:"Hugo",author_id:"hugo",message:"Nickel sur l’app Shein aussi.",created_at:"2026-08-27T19:05:00.000Z"}],
   104:[{author:"Camille",author_id:"camille",message:"Le code frugsf082826 a bien pris -65% chez moi.",created_at:"2026-08-28T14:22:00.000Z"},{author:"Léa",author_id:"lea",message:"Valable sur une grosse partie du panier.",created_at:"2026-08-29T08:11:00.000Z"}]
 };
-let currentUser=null,currentStats=null,currentChallenge=null,currentCategory="TOUS",currentKind="",pendingPhoto="",onboardStep=0,currentCode=null,detailTab="details",profileTab="overview",myCodesCache=[],myFavsCache=[],leaderRows=[],viewedUser=null;
+let currentUser=null,currentStats=null,currentChallenge=null,currentCategory="TOUS",currentKind="",pendingPhoto="",onboardStep=0,currentCode=null,detailTab="details",profileTab="overview",myCodesCache=[],myFavsCache=[],leaderRows=[],viewedUser=null,adminTab="users";
 const ONBOARD=[{ico:"🏠",title:"Accueil",text:"Les meilleurs codes."},{ico:"➕",title:"Publier",text:"Ajoute une offre."},{ico:"🏆",title:"Challenge",text:"1 point par parrainage."},{ico:"👤",title:"Profil",text:"Photo, bio et lien."}];
 const BRAND_DOMAINS={nike:"nike.com",adidas:"adidas.com",uber:"uber.com","uber eats":"ubereats.com",amazon:"amazon.fr",booking:"booking.com",airbnb:"airbnb.com",shein:"shein.com",zalando:"zalando.fr",zara:"zara.com",deliveroo:"deliveroo.fr",mcdonald:"mcdonalds.fr",spotify:"spotify.com",netflix:"netflix.com",disney:"disneyplus.com",fnac:"fnac.com",darty:"darty.com",boulanger:"boulanger.com",carrefour:"carrefour.fr",leclerc:"e.leclerc",action:"action.com",temu:"temu.com",aliexpress:"aliexpress.com",wish:"wish.com",sncf:"sncf-connect.com",ryanair:"ryanair.com","air france":"airfrance.fr",sephora:"sephora.fr",nocibe:"nocibe.fr","yves rocher":"yves-rocher.fr",decathlon:"decathlon.fr",gosport:"gosport.fr",intersport:"intersport.fr",cdiscount:"cdiscount.com","la redoute":"laredoute.fr",vertbaudet:"vertbaudet.fr",dominos:"dominos.fr","burger king":"burgerking.fr",kfc:"kfc.fr",paypal:"paypal.com",revolut:"revolut.com"};
 
@@ -668,6 +686,7 @@ function brandDomain(code){if(code.url){try{return new URL(code.url.startsWith("
 function logoUrl(code){return "https://www.google.com/s2/favicons?sz=128&domain_url=https://"+brandDomain(code)}
 function rankName(pts){return pts>=1500?"Or":pts>=1000?"Argent":pts>=500?"Bronze":"Départ"}
 function authorKey(code){return code.author_id||code.added_by||code.author||"membre"}
+function showAdminEntry(){const btn=document.getElementById("adminMenuBtn");if(btn)btn.style.display=(currentUser&&currentUser.is_admin)?"flex":"none"}
 
 function showAuth(mode="login"){document.getElementById("auth").classList.add("show");document.getElementById("paywall").classList.remove("show");document.getElementById("loginForm").style.display=mode==="login"?"block":"none";document.getElementById("registerForm").style.display=mode==="register"?"block":"none";document.getElementById("loginTab").classList.toggle("active",mode==="login");document.getElementById("registerTab").classList.toggle("active",mode==="register");const ref=new URLSearchParams(location.search).get("ref");if(ref)document.getElementById("registerReferral").value=ref}
 async function login(){const result=await apiFirst(["/api/login","/auth/login"],{method:"POST",body:JSON.stringify({identifier:document.getElementById("loginIdentifier").value.trim(),password:document.getElementById("loginPassword").value})});if(!result.ok){toast(result.error);return}saveUserLocal(result.user);currentUser=result.user;document.getElementById("auth").classList.remove("show");await boot()}
@@ -676,11 +695,67 @@ if(refCode)recordReferralUse(refCode);saveUserLocal(result.user);currentUser=res
 async function cancelSignup(){await api("/api/cancel-signup",{method:"POST"});backPaywall();document.getElementById("paywall").classList.remove("show");showAuth("login")}
 function logout(){location.href="/logout"}
 
-async function boot(){const params=new URLSearchParams(location.search);if(params.get("paid")==="1"&&params.get("session_id"))await api("/api/confirm-payment?session_id="+encodeURIComponent(params.get("session_id")));const result=await api("/api/me");if(result.pending&&(!result.user||!result.user.is_paid)){document.getElementById("auth").classList.remove("show");document.getElementById("paywall").classList.add("show");return}if(!result.ok||!result.user){showAuth();loadFeed();return}saveUserLocal(result.user);currentUser=result.user;initCh();consumeReferralHits();currentStats=result.stats||{referrals:0,points:0,likes:0,clicks:0,followers:0,following:0};currentStats.points=myPoints();currentChallenge=result.challenge||{points:myPoints(),remaining_seconds:18*86400+4*3600+17*60+36};currentChallenge.points=myPoints();document.getElementById("auth").classList.remove("show");updateProfileUI();if(!currentUser.is_paid&&!currentUser.is_admin){document.getElementById("paywall").classList.add("show");return}document.getElementById("paywall").classList.remove("show");if(!localStorage.getItem("codia_onboard"))document.getElementById("onboard").classList.add("show");loadFeed();loadNotificationsCount();startCountdown();loadLeaderboard();renderChallenge();if(params.get("code"))openDetail(Number(params.get("code")))}
+async function boot(){const params=new URLSearchParams(location.search);if(params.get("paid")==="1"&&params.get("session_id"))await api("/api/confirm-payment?session_id="+encodeURIComponent(params.get("session_id")));const result=await api("/api/me");if(result.pending&&(!result.user||!result.user.is_paid)){document.getElementById("auth").classList.remove("show");document.getElementById("paywall").classList.add("show");return}if(!result.ok||!result.user){showAuth();loadFeed();return}saveUserLocal(result.user);currentUser=result.user;showAdminEntry();initCh();consumeReferralHits();currentStats=result.stats||{referrals:0,points:0,likes:0,clicks:0,followers:0,following:0};currentStats.points=myPoints();currentChallenge=result.challenge||{points:myPoints(),remaining_seconds:18*86400+4*3600+17*60+36};currentChallenge.points=myPoints();document.getElementById("auth").classList.remove("show");updateProfileUI();if(!currentUser.is_paid&&!currentUser.is_admin){document.getElementById("paywall").classList.add("show");return}document.getElementById("paywall").classList.remove("show");if(!localStorage.getItem("codia_onboard"))document.getElementById("onboard").classList.add("show");loadFeed();loadNotificationsCount();startCountdown();loadLeaderboard();renderChallenge();if(params.get("code"))openDetail(Number(params.get("code")))}
 function setAvatarEl(el,user){if(!el)return;if(user.avatar_url){el.style.backgroundImage="url("+user.avatar_url+")";el.innerHTML='<span class="p-crown">👑</span>'}else{el.style.backgroundImage="";el.innerHTML=(user.avatar_initials||user.initials||"CO")+'<span class="p-crown">👑</span>'}}
-function updateProfileUI(){if(!currentUser)return;setAvatarEl(document.getElementById("profileAvatar"),currentUser);document.getElementById("profileName").textContent=currentUser.display_name||currentUser.username||"Membre";document.getElementById("profileBio").textContent=currentUser.bio||"Passionné de bons plans & d’opportunités.";const x=extra();const meta=document.getElementById("profileMeta");if(meta)meta.textContent=(x.city?x.city+" · ":"Communauté COD.IA · ")+"Membre COD.IA";const pts=myPoints();if(document.getElementById("statPoints"))document.getElementById("statPoints").textContent=formatNumber(pts);const fingEl=document.getElementById("statFollowing");if(fingEl)fingEl.textContent=formatNumber((currentStats&&currentStats.following)||getFollows().length)}
+function updateProfileUI(){if(!currentUser)return;setAvatarEl(document.getElementById("profileAvatar"),currentUser);document.getElementById("profileName").textContent=currentUser.display_name||currentUser.username||"Membre";document.getElementById("profileBio").textContent=currentUser.bio||"Passionné de bons plans & d’opportunités.";const x=extra();const meta=document.getElementById("profileMeta");if(meta)meta.textContent=(x.city?x.city+" · ":"Communauté COD.IA · ")+"Membre COD.IA";const pts=myPoints();if(document.getElementById("statPoints"))document.getElementById("statPoints").textContent=formatNumber(pts);const fingEl=document.getElementById("statFollowing");if(fingEl)fingEl.textContent=formatNumber((currentStats&&currentStats.following)||getFollows().length);showAdminEntry()}
 
-function goPage(page){closeUserPage();document.querySelectorAll(".page").forEach(el=>el.classList.remove("active"));const t=document.getElementById("page-"+page);if(t)t.classList.add("active");document.querySelectorAll(".nav-item[data-page]").forEach(el=>el.classList.toggle("active",el.dataset.page===page));if(page==="home")loadFeed();if(page==="promos")loadFeed("promoFeed");if(page==="challenge"){loadLeaderboard();renderChallenge()}if(page==="profile")loadProfileExtras()}
+function goPage(page){closeUserPage();document.querySelectorAll(".page").forEach(el=>el.classList.remove("active"));const t=document.getElementById("page-"+page);if(t)t.classList.add("active");document.querySelectorAll(".nav-item[data-page]").forEach(el=>el.classList.toggle("active",el.dataset.page===page));if(page==="home")loadFeed();if(page==="promos")loadFeed("promoFeed");if(page==="challenge"){loadLeaderboard();renderChallenge()}if(page==="profile")loadProfileExtras();if(page==="admin")loadAdmin()}
+
+function setAdminTab(tab){adminTab=tab;document.querySelectorAll("#page-admin .ptab").forEach((el,i)=>{el.classList.toggle("on",["users","codes","tickets"][i]===tab)});loadAdmin()}
+async function loadAdmin(){
+  if(!currentUser||!currentUser.is_admin){toast("Accès admin refusé");goPage("home");return}
+  const panel=document.getElementById("adminPanel");
+  const q=(document.getElementById("adminSearch")?.value||"").trim();
+  const ov=await api("/api/admin/overview");
+  const s=ov.stats||{};
+  document.getElementById("adminStats").innerHTML=`
+    <div class="card"><b>${formatNumber(s.users)}</b><div class="code-desc">Utilisateurs</div></div>
+    <div class="card"><b>${formatNumber(s.paid)}</b><div class="code-desc">Payés</div></div>
+    <div class="card"><b>${formatNumber(s.codes)}</b><div class="code-desc">Codes</div></div>
+    <div class="card"><b>${formatNumber(s.tickets)}</b><div class="code-desc">Tickets ouverts</div></div>`;
+  if(adminTab==="users"){
+    const r=await api("/api/admin/users?q="+encodeURIComponent(q));
+    const list=r.users||[];
+    panel.innerHTML=list.map(u=>`
+      <div class="rank-card" style="align-items:flex-start;flex-wrap:wrap">
+        <div>
+          <b>${escapeHtml(u.display_name||u.username)}</b>
+          <div class="code-desc">${escapeHtml(u.email||"")} · @${escapeHtml(u.username||"")}</div>
+          <div class="code-desc">${u.is_admin?"ADMIN":""} ${u.is_paid?"PAYÉ":"NON PAYÉ"} · ${escapeHtml(u.referral_code||"")}</div>
+        </div>
+        <div>
+          ${u.protected?"":`<button class="secondary" onclick="adminTogglePaid(${u.id})">${u.is_paid?"Retirer accès":"Activer"}</button>
+          <button class="danger" style="width:auto;margin-top:6px" onclick="adminDeleteUser(${u.id})">Supprimer</button>`}
+        </div>
+      </div>`).join("")||'<div class="card">Aucun utilisateur</div>';
+    return;
+  }
+  if(adminTab==="codes"){
+    const r=await api("/api/admin/codes?q="+encodeURIComponent(q));
+    const list=r.codes||[];
+    panel.innerHTML=list.map(c=>`
+      <div class="code-card">
+        <div class="code-title">${escapeHtml(c.title||"")}</div>
+        <div class="code-desc">${escapeHtml(c.brand||"")} · ${escapeHtml(c.code||"")} · ${escapeHtml(c.added_by||"")}</div>
+        <div class="code-desc">${escapeHtml(c.author_email||"")} · ${escapeHtml(c.status||"")}</div>
+        <button class="danger" onclick="adminDeleteCode(${c.id})">Supprimer</button>
+      </div>`).join("")||'<div class="card">Aucun code</div>';
+    return;
+  }
+  const r=await api("/api/admin/tickets");
+  const list=r.tickets||[];
+  panel.innerHTML=list.map(t=>`
+    <div class="card">
+      <div class="card-title">${escapeHtml(t.subject||"Support")}</div>
+      <div class="code-desc">${escapeHtml(t.user||"")} · ${escapeHtml(t.email||"")} · ${escapeHtml(t.status)}</div>
+      <p class="code-desc">${escapeHtml(t.message||"")}</p>
+      ${t.status==="OPEN"?`<button class="secondary" onclick="adminCloseTicket(${t.id})">Clôturer</button>`:""}
+    </div>`).join("")||'<div class="card">Aucun ticket</div>';
+}
+async function adminTogglePaid(id){const r=await api("/api/admin/users/"+id+"/toggle-paid",{method:"POST"});toast(r.ok?(r.is_paid?"Accès activé":"Accès retiré"):(r.error||"Erreur"));loadAdmin()}
+async function adminDeleteUser(id){if(!confirm("Supprimer cet utilisateur et ses codes ?"))return;const r=await api("/api/admin/users/"+id+"/delete",{method:"POST"});toast(r.ok?"Utilisateur supprimé":(r.error||"Erreur"));loadAdmin()}
+async function adminDeleteCode(id){if(!confirm("Supprimer ce code ?"))return;const r=await api("/api/admin/codes/"+id+"/delete",{method:"POST"});toast(r.ok?"Code supprimé":(r.error||"Erreur"));loadAdmin()}
+async function adminCloseTicket(id){const r=await api("/api/admin/tickets/"+id+"/close",{method:"POST"});toast(r.ok?"Ticket clôturé":(r.error||"Erreur"));loadAdmin()}
 
 async function loadFeed(targetId="feed"){
   const target=document.getElementById(targetId);if(!target)return;
@@ -795,6 +870,7 @@ function renderUserPage(){
 function setCategory(btn){document.querySelectorAll(".filter").forEach(el=>el.classList.remove("active"));btn.classList.add("active");currentCategory=btn.dataset.category;loadFeed()}
 function setKind(k){currentKind=k;loadFeed()}
 let searchTimer;document.getElementById("searchInput").addEventListener("input",()=>{clearTimeout(searchTimer);searchTimer=setTimeout(()=>loadFeed(),300)});document.getElementById("promoSearch").addEventListener("input",()=>{clearTimeout(searchTimer);searchTimer=setTimeout(()=>loadFeed("promoFeed"),300)});
+document.getElementById("adminSearch").addEventListener("input",()=>{clearTimeout(searchTimer);searchTimer=setTimeout(loadAdmin,300)});
 
 async function copyCode(id){const demo=DEMO_CODES.find(c=>Number(c.id)===Number(id));const r=await api(`/api/codes/${id}/copy`,{method:"POST"});const val=(r&&r.code)||(demo&&demo.code);if(val){try{await navigator.clipboard.writeText(val)}catch(e){}}if(!r.ok&&!demo){toast(r.error);return}toast("Code copié");loadFeed()}
 async function copyAndOpen(id){const demo=DEMO_CODES.find(c=>Number(c.id)===Number(id));const r=await api(`/api/codes/${id}/copy`,{method:"POST"});if(r.code){try{await navigator.clipboard.writeText(r.code)}catch(e){}}else if(demo&&demo.code){try{await navigator.clipboard.writeText(demo.code)}catch(e){}}const url=r.url||(demo&&demo.url);if(url)window.open(url,"_blank","noopener")}
