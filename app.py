@@ -109,6 +109,21 @@ def cleanup_unpaid(cur):
         logging.info("Comptes non payés supprimés: %s", cur.rowcount)
 
 
+def make_referral_code():
+    alphabet = string.ascii_uppercase + string.digits
+    for _ in range(30):
+        code = "CODIA" + "".join(secrets.choice(alphabet) for _ in range(6))
+        conn = db()
+        try:
+            with conn.cursor() as cur:
+                cur.execute("SELECT id FROM users WHERE referral_code=%s", (code,))
+                if not cur.fetchone():
+                    return code
+        finally:
+            conn.close()
+    return "CODIA" + secrets.token_hex(3).upper()
+
+
 def init_db():
     conn = db()
     try:
@@ -217,25 +232,30 @@ def init_db():
                     "UPDATE users SET is_admin=TRUE, is_paid=TRUE WHERE LOWER(email)=%s",
                     (email,),
                 )
+            admin_pass = os.getenv("ADMIN_PASSWORD", "")
+            if admin_pass:
+                for email in ADMIN_EMAILS:
+                    uname = "codiaadmin"
+                    cur.execute("SELECT id FROM users WHERE LOWER(email)=LOWER(%s)", (email,))
+                    if not cur.fetchone():
+                        cur.execute(
+                            """INSERT INTO users(
+                                email,username,password_hash,display_name,avatar_initials,
+                                referral_code,is_admin,is_paid
+                            ) VALUES(%s,%s,%s,%s,%s,%s,TRUE,TRUE)""",
+                            (
+                                email,
+                                uname,
+                                generate_password_hash(admin_pass),
+                                "Admin COD.IA",
+                                "AD",
+                                make_referral_code(),
+                            ),
+                        )
         conn.commit()
         logging.info("DB initialisée")
     finally:
         conn.close()
-
-
-def make_referral_code():
-    alphabet = string.ascii_uppercase + string.digits
-    for _ in range(30):
-        code = "CODIA" + "".join(secrets.choice(alphabet) for _ in range(6))
-        conn = db()
-        try:
-            with conn.cursor() as cur:
-                cur.execute("SELECT id FROM users WHERE referral_code=%s", (code,))
-                if not cur.fetchone():
-                    return code
-        finally:
-            conn.close()
-    return "CODIA" + secrets.token_hex(3).upper()
 
 
 def is_admin(user):
@@ -265,6 +285,19 @@ def require_auth(fn):
             return jsonify({"ok": False, "error": "AUTH_REQUIRED"}), 401
         if not user.get("is_paid") and not is_admin(user):
             return jsonify({"ok": False, "error": "Paiement requis."}), 402
+        return fn(user, *args, **kwargs)
+
+    return wrapper
+
+
+def require_admin(fn):
+    @wraps(fn)
+    def wrapper(*args, **kwargs):
+        user = get_current_user()
+        if not user:
+            return jsonify({"ok": False, "error": "AUTH_REQUIRED"}), 401
+        if not is_admin(user):
+            return jsonify({"ok": False, "error": "Accès admin refusé."}), 403
         return fn(user, *args, **kwargs)
 
     return wrapper
@@ -1233,6 +1266,236 @@ def support(user):
             cur.execute(
                 "INSERT INTO support_tickets(user_id,subject,message) VALUES(%s,%s,%s)",
                 (user["id"], data.get("subject") or "Support", data.get("message")),
+            )
+        conn.commit()
+        return jsonify({"ok": True})
+    finally:
+        conn.close()
+
+
+@app.get("/api/admin/overview")
+@require_admin
+def admin_overview(admin):
+    conn = db()
+    try:
+        with conn.cursor() as cur:
+            cur.execute("SELECT COUNT(*) AS c FROM users")
+            users_n = int(cur.fetchone()["c"] or 0)
+            cur.execute("SELECT COUNT(*) AS c FROM users WHERE COALESCE(is_paid,FALSE)=TRUE")
+            paid_n = int(cur.fetchone()["c"] or 0)
+            cur.execute("SELECT COUNT(*) AS c FROM codes")
+            codes_n = int(cur.fetchone()["c"] or 0)
+            cur.execute(
+                "SELECT COUNT(*) AS c FROM support_tickets WHERE COALESCE(status,'OPEN')='OPEN'"
+            )
+            tickets_n = int(cur.fetchone()["c"] or 0)
+        return jsonify(
+            {
+                "ok": True,
+                "stats": {
+                    "users": users_n,
+                    "paid": paid_n,
+                    "codes": codes_n,
+                    "tickets": tickets_n,
+                },
+            }
+        )
+    finally:
+        conn.close()
+
+
+@app.get("/api/admin/users")
+@require_admin
+def admin_users(admin):
+    q = (request.args.get("q") or "").strip()
+    conn = db()
+    try:
+        with conn.cursor() as cur:
+            if q:
+                like = f"%{q}%"
+                cur.execute(
+                    """SELECT id,email,username,display_name,is_admin,is_paid,
+                              referral_code,created_at
+                       FROM users
+                       WHERE email ILIKE %s OR username ILIKE %s OR display_name ILIKE %s
+                       ORDER BY created_at DESC LIMIT 200""",
+                    (like, like, like),
+                )
+            else:
+                cur.execute(
+                    """SELECT id,email,username,display_name,is_admin,is_paid,
+                              referral_code,created_at
+                       FROM users ORDER BY created_at DESC LIMIT 200"""
+                )
+            rows = cur.fetchall()
+        return jsonify(
+            {
+                "ok": True,
+                "users": [
+                    {
+                        "id": r["id"],
+                        "email": r.get("email"),
+                        "username": r.get("username"),
+                        "display_name": r.get("display_name"),
+                        "is_admin": bool(r.get("is_admin")),
+                        "is_paid": bool(r.get("is_paid")),
+                        "referral_code": r.get("referral_code"),
+                        "created_at": iso(r.get("created_at")),
+                        "protected": is_protected_user(
+                            r.get("email"), r.get("username"), r.get("is_admin")
+                        ),
+                    }
+                    for r in rows
+                ],
+            }
+        )
+    finally:
+        conn.close()
+
+
+@app.post("/api/admin/users/<int:user_id>/toggle-paid")
+@require_admin
+def admin_toggle_paid(admin, user_id):
+    conn = db()
+    try:
+        with conn.cursor() as cur:
+            cur.execute("SELECT * FROM users WHERE id=%s", (user_id,))
+            row = cur.fetchone()
+            if not row:
+                return json_error("Utilisateur introuvable.", 404)
+            if is_protected_user(row.get("email"), row.get("username"), row.get("is_admin")):
+                return json_error("Compte protégé.")
+            new_val = not bool(row.get("is_paid"))
+            cur.execute("UPDATE users SET is_paid=%s WHERE id=%s", (new_val, user_id))
+        conn.commit()
+        return jsonify({"ok": True, "is_paid": new_val})
+    finally:
+        conn.close()
+
+
+@app.post("/api/admin/users/<int:user_id>/delete")
+@require_admin
+def admin_delete_user(admin, user_id):
+    if user_id == admin["id"]:
+        return json_error("Tu ne peux pas te supprimer.")
+    conn = db()
+    try:
+        with conn.cursor() as cur:
+            cur.execute("SELECT * FROM users WHERE id=%s", (user_id,))
+            row = cur.fetchone()
+            if not row:
+                return json_error("Utilisateur introuvable.", 404)
+            if is_protected_user(row.get("email"), row.get("username"), row.get("is_admin")):
+                return json_error("Compte protégé.")
+            cur.execute("SELECT id FROM codes WHERE user_id=%s", (user_id,))
+            for c in cur.fetchall():
+                _remove_code(cur, c["id"])
+            cur.execute("DELETE FROM likes WHERE user_id=%s", (user_id,))
+            cur.execute("DELETE FROM favorites WHERE user_id=%s", (user_id,))
+            cur.execute("DELETE FROM reports WHERE user_id=%s", (user_id,))
+            cur.execute("DELETE FROM notifications WHERE user_id=%s", (user_id,))
+            cur.execute("DELETE FROM support_tickets WHERE user_id=%s", (user_id,))
+            cur.execute("UPDATE users SET referred_by=NULL WHERE referred_by=%s", (user_id,))
+            cur.execute("DELETE FROM users WHERE id=%s", (user_id,))
+        conn.commit()
+        return jsonify({"ok": True})
+    finally:
+        conn.close()
+
+
+@app.get("/api/admin/codes")
+@require_admin
+def admin_codes(admin):
+    q = (request.args.get("q") or "").strip()
+    conn = db()
+    try:
+        with conn.cursor() as cur:
+            if q:
+                like = f"%{q}%"
+                cur.execute(
+                    """SELECT c.*, u.username, u.display_name, u.email
+                       FROM codes c
+                       LEFT JOIN users u ON u.id=c.user_id
+                       WHERE c.title ILIKE %s OR c.code ILIKE %s
+                          OR COALESCE(c.brand,c.site,'') ILIKE %s
+                       ORDER BY c.created_at DESC LIMIT 200""",
+                    (like, like, like),
+                )
+            else:
+                cur.execute(
+                    """SELECT c.*, u.username, u.display_name, u.email
+                       FROM codes c
+                       LEFT JOIN users u ON u.id=c.user_id
+                       ORDER BY c.created_at DESC LIMIT 200"""
+                )
+            rows = cur.fetchall()
+        return jsonify(
+            {
+                "ok": True,
+                "codes": [
+                    {
+                        **serialize_code(r, admin["id"]),
+                        "status": r.get("status"),
+                        "author_email": r.get("email"),
+                        "author_username": r.get("username"),
+                    }
+                    for r in rows
+                ],
+            }
+        )
+    finally:
+        conn.close()
+
+
+@app.post("/api/admin/codes/<int:code_id>/delete")
+@require_admin
+def admin_delete_code(admin, code_id):
+    return _delete_code_impl(admin, code_id)
+
+
+@app.get("/api/admin/tickets")
+@require_admin
+def admin_tickets(admin):
+    conn = db()
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                """SELECT t.*, u.email, u.username, u.display_name
+                   FROM support_tickets t
+                   LEFT JOIN users u ON u.id=t.user_id
+                   ORDER BY t.created_at DESC LIMIT 200"""
+            )
+            rows = cur.fetchall()
+        return jsonify(
+            {
+                "ok": True,
+                "tickets": [
+                    {
+                        "id": r["id"],
+                        "subject": r.get("subject"),
+                        "message": r.get("message"),
+                        "status": r.get("status") or "OPEN",
+                        "created_at": iso(r.get("created_at")),
+                        "user": r.get("display_name") or r.get("username") or "Membre",
+                        "email": r.get("email"),
+                    }
+                    for r in rows
+                ],
+            }
+        )
+    finally:
+        conn.close()
+
+
+@app.post("/api/admin/tickets/<int:ticket_id>/close")
+@require_admin
+def admin_close_ticket(admin, ticket_id):
+    conn = db()
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                "UPDATE support_tickets SET status='CLOSED' WHERE id=%s",
+                (ticket_id,),
             )
         conn.commit()
         return jsonify({"ok": True})
