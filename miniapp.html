@@ -716,16 +716,17 @@ async function loadAdmin(){
     <div class="card"><b>${formatNumber(s.tickets)}</b><div class="code-desc">Tickets ouverts</div></div>`;
   if(adminTab==="users"){
     const r=await api("/api/admin/users?q="+encodeURIComponent(q));
-    const list=r.users||[];
-    panel.innerHTML=list.map(u=>`
+    panel.innerHTML=(r.users||[]).map(u=>`
       <div class="rank-card" style="align-items:flex-start;flex-wrap:wrap">
         <div>
           <b>${escapeHtml(u.display_name||u.username)}</b>
           <div class="code-desc">${escapeHtml(u.email||"")} · @${escapeHtml(u.username||"")}</div>
-          <div class="code-desc">${u.is_admin?"ADMIN":""} ${u.is_paid?"PAYÉ":"NON PAYÉ"} · ${escapeHtml(u.referral_code||"")}</div>
+          <div class="code-desc">${u.is_admin?"ADMIN ":""}${u.is_paid?"PAYÉ":"NON PAYÉ"}${u.is_blocked?" · BLOQUÉ":""} · ${escapeHtml(u.referral_code||"")}</div>
         </div>
         <div>
-          ${u.protected?"":`<button class="secondary" onclick="adminTogglePaid(${u.id})">${u.is_paid?"Retirer accès":"Activer"}</button>
+          ${u.protected?"":`
+          <button class="secondary" onclick="adminTogglePaid(${u.id})">${u.is_paid?"Retirer accès":"Activer"}</button>
+          <button class="secondary" style="width:100%;margin-top:6px" onclick="adminToggleBlock(${u.id})">${u.is_blocked?"Débloquer":"Bloquer"}</button>
           <button class="danger" style="width:auto;margin-top:6px" onclick="adminDeleteUser(${u.id})">Supprimer</button>`}
         </div>
       </div>`).join("")||'<div class="card">Aucun utilisateur</div>';
@@ -733,8 +734,7 @@ async function loadAdmin(){
   }
   if(adminTab==="codes"){
     const r=await api("/api/admin/codes?q="+encodeURIComponent(q));
-    const list=r.codes||[];
-    panel.innerHTML=list.map(c=>`
+    panel.innerHTML=(r.codes||[]).map(c=>`
       <div class="code-card">
         <div class="code-title">${escapeHtml(c.title||"")}</div>
         <div class="code-desc">${escapeHtml(c.brand||"")} · ${escapeHtml(c.code||"")} · ${escapeHtml(c.added_by||"")}</div>
@@ -744,18 +744,28 @@ async function loadAdmin(){
     return;
   }
   const r=await api("/api/admin/tickets");
-  const list=r.tickets||[];
-  panel.innerHTML=list.map(t=>`
+  panel.innerHTML=(r.tickets||[]).map(t=>`
     <div class="card">
       <div class="card-title">${escapeHtml(t.subject||"Support")}</div>
       <div class="code-desc">${escapeHtml(t.user||"")} · ${escapeHtml(t.email||"")} · ${escapeHtml(t.status)}</div>
-      <p class="code-desc">${escapeHtml(t.message||"")}</p>
-      ${t.status==="OPEN"?`<button class="secondary" onclick="adminCloseTicket(${t.id})">Clôturer</button>`:""}
+      <p class="code-desc"><b>Message :</b> ${escapeHtml(t.message||"")}</p>
+      ${t.reply?`<p class="code-desc"><b>Ta réponse :</b> ${escapeHtml(t.reply)}</p>`:""}
+      <textarea id="reply-${t.id}" style="width:100%;min-height:70px;border:1px solid #dfe3d8;background:#f9faf6;border-radius:13px;padding:12px;margin-top:8px" placeholder="Écrire une réponse..."></textarea>
+      <button class="primary" onclick="adminReplyTicket(${t.id})">Envoyer la réponse</button>
+      ${t.status!=="CLOSED"?`<button class="secondary" style="width:100%;margin-top:8px" onclick="adminCloseTicket(${t.id})">Clôturer</button>`:""}
     </div>`).join("")||'<div class="card">Aucun ticket</div>';
 }
 async function adminTogglePaid(id){const r=await api("/api/admin/users/"+id+"/toggle-paid",{method:"POST"});toast(r.ok?(r.is_paid?"Accès activé":"Accès retiré"):(r.error||"Erreur"));loadAdmin()}
+async function adminToggleBlock(id){const r=await api("/api/admin/users/"+id+"/block",{method:"POST"});toast(r.ok?(r.is_blocked?"Utilisateur bloqué":"Utilisateur débloqué"):(r.error||"Erreur"));loadAdmin()}
 async function adminDeleteUser(id){if(!confirm("Supprimer cet utilisateur et ses codes ?"))return;const r=await api("/api/admin/users/"+id+"/delete",{method:"POST"});toast(r.ok?"Utilisateur supprimé":(r.error||"Erreur"));loadAdmin()}
 async function adminDeleteCode(id){if(!confirm("Supprimer ce code ?"))return;const r=await api("/api/admin/codes/"+id+"/delete",{method:"POST"});toast(r.ok?"Code supprimé":(r.error||"Erreur"));loadAdmin()}
+async function adminReplyTicket(id){
+  const message=(document.getElementById("reply-"+id)?.value||"").trim();
+  if(!message){toast("Écris une réponse");return}
+  const r=await api("/api/admin/tickets/"+id+"/reply",{method:"POST",body:JSON.stringify({message})});
+  toast(r.ok?"Réponse envoyée":(r.error||"Erreur"));
+  if(r.ok) loadAdmin();
+}
 async function adminCloseTicket(id){const r=await api("/api/admin/tickets/"+id+"/close",{method:"POST"});toast(r.ok?"Ticket clôturé":(r.error||"Erreur"));loadAdmin()}
 
 async function loadFeed(targetId="feed"){
