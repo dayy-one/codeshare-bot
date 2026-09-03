@@ -37,7 +37,8 @@ ADMIN_EMAILS = {
     for x in os.getenv("ADMIN_EMAILS", "contact@cod-ia.fr").split(",")
     if x.strip()
 }
-PROTECTED_USERNAMES = {"codiaadmin", "codiaamin", "admin", "contact"}
+PROTECTED_USERNAMES = {"codiaadmin"}
+PROTECTED_EMAILS = {"contact@cod-ia.fr"}
 try:
     PRICE_CENTS = int(os.getenv("PRICE_CENTS", "999"))
 except ValueError:
@@ -85,11 +86,9 @@ def ensure_column(cur, table, column, definition):
 
 
 def is_protected_user(email=None, username=None, is_admin_flag=False):
-    if is_admin_flag:
-        return True
-    if normalize_email(email) in ADMIN_EMAILS:
-        return True
     if clean_username(username) in PROTECTED_USERNAMES:
+        return True
+    if normalize_email(email) in PROTECTED_EMAILS:
         return True
     return False
 
@@ -143,6 +142,7 @@ def init_db():
                 is_admin BOOLEAN DEFAULT FALSE,
                 is_paid BOOLEAN DEFAULT FALSE,
                 is_blocked BOOLEAN DEFAULT FALSE,
+                warnings_count INTEGER DEFAULT 0,
                 stripe_session_id TEXT,
                 hidden_codes JSONB DEFAULT '[]'::jsonb,
                 created_at TIMESTAMPTZ DEFAULT NOW(),
@@ -159,6 +159,7 @@ def init_db():
                 ("is_admin", "BOOLEAN DEFAULT FALSE"),
                 ("is_paid", "BOOLEAN DEFAULT FALSE"),
                 ("is_blocked", "BOOLEAN DEFAULT FALSE"),
+                ("warnings_count", "INTEGER DEFAULT 0"),
                 ("stripe_session_id", "TEXT"),
                 ("hidden_codes", "JSONB DEFAULT '[]'::jsonb"),
             ]:
@@ -221,7 +222,13 @@ def init_db():
                 CREATE TABLE IF NOT EXISTS reports(id BIGSERIAL PRIMARY KEY, user_id BIGINT, code_id BIGINT, reason TEXT, UNIQUE(user_id,code_id));
                 CREATE TABLE IF NOT EXISTS notifications(id BIGSERIAL PRIMARY KEY, user_id BIGINT, title TEXT, message TEXT, type TEXT DEFAULT 'INFO', is_read BOOLEAN DEFAULT FALSE, created_at TIMESTAMPTZ DEFAULT NOW());
                 CREATE TABLE IF NOT EXISTS support_tickets(id BIGSERIAL PRIMARY KEY, user_id BIGINT, subject TEXT, message TEXT, reply TEXT DEFAULT '', replied_at TIMESTAMPTZ, replied_by BIGINT, status TEXT DEFAULT 'OPEN', created_at TIMESTAMPTZ DEFAULT NOW());
-                CREATE TABLE IF NOT EXISTS settings(key TEXT PRIMARY KEY, value TEXT NOT NULL);"""
+                CREATE TABLE IF NOT EXISTS settings(key TEXT PRIMARY KEY, value TEXT NOT NULL);
+                CREATE TABLE IF NOT EXISTS broadcasts (
+                    id BIGSERIAL PRIMARY KEY,
+                    title TEXT NOT NULL,
+                    message TEXT NOT NULL,
+                    created_by BIGINT,
+                    created_at TIMESTAMPTZ DEFAULT NOW());"""
             )
             ensure_column(cur, "support_tickets", "reply", "TEXT DEFAULT ''")
             ensure_column(cur, "support_tickets", "replied_at", "TIMESTAMPTZ")
@@ -1228,23 +1235,43 @@ def notifications(user):
     try:
         with conn.cursor() as cur:
             cur.execute(
-                """SELECT * FROM notifications
-                   WHERE user_id=%s ORDER BY created_at DESC LIMIT 50""",
+                """SELECT title, message, created_at, 'USER' AS kind
+                   FROM notifications
+                   WHERE user_id=%s
+                   ORDER BY created_at DESC LIMIT 50""",
                 (user["id"],),
             )
-            rows = cur.fetchall()
+            rows = list(cur.fetchall() or [])
+            cur.execute(
+                """SELECT title, message, created_at, 'BROADCAST' AS kind
+                   FROM broadcasts
+                   WHERE created_at > NOW() - INTERVAL '24 hours'
+                   ORDER BY created_at DESC"""
+            )
+            rows = list(cur.fetchall() or []) + rows
             cur.execute(
                 """SELECT COUNT(*) AS c FROM notifications
                    WHERE user_id=%s AND COALESCE(is_read,FALSE)=FALSE""",
                 (user["id"],),
             )
             unread = int(cur.fetchone()["c"] or 0)
+            cur.execute(
+                """SELECT COUNT(*) AS c FROM broadcasts
+                   WHERE created_at > NOW() - INTERVAL '24 hours'"""
+            )
+            unread += int(cur.fetchone()["c"] or 0)
+        rows.sort(key=lambda r: r.get("created_at") or now_utc(), reverse=True)
         return jsonify(
             {
                 "ok": True,
                 "unread": unread,
                 "notifications": [
-                    {"title": r.get("title"), "message": r.get("message")} for r in rows
+                    {
+                        "title": r.get("title"),
+                        "message": r.get("message"),
+                        "kind": r.get("kind"),
+                    }
+                    for r in rows[:50]
                 ],
             }
         )
@@ -1362,7 +1389,7 @@ def admin_users(admin):
                 like = f"%{q}%"
                 cur.execute(
                     """SELECT id,email,username,display_name,is_admin,is_paid,is_blocked,
-                              referral_code,created_at
+                              warnings_count,referral_code,created_at
                        FROM users
                        WHERE email ILIKE %s OR username ILIKE %s OR display_name ILIKE %s
                        ORDER BY created_at DESC LIMIT 200""",
@@ -1371,7 +1398,7 @@ def admin_users(admin):
             else:
                 cur.execute(
                     """SELECT id,email,username,display_name,is_admin,is_paid,is_blocked,
-                              referral_code,created_at
+                              warnings_count,referral_code,created_at
                        FROM users ORDER BY created_at DESC LIMIT 200"""
                 )
             rows = cur.fetchall()
@@ -1387,6 +1414,7 @@ def admin_users(admin):
                         "is_admin": bool(r.get("is_admin")),
                         "is_paid": bool(r.get("is_paid")),
                         "is_blocked": bool(r.get("is_blocked")),
+                        "warnings_count": int(r.get("warnings_count") or 0),
                         "referral_code": r.get("referral_code"),
                         "created_at": iso(r.get("created_at")),
                         "protected": is_protected_user(
@@ -1447,6 +1475,40 @@ def admin_block_user(admin, user_id):
                 )
         conn.commit()
         return jsonify({"ok": True, "is_blocked": blocked})
+    finally:
+        conn.close()
+
+
+@app.post("/api/admin/users/<int:user_id>/warn")
+@require_admin
+def admin_warn_user(admin, user_id):
+    data = request.get_json(silent=True) or {}
+    reason = (data.get("reason") or data.get("message") or "").strip()
+    if len(reason) < 3:
+        return json_error("Précise le motif du signalement.")
+    conn = db()
+    try:
+        with conn.cursor() as cur:
+            cur.execute("SELECT * FROM users WHERE id=%s", (user_id,))
+            row = cur.fetchone()
+            if not row:
+                return json_error("Utilisateur introuvable.", 404)
+            if user_id == admin["id"]:
+                return json_error("Tu ne peux pas te signaler.")
+            cur.execute(
+                "UPDATE users SET warnings_count=COALESCE(warnings_count,0)+1 WHERE id=%s RETURNING warnings_count",
+                (user_id,),
+            )
+            count = int(cur.fetchone()["warnings_count"] or 1)
+            create_notification(
+                cur,
+                user_id,
+                "Signalement COD.IA",
+                reason[:400],
+                "ALERT",
+            )
+        conn.commit()
+        return jsonify({"ok": True, "warnings_count": count})
     finally:
         conn.close()
 
@@ -1531,6 +1593,49 @@ def admin_delete_code(admin, code_id):
     return _delete_code_impl(admin, code_id)
 
 
+@app.get("/api/admin/reports")
+@require_admin
+def admin_reports(admin):
+    conn = db()
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                """SELECT r.id, r.reason, r.code_id, r.user_id,
+                          c.title AS code_title, c.code AS code_value, c.brand,
+                          u.username AS reporter, u.email AS reporter_email,
+                          a.username AS author, a.email AS author_email, a.id AS author_id
+                   FROM reports r
+                   LEFT JOIN codes c ON c.id=r.code_id
+                   LEFT JOIN users u ON u.id=r.user_id
+                   LEFT JOIN users a ON a.id=c.user_id
+                   ORDER BY r.id DESC LIMIT 200"""
+            )
+            rows = cur.fetchall()
+        return jsonify(
+            {
+                "ok": True,
+                "reports": [
+                    {
+                        "id": r["id"],
+                        "reason": r.get("reason") or "Signalement",
+                        "code_id": r.get("code_id"),
+                        "code_title": r.get("code_title"),
+                        "code": r.get("code_value"),
+                        "brand": r.get("brand"),
+                        "reporter": r.get("reporter"),
+                        "reporter_email": r.get("reporter_email"),
+                        "author": r.get("author"),
+                        "author_email": r.get("author_email"),
+                        "author_id": r.get("author_id"),
+                    }
+                    for r in rows
+                ],
+            }
+        )
+    finally:
+        conn.close()
+
+
 @app.get("/api/admin/tickets")
 @require_admin
 def admin_tickets(admin):
@@ -1611,6 +1716,62 @@ def admin_close_ticket(admin, ticket_id):
             cur.execute(
                 "UPDATE support_tickets SET status='CLOSED' WHERE id=%s",
                 (ticket_id,),
+            )
+        conn.commit()
+        return jsonify({"ok": True})
+    finally:
+        conn.close()
+
+
+@app.get("/api/admin/broadcasts")
+@require_admin
+def admin_list_broadcasts(admin):
+    conn = db()
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                """SELECT id, title, message, created_at
+                   FROM broadcasts
+                   ORDER BY created_at DESC LIMIT 30"""
+            )
+            rows = cur.fetchall()
+        return jsonify(
+            {
+                "ok": True,
+                "broadcasts": [
+                    {
+                        "id": r["id"],
+                        "title": r.get("title"),
+                        "message": r.get("message"),
+                        "created_at": iso(r.get("created_at")),
+                        "active": bool(
+                            r.get("created_at")
+                            and (now_utc() - r["created_at"].astimezone(timezone.utc)).total_seconds()
+                            < 86400
+                        ),
+                    }
+                    for r in rows
+                ],
+            }
+        )
+    finally:
+        conn.close()
+
+
+@app.post("/api/admin/broadcasts")
+@require_admin
+def admin_create_broadcast(admin):
+    data = request.get_json(silent=True) or {}
+    title = (data.get("title") or "Message COD.IA").strip()[:80]
+    message = (data.get("message") or "").strip()
+    if len(message) < 3:
+        return json_error("Message trop court.")
+    conn = db()
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                "INSERT INTO broadcasts(title,message,created_by) VALUES(%s,%s,%s)",
+                (title or "Message COD.IA", message, admin["id"]),
             )
         conn.commit()
         return jsonify({"ok": True})
