@@ -418,6 +418,7 @@ body{padding-bottom:100px}
     <button class="ptab on" onclick="setAdminTab('users')">Utilisateurs</button>
     <button class="ptab" onclick="setAdminTab('codes')">Codes</button>
     <button class="ptab" onclick="setAdminTab('tickets')">Support</button>
+    <button class="ptab" onclick="setAdminTab('reports')">Signalements</button>
   </div>
   <div class="search"><input id="adminSearch" type="search" placeholder="Rechercher..."></div>
   <div id="adminPanel" class="loading"><div class="spinner"></div></div>
@@ -746,7 +747,13 @@ function updateProfileUI(){if(!currentUser)return;setAvatarEl(document.getElemen
 
 function goPage(page){closeUserPage();document.querySelectorAll(".page").forEach(el=>el.classList.remove("active"));const t=document.getElementById("page-"+page);if(t)t.classList.add("active");document.querySelectorAll(".nav-item[data-page]").forEach(el=>el.classList.toggle("active",el.dataset.page===page));if(page==="home")loadFeed();if(page==="promos")loadFeed("promoFeed");if(page==="challenge"){loadLeaderboard();renderChallenge()}if(page==="profile")loadProfileExtras();if(page==="admin")loadAdmin()}
 
-function setAdminTab(tab){adminTab=tab;document.querySelectorAll("#page-admin .ptab").forEach((el,i)=>{el.classList.toggle("on",["users","codes","tickets"][i]===tab)});loadAdmin()}
+function setAdminTab(tab){
+  adminTab=tab;
+  document.querySelectorAll("#page-admin .ptab").forEach((el,i)=>{
+    el.classList.toggle("on",["users","codes","tickets","reports"][i]===tab);
+  });
+  loadAdmin();
+}
 async function loadAdmin(){
   if(!currentUser||!currentUser.is_admin){toast("Accès admin refusé");goPage("home");return}
   const panel=document.getElementById("adminPanel");
@@ -762,16 +769,18 @@ async function loadAdmin(){
     const r=await api("/api/admin/users?q="+encodeURIComponent(q));
     panel.innerHTML=(r.users||[]).map(u=>`
       <div class="rank-card" style="align-items:flex-start;flex-wrap:wrap">
-        <div>
+        <div style="flex:1;min-width:180px">
           <b>${escapeHtml(u.display_name||u.username)}</b>
           <div class="code-desc">${escapeHtml(u.email||"")} · @${escapeHtml(u.username||"")}</div>
-          <div class="code-desc">${u.is_admin?"ADMIN ":""}${u.is_paid?"PAYÉ":"NON PAYÉ"}${u.is_blocked?" · BLOQUÉ":""} · ${escapeHtml(u.referral_code||"")}</div>
+          <div class="code-desc">${u.is_admin?"ADMIN ":""}${u.is_paid?"PAYÉ":"NON PAYÉ"}${u.is_blocked?" · BANNI":""} · signalements: ${u.warnings_count||0}</div>
         </div>
-        <div>
-          ${u.protected?"":`
+        <div style="min-width:160px">
+          ${u.protected?`<div class="code-desc">Compte protégé</div>`:`
           <button class="secondary" onclick="adminTogglePaid(${u.id})">${u.is_paid?"Retirer accès":"Activer"}</button>
-          <button class="secondary" style="width:100%;margin-top:6px" onclick="adminToggleBlock(${u.id})">${u.is_blocked?"Débloquer":"Bloquer"}</button>
+          <button class="danger" style="width:100%;margin-top:6px" onclick="adminToggleBlock(${u.id})">${u.is_blocked?"Débannir":"Bannir du site"}</button>
           <button class="danger" style="width:auto;margin-top:6px" onclick="adminDeleteUser(${u.id})">Supprimer</button>`}
+          <textarea id="warn-${u.id}" style="width:100%;min-height:56px;margin-top:8px;border:1px solid #dfe3d8;background:#f9faf6;border-radius:13px;padding:10px" placeholder="Motif du signalement (spam, faux code...)"></textarea>
+          <button class="secondary" style="width:100%;margin-top:6px" onclick="adminWarnUser(${u.id})">Envoyer un signalement</button>
         </div>
       </div>`).join("")||'<div class="card">Aucun utilisateur</div>';
     return;
@@ -787,8 +796,35 @@ async function loadAdmin(){
       </div>`).join("")||'<div class="card">Aucun code</div>';
     return;
   }
-  const r=await api("/api/admin/tickets");
-  panel.innerHTML=(r.tickets||[]).map(t=>`
+  if(adminTab==="reports"){
+    const r=await api("/api/admin/reports");
+    panel.innerHTML=(r.reports||[]).map(x=>`
+      <div class="card">
+        <div class="card-title">${escapeHtml(x.code_title||x.code||"Code signalé")}</div>
+        <div class="code-desc">${escapeHtml(x.brand||"")} · ${escapeHtml(x.code||"")}</div>
+        <div class="code-desc">Par : ${escapeHtml(x.author||"—")} · ${escapeHtml(x.author_email||"")}</div>
+        <div class="code-desc">Signalé par : ${escapeHtml(x.reporter||"—")} · motif : ${escapeHtml(x.reason||"")}</div>
+        ${x.code_id?`<button class="danger" style="width:auto;margin-top:8px" onclick="adminDeleteCode(${x.code_id})">Supprimer le code</button>`:""}
+      </div>`).join("")||'<div class="card">Aucun signalement communautaire</div>';
+    return;
+  }
+  const tickets=await api("/api/admin/tickets");
+  const casts=await api("/api/admin/broadcasts");
+  panel.innerHTML=`
+    <div class="card">
+      <div class="card-title">Messages COD.IA</div>
+      <div class="code-desc">Envoyé à tous les membres. Visible 24 h dans les notifications, puis disparaît.</div>
+      <div class="field"><label>Titre</label><input id="broadcastTitle" placeholder="Info COD.IA"></div>
+      <div class="field"><label>Message</label><textarea id="broadcastMessage" placeholder="Écrire le message à toute la communauté..."></textarea></div>
+      <button class="primary" onclick="adminSendBroadcast()">Envoyer à tous</button>
+      ${(casts.broadcasts||[]).map(b=>`
+        <div class="code-desc" style="margin-top:10px">
+          <b>${escapeHtml(b.title||"Message COD.IA")}</b>
+          ${b.active?" · actif 24h":" · expiré"}<br>
+          ${escapeHtml(b.message||"")}
+        </div>`).join("")||'<div class="code-desc" style="margin-top:10px">Aucun message envoyé.</div>'}
+    </div>
+    `+(tickets.tickets||[]).map(t=>`
     <div class="card">
       <div class="card-title">${escapeHtml(t.subject||"Support")}</div>
       <div class="code-desc">${escapeHtml(t.user||"")} · ${escapeHtml(t.email||"")} · ${escapeHtml(t.status)}</div>
@@ -800,7 +836,22 @@ async function loadAdmin(){
     </div>`).join("")||'<div class="card">Aucun ticket</div>';
 }
 async function adminTogglePaid(id){const r=await api("/api/admin/users/"+id+"/toggle-paid",{method:"POST"});toast(r.ok?(r.is_paid?"Accès activé":"Accès retiré"):(r.error||"Erreur"));loadAdmin()}
-async function adminToggleBlock(id){const r=await api("/api/admin/users/"+id+"/block",{method:"POST"});toast(r.ok?(r.is_blocked?"Utilisateur bloqué":"Utilisateur débloqué"):(r.error||"Erreur"));loadAdmin()}
+async function adminToggleBlock(id){const r=await api("/api/admin/users/"+id+"/block",{method:"POST"});toast(r.ok?(r.is_blocked?"Utilisateur banni":"Utilisateur débanni"):(r.error||"Erreur"));loadAdmin()}
+async function adminWarnUser(id){
+  const message=(document.getElementById("warn-"+id)?.value||"").trim();
+  if(!message){toast("Écris le motif");return}
+  const r=await api("/api/admin/users/"+id+"/warn",{method:"POST",body:JSON.stringify({reason:message})});
+  toast(r.ok?("Signalement envoyé ("+(r.warnings_count||1)+")"):(r.error||"Erreur"));
+  if(r.ok) loadAdmin();
+}
+async function adminSendBroadcast(){
+  const title=(document.getElementById("broadcastTitle")?.value||"Message COD.IA").trim();
+  const message=(document.getElementById("broadcastMessage")?.value||"").trim();
+  if(!message){toast("Écris un message");return}
+  const r=await api("/api/admin/broadcasts",{method:"POST",body:JSON.stringify({title,message})});
+  toast(r.ok?"Message envoyé à tous les membres":(r.error||"Erreur"));
+  if(r.ok) loadAdmin();
+}
 async function adminDeleteUser(id){if(!confirm("Supprimer cet utilisateur et ses codes ?"))return;const r=await api("/api/admin/users/"+id+"/delete",{method:"POST"});toast(r.ok?"Utilisateur supprimé":(r.error||"Erreur"));loadAdmin()}
 async function adminDeleteCode(id){if(!confirm("Supprimer ce code ?"))return;const r=await api("/api/admin/codes/"+id+"/delete",{method:"POST"});toast(r.ok?"Code supprimé":(r.error||"Erreur"));loadAdmin()}
 async function adminReplyTicket(id){
