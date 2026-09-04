@@ -1,3 +1,47 @@
+<script>
+(function () {
+  const API = "https://countapi.mileshilliard.com/api/v1";
+  const KEYS = {
+    visits: "codia-fr-visites-unique-xyz123",
+    connexion: "codia-fr-clics-connexion-xyz123",
+    inscription: "codia-fr-clics-inscription-xyz123"
+  };
+
+  const hit = (key) => {
+    fetch(`${API}/hit/${encodeURIComponent(key)}`).catch(() => {});
+  };
+
+  try {
+    if (!sessionStorage.getItem("codia_visit_counted")) {
+      hit(KEYS.visits);
+      sessionStorage.setItem("codia_visit_counted", "1");
+    }
+  } catch (e) {
+    hit(KEYS.visits);
+  }
+
+  const normalize = (el) => (el.innerText || el.textContent || "").trim().toLowerCase();
+
+  document.addEventListener("click", (e) => {
+    const el = e.target.closest("a, button, [role='button'], .btn");
+    if (!el) return;
+    const t = normalize(el);
+
+    if (t.includes("connexion") || t.includes("se connecter") || t.includes("login")) {
+      hit(KEYS.connexion);
+    }
+    if (
+      t.includes("inscription") ||
+      t.includes("créer mon compte") ||
+      t.includes("creer mon compte") ||
+      t.includes("s'inscrire")
+    ) {
+      hit(KEYS.inscription);
+    }
+  });
+})();
+</script>
+
 <!DOCTYPE html>
 <html lang="fr">
 <head>
