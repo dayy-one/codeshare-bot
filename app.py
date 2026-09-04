@@ -552,10 +552,54 @@ def miniapp():
     return send_from_directory(BASE_DIR, "miniapp.html")
 
 
-@app.route("/dashboard")
-@app.route("/dashboard.html")
+DASHBOARD_PASSWORD = os.getenv("DASHBOARD_PASSWORD", "CodiaAdmin2026!")
+
+
+@app.route("/dashboard", methods=["GET", "POST"])
+@app.route("/dashboard.html", methods=["GET", "POST"])
 def dashboard():
-    return send_from_directory(BASE_DIR, "dashboard.html")
+    if request.method == "POST":
+        password = (request.form.get("password") or "").strip()
+        if password == DASHBOARD_PASSWORD:
+            session["dashboard_ok"] = True
+            return redirect("/dashboard")
+        error = "Mot de passe incorrect."
+    else:
+        error = ""
+
+    if session.get("dashboard_ok"):
+        return send_from_directory(BASE_DIR, "dashboard.html")
+
+    err_html = f'<p style="color:#ff6b6b;margin:0 0 12px">{error}</p>' if error else ""
+    return f"""<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>COD.IA — Accès stats</title>
+  <style>
+    body{{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;
+         background:#07080d;font-family:Inter,system-ui,sans-serif;color:#f4f6fb}}
+    form{{width:min(380px,92vw);background:#12141c;border:1px solid #232636;
+          border-radius:18px;padding:28px}}
+    h1{{margin:0 0 8px;font-size:22px}}
+    p{{color:#9aa3b8;margin:0 0 18px}}
+    input{{width:100%;box-sizing:border-box;padding:12px 14px;border-radius:12px;
+           border:1px solid #232636;background:#0c0e14;color:#fff;font-size:15px}}
+    button{{width:100%;margin-top:12px;padding:12px;border:0;border-radius:12px;
+            background:#7c5cff;color:#fff;font-weight:700;cursor:pointer}}
+  </style>
+</head>
+<body>
+  <form method="post">
+    <h1>Accès stats</h1>
+    <p>Entre le mot de passe pour voir l’analyse.</p>
+    {err_html}
+    <input type="password" name="password" placeholder="Mot de passe" autofocus required>
+    <button type="submit">Entrer</button>
+  </form>
+</body>
+</html>"""
 
 
 @app.route("/logout")
