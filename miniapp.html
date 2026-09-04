@@ -1235,5 +1235,42 @@ function closeModal(id){document.getElementById(id)?.classList.remove("open")}
 function closeAllModals(){document.querySelectorAll(".modal").forEach(el=>el.classList.remove("open"))}
 document.addEventListener("DOMContentLoaded",()=>{const ref=new URLSearchParams(location.search).get("ref");if(ref)document.getElementById("registerReferral").value=ref;boot()});
 </script>
+
+<script>
+(function () {
+  const API = "https://countapi.mileshilliard.com/api/v1";
+  const KEYS = {
+    visits: "codia-fr-visites-unique-xyz123",
+    connexion: "codia-fr-clics-connexion-xyz123",
+    inscription: "codia-fr-clics-inscription-xyz123"
+  };
+
+  const hit = (key) => {
+    fetch(`${API}/hit/${encodeURIComponent(key)}`).catch(() => {});
+  };
+
+  try {
+    if (!sessionStorage.getItem("codia_visit_counted")) {
+      hit(KEYS.visits);
+      sessionStorage.setItem("codia_visit_counted", "1");
+    }
+  } catch (e) {
+    hit(KEYS.visits);
+  }
+
+  document.addEventListener("click", (e) => {
+    const el = e.target.closest("a, button, [role='button']");
+    if (!el) return;
+    const t = (el.innerText || el.textContent || "").trim().toLowerCase();
+
+    if (t.includes("connexion") || t.includes("se connecter")) {
+      hit(KEYS.connexion);
+    }
+    if (t.includes("inscription") || t.includes("créer mon compte")) {
+      hit(KEYS.inscription);
+    }
+  });
+})();
+</script>
 </body>
 </html>
