@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>COD.IA — Analytics externe</title>
+  <style>
+    :root {
+      --bg: #07080d;
+      --card: #12141c;
+      --line: #232636;
+      --text: #f4f6fb;
+      --muted: #9aa3b8;
+      --accent: #7c5cff;
+      --green: #3ee0a2;
+      --orange: #ffb020;
+      --pink: #ff5d8f;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+      background:
+        radial-gradient(900px 400px at 10% -10%, #7c5cff33, transparent),
+        radial-gradient(700px 300px at 100% 0%, #3ee0a222, transparent),
+        var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 32px 20px 60px;
+    }
+    .wrap { max-width: 1100px; margin: 0 auto; }
+    header { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 28px; }
+    h1 { font-size: 28px; letter-spacing: -0.03em; }
+    h1 span { color: var(--accent); }
+    .sub { color: var(--muted); margin-top: 6px; }
+    .live {
+      display: flex; align-items: center; gap: 8px;
+      background: #151821; border: 1px solid var(--line);
+      padding: 8px 12px; border-radius: 999px; font-size: 13px; color: var(--muted);
+    }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); box-shadow: 0 0 10px var(--green); animation: pulse 1.4s infinite; }
+    @keyframes pulse { 50% { opacity: .35; } }
+    .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    @media (max-width: 800px) { .grid { grid-template-columns: 1fr; } }
+    .card {
+      background: linear-gradient(180deg, #171a24, var(--card));
+      border: 1px solid var(--line);
+      border-radius: 18px; padding: 22px;
+    }
+    .label { color: var(--muted); font-size: 13px; text-transform: uppercase; letter-spacing: .08em; }
+    .value { font-size: 48px; font-weight: 750; margin: 10px 0 6px; letter-spacing: -0.04em; }
+    .hint { color: var(--muted); font-size: 13px; }
+    .c1 .value { color: #cfc8ff; }
+    .c2 .value { color: var(--orange); }
+    .c3 .value { color: var(--pink); }
+    .rates { margin-top: 16px; display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    @media (max-width: 800px) { .rates { grid-template-columns: 1fr; } }
+    .bar { height: 8px; background: #1c2030; border-radius: 99px; overflow: hidden; margin-top: 10px; }
+    .fill { height: 100%; width: 0; border-radius: 99px; transition: width .6s ease; }
+    .f1 { background: var(--orange); }
+    .f2 { background: var(--pink); }
+    footer { margin-top: 22px; color: var(--muted); font-size: 13px; }
+    button.refresh {
+      margin-top: 14px; background: var(--accent); border: 0; color: white;
+      padding: 10px 14px; border-radius: 10px; cursor: pointer; font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div>
+        <h1>Plateforme <span>COD.IA</span></h1>
+        <p class="sub">Visites · clics Connexion · clics Inscription — https://cod-ia.fr/</p>
+      </div>
+      <div class="live"><span class="dot"></span> Temps réel · MAJ <span id="updated">—</span></div>
+    </header>
+
+    <section class="grid">
+      <article class="card c1">
+        <div class="label">Personnes entrées sur le site</div>
+        <div class="value" id="visits">—</div>
+        <div class="hint">Sessions uniques (1 par onglet / visite)</div>
+      </article>
+      <article class="card c2">
+        <div class="label">Clics sur Connexion</div>
+        <div class="value" id="connexion">—</div>
+        <div class="hint">Bouton / lien « Connexion »</div>
+      </article>
+      <article class="card c3">
+        <div class="label">Clics sur Inscription</div>
+        <div class="value" id="inscription">—</div>
+        <div class="hint">« Inscription » ou « Créer mon compte »</div>
+      </article>
+    </section>
+
+    <section class="rates">
+      <article class="card">
+        <div class="label">Taux visite → Connexion</div>
+        <div class="value" style="font-size:36px" id="rateC">—</div>
+        <div class="bar"><div class="fill f1" id="barC"></div></div>
+      </article>
+      <article class="card">
+        <div class="label">Taux visite → Inscription</div>
+        <div class="value" style="font-size:36px" id="rateI">—</div>
+        <div class="bar"><div class="fill f2" id="barI"></div></div>
+      </article>
+    </section>
+
+    <button class="refresh" onclick="loadStats()">Actualiser maintenant</button>
+    <footer>
+      Dashboard externe. Les compteurs sont publics : change les clés dans le script et ici.
+      Source : countapi.mileshilliard.com
+    </footer>
+  </div>
+
+  <script>
+    const API = "https://countapi.mileshilliard.com/api/v1/get";
+    const KEYS = {
+      visits: "codia-fr-visites-unique-xyz123",
+      connexion: "codia-fr-clics-connexion-xyz123",
+      inscription: "codia-fr-clics-inscription-xyz123"
+    };
+
+    const fmt = (n) => Number(n || 0).toLocaleString("fr-FR");
+    const pct = (a, b) => (!b ? 0 : Math.round((a / b) * 1000) / 10);
+
+    async function getCount(key) {
+      const res = await fetch(`${API}/${encodeURIComponent(key)}`);
+      const data = await res.json();
+      return Number(data.value || 0);
+    }
+
+    async function loadStats() {
+      try {
+        const [v, c, i] = await Promise.all([
+          getCount(KEYS.visits),
+          getCount(KEYS.connexion),
+          getCount(KEYS.inscription)
+        ]);
+        document.getElementById("visits").textContent = fmt(v);
+        document.getElementById("connexion").textContent = fmt(c);
+        document.getElementById("inscription").textContent = fmt(i);
+        const rc = pct(c, v);
+        const ri = pct(i, v);
+        document.getElementById("rateC").textContent = rc + " %";
+        document.getElementById("rateI").textContent = ri + " %";
+        document.getElementById("barC").style.width = Math.min(rc, 100) + "%";
+        document.getElementById("barI").style.width = Math.min(ri, 100) + "%";
+        document.getElementById("updated").textContent = new Date().toLocaleTimeString("fr-FR");
+      } catch (e) {
+        document.getElementById("updated").textContent = "erreur API";
+      }
+    }
+
+    loadStats();
+    setInterval(loadStats, 8000);
+  </script>
+</body>
+</html>
