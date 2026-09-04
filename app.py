@@ -552,6 +552,12 @@ def miniapp():
     return send_from_directory(BASE_DIR, "miniapp.html")
 
 
+@app.route("/dashboard")
+@app.route("/dashboard.html")
+def dashboard():
+    return send_from_directory(BASE_DIR, "dashboard.html")
+
+
 @app.route("/logout")
 def logout_get():
     session.clear()
