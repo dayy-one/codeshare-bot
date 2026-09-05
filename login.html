@@ -230,23 +230,6 @@ async function login(e){
   goApp();
 }
 
-async function register(e){
-  e.preventDefault();
-  const btn=document.getElementById("registerBtn");
-  btn.disabled=true;
-  setMessage("registerMessage","");
-  const data=await api("/auth/register",{
-    display_name:document.getElementById("registerName").value.trim(),
-    username:document.getElementById("registerUsername").value.trim(),
-    email:document.getElementById("registerEmail").value.trim(),
-    password:document.getElementById("registerPassword").value,
-    referral_code:""
-  });
-  if(!data.ok){
-    setMessage("registerMessage", data.error || "Impossible de créer le compte.");
-    btn.disabled=false;
-    return;
-  }
   if(localStorage.getItem("codia_ref_card_done")==="1"){
     goApp();
     return;
