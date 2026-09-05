@@ -684,17 +684,55 @@ def register():
         return json_error("Mot de passe : 8 caractères minimum.")
     if is_protected_user(email, username):
         return json_error("Ce compte est réservé.")
+
+    password_hash = generate_password_hash(password)
     conn = db()
     try:
         with conn.cursor() as cur:
             cleanup_unpaid(cur)
             cur.execute(
-                """SELECT id FROM users
+                """SELECT * FROM users
                    WHERE LOWER(email)=LOWER(%s) OR LOWER(username)=LOWER(%s)""",
                 (email, username),
             )
-            if cur.fetchone():
-                return json_error("Cet email ou ce nom utilisateur existe déjà.", 409)
+            existing = cur.fetchone()
+            if existing:
+                if existing.get("is_paid") or is_admin(existing):
+                    return json_error("Cet email ou ce nom utilisateur existe déjà.", 409)
+                cur.execute(
+                    """UPDATE users SET password_hash=%s, display_name=%s, email=%s, username=%s
+                       WHERE id=%s RETURNING *""",
+                    (password_hash, display_name or username, email, username, existing["id"]),
+                )
+                user = cur.fetchone()
+            else:
+                referred_by = None
+                if referral_code:
+                    cur.execute("SELECT id FROM users WHERE referral_code=%s", (referral_code,))
+                    ref = cur.fetchone()
+                    if ref:
+                        referred_by = ref["id"]
+                initials = (
+                    "".join(x[0] for x in (display_name or username).split() if x)[:2].upper()
+                    or "CO"
+                )
+                cur.execute(
+                    """INSERT INTO users(
+                        email,username,password_hash,display_name,avatar_initials,
+                        referral_code,referred_by,is_admin,is_paid
+                    ) VALUES(%s,%s,%s,%s,%s,%s,%s,FALSE,FALSE) RETURNING *""",
+                    (
+                        email,
+                        username,
+                        password_hash,
+                        display_name or username,
+                        initials,
+                        make_referral_code(),
+                        referred_by,
+                    ),
+                )
+                user = cur.fetchone()
+
             cur.execute(
                 """DELETE FROM pending_signups
                    WHERE LOWER(email)=LOWER(%s) OR LOWER(username)=LOWER(%s)""",
@@ -703,13 +741,7 @@ def register():
             cur.execute(
                 """INSERT INTO pending_signups(email,username,password_hash,display_name,referral_code)
                    VALUES(%s,%s,%s,%s,%s) RETURNING id""",
-                (
-                    email,
-                    username,
-                    generate_password_hash(password),
-                    display_name or username,
-                    referral_code,
-                ),
+                (email, username, password_hash, display_name or username, referral_code),
             )
             pending_id = cur.fetchone()["id"]
         conn.commit()
@@ -719,16 +751,16 @@ def register():
         return json_error("Inscription impossible : " + str(exc), 500)
     finally:
         conn.close()
+
     session.permanent = True
-    session.pop("user_id", None)
+    session["user_id"] = user["id"]
     session["pending_id"] = pending_id
-    session["pending_email"] = email
-    session["pending_username"] = username
     return jsonify(
         {
             "ok": True,
             "pending": True,
             "user": {
+                "id": user["id"],
                 "email": email,
                 "username": username,
                 "is_paid": False,
@@ -736,7 +768,6 @@ def register():
             },
         }
     )
-
 
 @app.post("/api/cancel-signup")
 def cancel_signup():
