@@ -583,27 +583,24 @@ body{padding-bottom:100px}
   </div>
 </div></div>
 
-<div id="paywall" class="paywall"><div class="paywall-card">
-  <div class="logo-globe" style="margin:0 auto 12px">C.</div>
-  <div id="paywallIntro">
-    <h1>Bienvenue sur COD.IA</h1>
-    <div class="price">9,99 € <small>accès unique</small></div>
-    <div class="compare">
-      <div><b>Ce que tu obtiens</b><b>Gratuit</b><b>COD.IA</b></div>
-      <div><span>Voir tous les codes</span><span>✗</span><span>✓</span></div>
-      <div><span>Publier</span><span>✗</span><span>✓</span></div>
-      <div><span>Challenge & récompenses</span><span>✗</span><span>✓</span></div>
+<div class="paywall" id="paywall">
+  <div class="paywall-card">
+    <div style="width:58px;height:58px;border-radius:20px;margin:0 auto 16px;background:#eef3e4;display:flex;align-items:center;justify-content:center;font-family:Georgia,serif;font-weight:800;color:#2a3f1c">C.</div>
+    <h2>Passe à COD.IA</h2>
+    <p style="color:#6a7362;margin:0 0 8px">La plateforme est devant toi. Un paiement unique suffit pour tout ouvrir.</p>
+    <div class="price">9,99 €</div>
+    <p style="color:#6a7362;font-size:13px;margin:0 0 16px">une fois · accès immédiat</p>
+    <button class="btn btn-green" onclick="startPayment()">Déverrouiller COD.IA</button>
+    <div id="paywallIntro">
+      <p style="font-size:11px;color:#8b9183;margin-top:12px">Paiement Stripe · Sans abonnement · Accès à vie</p>
     </div>
-    <button class="primary" onclick="startPayment()">Rejoindre COD.IA — 9,99 €</button>
-    <button class="secondary" style="width:100%;margin-top:10px" onclick="cancelSignup()">← Retour à la connexion</button>
-    <button class="secondary" style="width:100%;margin-top:8px" onclick="location.href='/'">Retour au site</button>
+    <div id="stripeBox" style="display:none;margin-top:12px;text-align:left">
+      <div id="stripeCheckout"></div>
+      <button class="btn" type="button" onclick="backPaywall()">Retour</button>
+    </div>
+    <p id="paywallError" class="error"></p>
   </div>
-  <div id="stripeBox" style="display:none;text-align:left">
-    <h2 style="text-align:center">Paiement 9,99 €</h2>
-    <div id="stripeCheckout" style="min-height:480px"></div>
-    <button class="secondary" style="width:100%;margin-top:10px" onclick="backPaywall()">Retour</button>
-  </div>
-</div></div>
+</div>
 
 <div id="onboard" class="onboard"><div class="onboard-card">
   <div class="onboard-ico" id="onboardIco"></div>
