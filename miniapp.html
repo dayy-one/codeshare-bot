@@ -627,6 +627,21 @@ body{padding-bottom:100px}
     <button class="secondary" onclick="setDetailTab('comments')">💬</button>
   </div>
 </div>
+
+<div id="refOverlay" class="paywall">
+  <div class="paywall-card">
+    <div class="eyebrow">PARRAINAGE</div>
+    <h2>Ajoute ton code parrainage ici</h2>
+    <p class="code-desc">S’il est valide, il compte pour ton parrain. Cette carte ne reviendra plus.</p>
+    <div class="field" style="text-align:left">
+      <label>Code de parrainage</label>
+      <input id="refCode" placeholder="CODIAXXXXXX" style="text-transform:uppercase">
+    </div>
+    <button class="primary" type="button" onclick="saveReferral()">Valider le code</button>
+    <button class="secondary" style="width:100%;margin-top:8px" type="button" onclick="skipReferral()">Je n’ai pas de code parrainage</button>
+    <p id="refMessage" class="error"></p>
+  </div>
+</div>
 <div id="toast" class="toast"></div>
 
 <script>
