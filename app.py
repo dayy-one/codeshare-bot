@@ -120,6 +120,7 @@ def cleanup_unpaid(cur):
            WHERE COALESCE(is_paid, FALSE) = FALSE
              AND COALESCE(is_admin, FALSE) = FALSE
              AND COALESCE(stripe_session_id, '') = ''
+             AND created_at < NOW() - INTERVAL '48 hours'
              AND LOWER(email) <> ALL(%s)
              AND LOWER(username) <> ALL(%s)""",
         (emails, names),
