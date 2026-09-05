@@ -763,11 +763,16 @@ async function boot(){
   currentChallenge.points=myPoints();
   document.getElementById("auth").classList.remove("show");
   updateProfileUI();
-  if(!currentUser.is_paid&&!currentUser.is_admin){
-    document.getElementById("paywall").classList.add("show");
-    return;
+ if(!currentUser.is_paid&&!currentUser.is_admin){
+  if(!localStorage.getItem("codia_onboard")){
+    document.getElementById("onboard").classList.add("show");
+  }else{
+    showLockedApp();
   }
-  document.getElementById("paywall").classList.remove("show");
+  loadFeed();
+  return;
+}
+unlockApp();
   if(!localStorage.getItem("codia_onboard")) document.getElementById("onboard").classList.add("show");
   loadFeed();
   loadNotificationsCount();
