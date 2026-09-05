@@ -600,7 +600,7 @@ def miniapp():
 
 @app.route("/login")
 @app.route("/register")
-@app.route("/loging")
+@app.route("/auth")
 def auth_page():
     return send_from_directory(BASE_DIR, "login.html")
 
