@@ -131,7 +131,7 @@ a{text-decoration:none;color:inherit}
           <div class="row">
             <a class="forgot" href="mailto:contact@cod-ia.fr?subject=Mot%20de%20passe%20oublié">Mot de passe oublié ?</a>
           </div>
-          <button id="loginBtn" class="primary" type="submit">Se connecter →</button>
+          <button id="loginBtn" class="primary" type="button" onclick="login()">Se connecter →</button>
           <div id="loginMessage" class="message"></div>
         </form>
 
@@ -156,7 +156,7 @@ a{text-decoration:none;color:inherit}
               <button class="eye" type="button" onclick="togglePassword('registerPassword')">👁</button>
             </div>
           </div>
-          <button id="registerBtn" class="primary" type="submit">Créer mon compte →</button>
+          <button id="registerBtn" class="primary" type="button" onclick="register()">Créer mon compte →</button>
           <div id="registerMessage" class="message"></div>
         </form>
       </section>
