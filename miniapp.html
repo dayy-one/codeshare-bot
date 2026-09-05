@@ -738,10 +738,15 @@ async function boot(){
     return;
   }
   if(result.pending&&(!result.user||!result.user.is_paid)){
-    document.getElementById("auth").classList.remove("show");
-    document.getElementById("paywall").classList.add("show");
-    return;
+  document.getElementById("auth").classList.remove("show");
+  if(!localStorage.getItem("codia_onboard")){
+    document.getElementById("onboard").classList.add("show");
+  }else{
+    showLockedApp();
   }
+  loadFeed();
+  return;
+}
   if(!result.ok||!result.user){
     showAuth();
     loadFeed();
