@@ -75,6 +75,25 @@ def clean_username(v):
     return re.sub(r"[^a-z0-9_.-]", "", (v or "").strip().lower())[:30]
 
 
+def as_int(v):
+    s = str(v or "").strip()
+    return int(s) if s.isdigit() else None
+
+
+def as_meta(obj):
+    if not obj:
+        return {}
+    raw = obj.get("metadata") if hasattr(obj, "get") else None
+    if raw is None and hasattr(obj, "metadata"):
+        raw = obj.metadata
+    if not raw:
+        return {}
+    try:
+        return {str(k): str(v) for k, v in dict(raw).items() if v is not None}
+    except Exception:
+        return {}
+
+
 def ensure_column(cur, table, column, definition):
     cur.execute(
         """SELECT 1 FROM information_schema.columns
@@ -100,6 +119,7 @@ def cleanup_unpaid(cur):
         """DELETE FROM users
            WHERE COALESCE(is_paid, FALSE) = FALSE
              AND COALESCE(is_admin, FALSE) = FALSE
+             AND COALESCE(stripe_session_id, '') = ''
              AND LOWER(email) <> ALL(%s)
              AND LOWER(username) <> ALL(%s)""",
         (emails, names),
@@ -454,11 +474,14 @@ def _remove_code(cur, code_id):
     cur.execute("DELETE FROM codes WHERE id=%s", (code_id,))
 
 
-def activate_paid_user(pending_id=None, user_id=None, stripe_session_id=None):
+def activate_paid_user(pending_id=None, user_id=None, stripe_session_id=None, extra=None):
+    extra = extra or {}
     conn = db()
     try:
         with conn.cursor() as cur:
             user = None
+            pending = None
+
             if user_id:
                 cur.execute(
                     """UPDATE users SET is_paid=TRUE, stripe_session_id=COALESCE(%s, stripe_session_id)
@@ -466,12 +489,33 @@ def activate_paid_user(pending_id=None, user_id=None, stripe_session_id=None):
                     (stripe_session_id, user_id),
                 )
                 user = cur.fetchone()
+
             if not user and pending_id:
                 cur.execute("SELECT * FROM pending_signups WHERE id=%s", (pending_id,))
                 pending = cur.fetchone()
-                if not pending:
-                    conn.commit()
-                    return None
+
+            email = normalize_email(extra.get("email"))
+            username = clean_username(extra.get("username"))
+
+            if not user and not pending and email:
+                cur.execute(
+                    "SELECT * FROM pending_signups WHERE LOWER(email)=LOWER(%s) ORDER BY id DESC LIMIT 1",
+                    (email,),
+                )
+                pending = cur.fetchone()
+
+            if not user and not pending and email:
+                cur.execute("SELECT * FROM users WHERE LOWER(email)=LOWER(%s)", (email,))
+                existing = cur.fetchone()
+                if existing:
+                    cur.execute(
+                        """UPDATE users SET is_paid=TRUE, stripe_session_id=COALESCE(%s, stripe_session_id)
+                           WHERE id=%s RETURNING *""",
+                        (stripe_session_id, existing["id"]),
+                    )
+                    user = cur.fetchone()
+
+            if not user and pending:
                 cur.execute(
                     """SELECT * FROM users
                        WHERE LOWER(email)=LOWER(%s) OR LOWER(username)=LOWER(%s)""",
@@ -530,7 +574,8 @@ def activate_paid_user(pending_id=None, user_id=None, stripe_session_id=None):
                             f"{user['display_name']} a rejoint avec ton code. +1 point.",
                             "REFERRAL",
                         )
-                cur.execute("DELETE FROM pending_signups WHERE id=%s", (pending_id,))
+                cur.execute("DELETE FROM pending_signups WHERE id=%s", (pending["id"],))
+
             conn.commit()
             return user
     except Exception as exc:
@@ -676,6 +721,8 @@ def register():
     session.permanent = True
     session.pop("user_id", None)
     session["pending_id"] = pending_id
+    session["pending_email"] = email
+    session["pending_username"] = username
     return jsonify(
         {
             "ok": True,
@@ -694,6 +741,8 @@ def register():
 def cancel_signup():
     pending_id = session.pop("pending_id", None)
     session.pop("user_id", None)
+    session.pop("pending_email", None)
+    session.pop("pending_username", None)
     if pending_id:
         conn = db()
         try:
@@ -808,17 +857,42 @@ def create_checkout():
         ]
     )
     return_url = f"{SERVER_URL}/app?paid=1&session_id={{CHECKOUT_SESSION_ID}}"
+    pending_email = session.get("pending_email") or ""
+    pending_username = session.get("pending_username") or ""
+    if pending_id:
+        conn = db()
+        try:
+            with conn.cursor() as cur:
+                cur.execute(
+                    "SELECT email, username FROM pending_signups WHERE id=%s",
+                    (pending_id,),
+                )
+                row = cur.fetchone()
+                if row:
+                    pending_email = row.get("email") or pending_email
+                    pending_username = row.get("username") or pending_username
+        finally:
+            conn.close()
+
     meta = {}
     if pending_id:
         meta["pending_id"] = str(pending_id)
     if user:
         meta["user_id"] = str(user["id"])
+        meta["email"] = user.get("email") or ""
+        meta["username"] = user.get("username") or ""
+    if pending_email:
+        meta["email"] = pending_email
+    if pending_username:
+        meta["username"] = pending_username
+
     try:
         checkout = stripe.checkout.Session.create(
             mode="payment",
             line_items=items,
             ui_mode="embedded_page",
             return_url=return_url,
+            client_reference_id=str(pending_id or (user["id"] if user else "")),
             metadata=meta,
         )
         secret = getattr(checkout, "client_secret", None)
@@ -829,29 +903,48 @@ def create_checkout():
         logging.exception("STRIPE CHECKOUT ERROR")
         return json_error("Stripe : " + str(exc), 500)
 
+
 @app.get("/api/confirm-payment")
 def confirm_payment():
     sid = request.args.get("session_id") or ""
-    if sid and stripe:
-        try:
-            checkout = stripe.checkout.Session.retrieve(sid)
-            if checkout.get("payment_status") == "paid":
-                meta = checkout.get("metadata") or {}
-                user = activate_paid_user(
-                    pending_id=int(meta["pending_id"])
-                    if meta.get("pending_id")
-                    else session.get("pending_id"),
-                    user_id=int(meta["user_id"]) if meta.get("user_id") else None,
-                    stripe_session_id=sid,
-                )
-                if user:
-                    session["user_id"] = user["id"]
-                    session.pop("pending_id", None)
-                    session.permanent = True
-                    return jsonify({"ok": True, "paid": True})
-        except Exception as exc:
-            logging.error("Confirm payment: %s", exc)
-    return jsonify({"ok": False, "paid": False})
+    if not (sid and stripe):
+        return jsonify({"ok": False, "paid": False})
+    try:
+        checkout = stripe.checkout.Session.retrieve(sid)
+        status = str(checkout.get("payment_status") or "").lower()
+        if status not in ("paid", "no_payment_required"):
+            return jsonify({"ok": False, "paid": False, "status": status})
+
+        meta = as_meta(checkout)
+        pending_id = as_int(
+            meta.get("pending_id")
+            or session.get("pending_id")
+            or checkout.get("client_reference_id")
+        )
+        user_id = as_int(meta.get("user_id"))
+        if not meta.get("email"):
+            meta["email"] = session.get("pending_email") or ""
+        if not meta.get("username"):
+            meta["username"] = session.get("pending_username") or ""
+
+        user = activate_paid_user(
+            pending_id=pending_id,
+            user_id=user_id,
+            stripe_session_id=sid,
+            extra=meta,
+        )
+        if not user:
+            return jsonify({"ok": False, "paid": False, "error": "Compte introuvable après paiement"})
+
+        session["user_id"] = user["id"]
+        session.pop("pending_id", None)
+        session.pop("pending_email", None)
+        session.pop("pending_username", None)
+        session.permanent = True
+        return jsonify({"ok": True, "paid": True, "email": user.get("email")})
+    except Exception as exc:
+        logging.error("Confirm payment: %s", exc)
+        return jsonify({"ok": False, "paid": False, "error": str(exc)})
 
 
 @app.post("/stripe/webhook")
@@ -870,11 +963,13 @@ def stripe_webhook():
         return "invalid", 400
     if event["type"] in ("checkout.session.completed", "checkout.session.async_payment_succeeded"):
         obj = event["data"]["object"]
-        meta = obj.get("metadata") or {}
+        meta = as_meta(obj)
+        pending_id = as_int(meta.get("pending_id") or obj.get("client_reference_id"))
         activate_paid_user(
-            pending_id=int(meta["pending_id"]) if meta.get("pending_id") else None,
-            user_id=int(meta["user_id"]) if meta.get("user_id") else None,
+            pending_id=pending_id,
+            user_id=as_int(meta.get("user_id")),
             stripe_session_id=obj.get("id"),
+            extra=meta,
         )
     return "ok", 200
 
