@@ -813,18 +813,12 @@ def create_checkout():
         meta["pending_id"] = str(pending_id)
     if user:
         meta["user_id"] = str(user["id"])
-    try:
-        # Embedded Checkout est le mode utilisé par miniapp.html via
-        # Stripe(key).initEmbeddedCheckout({clientSecret}).
-        # Les moyens de paiement automatiques permettent à Stripe
-        # d'afficher Apple Pay / Google Pay lorsque le navigateur,
-        # l'appareil et le domaine sont éligibles.
+        try:
         checkout = stripe.checkout.Session.create(
             mode="payment",
             line_items=items,
             ui_mode="embedded",
             return_url=return_url,
-            automatic_payment_methods={"enabled": True},
             metadata=meta,
         )
         secret = getattr(checkout, "client_secret", None)
