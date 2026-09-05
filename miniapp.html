@@ -1250,7 +1250,21 @@ async function hideCode(id){await api(`/api/codes/${id}/hide`,{method:"POST"});c
 async function startPayment(){const uid=currentUser&&currentUser.id?currentUser.id:localStorage.getItem("codia_user_id");toast("Ouverture du paiement...");const r=await api("/api/create-checkout",{method:"POST",body:JSON.stringify({user_id:uid})});if(!r.ok){toast(r.error||"Paiement impossible");return}if(r.already_paid){document.getElementById("paywall").classList.remove("show");await boot();return}const secret=r.client_secret||r.clientSecret;if(!secret){toast("Stripe n'a pas renvoyé de session.");return}document.getElementById("paywallIntro").style.display="none";document.getElementById("stripeBox").style.display="block";try{await initializeStripe(secret)}catch(e){toast("Stripe JS : "+e.message);backPaywall()}}
 async function initializeStripe(clientSecret){let cfg=await api("/config");if(!cfg.stripe_pk)cfg=await api("/api/stripe-config");const key=cfg.stripe_pk||cfg.publishable_key;if(!key)throw new Error("STRIPE_PUBLISHABLE_KEY manquante");const checkout=await Stripe(key).initEmbeddedCheckout({clientSecret});document.getElementById("stripeCheckout").innerHTML="";checkout.mount("#stripeCheckout")}
 function backPaywall(){document.getElementById("stripeBox").style.display="none";document.getElementById("paywallIntro").style.display="block";document.getElementById("stripeCheckout").innerHTML=""}
-function nextOnboard(){onboardStep++;if(onboardStep>=ONBOARD.length){localStorage.setItem("codia_onboard","1");document.getElementById("onboard").classList.remove("show");return}const s=ONBOARD[onboardStep];document.getElementById("onboardIco").textContent=s.ico;document.getElementById("onboardTitle").textContent=s.title;document.getElementById("onboardText").textContent=s.text}
+function showLockedApp(){document.getElementById("auth").classList.remove("show");document.getElementById("onboard").classList.remove("show");document.body.classList.add("locked");document.getElementById("paywall").classList.add("show");loadFeed();}
+function unlockApp(){document.body.classList.remove("locked");document.getElementById("paywall").classList.remove("show");}
+function nextOnboard(){
+  onboardStep++;
+  if(onboardStep>=ONBOARD.length){
+    localStorage.setItem("codia_onboard","1");
+    document.getElementById("onboard").classList.remove("show");
+    showLockedApp();
+    return;
+  }
+  const s=ONBOARD[onboardStep];
+  document.getElementById("onboardIco").textContent=s.ico;
+  document.getElementById("onboardTitle").textContent=s.title;
+  document.getElementById("onboardText").textContent=s.text;
+}
 function closeModal(id){document.getElementById(id)?.classList.remove("open")}
 function closeAllModals(){document.querySelectorAll(".modal").forEach(el=>el.classList.remove("open"))}
 document.addEventListener("DOMContentLoaded",()=>{const ref=new URLSearchParams(location.search).get("ref");if(ref)document.getElementById("registerReferral").value=ref;boot()});
