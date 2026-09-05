@@ -734,6 +734,14 @@ function logout(){location.href="/logout"}
 
 async function boot(){
   const params=new URLSearchParams(location.search);
+  if(params.get("auth")==="login"){
+    document.getElementById("paywall").classList.remove("show");
+    document.getElementById("onboard").classList.remove("show");
+    document.body.classList.remove("locked");
+    showAuth("login");
+    history.replaceState({}, "", "/app");
+    return;
+  }
   if(params.get("paid")==="1"&&params.get("session_id")){
     await api("/api/confirm-payment?session_id="+encodeURIComponent(params.get("session_id")));
   }
