@@ -1,0 +1,499 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#f8f7f1">
+<meta name="description" content="Connectez-vous à COD.IA ou créez votre compte pour accéder à votre espace personnel de codes promo, offres et récompenses.">
+<meta name="robots" content="noindex, nofollow, noarchive">
+<meta name="googlebot" content="noindex, nofollow, noarchive">
+<meta name="author" content="COD.IA">
+<meta name="application-name" content="COD.IA">
+<meta property="og:title" content="Connexion à COD.IA">
+<meta property="og:description" content="Accédez à votre espace COD.IA et retrouvez vos codes promo, offres et récompenses.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="COD.IA">
+<title>COD.IA — Connexion</title>
+<style>
+:root{
+  --bg:#f8f7f1;--ink:#172019;--muted:#747b77;
+  --green:#4e702f;--green2:#668b43;--line:rgba(48,67,45,.14);
+  --pale:#e8efd8;--serif:Georgia,"Times New Roman",serif
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;background:var(--bg);color:var(--ink);
+  font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;
+  -webkit-font-smoothing:antialiased
+}
+button,input{font:inherit}
+a{text-decoration:none;color:inherit}
+.page{
+  min-height:100vh;overflow:hidden;position:relative;
+  isolation:isolate;
+  background:
+    radial-gradient(circle at 50% 28%,rgba(255,255,255,.96),transparent 36%),
+    radial-gradient(circle at 0% 100%,rgba(225,234,207,.42),transparent 28%),
+    radial-gradient(circle at 100% 0%,rgba(225,234,207,.34),transparent 24%),
+    var(--bg)
+}
+.page:before{
+  content:"";position:fixed;inset:0;pointer-events:none;opacity:.12;
+  background-image:radial-gradient(rgba(42,62,38,.10) .7px,transparent .7px);
+  background-size:19px 19px
+}
+.nav{
+  height:78px;padding:0 clamp(20px,5vw,76px);
+  display:flex;align-items:center;justify-content:space-between;
+  position:relative;z-index:20;
+  border-bottom:1px solid rgba(48,67,45,.055);
+  background:rgba(248,247,241,.58);backdrop-filter:blur(18px) saturate(115%)
+}
+.logo{display:flex;align-items:center;gap:12px}
+.mark{
+  width:43px;height:43px;border:2px solid var(--green);
+  border-radius:50%;position:relative
+}
+.mark:before{
+  content:"";position:absolute;width:27px;height:14px;
+  border:1.4px solid var(--green);border-radius:50%;
+  left:6px;top:12px;transform:rotate(90deg)
+}
+.mark:after{
+  content:"";position:absolute;width:33px;height:15px;
+  border-top:1.4px solid var(--green);
+  border-bottom:1.4px solid var(--green);
+  border-radius:50%;left:3px;top:12px
+}
+.logo-name{
+  display:block;font:800 28px/1 var(--serif);
+  letter-spacing:-1.5px
+}
+.logo-name i{font-style:normal;color:var(--green);font-size:23px}
+.logo-sub{display:block;margin-top:5px;font-size:10px;color:#747b77}
+.logo-sub b{color:var(--green)}
+.back{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:9px 14px;border:1px solid rgba(48,67,45,.11);
+  border-radius:999px;background:rgba(255,255,255,.66);
+  color:#59635d;font-size:11px;font-weight:850;letter-spacing:.1px;
+  transition:transform .2s,box-shadow .2s,border-color .2s,background .2s
+}
+.back:hover{transform:translateY(-2px);box-shadow:0 10px 25px rgba(30,52,30,.08)}
+
+.main{
+  min-height:calc(100vh - 78px);
+  display:flex;justify-content:center;align-items:center;
+  padding:42px 20px 48px;position:relative;z-index:2
+}
+
+.content{
+  width:min(500px,100%);text-align:center;position:relative
+}
+.intro{
+  margin:0 0 22px;
+  position:relative;
+  z-index:2;
+}
+.eyebrow{
+  display:inline-block;
+  font-size:10px;
+  font-weight:900;
+  letter-spacing:3px;
+  color:#668052;
+  margin-bottom:9px;
+}
+.intro h1{
+  margin:0;
+  font:700 clamp(38px,5vw,50px)/.98 var(--serif);
+  letter-spacing:-2.7px;
+  color:#1d2821;
+}
+.intro p{
+  margin:11px 0 0;
+  color:#7a837d;
+  font-size:14px;
+  line-height:1.55;
+}
+
+.card{
+  position:relative;text-align:left;
+  background:rgba(255,255,255,.96);
+  border:1px solid rgba(48,67,45,.11);
+  border-radius:27px;padding:34px 39px 28px;
+  box-shadow:0 24px 70px rgba(44,61,39,.075),0 2px 8px rgba(44,61,39,.028);
+  backdrop-filter:blur(8px);
+  animation:cardIn .65s cubic-bezier(.2,.8,.2,1) both
+}
+.card:before{display:none}
+.card-head{text-align:center;margin-bottom:27px}
+.card h1{
+  margin:0;font:700 34px/1.02 var(--serif);
+  letter-spacing:-1.7px;color:#1f2a23
+}
+.card-sub{margin:9px 0 0;color:#737c77;font-size:13px;line-height:1.45}
+
+.tabs{
+  display:grid;grid-template-columns:1fr 1fr;
+  padding:4px;background:#f1f3ee;
+  border:1px solid #e2e7de;border-radius:14px;margin-bottom:22px
+}
+.tab{
+  height:42px;border:0;border-radius:10px;background:transparent;
+  color:#7a837d;font-size:12px;font-weight:850;cursor:pointer;transition:.2s
+}
+.tab.active{
+  background:#fff;color:#45672f;
+  box-shadow:0 4px 14px rgba(30,52,30,.075)
+}
+.form-panel{display:none}
+.form-panel.active{display:block}
+
+.field{margin-top:15px}
+.field label{
+  display:block;font-size:13px;font-weight:800;
+  color:#26332b;margin:0 0 8px 2px
+}
+.input-wrap{position:relative}
+.input-wrap input{
+  width:100%;height:56px;border-radius:15px;
+  border:1px solid #d8ded4;background:#fefefd;
+  color:var(--ink);padding:0 17px;outline:none;transition:border-color .2s,box-shadow .2s,background .2s
+}
+.input-wrap input:focus{
+  border-color:#7f9d61;background:#fff;
+  box-shadow:0 0 0 4px rgba(105,139,69,.085)
+}
+.input-wrap input::placeholder{color:#9ca39f}
+.eye{
+  position:absolute;right:7px;top:8px;width:40px;height:40px;
+  border:0;background:transparent;border-radius:10px;
+  color:#668052;cursor:pointer;display:grid;place-items:center;
+  transition:background .2s,color .2s
+}
+.eye:hover{background:#eef3e8;color:#4e702f}
+.eye svg{width:19px;height:19px;display:block}
+.row{display:flex;justify-content:flex-end;margin:10px 2px 0}
+.forgot{font-size:12px;color:#55743a;font-weight:800}
+.forgot:hover{text-decoration:underline}
+
+.primary{
+  width:100%;height:56px;margin-top:21px;border:0;border-radius:15px;
+  color:#fff;background:linear-gradient(135deg,#5b7f3a 0%,#45682b 100%);
+  font-weight:850;font-size:14px;cursor:pointer;letter-spacing:.05px;
+  box-shadow:0 11px 25px rgba(78,112,47,.18);transition:transform .2s,box-shadow .2s,filter .2s
+}
+.primary:hover{transform:translateY(-2px);box-shadow:0 17px 34px rgba(78,112,47,.24);filter:saturate(1.03)}
+.primary:hover span{display:inline-block;transform:translateX(3px)}
+.primary span{transition:transform .2s}
+.primary:disabled{opacity:.65;cursor:wait;transform:none}
+
+.message{
+  min-height:18px;margin:11px 2px 0;text-align:center;
+  color:#a3473f;font-size:12px;font-weight:700
+}
+.message.ok{color:#4e702f}
+.security{
+  display:flex;justify-content:center;align-items:center;gap:6px;
+  text-align:center;color:#8a928d;font-size:10px;margin-top:12px
+}
+.security svg{width:12px;height:12px;opacity:.72}
+.hint{margin:8px 2px 0;color:#8b938e;font-size:10px;line-height:1.45}
+.required-note{color:#8b938e;font-size:10px;margin:14px 2px 0}
+.home{display:none}
+
+.loading{display:inline-flex;align-items:center;gap:7px}
+.spinner{
+  width:12px;height:12px;border:2px solid rgba(255,255,255,.35);
+  border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite
+}
+
+.back:focus-visible,.tab:focus-visible,.primary:focus-visible,.eye:focus-visible,.forgot:focus-visible,.home a:focus-visible{
+  outline:3px solid rgba(78,112,47,.22);outline-offset:3px
+}
+
+@media(prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+}
+
+@keyframes cardIn{
+  from{opacity:0;transform:translateY(22px) scale(.985)}
+  to{opacity:1;transform:none}
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+@media(max-width:650px){
+  .nav{height:70px;padding:0 15px}
+  .mark{width:36px;height:36px}
+  .logo-name{font-size:22px}.logo-name i{font-size:18px}
+  .logo-sub{font-size:8px}.back{padding:9px 12px;font-size:10px}
+  .main{min-height:calc(100vh - 70px);padding:26px 12px 34px}
+  .intro{margin-bottom:18px}
+  .intro h1{font-size:32px}
+  .intro p{font-size:12px}
+  .card{border-radius:23px;padding:26px 19px 23px}
+  .card h1{font-size:29px}
+  .card-sub{font-size:13px}
+  .input-wrap input{height:52px}
+}
+</style>
+</head>
+<body>
+<div class="page">
+  <header class="nav">
+    <a class="back" href="/">← Retour à COD.IA</a>
+  </header>
+
+  <main class="main">
+
+    <section class="content">
+      <div class="intro">
+        <span class="eyebrow">ESPACE PERSONNEL</span>
+        <h1>Bienvenue sur COD.IA</h1>
+        <p>Ton espace personnel, simplement.</p>
+      </div>
+
+      <section class="card">
+
+        <div class="card-head">
+          <h1 id="cardTitle">Se connecter</h1>
+          <p class="card-sub" id="cardSub">Accède à ton espace COD.IA</p>
+        </div>
+
+        <div class="tabs">
+          <button class="tab active" id="loginTab" type="button" onclick="showTab('login')">Connexion</button>
+          <button class="tab" id="registerTab" type="button" onclick="showTab('register')">Inscription</button>
+        </div>
+
+        <form id="loginPanel" class="form-panel active" onsubmit="login(event)">
+          <div class="field">
+            <label for="identifier">Adresse e-mail</label>
+            <div class="input-wrap">
+              <input id="identifier" type="email" autocomplete="email"
+                     placeholder="exemple@email.com" required>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="password">Mot de passe</label>
+            <div class="input-wrap">
+              <input id="password" type="password" autocomplete="current-password"
+                     placeholder="Ton mot de passe" required>
+              <button class="eye" type="button"
+                      onclick="togglePassword('password','loginEye')"
+                      id="loginEye" aria-label="Afficher le mot de passe" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><circle cx="12" cy="12" r="2.7" stroke="currentColor" stroke-width="1.7"/></svg></button>
+            </div>
+          </div>
+
+          <div class="row">
+            <a class="forgot"
+               href="mailto:contact@cod-ia.fr?subject=Mot%20de%20passe%20oublié%20COD.IA">
+              Mot de passe oublié ?
+            </a>
+          </div>
+
+          <button id="loginBtn" class="primary" type="submit">
+            Se connecter <span>→</span>
+          </button>
+
+          <div id="loginMessage" class="message"></div>
+          <div class="security">
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3.5 19 6v5.5c0 4.5-2.9 7.8-7 9-4.1-1.2-7-4.5-7-9V6l7-2.5Z" stroke="currentColor" stroke-width="1.6"/><path d="m9 12 2 2 4-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Connexion sécurisée
+            </div>
+        </form>
+
+        <form id="registerPanel" class="form-panel" onsubmit="register(event)">
+          <div class="field">
+            <label for="registerName">Nom / prénom</label>
+            <div class="input-wrap">
+              <input id="registerName" type="text" autocomplete="name"
+                     placeholder="Ton nom ou prénom" maxlength="80" required>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="registerUsername">Nom utilisateur</label>
+            <div class="input-wrap">
+              <input id="registerUsername" type="text" autocomplete="username"
+                     placeholder="ex. alex123" minlength="3" maxlength="30" required>
+            </div>
+            <div class="hint">3 caractères minimum • lettres, chiffres, . _ -</div>
+          </div>
+
+          <div class="field">
+            <label for="registerEmail">Adresse e-mail</label>
+            <div class="input-wrap">
+              <input id="registerEmail" type="email" autocomplete="email"
+                     placeholder="ton@email.com" maxlength="160" required>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="registerPassword">Mot de passe</label>
+            <div class="input-wrap">
+              <input id="registerPassword" type="password" autocomplete="new-password"
+                     placeholder="8 caractères minimum" minlength="8" required>
+              <button class="eye" type="button"
+                      onclick="togglePassword('registerPassword','registerEye')"
+                      id="registerEye" aria-label="Afficher le mot de passe" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><circle cx="12" cy="12" r="2.7" stroke="currentColor" stroke-width="1.7"/></svg></button>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="registerReferral">
+              Code de parrainage
+              <span style="font-weight:500;color:#8b938e">(facultatif)</span>
+            </label>
+            <div class="input-wrap">
+              <input id="registerReferral" type="text"
+                     placeholder="ex. CODIA123456" maxlength="30"
+                     style="text-transform:uppercase">
+            </div>
+          </div>
+
+          <div class="required-note">
+            En créant ton compte, tu pourras ensuite activer ton accès COD.IA.
+          </div>
+
+          <button id="registerBtn" class="primary" type="submit">
+            Créer mon compte <span>→</span>
+          </button>
+
+          <div id="registerMessage" class="message"></div>
+        </form>
+
+        <div class="home"><a href="/">Retour à l'accueil</a></div>
+      </section>
+    </section>
+  </main>
+</div>
+
+<script>
+function showTab(tab){
+  const loginActive = tab === 'login';
+
+  document.getElementById('loginTab').classList.toggle('active', loginActive);
+  document.getElementById('registerTab').classList.toggle('active', !loginActive);
+  document.getElementById('loginPanel').classList.toggle('active', loginActive);
+  document.getElementById('registerPanel').classList.toggle('active', !loginActive);
+
+  document.getElementById('cardTitle').textContent =
+    loginActive ? 'Se connecter' : 'Créer ton compte';
+  document.getElementById('cardSub').textContent =
+    loginActive
+      ? 'Accède à ton espace COD.IA'
+      : 'Rejoins la communauté COD.IA en quelques secondes';
+
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function togglePassword(inputId,buttonId){
+  const input=document.getElementById(inputId);
+  const button=document.getElementById(buttonId);
+  const visible=input.type==='text';
+  input.type=visible?'password':'text';
+  button.innerHTML=visible ? '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3 3l18 18" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M9.9 5.3A10.8 10.8 0 0 1 12 5c6 0 9.5 7 9.5 7a18.8 18.8 0 0 1-3.1 3.9M6.1 6.1C3.8 7.8 2.5 12 2.5 12s3.5 7 9.5 7c1.2 0 2.3-.2 3.3-.6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>' : '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><circle cx="12" cy="12" r="2.7" stroke="currentColor" stroke-width="1.7"/></svg>';
+  button.setAttribute('aria-pressed',String(!visible));
+}
+
+function setMessage(id,text,ok=false){
+  const el=document.getElementById(id);
+  el.textContent=text||'';
+  el.classList.toggle('ok',!!ok);
+}
+
+async function login(e){
+  e.preventDefault();
+
+  const btn=document.getElementById('loginBtn');
+  setMessage('loginMessage','');
+  btn.disabled=true;
+  btn.innerHTML='<span class="loading"><span class="spinner"></span> Connexion…</span>';
+
+  try{
+    const response=await fetch('/auth/login',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      credentials:'same-origin',
+      body:JSON.stringify({
+        identifier:document.getElementById('identifier').value.trim(),
+        password:document.getElementById('password').value
+      })
+    });
+
+    const data=await response.json().catch(()=>({}));
+
+    if(!response.ok || !data.ok){
+      setMessage('loginMessage',data.error||'Email ou mot de passe incorrect.');
+      btn.disabled=false;
+      btn.innerHTML='Se connecter <span>→</span>';
+      return;
+    }
+
+    location.href=data.redirect||'/app';
+
+  }catch(err){
+    setMessage('loginMessage','Impossible de contacter COD.IA. Réessaie dans un instant.');
+    btn.disabled=false;
+    btn.innerHTML='Se connecter <span>→</span>';
+  }
+}
+
+async function register(e){
+  e.preventDefault();
+
+  const btn=document.getElementById('registerBtn');
+  const email=document.getElementById('registerEmail').value.trim();
+  const username=document.getElementById('registerUsername').value.trim().toLowerCase();
+  const password=document.getElementById('registerPassword').value;
+  const displayName=document.getElementById('registerName').value.trim();
+  const referral=document.getElementById('registerReferral').value.trim().toUpperCase();
+
+  setMessage('registerMessage','');
+  btn.disabled=true;
+  btn.innerHTML='<span class="loading"><span class="spinner"></span> Création…</span>';
+
+  try{
+    const response=await fetch('/auth/register',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      credentials:'same-origin',
+      body:JSON.stringify({
+        email:email,
+        username:username,
+        password:password,
+        display_name:displayName,
+        referral_code:referral
+      })
+    });
+
+    const data=await response.json().catch(()=>({}));
+
+    if(!response.ok || !data.ok){
+      setMessage('registerMessage',data.error||'Impossible de créer le compte.');
+      btn.disabled=false;
+      btn.innerHTML='Créer mon compte <span>→</span>';
+      return;
+    }
+
+    setMessage('registerMessage','Compte créé. Préparation de ton accès…',true);
+
+    setTimeout(()=>{
+      location.href='/app?register=1';
+    },350);
+
+  }catch(err){
+    setMessage('registerMessage','Impossible de contacter COD.IA. Réessaie dans un instant.');
+    btn.disabled=false;
+    btn.innerHTML='Créer mon compte <span>→</span>';
+  }
+}
+
+const params=new URLSearchParams(location.search);
+if(params.get('register')==='1') showTab('register');
+</script>
+</body>
+</html>
