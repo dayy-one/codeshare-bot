@@ -598,6 +598,13 @@ def miniapp():
     return send_from_directory(BASE_DIR, "miniapp.html")
 
 
+@app.route("/login")
+@app.route("/register")
+@app.route("/loging")
+def auth_page():
+    return send_from_directory(BASE_DIR, "login.html")
+
+
 DASHBOARD_PASSWORD = os.getenv("DASHBOARD_PASSWORD", "CodiaAdmin2026!")
 
 
