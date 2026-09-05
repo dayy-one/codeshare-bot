@@ -802,6 +802,7 @@ async function boot(){
   return;
 }
 unlockApp();
+showReferralCard();
   if(!localStorage.getItem("codia_onboard")) document.getElementById("onboard").classList.add("show");
   loadFeed();
   loadNotificationsCount();
