@@ -813,7 +813,7 @@ def create_checkout():
         meta["pending_id"] = str(pending_id)
     if user:
         meta["user_id"] = str(user["id"])
-        try:
+    try:
         checkout = stripe.checkout.Session.create(
             mode="payment",
             line_items=items,
@@ -828,7 +828,6 @@ def create_checkout():
     except Exception as exc:
         logging.exception("STRIPE CHECKOUT ERROR")
         return json_error("Stripe : " + str(exc), 500)
-
 
 @app.get("/api/confirm-payment")
 def confirm_payment():
