@@ -1301,9 +1301,12 @@ async function initializeStripe(clientSecret){let cfg=await api("/config");if(!c
 function backPaywall(){document.getElementById("stripeBox").style.display="none";document.getElementById("paywallIntro").style.display="block";document.getElementById("stripeCheckout").innerHTML=""}
 function showLockedApp(){document.getElementById("auth").classList.remove("show");document.getElementById("onboard").classList.remove("show");document.body.classList.add("locked");document.getElementById("paywall").classList.add("show");loadFeed();}
 function unlockApp(){document.body.classList.remove("locked");document.getElementById("paywall").classList.remove("show");}
-function unlockApp(){
-  document.body.classList.remove("locked");
-  document.getElementById("paywall").classList.remove("show");
+function showReferralCard(){
+  if(localStorage.getItem("codia_ref_card_done")==="1") return false;
+  const el=document.getElementById("refOverlay");
+  if(!el) return false;
+  el.classList.add("show");
+  return true;
 }
 function nextOnboard(){
   onboardStep++;
