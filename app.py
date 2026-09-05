@@ -776,6 +776,62 @@ def register():
         }
     )
 
+
+@app.post("/api/apply-referral")
+def apply_referral():
+    data = request.get_json(silent=True) or {}
+    skip = bool(data.get("skip"))
+    code = (data.get("referral_code") or "").strip().upper()
+    user = get_current_user()
+    pending_id = session.get("pending_id")
+
+    if skip:
+        session["referral_done"] = True
+        return jsonify({"ok": True, "skipped": True})
+
+    if not code:
+        return json_error("Entre un code de parrainage.")
+
+    conn = db()
+    try:
+        with conn.cursor() as cur:
+            cur.execute("SELECT id, display_name FROM users WHERE referral_code=%s", (code,))
+            ref = cur.fetchone()
+            if not ref:
+                return json_error("Ce code de parrainage n'existe pas.")
+
+            if user:
+                if user["id"] == ref["id"]:
+                    return json_error("Tu ne peux pas utiliser ton propre code.")
+                if user.get("referred_by"):
+                    session["referral_done"] = True
+                    return jsonify({"ok": True, "already": True})
+                cur.execute(
+                    "UPDATE users SET referred_by=%s WHERE id=%s AND referred_by IS NULL",
+                    (ref["id"], user["id"]),
+                )
+                create_notification(
+                    cur,
+                    ref["id"],
+                    "Nouveau parrainage",
+                    f"{user.get('display_name') or user.get('username')} a rejoint avec ton code. +1 point.",
+                    "REFERRAL",
+                )
+            elif pending_id:
+                cur.execute(
+                    "UPDATE pending_signups SET referral_code=%s WHERE id=%s",
+                    (code, pending_id),
+                )
+            else:
+                return json_error("Connecte-toi d'abord.", 401)
+        conn.commit()
+    finally:
+        conn.close()
+
+    session["referral_done"] = True
+    return jsonify({"ok": True})
+
+
 @app.post("/api/cancel-signup")
 def cancel_signup():
     pending_id = session.pop("pending_id", None)
