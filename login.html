@@ -494,6 +494,7 @@ async function register(e){
 
 const params=new URLSearchParams(location.search);
 if(params.get('register')==='1') showTab('register');
+if(location.pathname.indexOf('register')!==-1) showTab('register');
 </script>
 </body>
 </html>
