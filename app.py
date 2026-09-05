@@ -813,33 +813,27 @@ def create_checkout():
         meta["pending_id"] = str(pending_id)
     if user:
         meta["user_id"] = str(user["id"])
-    last_error = None
-for ui_mode in ("embedded", "embedded_page"):
     try:
+        # Embedded Checkout est le mode utilisé par miniapp.html via
+        # Stripe(key).initEmbeddedCheckout({clientSecret}).
+        # Les moyens de paiement automatiques permettent à Stripe
+        # d'afficher Apple Pay / Google Pay lorsque le navigateur,
+        # l'appareil et le domaine sont éligibles.
         checkout = stripe.checkout.Session.create(
             mode="payment",
             line_items=items,
-            ui_mode=ui_mode,
+            ui_mode="embedded",
             return_url=return_url,
             automatic_payment_methods={"enabled": True},
             metadata=meta,
         )
-
         secret = getattr(checkout, "client_secret", None)
-
         if not secret:
-            raise RuntimeError("Pas de client_secret")
-
-        return jsonify({
-            "ok": True,
-            "client_secret": secret,
-            "clientSecret": secret
-        })
-
+            raise RuntimeError("Stripe n'a pas renvoyé de client_secret")
+        return jsonify({"ok": True, "client_secret": secret, "clientSecret": secret})
     except Exception as exc:
-        last_error = exc
-        logging.error("Stripe %s: %s", ui_mode, exc)
-    return json_error("Stripe : " + str(last_error), 500)
+        logging.exception("STRIPE CHECKOUT ERROR")
+        return json_error("Stripe : " + str(exc), 500)
 
 
 @app.get("/api/confirm-payment")
