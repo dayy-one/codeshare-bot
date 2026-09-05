@@ -495,6 +495,16 @@ async function register(e){
 const params=new URLSearchParams(location.search);
 if(params.get('register')==='1') showTab('register');
 if(location.pathname.indexOf('register')!==-1) showTab('register');
+<script>
+(function(){
+  const API="https://countapi.mileshilliard.com/api/v1";
+  const hit=k=>fetch(API+"/hit/"+encodeURIComponent(k)).catch(()=>{});
+  document.addEventListener("click",e=>{
+    const t=(e.target.closest("button,a")?.innerText||"").toLowerCase();
+    if(t.includes("se connecter")||t.includes("connexion")) hit("codia-fr-clics-connexion-xyz123");
+    if(t.includes("créer mon compte")||t.includes("inscription")) hit("codia-fr-clics-inscription-xyz123");
+  });
+})();
 </script>
 </body>
 </html>
