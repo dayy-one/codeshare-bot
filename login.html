@@ -256,6 +256,71 @@ async function skipReferral(){
 if(location.pathname.indexOf("register")!==-1 || new URLSearchParams(location.search).get("register")==="1"){
   showTab("register");
 }
+<script>
+async function register(){
+  const btn=document.getElementById("registerBtn");
+  const box=document.getElementById("registerMessage");
+  if(btn) btn.disabled=true;
+  if(box) box.textContent="";
+
+  const name=document.getElementById("registerName");
+  const user=document.getElementById("registerUsername");
+  const email=document.getElementById("registerEmail");
+  const pass=document.getElementById("registerPassword");
+
+  try{
+    const r=await fetch("/auth/register",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      credentials:"same-origin",
+      body:JSON.stringify({
+        display_name:name?name.value.trim():"",
+        username:user?user.value.trim():"",
+        email:email?email.value.trim():"",
+        password:pass?pass.value:"",
+        referral_code:""
+      })
+    });
+    const data=await r.json().catch(()=>({}));
+    if(!r.ok || !data.ok){
+      if(box) box.textContent=data.error||"Impossible de créer le compte.";
+      if(btn) btn.disabled=false;
+      return;
+    }
+    location.href="/app";
+  }catch(e){
+    if(box) box.textContent="Impossible de contacter COD.IA.";
+    if(btn) btn.disabled=false;
+  }
+}
+
+async function login(){
+  const btn=document.getElementById("loginBtn");
+  const box=document.getElementById("loginMessage");
+  if(btn) btn.disabled=true;
+  if(box) box.textContent="";
+  try{
+    const r=await fetch("/auth/login",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      credentials:"same-origin",
+      body:JSON.stringify({
+        identifier:(document.getElementById("identifier")||{}).value||"",
+        password:(document.getElementById("password")||{}).value||""
+      })
+    });
+    const data=await r.json().catch(()=>({}));
+    if(!r.ok || !data.ok){
+      if(box) box.textContent=data.error||"Email ou mot de passe incorrect.";
+      if(btn) btn.disabled=false;
+      return;
+    }
+    location.href="/app";
+  }catch(e){
+    if(box) box.textContent="Impossible de contacter COD.IA.";
+    if(btn) btn.disabled=false;
+  }
+}
 </script>
 </body>
 </html>
