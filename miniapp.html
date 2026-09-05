@@ -1301,6 +1301,10 @@ async function initializeStripe(clientSecret){let cfg=await api("/config");if(!c
 function backPaywall(){document.getElementById("stripeBox").style.display="none";document.getElementById("paywallIntro").style.display="block";document.getElementById("stripeCheckout").innerHTML=""}
 function showLockedApp(){document.getElementById("auth").classList.remove("show");document.getElementById("onboard").classList.remove("show");document.body.classList.add("locked");document.getElementById("paywall").classList.add("show");loadFeed();}
 function unlockApp(){document.body.classList.remove("locked");document.getElementById("paywall").classList.remove("show");}
+function unlockApp(){
+  document.body.classList.remove("locked");
+  document.getElementById("paywall").classList.remove("show");
+}
 function nextOnboard(){
   onboardStep++;
   if(onboardStep>=ONBOARD.length){
