@@ -72,21 +72,6 @@ a{text-decoration:none;color:inherit}
 .message{min-height:18px;margin:11px 2px 0;text-align:center;color:#a3473f;font-size:12px;font-weight:700}
 .message.ok{color:#4e702f}
 .hint{color:#8b938e;font-size:10px;margin-top:6px}
-
-.ref-overlay{
-  position:fixed;inset:0;display:none;align-items:center;justify-content:center;
-  padding:20px;background:rgba(16,22,12,.45);z-index:50
-}
-.ref-overlay.show{display:flex}
-.ref-card{
-  width:min(420px,100%);background:#fff;border-radius:28px;padding:28px 24px;
-  text-align:center;box-shadow:0 30px 80px rgba(10,16,8,.28)
-}
-.ref-card h2{margin:0 0 8px;font:700 28px/1.1 var(--serif)}
-.ghost{
-  width:100%;margin-top:10px;border:0;background:transparent;
-  color:#6a7362;font-weight:750;padding:12px;cursor:pointer
-}
 </style>
 </head>
 <body>
@@ -114,7 +99,7 @@ a{text-decoration:none;color:inherit}
           <button class="tab" id="registerTab" type="button" onclick="showTab('register')">Inscription</button>
         </div>
 
-        <form id="loginPanel" class="form-panel active" onsubmit="login(event)">
+        <form id="loginPanel" class="form-panel active" onsubmit="return false">
           <div class="field">
             <label for="identifier">Email ou username</label>
             <div class="input-wrap">
@@ -135,7 +120,7 @@ a{text-decoration:none;color:inherit}
           <div id="loginMessage" class="message"></div>
         </form>
 
-        <form id="registerPanel" class="form-panel" onsubmit="register(event)">
+        <form id="registerPanel" class="form-panel" onsubmit="return false">
           <div class="field">
             <label for="registerName">Nom / prénom</label>
             <div class="input-wrap"><input id="registerName" required></div>
@@ -164,23 +149,6 @@ a{text-decoration:none;color:inherit}
   </main>
 </div>
 
-<div id="refOverlay" class="ref-overlay">
-  <div class="ref-card">
-    <div class="eyebrow">PARRAINAGE</div>
-    <h2>Ajoute ton code parrainage ici</h2>
-    <p class="card-sub">S’il est valide, il sera comptabilisé pour ton parrain. Cette carte ne s’affichera plus ensuite.</p>
-    <div class="field" style="text-align:left">
-      <label for="refCode">Code de parrainage</label>
-      <div class="input-wrap">
-        <input id="refCode" placeholder="CODIAXXXXXX" style="text-transform:uppercase">
-      </div>
-    </div>
-    <button class="primary" type="button" onclick="saveReferral()">Valider le code</button>
-    <button class="ghost" type="button" onclick="skipReferral()">Je n’ai pas de code parrainage</button>
-    <div id="refMessage" class="message"></div>
-  </div>
-</div>
-
 <script>
 function showTab(tab){
   const loginActive = tab === "login";
@@ -190,7 +158,6 @@ function showTab(tab){
   document.getElementById("registerPanel").classList.toggle("active", !loginActive);
   document.getElementById("cardTitle").textContent = loginActive ? "Se connecter" : "Créer ton compte";
   document.getElementById("cardSub").textContent = loginActive ? "Accède à ton espace COD.IA" : "Rejoins COD.IA en quelques secondes";
-  history.replaceState({}, "", loginActive ? "/login" : "/register");
 }
 function togglePassword(id){
   const el=document.getElementById(id);
@@ -198,129 +165,94 @@ function togglePassword(id){
 }
 function setMessage(id,text,ok){
   const el=document.getElementById(id);
+  if(!el) return;
   el.textContent=text||"";
   el.classList.toggle("ok",!!ok);
-}
-async function api(url,body){
-  const r=await fetch(url,{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    credentials:"same-origin",
-    body:JSON.stringify(body)
-  });
-  const data=await r.json().catch(()=>({}));
-  return {ok:r.ok && data.ok, ...data};
-}
-function goApp(){ location.href="/app"; }
-
-async function login(e){
-  e.preventDefault();
-  const btn=document.getElementById("loginBtn");
-  btn.disabled=true;
-  setMessage("loginMessage","");
-  const data=await api("/auth/login",{
-    identifier:document.getElementById("identifier").value.trim(),
-    password:document.getElementById("password").value
-  });
-  if(!data.ok){
-    setMessage("loginMessage", data.error || "Email ou mot de passe incorrect.");
-    btn.disabled=false;
-    return;
-  }
-  goApp();
-}
-
-  if(localStorage.getItem("codia_ref_card_done")==="1"){
-    goApp();
-    return;
-  }
-  document.getElementById("refOverlay").classList.add("show");
-}
-
-async function saveReferral(){
-  const code=document.getElementById("refCode").value.trim().toUpperCase();
-  const data=await api("/api/apply-referral",{referral_code:code});
-  if(!data.ok){
-    setMessage("refMessage", data.error || "Code invalide.");
-    return;
-  }
-  localStorage.setItem("codia_ref_card_done","1");
-  goApp();
-}
-async function skipReferral(){
-  await api("/api/apply-referral",{skip:true});
-  localStorage.setItem("codia_ref_card_done","1");
-  goApp();
-}
-
-if(location.pathname.indexOf("register")!==-1 || new URLSearchParams(location.search).get("register")==="1"){
-  showTab("register");
-}
-<script>
-async function register(){
-  const btn=document.getElementById("registerBtn");
-  const box=document.getElementById("registerMessage");
-  if(btn) btn.disabled=true;
-  if(box) box.textContent="";
-
-  const name=document.getElementById("registerName");
-  const user=document.getElementById("registerUsername");
-  const email=document.getElementById("registerEmail");
-  const pass=document.getElementById("registerPassword");
-
-  try{
-    const r=await fetch("/auth/register",{
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      credentials:"same-origin",
-      body:JSON.stringify({
-        display_name:name?name.value.trim():"",
-        username:user?user.value.trim():"",
-        email:email?email.value.trim():"",
-        password:pass?pass.value:"",
-        referral_code:""
-      })
-    });
-    const data=await r.json().catch(()=>({}));
-    if(!r.ok || !data.ok){
-      if(box) box.textContent=data.error||"Impossible de créer le compte.";
-      if(btn) btn.disabled=false;
-      return;
-    }
-    location.href="/app";
-  }catch(e){
-    if(box) box.textContent="Impossible de contacter COD.IA.";
-    if(btn) btn.disabled=false;
-  }
 }
 
 async function login(){
   const btn=document.getElementById("loginBtn");
-  const box=document.getElementById("loginMessage");
   if(btn) btn.disabled=true;
-  if(box) box.textContent="";
+  setMessage("loginMessage","");
   try{
     const r=await fetch("/auth/login",{
       method:"POST",
       headers:{"Content-Type":"application/json"},
       credentials:"same-origin",
       body:JSON.stringify({
-        identifier:(document.getElementById("identifier")||{}).value||"",
-        password:(document.getElementById("password")||{}).value||""
+        identifier:document.getElementById("identifier").value.trim(),
+        password:document.getElementById("password").value
       })
     });
     const data=await r.json().catch(()=>({}));
     if(!r.ok || !data.ok){
-      if(box) box.textContent=data.error||"Email ou mot de passe incorrect.";
+      setMessage("loginMessage", data.error || "Email ou mot de passe incorrect.");
       if(btn) btn.disabled=false;
       return;
     }
     location.href="/app";
   }catch(e){
-    if(box) box.textContent="Impossible de contacter COD.IA.";
+    setMessage("loginMessage","Impossible de contacter COD.IA.");
     if(btn) btn.disabled=false;
   }
 }
+
+async function register(){
+  const btn=document.getElementById("registerBtn");
+  if(btn) btn.disabled=true;
+  setMessage("registerMessage","");
+  try{
+    const r=await fetch("/auth/register",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      credentials:"same-origin",
+      body:JSON.stringify({
+        display_name:document.getElementById("registerName").value.trim(),
+        username:document.getElementById("registerUsername").value.trim(),
+        email:document.getElementById("registerEmail").value.trim(),
+        password:document.getElementById("registerPassword").value,
+        referral_code:""
+      })
+    });
+    const data=await r.json().catch(()=>({}));
+    if(!r.ok || !data.ok){
+      setMessage("registerMessage", data.error || "Impossible de créer le compte.");
+      if(btn) btn.disabled=false;
+      return;
+    }
+    location.href="/app";
+  }catch(e){
+    setMessage("registerMessage","Impossible de contacter COD.IA.");
+    if(btn) btn.disabled=false;
+  }
+}
+
+if(location.pathname.indexOf("register")!==-1){
+  showTab("register");
+}
+
+(function(){
+  const API="https://countapi.mileshilliard.com/api/v1";
+  const KEYS={
+    visits:"codia-fr-visites-unique-xyz123",
+    connexion:"codia-fr-clics-connexion-xyz123",
+    inscription:"codia-fr-clics-inscription-xyz123"
+  };
+  const hit=key=>fetch(API+"/hit/"+encodeURIComponent(key)).catch(()=>{});
+  try{
+    if(!sessionStorage.getItem("codia_visit_counted")){
+      hit(KEYS.visits);
+      sessionStorage.setItem("codia_visit_counted","1");
+    }
+  }catch(e){
+    hit(KEYS.visits);
+  }
+  document.addEventListener("click",e=>{
+    const t=(e.target.closest("button,a")?.innerText||"").toLowerCase();
+    if(t.includes("se connecter")||t.includes("connexion")) hit(KEYS.connexion);
+    if(t.includes("créer mon compte")||t.includes("inscription")) hit(KEYS.inscription);
+  });
+})();
 </script>
 </body>
 </html>
