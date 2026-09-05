@@ -723,6 +723,7 @@ document.getElementById("onboardIco").textContent=s.ico;
 document.getElementById("onboardTitle").textContent=s.title;
 document.getElementById("onboardText").textContent=s.text;
 document.getElementById("onboard").classList.add("show");
+}
 async function cancelSignup(){await api("/api/cancel-signup",{method:"POST"});backPaywall();document.getElementById("paywall").classList.remove("show");showAuth("login")}
 function logout(){location.href="/logout"}
 
