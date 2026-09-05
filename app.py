@@ -817,7 +817,7 @@ def create_checkout():
         checkout = stripe.checkout.Session.create(
             mode="payment",
             line_items=items,
-            ui_mode="embedded",
+            ui_mode="embedded_page",
             return_url=return_url,
             metadata=meta,
         )
