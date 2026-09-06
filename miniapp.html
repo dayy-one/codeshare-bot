@@ -2,1365 +2,4898 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>COD.IA — Un monde tous ensemble</title>
-<script src="https://js.stripe.com/v3/"></script>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#f8f7f1">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<meta name="description" content="COD.IA — espace membre pour découvrir, partager et sauvegarder des codes promo, offres et récompenses.">
+<title>COD.IA — Espace membre</title>
+
 <style>
-body.locked .app,
-body.locked .detail,
-body.locked .user-page,
-body.locked .bottom-nav{
-  filter:blur(10px) brightness(.96);
-  pointer-events:none;
-  user-select:none;
+:root{
+--bg:#f8f7f1;
+--paper:#fff;
+--ink:#102119;
+--muted:#707874;
+--green:#4e702f;
+--green2:#668b43;
+--pale:#e8efd8;
+--line:rgba(16,33,25,.09);
+--soft:rgba(16,33,25,.055);
+--shadow:0 24px 70px rgba(16,33,25,.09);
+--serif:Georgia,"Times New Roman",serif;
+--sans:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif
 }
-.paywall{
-  position:fixed;inset:0;display:none;align-items:center;justify-content:center;
-  padding:22px;z-index:300;background:rgba(16,22,12,.48);
+
+*{
+box-sizing:border-box;
+-webkit-tap-highlight-color:transparent
 }
-.paywall.show{display:flex}
-.paywall-card{
-  width:min(392px,100%);
-  background:#fff;
-  border-radius:32px;
-  padding:30px 24px 22px;
-  text-align:center;
-  box-shadow:0 40px 90px rgba(10,16,8,.35);
+
+html{
+scroll-behavior:smooth
 }
-.paywall-card h2{font-family:Georgia,serif;font-size:28px;margin:0 0 8px}
-.paywall-card .price{font-size:44px;font-weight:800;color:#2a3f1c;margin:16px 0 6px}
-:root{--green:#617b35;--green-dark:#405824;--green-light:#edf2e3;--cream:#f8f7f1;--text:#172014;--muted:#777d72;--border:#e7e8df;--shadow:0 10px 35px rgba(50,65,30,.08);--radius:24px}
-*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;padding:0;min-height:100%;background:var(--cream);color:var(--text);font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
-button,input,textarea,select{font:inherit}button{border:0;cursor:pointer}
-body{padding-bottom:100px}
-.app{max-width:520px;margin:auto;min-height:100vh}
-.header{position:sticky;top:0;z-index:50;height:72px;background:rgba(248,247,241,.94);backdrop-filter:blur(18px);border-bottom:1px solid rgba(0,0,0,.05);display:flex;align-items:center;justify-content:space-between;padding:0 18px}
-.logo{display:flex;align-items:center;gap:9px;font-family:Georgia,serif;font-weight:700;font-size:25px;color:var(--green-dark);background:transparent}
-.logo-globe{width:39px;height:39px;border:2px solid var(--green);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:var(--green-dark)}
-.icon-btn{width:42px;height:42px;border-radius:50%;background:transparent;font-size:21px;position:relative}
-.notification-dot{position:absolute;top:7px;right:8px;width:9px;height:9px;border-radius:50%;background:#d64b45;display:none}
-.content{padding:16px}.page{display:none}.page.active{display:block}
-.eyebrow{text-transform:uppercase;letter-spacing:1.5px;font-size:11px;color:var(--green);font-weight:800}
-.card{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:18px;margin-top:14px;box-shadow:var(--shadow)}
-.card-title{font-size:17px;font-weight:800;margin-bottom:12px}
-.referral-row{display:flex;align-items:center;gap:9px}
-.referral-input{flex:1;min-width:0;background:#f7f8f2;border:1px solid #e0e3d8;border-radius:13px;padding:13px;font-size:13px}
-.copy-small{width:45px;height:45px;border-radius:13px;background:var(--green-light);color:var(--green-dark);font-size:18px}
-.primary{width:100%;background:var(--green);color:#fff;border-radius:14px;padding:14px;font-weight:800;margin-top:10px}
-.secondary{background:#f4f5ef;color:var(--green-dark);border-radius:13px;padding:12px 14px;font-weight:700}
-.danger{width:100%;background:#f8ecec;color:#8a2f2f;border-radius:13px;padding:12px;font-weight:800;margin-top:8px}
-.challenge{margin-top:14px;border-radius:25px;padding:19px;background:linear-gradient(135deg,#eef2e3,#fafbf6);border:1px solid #dfe6d2}
-.challenge-title{font-family:Georgia,serif;font-size:21px;font-weight:700}
-.timer{background:var(--green);color:#fff;border-radius:12px;padding:9px 11px;font-size:12px;font-weight:800}
-.challenge-desc{color:#62695e;font-size:13px;line-height:1.5;margin:10px 0}
-.progress-track{height:10px;background:#dce2d2;border-radius:20px;overflow:hidden}
-.progress-bar{height:100%;width:0;background:var(--green);transition:width .7s ease}
-.levels{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:18px}
-.level{text-align:center;background:#fff;border-radius:15px;padding:12px 5px;border:1px solid #e5e7df}
-.bronze-row{display:grid;grid-template-columns:120px 1fr;gap:10px;margin-top:12px}
-.section-head{display:flex;justify-content:space-between;align-items:center;margin:24px 2px 12px}
-.section-title{font-family:Georgia,serif;font-size:22px;font-weight:700}
-.see-all{color:var(--green);font-size:13px;font-weight:800;background:transparent}
-.filters,.stories,.chip-row{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none}
-.filter{flex:none;background:#fff;border:1px solid var(--border);color:#6d7468;border-radius:30px;padding:10px 15px;font-size:12px;font-weight:700}
-.filter.active{background:var(--green);border-color:var(--green);color:#fff}
-.search{display:flex;align-items:center;gap:9px;background:#fff;border:1px solid var(--border);border-radius:17px;padding:12px 14px;margin-top:14px}
-.search input{border:0;outline:0;flex:1;background:transparent;font-size:14px}
-.code-card{background:#fff;border:1px solid var(--border);border-radius:22px;padding:15px;margin-bottom:11px;position:relative}
-.code-top{display:flex;gap:12px}
-.brand-logo{width:54px;height:54px;flex:none;border-radius:17px;background:#fff;border:1px solid #eee;object-fit:contain;padding:6px}
-.badge{display:inline-flex;padding:5px 8px;border-radius:30px;background:#e8f0dc;color:var(--green-dark);font-size:9px;font-weight:900}
-.code-title{font-size:15px;font-weight:800;margin:6px 0 4px}
-.code-desc{font-size:12px;color:#747b70;line-height:1.4}
-.bio{color:#5f665c;font-size:13px;margin-top:9px;line-height:1.45}
-.code-bottom{margin-top:13px;display:flex;align-items:center;gap:8px}
-.code-chip,.mini-code{flex:1;min-width:0;border:1px dashed #ccd2c3;background:#f8f9f4;padding:10px;border-radius:11px;font-size:12px;font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.code-copy{width:42px;height:42px;background:var(--green);color:#fff;border-radius:12px}
-.code-actions{display:flex;align-items:center;justify-content:space-between;margin-top:12px;padding-top:11px;border-top:1px solid #eef0e9;flex-wrap:wrap;gap:6px}
-.action{background:transparent;color:#697066;font-size:12px}
-.more{position:absolute;right:13px;top:13px;background:transparent;font-size:19px}
-.stories{display:flex;gap:13px;overflow-x:auto;scrollbar-width:none}
-.story{flex:none;width:68px;text-align:center}
-.story-circle{width:62px;height:62px;margin:auto;border-radius:50%;padding:3px;background:linear-gradient(135deg,var(--green),#d6dfbe)}
-.story-inner{width:100%;height:100%;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;font-size:18px}
-.story-name{font-size:10px;margin-top:5px}
-.rank-card{display:flex;align-items:center;justify-content:space-between;gap:11px;padding:10px 12px;background:#fff;border:1px solid var(--border);border-radius:17px;margin-bottom:8px;font-size:13px}
-.menu-card{background:#fff;border:1px solid var(--border);border-radius:22px;overflow:hidden;margin-top:15px}
-.menu-item{width:100%;background:#fff;padding:17px;display:flex;align-items:center;gap:13px;text-align:left;border-bottom:1px solid #eef0e9}
-.menu-icon{width:38px;height:38px;border-radius:12px;background:var(--green-light);display:flex;align-items:center;justify-content:center}
-.bottom-nav{position:fixed;left:50%;bottom:0;transform:translateX(-50%);width:min(520px,100%);height:83px;background:rgba(255,255,255,.97);border-top:1px solid var(--border);z-index:100;display:grid;grid-template-columns:1fr 1fr 1fr 1fr 1fr;align-items:center}
-.nav-item{height:60px;background:transparent;color:#747b70;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:10px;font-weight:700}
-.nav-item.active{color:var(--green)}
-.nav-ico{font-size:18px;line-height:1}
-.publish-float{width:58px;height:58px;margin-top:-22px;border-radius:50%;background:var(--green);color:#fff;font-size:28px;border:5px solid var(--cream);display:flex;align-items:center;justify-content:center}
-.modal{position:fixed;inset:0;background:rgba(20,27,16,.45);z-index:200;display:none;align-items:flex-end;justify-content:center}
-.modal.open{display:flex}
-.sheet{width:min(520px,100%);max-height:90vh;overflow:auto;background:#fff;border-radius:28px 28px 0 0;padding:20px}
-.sheet-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:15px}
-.close{width:38px;height:38px;border-radius:50%;background:#f0f2ec}
-.field{margin-bottom:13px}.field label{display:block;font-size:12px;font-weight:800;margin-bottom:6px}
-.field input,.field textarea,.field select{width:100%;border:1px solid #dfe3d8;background:#f9faf6;border-radius:13px;padding:13px;outline:0}
-.onboard{
-  position:fixed;inset:0;z-index:300;
-  background:radial-gradient(circle at 50% 0%,#e8eddc,#f8f7f1 55%);
-  display:none;align-items:center;justify-content:center;padding:16px;overflow:auto;
+
+body{
+margin:0;
+background:
+radial-gradient(circle at 4% 0%,rgba(102,139,67,.14),transparent 26%),
+radial-gradient(circle at 100% 14%,rgba(232,239,216,.9),transparent 30%),
+var(--bg);
+color:var(--ink);
+font-family:var(--sans);
+min-height:100vh
 }
-.onboard.show{display:flex}
-.paywall.show,.onboard.show{display:flex}
-.paywall-card,.onboard-card{width:min(480px,100%);background:#fff;border-radius:30px;padding:24px 18px;text-align:center}
-.price{font-size:38px;font-weight:900;color:var(--green-dark);margin:15px 0}
-.auth{position:fixed;inset:0;z-index:300;background:var(--cream);display:none;overflow:auto}
-.auth.show{display:block}
-.auth-inner{max-width:480px;margin:auto;padding:40px 20px}
-.auth-logo{text-align:center;font-family:Georgia,serif;color:var(--green-dark);font-size:34px;font-weight:800}
-.auth-card{background:#fff;border:1px solid var(--border);border-radius:28px;padding:24px;margin-top:25px}
-.auth-switch{display:flex;gap:5px;background:#eef0e8;padding:4px;border-radius:14px;margin-bottom:20px}
-.auth-switch button{flex:1;background:transparent;padding:11px;border-radius:11px;color:#777;font-weight:800}
-.auth-switch button.active{background:#fff;color:var(--green-dark)}
-.onboard-ico{width:72px;height:72px;border-radius:24px;background:var(--green-light);display:flex;align-items:center;justify-content:center;font-size:32px;margin:0 auto 16px}
-.toast{position:fixed;left:50%;bottom:100px;transform:translateX(-50%);background:#1f281b;color:#fff;padding:12px 17px;border-radius:14px;font-size:12px;font-weight:700;z-index:500;opacity:0}
-.toast.show{opacity:1}
-.loading{padding:40px;text-align:center;color:var(--muted)}
-.spinner{width:30px;height:30px;border:3px solid #dfe4d6;border-top-color:var(--green);border-radius:50%;margin:0 auto 12px;animation:spin .8s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
-.compare{margin-top:16px;text-align:left;font-size:12px}
-.compare div{display:grid;grid-template-columns:1.6fr .5fr .5fr;padding:8px 0;border-bottom:1px solid var(--border)}
-.p-hero{padding:6px 2px 8px}
-.p-row{display:flex;gap:14px;align-items:flex-start}
-.p-ava{width:78px;height:78px;border-radius:50%;background:var(--green);color:#fff;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:800;position:relative;overflow:hidden;background-size:cover;background-position:center;flex:none}
-.p-crown{position:absolute;right:-2px;bottom:-2px;width:22px;height:22px;border-radius:50%;background:#f3e3a6;display:flex;align-items:center;justify-content:center;font-size:11px;border:2px solid #fff}
-.p-name{font-size:26px;font-family:Georgia,serif;font-weight:700;margin:0}
-.p-badge{display:inline-flex;align-items:center;gap:6px;background:#eef3e4;color:var(--green-dark);border-radius:20px;padding:4px 10px;font-size:12px;font-weight:800;margin:6px 0}
-.edit-pill{margin-left:auto;background:#fff;border:1px solid #d7dccd;border-radius:22px;padding:10px 14px;font-weight:700;font-size:13px;white-space:nowrap}
-.p-stats{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;background:#f4f6ef;border-radius:22px;padding:12px 8px;margin:16px 0}
-.p-stat{text-align:center}
-.p-stat b{display:block;font-size:18px;margin:4px 0 2px}
-.p-stat span{font-size:10px;color:#6d7468}
-.ptabs{display:flex;justify-content:space-between;background:#fff;border:1px solid var(--border);border-radius:22px;padding:10px 8px;margin-bottom:14px}
-.ptab{flex:1;background:transparent;color:#8a9084;font-size:11px;font-weight:800}
-.ptab.on{color:var(--green-dark)}
-.pchip{flex:none;background:#f3f4ee;border-radius:20px;padding:8px 12px;font-size:12px;font-weight:800;color:#5f665c}
-.pchip.on{background:var(--green);color:#fff}
-.mine-card{display:grid;grid-template-columns:56px 1fr auto;gap:10px;background:#fff;border:1px solid var(--border);border-radius:20px;padding:12px;margin-bottom:10px}
-.st-actif{background:#e7f3dc;color:#3f6b28;border-radius:10px;padding:4px 8px;font-size:10px;font-weight:900}
-.st-expire{background:#fde8d8;color:#9a4b1c;border-radius:10px;padding:4px 8px;font-size:10px;font-weight:900}
-.mini-code{display:inline-flex;align-items:center;gap:6px;background:#f7f8f2;border:1px solid #e4e7dc;border-radius:10px;padding:4px 8px;font-size:11px;font-weight:800;margin-top:6px}
-.mstats{font-size:11px;color:#6a7166;text-align:right;line-height:1.45}
-.ov-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.social{display:block;width:100%;text-align:left;background:#f7f8f3;border-radius:12px;padding:10px 12px;margin-top:8px;font-weight:700;font-size:13px;color:var(--green-dark)}
-.impact{display:flex;gap:10px;align-items:center;background:linear-gradient(135deg,#eef4e4,#f7f8f2);border-radius:20px;padding:14px;margin-top:12px}
-.globe{width:64px;height:64px;border-radius:50%;background:radial-gradient(circle at 30% 30%,#d7e4c4,#8aa56a);flex:none}
-.badges3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center}
-.hex{width:46px;height:46px;margin:auto;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px}
-.act{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #eef0e9;font-size:12px}
-.author-link{background:none;color:var(--green-dark);font-weight:800;padding:0;text-decoration:underline;text-underline-offset:2px}
-.follow-btn.on{background:#eef3e4;color:var(--green-dark)}
-.empty-box{text-align:center;padding:28px 16px}
-.empty-ico{font-size:40px;margin-bottom:8px}
-.comment-form{display:flex;gap:8px;margin:10px 0 4px;align-items:flex-end}
-.comment-form textarea{flex:1;min-height:48px;border:1px solid #dfe3d8;background:#f9faf6;border-radius:13px;padding:10px 12px;outline:0;resize:none}
-.comment-send{height:48px;padding:0 14px;border-radius:13px;background:var(--green);color:#fff;font-weight:800}
-.comment-meta{font-size:10px;color:#8a9084;margin-top:4px}
-.user-page{position:fixed;inset:0;z-index:225;background:#f7f6f1;display:none;overflow:auto;padding-bottom:24px}
-.user-page.show{display:block}
-.detail{position:fixed;inset:0;z-index:220;background:#f7f6f1;display:none;overflow:auto;padding-bottom:92px}
-.detail.show{display:block}
-.detail-top{position:sticky;top:0;z-index:2;background:rgba(247,246,241,.96);backdrop-filter:blur(16px);height:64px;display:flex;align-items:center;justify-content:space-between;padding:0 14px}
-.detail-wrap{max-width:520px;margin:auto;padding:12px 16px 24px}
-.detail-hero{background:#fff;border:1px solid var(--border);border-radius:26px;padding:16px;box-shadow:var(--shadow)}
-.detail-head{display:grid;grid-template-columns:64px 1fr auto;gap:12px;align-items:start}
-.brand-mark{width:64px;height:64px;border-radius:16px;background:#fff;border:1px solid #eee;object-fit:contain;padding:6px}
-.trend{background:#f4f6ee;border:1px solid #e4ead8;border-radius:16px;padding:8px 10px;font-size:11px;color:var(--green-dark);text-align:center;font-weight:800}
-.chips{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin:14px 0}
-.chip{background:#f7f8f3;border:1px solid #eceee6;border-radius:14px;padding:8px 6px;text-align:center;font-size:10px;color:#5f665c}
-.chip b{display:block;color:#1b2218;font-size:11px;margin-top:3px}
-.code-box{background:#f3f6ec;border:1px dashed #cfd8bf;border-radius:18px;padding:16px;text-align:center;position:relative}
-.code-box .big{font-size:28px;font-weight:900;letter-spacing:.08em;margin:6px 0}
-.copy-big{position:absolute;right:12px;top:12px;width:54px;height:54px;border-radius:14px;background:var(--green);color:#fff;font-size:11px;font-weight:800}
-.two-btns{display:grid;grid-template-columns:1.1fr .9fr;gap:8px;margin-top:12px}
-.stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}
-.stat-row div{background:#f8f8f4;border-radius:16px;padding:10px 4px;text-align:center;font-size:11px;color:#6a7166}
-.stat-row b{display:block;font-size:16px;color:#172014;margin-bottom:3px}
-.dtabs{display:flex;gap:18px;margin:18px 4px 10px;border-bottom:1px solid #eceee6}
-.dtab{background:transparent;padding:8px 0;color:#8a9084;font-weight:800;font-size:13px}
-.dtab.on{color:var(--green-dark);border-bottom:2px solid var(--green)}
-.checks{display:flex;flex-direction:column;gap:8px;font-size:13px;color:#3f463b}
-.comment{display:flex;gap:10px;padding:12px 0;border-top:1px solid #eef0e9}
-.c-ava{width:36px;height:36px;border-radius:50%;background:#dfe4d4;display:flex;align-items:center;justify-content:center;font-weight:800}
-.use-bar{position:fixed;left:50%;bottom:0;transform:translateX(-50%);width:min(520px,100%);background:#fff;border-top:1px solid var(--border);padding:10px 14px 18px;display:grid;grid-template-columns:48px 1fr 48px;gap:8px;z-index:230}
-.use-bar button{height:48px;border-radius:16px}
-.ch-wrap{padding-bottom:8px}
-.ch-hero{background:linear-gradient(135deg,#16351c,#2f5a32 55%,#1a3d22);color:#fff;border-radius:22px;padding:16px;display:grid;grid-template-columns:1.15fr .85fr;gap:10px;align-items:center;position:relative}
-.ch-hero small{display:block;letter-spacing:.08em;font-size:10px;font-weight:800;opacity:.85;margin-bottom:8px}
-.ch-count{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
-.ch-count b{display:block;font-size:22px;font-weight:900;line-height:1}
-.ch-count span{font-size:8px;opacity:.75;font-weight:800}
-.ch-hero p{margin:10px 0 0;font-size:11px;opacity:.9}
-.ch-gift{background:radial-gradient(circle at 30% 20%,#3e6b3d,#1b3a20);border-radius:18px;min-height:92px;display:flex;align-items:center;justify-content:center;font-size:42px;position:relative}
-.ch-live{position:absolute;right:8px;bottom:8px;background:#7d9a4d;color:#fff;border-radius:20px;font-size:8px;font-weight:900;padding:4px 7px}
-.race{background:#fff;border:1px solid var(--border);border-radius:24px;padding:16px;margin-top:12px;box-shadow:var(--shadow)}
-.race-top{display:flex;justify-content:space-between;gap:10px;align-items:center}
-.race-ava-wrap{position:relative;width:78px;height:78px;flex:none}
-.race-ring{width:78px;height:78px;border-radius:50%;background:conic-gradient(#617b35 0 174deg,#e4ead8 174deg 360deg);padding:5px}
-.race-ava{width:100%;height:100%;border-radius:50%;background:#2f5a32;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;overflow:hidden;background-size:cover}
-.lvl-pill{position:absolute;left:50%;bottom:-7px;transform:translateX(-50%);background:#2f5a32;color:#fff;border-radius:20px;font-size:8px;font-weight:900;padding:3px 7px;white-space:nowrap}
-.race-pts{font-size:34px;font-weight:900;line-height:1;margin:0}
-.race-sub{font-size:12px;color:#6a7166}
-.next-box{background:#f6f8f1;border-radius:16px;padding:10px 12px;min-width:118px;text-align:right}
-.next-box small{display:block;font-size:10px;color:#7a8176}
-.track{margin-top:26px;position:relative;height:78px}
-.track-line{position:absolute;left:8%;right:8%;top:16px;height:6px;background:#e4ead8;border-radius:20px}
-.track-fill{height:100%;background:#617b35;border-radius:20px;width:49%}
-.track-pts{position:absolute;top:0;width:78px;margin-left:-39px;text-align:center}
-.me-pin{width:28px;height:28px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 2px #617b35;background:#2f5a32;color:#fff;font-size:9px;font-weight:800;display:flex;align-items:center;justify-content:center;margin:0 auto}
-.lock{width:22px;height:22px;margin:3px auto 0;border-radius:50%;background:#d9dece;color:#6a7166;font-size:10px;display:flex;align-items:center;justify-content:center}
-.track-label{margin-top:6px;font-size:9px;font-weight:800;color:#5d6558}
-.unlock{display:inline-block;background:#2f5a32;color:#fff;border-radius:20px;font-size:8px;padding:3px 7px;margin-top:3px}
-.share-bar{margin-top:16px;background:#16351c;color:#fff;border-radius:18px;padding:12px;display:flex;flex-direction:column;gap:8px}
-.share-bar small{opacity:.7;font-size:10px;letter-spacing:.04em}
-.share-code{background:rgba(255,255,255,.08);border-radius:12px;padding:8px 10px;display:flex;justify-content:space-between;align-items:center;gap:8px;font-weight:800;font-size:13px}
-.share-code button{background:#fff;color:#16351c;border-radius:999px;padding:5px 10px;font-size:10px;font-weight:800;flex:none}
-.share-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.share-now{background:#617b35;color:#fff;border-radius:12px;padding:9px 8px;font-weight:800;font-size:12px;width:100%}
-.share-hint{font-size:10px;opacity:.75;text-align:center}
-.gain-msg{color:#3f6b28;font-weight:800;font-size:12px;margin-top:6px}
-.lb-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px;font-size:12px}
-.ch-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
-.mini{background:#fff;border:1px solid var(--border);border-radius:20px;padding:13px}
-.mini h3{margin:0 0 10px;font-size:12px}
-.today{display:flex;justify-content:space-between;text-align:center;font-size:11px}
-.today b{display:block;font-size:16px}
-.prog{height:8px;background:#e6ebdb;border-radius:20px;overflow:hidden;margin:8px 0}
-.prog>div{height:100%;background:#617b35}
-.gold-prog>div{background:#c9a227}
-.live-dot{width:7px;height:7px;border-radius:50%;background:#e24b4b;display:inline-block;margin-right:5px;animation:pulse 1.2s infinite}
-@keyframes pulse{50%{opacity:.35}}
-.lb{background:#16351c;color:#fff;border-radius:20px;padding:14px}
-.lb-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.08);font-size:13px}
-.lb-ava{width:28px;height:28px;border-radius:50%;background:#3d6a40;display:inline-flex;align-items:center;justify-content:center;font-size:11px;margin-right:8px}
-.pos b{font-size:22px}
-.spark{width:100%;height:46px;margin-top:6px}
-.badges-row{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;text-align:center;font-size:9px;font-weight:700}
-.badge-ico{width:44px;height:44px;margin:0 auto 5px;border-radius:50%;background:#f3f6ec;display:flex;align-items:center;justify-content:center;font-size:20px}
-.badge-ico.off{filter:grayscale(1);opacity:.45}
-.help-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
-.help-row button{background:#fff;border:1px solid var(--border);border-radius:16px;padding:12px;text-align:left;font-size:12px;font-weight:700}
-@media (prefers-reduced-motion:no-preference){
-  .page,.card,.code-card{animation:fadeUp .38s ease both}
-  .logo-globe{animation:float 4.5s ease-in-out infinite}
-  .modal .sheet{animation:sheetUp .35s ease}
+
+button,input,textarea{
+font:inherit
 }
-@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
-@keyframes float{50%{transform:translateY(-3px)}}
-@keyframes sheetUp{from{transform:translateY(24px);opacity:0}to{transform:none;opacity:1}}
+
+button{
+cursor:pointer;
+color:inherit
+}
+
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible{
+outline:2px solid var(--green);
+outline-offset:2px
+}
+
+.app{
+width:min(100%,680px);
+min-height:100vh;
+margin:auto;
+padding-bottom:105px
+}
+
+.topbar{
+position:sticky;
+top:0;
+z-index:50;
+height:78px;
+padding:0 20px;
+display:flex;
+align-items:center;
+justify-content:space-between;
+background:rgba(248,247,241,.88);
+backdrop-filter:blur(22px);
+border-bottom:1px solid rgba(16,33,25,.055)
+}
+
+.brand{
+border:0;
+background:none;
+padding:0;
+display:flex;
+align-items:center;
+gap:10px;
+text-align:left
+}
+
+.mark{
+width:36px;
+height:36px;
+border-radius:50%;
+background:var(--ink);
+color:#fff;
+display:grid;
+place-items:center;
+font-size:14px;
+transform:rotate(-8deg);
+box-shadow:0 8px 22px rgba(16,33,25,.14)
+}
+
+.brand strong{
+display:block;
+font-family:var(--serif);
+font-size:21px;
+letter-spacing:-.6px
+}
+
+.brand small{
+display:block;
+margin-top:2px;
+color:var(--muted);
+font-size:8px;
+font-weight:800;
+letter-spacing:1.55px
+}
+
+.top-actions{
+display:flex;
+gap:8px
+}
+
+.icon{
+position:relative;
+width:41px;
+height:41px;
+border-radius:50%;
+border:1px solid var(--line);
+background:rgba(255,255,255,.78);
+display:grid;
+place-items:center
+}
+
+.icon svg{
+width:18px;
+height:18px
+}
+
+.dot{
+position:absolute;
+right:1px;
+top:1px;
+width:8px;
+height:8px;
+border-radius:50%;
+background:#b44935;
+border:2px solid var(--bg)
+}
+
+main{
+padding:0 18px
+}
+
+.page{
+display:none;
+padding:24px 2px 30px
+}
+
+.page.active{
+display:block;
+animation:pageIn .32s ease
+}
+
+.eyebrow{
+font-size:9px;
+font-weight:900;
+letter-spacing:2.2px;
+text-transform:uppercase;
+color:var(--green)
+}
+
+h1,h2,h3,p{
+margin-top:0
+}
+
+.hero{
+padding:8px 2px 18px
+}
+
+.hero h1{
+font-family:var(--serif);
+font-weight:500;
+font-size:clamp(42px,9vw,60px);
+line-height:.96;
+letter-spacing:-.055em;
+margin:9px 0 13px
+}
+
+.hero h1 em{
+font-style:normal;
+color:var(--green)
+}
+
+.hero p{
+max-width:510px;
+color:var(--muted);
+font-size:13px;
+line-height:1.7;
+margin:0
+}
+
+.search{
+display:flex;
+align-items:center;
+gap:10px;
+height:54px;
+padding:0 15px;
+background:#fff;
+border:1px solid rgba(16,33,25,.065);
+border-radius:18px;
+box-shadow:0 12px 34px rgba(16,33,25,.055);
+margin:7px 0 12px
+}
+
+.search svg{
+width:18px;
+color:var(--muted);
+flex:none
+}
+
+.search input{
+width:100%;
+border:0;
+outline:0;
+background:transparent;
+color:var(--ink);
+font-size:13px
+}
+
+.search input::placeholder{
+color:#9aa09c
+}
+
+.chips,
+.brand-strip{
+display:flex;
+gap:8px;
+overflow:auto;
+scrollbar-width:none
+}
+
+.chips::-webkit-scrollbar,
+.brand-strip::-webkit-scrollbar{
+display:none
+}
+
+.chip{
+white-space:nowrap;
+border:1px solid var(--line);
+background:rgba(255,255,255,.7);
+border-radius:999px;
+padding:9px 13px;
+color:var(--muted);
+font-size:10px;
+font-weight:900
+}
+
+.chip.active{
+background:var(--ink);
+border-color:var(--ink);
+color:#fff
+}
+
+.quick{
+display:grid;
+grid-template-columns:repeat(4,1fr);
+gap:8px;
+margin-top:14px
+}
+
+.quick button{
+border:1px solid var(--line);
+background:rgba(255,255,255,.66);
+border-radius:16px;
+padding:11px 7px;
+font-size:9px;
+font-weight:900
+}
+
+.quick b{
+display:block;
+font-size:16px;
+margin-bottom:3px
+}
+
+.section{
+margin-top:31px
+}
+
+.section-head{
+display:flex;
+align-items:end;
+justify-content:space-between;
+gap:12px;
+margin-bottom:12px
+}
+
+.section-head h2{
+font-family:var(--serif);
+font-size:29px;
+line-height:1;
+letter-spacing:-.04em;
+font-weight:500;
+margin:0
+}
+
+.section-head button{
+border:0;
+background:none;
+color:var(--green);
+font-size:10px;
+font-weight:900
+}
+
+.kicker{
+font-size:8px;
+color:var(--muted);
+font-weight:900;
+letter-spacing:1px
+}
+
+.featured{
+background:#fff;
+border:1px solid var(--line);
+border-radius:30px;
+overflow:hidden;
+box-shadow:var(--shadow);
+transition:.22s
+}
+
+.visual{
+height:255px;
+position:relative;
+overflow:hidden;
+background:
+linear-gradient(
+135deg,
+#dce6cf,
+#f5f1e3 52%,
+#d7e1ca
+)
+}
+
+.visual:before{
+content:"";
+position:absolute;
+width:280px;
+height:280px;
+border-radius:50%;
+right:-85px;
+bottom:-155px;
+background:rgba(255,255,255,.48)
+}
+
+.visual:after{
+content:"";
+position:absolute;
+inset:0;
+background:linear-gradient(
+180deg,
+transparent 35%,
+rgba(16,33,25,.18)
+)
+}
+
+.visual-word{
+position:absolute;
+inset:0;
+display:grid;
+place-items:center;
+font-family:var(--serif);
+font-size:clamp(66px,14vw,105px);
+letter-spacing:-.08em;
+color:rgba(16,33,25,.12);
+z-index:1
+}
+
+.pill{
+position:absolute;
+z-index:3;
+top:15px;
+left:15px;
+padding:8px 11px;
+border-radius:999px;
+background:rgba(255,255,255,.86);
+font-size:9px;
+font-weight:900;
+backdrop-filter:blur(10px)
+}
+
+.discount{
+position:absolute;
+z-index:3;
+top:15px;
+right:15px;
+padding:9px 12px;
+border-radius:999px;
+background:var(--ink);
+color:#fff;
+font-size:11px;
+font-weight:900
+}
+
+.hot{
+position:absolute;
+z-index:3;
+left:15px;
+bottom:15px;
+padding:7px 10px;
+border-radius:999px;
+background:rgba(255,255,255,.86);
+font-size:9px;
+font-weight:900
+}
+
+.save{
+position:absolute;
+z-index:4;
+right:15px;
+bottom:15px;
+width:38px;
+height:38px;
+border-radius:50%;
+border:1px solid rgba(255,255,255,.7);
+background:rgba(255,255,255,.88);
+font-size:17px
+}
+
+.body{
+padding:20px
+}
+
+.offer-title{
+font-family:var(--serif);
+font-size:29px;
+line-height:1.05;
+letter-spacing:-.035em;
+margin:0 0 8px
+}
+
+.desc{
+color:var(--muted);
+font-size:12px;
+line-height:1.6;
+margin:0 0 15px
+}
+
+.code-row{
+display:flex;
+align-items:center;
+gap:8px;
+background:var(--bg);
+border:1px dashed rgba(16,33,25,.17);
+border-radius:15px;
+padding:6px 6px 6px 12px
+}
+
+.code{
+flex:1;
+font-size:11px;
+font-weight:950;
+letter-spacing:.12em
+}
+
+.copy{
+border:0;
+background:var(--green);
+color:#fff;
+border-radius:11px;
+padding:10px 13px;
+font-size:10px;
+font-weight:950;
+min-width:74px
+}
+
+.copy.copied{
+background:var(--ink)
+}
+
+.meta{
+display:flex;
+justify-content:space-between;
+gap:10px;
+color:var(--muted);
+font-size:9px;
+margin-top:11px
+}
+
+.grid{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:11px
+}
+
+.card{
+background:#fff;
+border:1px solid var(--line);
+border-radius:22px;
+overflow:hidden;
+box-shadow:0 12px 32px rgba(16,33,25,.055);
+transition:.22s
+}
+
+.mini-visual{
+height:128px;
+position:relative;
+display:grid;
+place-items:center;
+background:
+linear-gradient(
+135deg,
+#eef0e7,
+#dce7cf
+)
+}
+
+.mini-visual strong{
+font-family:var(--serif);
+font-size:31px;
+font-weight:500;
+color:rgba(16,33,25,.22);
+letter-spacing:-.06em
+}
+
+.mini-discount{
+position:absolute;
+top:10px;
+right:10px;
+background:var(--ink);
+color:#fff;
+border-radius:999px;
+padding:6px 8px;
+font-size:9px;
+font-weight:900
+}
+
+.mini-save{
+position:absolute;
+top:9px;
+left:9px;
+width:30px;
+height:30px;
+border-radius:50%;
+border:1px solid rgba(16,33,25,.08);
+background:rgba(255,255,255,.82)
+}
+
+.mini-body{
+padding:13px
+}
+
+.mini-brand{
+font-size:8px;
+font-weight:950;
+letter-spacing:1.1px;
+color:var(--green)
+}
+
+.mini-title{
+font-family:var(--serif);
+font-size:18px;
+line-height:1.08;
+margin:4px 0 8px
+}
+
+.mini-code{
+font-size:9px;
+color:var(--muted);
+font-weight:800
+}
+
+.mini-foot{
+display:flex;
+justify-content:space-between;
+align-items:center;
+margin-top:10px
+}
+
+.mini-foot b{
+font-size:11px
+}
+
+.round{
+width:30px;
+height:30px;
+border-radius:50%;
+border:1px solid var(--line);
+background:#fff
+}
+
+.brands{
+display:flex;
+gap:9px;
+overflow:auto;
+scrollbar-width:none
+}
+
+.brand-card{
+flex:0 0 auto;
+min-width:108px;
+padding:13px;
+background:#fff;
+border:1px solid var(--line);
+border-radius:17px;
+text-align:left;
+box-shadow:0 8px 24px rgba(16,33,25,.04)
+}
+
+.brand-card b{
+font-family:var(--serif);
+font-size:18px;
+font-weight:500
+}
+
+.brand-card span{
+display:block;
+margin-top:4px;
+color:var(--muted);
+font-size:8px
+}
+
+.challenge{
+position:relative;
+overflow:hidden;
+background:var(--ink);
+color:#fff;
+border-radius:28px;
+padding:21px;
+box-shadow:0 22px 50px rgba(16,33,25,.15)
+}
+
+.challenge:before{
+content:"";
+position:absolute;
+width:240px;
+height:240px;
+border-radius:50%;
+right:-105px;
+top:-110px;
+background:rgba(145,180,101,.24)
+}
+
+.challenge .eyebrow{
+color:#c8d9ac
+}
+
+.challenge h2{
+position:relative;
+font-family:var(--serif);
+font-size:29px;
+line-height:1.05;
+font-weight:500;
+margin:8px 0
+}
+
+.challenge p{
+position:relative;
+color:rgba(255,255,255,.68);
+font-size:11px;
+line-height:1.65;
+max-width:470px
+}
+
+.progress{
+height:8px;
+background:rgba(255,255,255,.12);
+border-radius:99px;
+overflow:hidden;
+margin:16px 0 9px
+}
+
+.progress span{
+display:block;
+height:100%;
+width:74%;
+background:#b8cc91;
+border-radius:99px
+}
+
+.challenge-foot{
+display:flex;
+justify-content:space-between;
+color:rgba(255,255,255,.68);
+font-size:9px
+}
+
+.ranks{
+display:grid;
+grid-template-columns:repeat(3,1fr);
+gap:7px;
+margin-top:15px
+}
+
+.rank{
+background:rgba(255,255,255,.07);
+border:1px solid rgba(255,255,255,.1);
+border-radius:14px;
+padding:10px
+}
+
+.rank b{
+display:block;
+font-size:15px
+}
+
+.rank span{
+font-size:8px;
+color:rgba(255,255,255,.55)
+}
+
+.trust{
+display:grid;
+grid-template-columns:repeat(3,1fr);
+gap:8px
+}
+
+.trust div{
+background:#fff;
+border:1px solid var(--line);
+border-radius:17px;
+padding:13px 11px
+}
+
+.trust b{
+display:block;
+font-size:10px
+}
+
+.trust span{
+display:block;
+color:var(--muted);
+font-size:8px;
+line-height:1.4;
+margin-top:4px
+}
+
+.smart{
+display:flex;
+justify-content:space-between;
+gap:12px;
+align-items:center;
+background:var(--pale);
+border-radius:25px;
+padding:18px
+}
+
+.smart h3{
+font-family:var(--serif);
+font-size:23px;
+font-weight:500;
+margin:3px 0 5px
+}
+
+.smart p{
+font-size:9px;
+color:#66715e;
+line-height:1.5;
+margin:0
+}
+
+.smart button{
+border:0;
+background:var(--ink);
+color:#fff;
+border-radius:12px;
+padding:10px 12px;
+font-size:9px;
+font-weight:900;
+white-space:nowrap
+}
+
+.list{
+display:grid;
+gap:9px
+}
+
+.list-card{
+display:flex;
+align-items:center;
+gap:12px;
+background:#fff;
+border:1px solid var(--line);
+border-radius:19px;
+padding:13px
+}
+
+.list-logo{
+width:48px;
+height:48px;
+border-radius:14px;
+background:var(--pale);
+display:grid;
+place-items:center;
+font-family:var(--serif);
+font-size:17px;
+flex:none
+}
+
+.list-card h3{
+font-family:var(--serif);
+font-size:17px;
+font-weight:500;
+margin:0 0 3px
+}
+
+.list-card p{
+font-size:9px;
+color:var(--muted);
+margin:0;
+line-height:1.4
+}
+
+.list-right{
+margin-left:auto;
+text-align:right
+}
+
+.list-right b{
+font-size:13px
+}
+
+.list-right small{
+display:block;
+color:var(--green);
+font-size:8px;
+font-weight:900;
+margin-top:3px
+}
+
+.explore-box{
+background:#fff;
+border:1px solid var(--line);
+border-radius:28px;
+padding:21px
+}
+
+.explore-box h1,
+.profile h1{
+font-family:var(--serif);
+font-size:36px;
+line-height:1;
+letter-spacing:-.045em;
+font-weight:500;
+margin:7px 0 9px
+}
+
+.category-grid{
+display:grid;
+grid-template-columns:repeat(2,1fr);
+gap:9px;
+margin-top:14px
+}
+
+.category{
+border:1px solid var(--line);
+background:var(--bg);
+border-radius:18px;
+padding:15px;
+text-align:left;
+min-height:95px
+}
+
+.category b{
+font-family:var(--serif);
+font-size:21px;
+font-weight:500
+}
+
+.category span{
+display:block;
+color:var(--muted);
+font-size:8px;
+margin-top:6px
+}
+
+.profile-top{
+display:flex;
+align-items:center;
+gap:14px
+}
+
+.avatar{
+width:74px;
+height:74px;
+border-radius:50%;
+background:var(--ink);
+color:#fff;
+display:grid;
+place-items:center;
+font-family:var(--serif);
+font-size:28px;
+box-shadow:0 12px 25px rgba(16,33,25,.12)
+}
+
+.profile h1{
+font-size:29px;
+margin:0 0 4px
+}
+
+.profile p{
+font-size:10px;
+color:var(--muted);
+margin:0
+}
+
+.stats{
+display:grid;
+grid-template-columns:repeat(3,1fr);
+gap:8px;
+margin-top:18px
+}
+
+.stat{
+background:#fff;
+border:1px solid var(--line);
+border-radius:17px;
+padding:13px;
+text-align:center
+}
+
+.stat b{
+display:block;
+font-size:17px
+}
+
+.stat span{
+font-size:8px;
+color:var(--muted)
+}
+
+.profile-actions{
+display:flex;
+gap:8px;
+margin-top:13px
+}
+
+.action{
+flex:1;
+border:1px solid var(--line);
+background:#fff;
+border-radius:12px;
+padding:10px;
+font-size:9px;
+font-weight:900
+}
+
+.tabs{
+display:flex;
+border-bottom:1px solid var(--line);
+margin-top:23px
+}
+
+.tabs button{
+flex:1;
+border:0;
+background:none;
+padding:12px 5px;
+color:var(--muted);
+font-size:10px;
+font-weight:900
+}
+
+.tabs button.active{
+color:var(--ink);
+box-shadow:inset 0 -2px var(--green)
+}
+
+.impact-grid{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:9px
+}
+
+.impact{
+background:#fff;
+border:1px solid var(--line);
+border-radius:19px;
+padding:15px
+}
+
+.impact b{
+display:block;
+font-family:var(--serif);
+font-size:25px;
+font-weight:500
+}
+
+.impact span{
+font-size:8px;
+color:var(--muted)
+}
+
+.bottom{
+position:fixed;
+z-index:60;
+left:50%;
+bottom:0;
+transform:translateX(-50%);
+width:min(100%,680px);
+height:78px;
+padding:9px 13px calc(9px + env(safe-area-inset-bottom));
+background:rgba(248,247,241,.9);
+backdrop-filter:blur(22px);
+border-top:1px solid rgba(16,33,25,.07);
+box-shadow:0 -15px 40px rgba(16,33,25,.07)
+}
+
+.navgrid{
+display:grid;
+grid-template-columns:repeat(5,1fr);
+align-items:center
+}
+
+.nav{
+border:0;
+background:none;
+color:#8a918c;
+display:flex;
+flex-direction:column;
+align-items:center;
+gap:4px;
+font-size:8px;
+font-weight:900;
+padding:4px
+}
+
+.nav svg{
+width:19px;
+height:19px
+}
+
+.nav.active{
+color:var(--green)
+}
+
+.publish span{
+width:45px;
+height:45px;
+border-radius:50%;
+display:grid;
+place-items:center;
+margin-top:-18px;
+background:var(--green);
+color:#fff;
+border:5px solid var(--bg);
+font-size:21px;
+box-shadow:0 10px 24px rgba(16,33,25,.2)
+}
+
+.sheet-bg{
+display:none;
+position:fixed;
+inset:0;
+z-index:100;
+background:rgba(16,33,25,.38);
+align-items:flex-end
+}
+
+.sheet-bg.open{
+display:flex
+}
+
+.sheet{
+width:min(100%,680px);
+max-height:90vh;
+overflow:auto;
+margin:auto;
+background:#fff;
+border-radius:30px 30px 0 0;
+padding:13px 20px calc(27px + env(safe-area-inset-bottom));
+box-shadow:0 -25px 80px rgba(16,33,25,.2)
+}
+
+.handle{
+width:42px;
+height:4px;
+background:#dfe2dc;
+border-radius:99px;
+margin:0 auto 16px
+}
+
+.sheet-head{
+display:flex;
+justify-content:space-between;
+align-items:center;
+margin-bottom:16px
+}
+
+.sheet h2{
+font-family:var(--serif);
+font-size:29px;
+font-weight:500;
+margin:0
+}
+
+.close{
+width:35px;
+height:35px;
+border:0;
+border-radius:50%;
+background:#eef0ea
+}
+
+.form{
+display:grid;
+gap:10px
+}
+
+.form label{
+display:block;
+color:var(--muted);
+font-size:8px;
+font-weight:900;
+letter-spacing:1px;
+text-transform:uppercase;
+margin:0 0 5px
+}
+
+.form input,
+.form textarea,
+.form select{
+width:100%;
+border:1px solid var(--line);
+background:var(--bg);
+border-radius:14px;
+padding:12px;
+color:var(--ink);
+outline:0
+}
+
+.form textarea{
+min-height:90px;
+resize:vertical
+}
+
+.primary,
+.secondary{
+width:100%;
+border-radius:15px;
+padding:14px;
+font-size:11px;
+font-weight:950
+}
+
+.primary{
+border:0;
+background:linear-gradient(135deg,var(--green),var(--green2));
+color:#fff;
+box-shadow:0 12px 26px rgba(78,112,47,.18)
+}
+
+.secondary{
+border:1px solid var(--line);
+background:#fff
+}
+
+.detail{
+display:grid;
+gap:14px
+}
+
+.detail-title{
+font-family:var(--serif);
+font-size:37px;
+line-height:1.02;
+font-weight:500;
+margin:0
+}
+
+.detail-stats{
+display:grid;
+grid-template-columns:repeat(3,1fr);
+gap:7px
+}
+
+.detail-stats div{
+background:var(--bg);
+border-radius:14px;
+padding:11px;
+text-align:center
+}
+
+.detail-stats b{
+display:block;
+font-size:14px
+}
+
+.detail-stats span{
+font-size:8px;
+color:var(--muted)
+}
+
+.toast{
+position:fixed;
+left:50%;
+bottom:91px;
+transform:translate(-50%,12px);
+opacity:0;
+pointer-events:none;
+z-index:150;
+background:var(--ink);
+color:#fff;
+border-radius:999px;
+padding:11px 16px;
+font-size:10px;
+font-weight:900;
+transition:.25s;
+box-shadow:0 12px 30px rgba(16,33,25,.2)
+}
+
+.toast.show{
+opacity:1;
+transform:translate(-50%,0)
+}
+
+.hidden{
+display:none!important
+}
+
+@keyframes pageIn{
+from{
+opacity:0;
+transform:translateY(12px)
+}
+to{
+opacity:1;
+transform:none
+}
+}
+
+@media(min-width:700px){
+
+body{
+padding:18px 0
+}
+
+.app{
+min-height:calc(100vh - 36px);
+border-radius:32px;
+overflow:hidden;
+box-shadow:0 30px 90px rgba(16,33,25,.1)
+}
+
+.bottom{
+bottom:18px;
+border-radius:0 0 32px 32px
+}
+
+.topbar{
+border-radius:32px 32px 0 0
+}
+
+}
+
+@media(max-width:420px){
+
+main{
+padding:0 16px
+}
+
+.hero h1{
+font-size:42px
+}
+
+.quick{
+grid-template-columns:repeat(2,1fr)
+}
+
+.visual{
+height:220px
+}
+
+.offer-title{
+font-size:25px
+}
+
+.grid{
+gap:8px
+}
+
+.mini-visual{
+height:112px
+}
+
+.category-grid{
+gap:8px
+}
+
+.sheet{
+padding-left:16px;
+padding-right:16px
+}
+
+}
+
+@media(prefers-reduced-motion:reduce){
+
+*,
+*:before,
+*:after{
+scroll-behavior:auto!important;
+transition:none!important;
+animation:none!important
+}
+
+}
 </style>
+
+<!-- IMAGE SYSTEM -->
+<style>
+.media{
+position:absolute;
+inset:0;
+width:100%;
+height:100%;
+object-fit:cover;
+display:block;
+transition:
+transform .45s ease,
+filter .45s ease
+}
+
+.visual:hover .media,
+.card:hover .media{
+transform:scale(1.045)
+}
+
+.visual .media{
+filter:saturate(.9) contrast(.98)
+}
+
+.visual:after{
+z-index:2!important;
+background:
+linear-gradient(
+180deg,
+rgba(16,33,25,.02) 18%,
+rgba(16,33,25,.58) 100%
+)!important
+}
+
+.visual-word{
+z-index:3!important;
+color:rgba(255,255,255,.22)!important;
+text-shadow:0 2px 20px rgba(0,0,0,.12)
+}
+
+.mini-visual .media{
+filter:saturate(.88)
+}
+
+.mini-visual:after{
+content:"";
+position:absolute;
+inset:0;
+background:
+linear-gradient(
+180deg,
+rgba(16,33,25,.02),
+rgba(16,33,25,.20)
+);
+z-index:1
+}
+
+.mini-visual strong,
+.mini-discount,
+.mini-save{
+z-index:3
+}
+
+.featured .body{
+position:relative
+}
+
+.feature-source{
+display:flex;
+align-items:center;
+gap:7px;
+color:var(--muted);
+font-size:9px;
+font-weight:800;
+margin-bottom:9px
+}
+
+.feature-source img{
+width:24px;
+height:24px;
+border-radius:8px;
+object-fit:cover;
+border:1px solid var(--line)
+}
+
+.brand-card{
+overflow:hidden;
+position:relative;
+padding:0;
+min-width:126px;
+height:104px
+}
+
+.brand-card img{
+position:absolute;
+inset:0;
+width:100%;
+height:100%;
+object-fit:cover;
+filter:saturate(.78)
+}
+
+.brand-card:after{
+content:"";
+position:absolute;
+inset:0;
+background:
+linear-gradient(
+180deg,
+rgba(16,33,25,.02),
+rgba(16,33,25,.72)
+)
+}
+
+.brand-card b,
+.brand-card span{
+position:relative;
+z-index:2;
+color:#fff;
+text-shadow:0 1px 8px rgba(0,0,0,.25)
+}
+
+.brand-card b{
+display:block;
+padding:54px 11px 0
+}
+
+.brand-card span{
+padding:0 11px;
+color:rgba(255,255,255,.78)
+}
+
+.list-logo{
+overflow:hidden;
+position:relative
+}
+
+.list-logo img{
+width:100%;
+height:100%;
+object-fit:cover
+}
+
+.list-logo span{
+position:absolute;
+inset:0;
+display:grid;
+place-items:center;
+background:rgba(16,33,25,.16);
+color:#fff;
+font-family:var(--serif);
+font-size:15px;
+text-shadow:0 1px 8px rgba(0,0,0,.35)
+}
+
+.category{
+position:relative;
+overflow:hidden;
+min-height:120px
+}
+
+.category img{
+position:absolute;
+inset:0;
+width:100%;
+height:100%;
+object-fit:cover;
+opacity:.76;
+filter:saturate(.72)
+}
+
+.category:after{
+content:"";
+position:absolute;
+inset:0;
+background:
+linear-gradient(
+180deg,
+rgba(248,247,241,.05),
+rgba(16,33,25,.62)
+)
+}
+
+.category b,
+.category span{
+position:relative;
+z-index:2;
+color:#fff;
+text-shadow:0 1px 8px rgba(0,0,0,.25)
+}
+
+.category span{
+color:rgba(255,255,255,.8)
+}
+
+.challenge.image-challenge{
+min-height:310px;
+display:flex;
+flex-direction:column;
+justify-content:flex-end;
+background:#102119;
+padding-top:145px
+}
+
+.challenge.image-challenge .challenge-media{
+position:absolute;
+inset:0;
+width:100%;
+height:100%;
+object-fit:cover;
+opacity:.72;
+filter:saturate(.72)
+}
+
+.challenge.image-challenge:after{
+content:"";
+position:absolute;
+inset:0;
+background:
+linear-gradient(
+180deg,
+rgba(16,33,25,.08),
+rgba(16,33,25,.94) 82%
+)
+}
+
+.challenge.image-challenge>*{
+z-index:2
+}
+
+.challenge.image-challenge:before{
+z-index:2
+}
+
+.profile-cover{
+height:170px;
+position:relative;
+overflow:hidden;
+border-radius:27px;
+background:var(--pale);
+margin-bottom:-38px
+}
+
+.profile-cover img{
+width:100%;
+height:100%;
+object-fit:cover;
+filter:saturate(.7)
+}
+
+.profile-cover:after{
+content:"";
+position:absolute;
+inset:0;
+background:
+linear-gradient(
+180deg,
+rgba(16,33,25,.02),
+rgba(16,33,25,.38)
+)
+}
+
+.profile-wrap{
+position:relative;
+z-index:2;
+padding:0 3px
+}
+
+.avatar{
+overflow:hidden;
+border:5px solid var(--bg);
+position:relative
+}
+
+.avatar img{
+width:100%;
+height:100%;
+object-fit:cover
+}
+
+.notification-image{
+width:48px;
+height:48px;
+border-radius:14px;
+object-fit:cover;
+flex:none
+}
+
+.detail-image{
+width:100%;
+height:210px;
+object-fit:cover;
+border-radius:22px;
+display:block
+}
+
+@media(max-width:420px){
+
+.brand-card{
+min-width:116px;
+height:96px
+}
+
+.category{
+min-height:110px
+}
+
+.challenge.image-challenge{
+min-height:290px
+}
+
+}
+</style>
+
+<!-- PREMIUM V6 -->
+<style>
+:root{
+--bg:#f7f5ee!important;
+--card:#fff!important;
+--text:#102119!important;
+--muted:#747b75!important;
+--accent:#4e702f!important;
+--accent2:#668b43!important;
+--pale:#e8efd8!important;
+--line:rgba(16,33,25,.085)!important;
+--shadow:0 18px 50px rgba(16,33,25,.075)!important;
+--serif:Georgia,"Times New Roman",serif!important
+}
+
+*{
+box-sizing:border-box
+}
+
+html{
+scroll-behavior:smooth
+}
+
+body{
+background:var(--bg)!important;
+color:var(--text)!important
+}
+
+body:before{
+content:"";
+position:fixed;
+inset:0;
+pointer-events:none;
+background:
+radial-gradient(
+circle at 8% 8%,
+rgba(102,139,67,.12),
+transparent 25%
+),
+radial-gradient(
+circle at 92% 24%,
+rgba(78,112,47,.09),
+transparent 24%
+),
+radial-gradient(
+rgba(16,33,25,.035) 1px,
+transparent 1px
+);
+background-size:auto,auto,22px 22px;
+z-index:-1
+}
+
+.app{
+max-width:680px!important;
+margin:auto;
+background:transparent!important
+}
+
+.topbar{
+height:76px!important;
+background:rgba(247,245,238,.82)!important;
+backdrop-filter:blur(18px)!important;
+border-bottom:1px solid rgba(16,33,25,.055)!important;
+position:sticky!important;
+top:0!important;
+z-index:50!important
+}
+
+.brand strong{
+font-family:var(--serif)!important;
+letter-spacing:-.04em!important;
+font-size:20px!important
+}
+
+.brand small{
+letter-spacing:.14em!important;
+color:var(--muted)!important
+}
+
+.brand .mark{
+background:var(--accent)!important;
+box-shadow:0 8px 20px rgba(78,112,47,.18)!important
+}
+
+.top-actions .icon{
+background:#fff!important;
+border:1px solid var(--line)!important;
+box-shadow:0 8px 22px rgba(16,33,25,.05)!important
+}
+
+main{
+padding:0 20px 110px!important
+}
+
+.page{
+animation:pageIn .42s ease both
+}
+
+.hero{
+padding:42px 2px 24px!important;
+position:relative
+}
+
+.hero:after{
+content:"01";
+position:absolute;
+right:4px;
+top:42px;
+font:italic 58px/1 var(--serif);
+color:rgba(78,112,47,.08);
+pointer-events:none
+}
+
+.eyebrow{
+font-size:9px!important;
+letter-spacing:.18em!important;
+color:var(--accent)!important;
+font-weight:900!important;
+text-transform:uppercase
+}
+
+.hero h1{
+font-family:var(--serif)!important;
+font-size:clamp(40px,8vw,62px)!important;
+line-height:.96!important;
+letter-spacing:-.055em!important;
+max-width:570px!important;
+margin:10px 0 16px!important
+}
+
+.hero h1 em{
+color:var(--accent)!important;
+font-style:italic
+}
+
+.hero p{
+max-width:500px!important;
+font-size:14px!important;
+line-height:1.65!important;
+color:var(--muted)!important
+}
+
+.search{
+height:58px!important;
+border-radius:18px!important;
+background:#fff!important;
+border:1px solid var(--line)!important;
+box-shadow:0 12px 35px rgba(16,33,25,.055)!important
+}
+
+.search:focus-within{
+border-color:rgba(78,112,47,.35)!important;
+box-shadow:0 15px 40px rgba(78,112,47,.10)!important;
+transform:translateY(-1px)
+}
+
+.chips{
+padding:13px 0 7px!important;
+gap:8px!important;
+overflow:auto!important;
+scrollbar-width:none
+}
+
+.chip{
+border:1px solid var(--line)!important;
+background:rgba(255,255,255,.65)!important;
+color:var(--muted)!important;
+padding:10px 15px!important;
+border-radius:999px!important;
+font-size:11px!important;
+font-weight:800!important;
+white-space:nowrap!important
+}
+
+.chip.active{
+background:var(--text)!important;
+color:#fff!important;
+border-color:var(--text)!important
+}
+
+.quick{
+display:grid!important;
+grid-template-columns:repeat(4,1fr)!important;
+gap:8px!important;
+margin:14px 0 34px!important
+}
+
+.quick button{
+min-height:70px!important;
+border:1px solid var(--line)!important;
+background:rgba(255,255,255,.72)!important;
+border-radius:17px!important;
+color:var(--text)!important;
+font-size:10px!important;
+font-weight:800!important;
+box-shadow:0 8px 25px rgba(16,33,25,.035)!important
+}
+
+.quick button b{
+display:block!important;
+font-size:19px!important;
+margin-bottom:6px!important;
+color:var(--accent)!important
+}
+
+.section{
+margin:0 0 38px!important
+}
+
+.section-head{
+align-items:end!important;
+margin-bottom:15px!important
+}
+
+.section-head h2{
+font-family:var(--serif)!important;
+font-size:25px!important;
+letter-spacing:-.035em!important
+}
+
+.section-head button{
+color:var(--accent)!important;
+font-weight:800!important
+}
+
+.kicker{
+font-size:8px!important;
+letter-spacing:.15em!important;
+color:var(--muted)!important;
+font-weight:900!important
+}
+
+.featured{
+border-radius:30px!important;
+overflow:hidden!important;
+box-shadow:var(--shadow)!important;
+border:1px solid rgba(255,255,255,.9)!important;
+background:#fff!important
+}
+
+.featured .visual{
+height:310px!important
+}
+
+.featured .body{
+padding:23px!important
+}
+
+.featured h3{
+font-family:var(--serif)!important;
+font-size:30px!important;
+letter-spacing:-.04em!important
+}
+
+/* réduction plus discrète */
+.featured .discount{
+font-size:12px!important;
+line-height:1.15!important;
+padding:5px 9px!important;
+border-radius:999px!important;
+font-weight:700!important;
+letter-spacing:.01em!important
+}
+
+.featured .copy{
+border-radius:14px!important;
+background:var(--text)!important;
+color:#fff!important;
+height:50px!important;
+font-weight:900!important
+}
+
+.grid{
+gap:13px!important
+}
+
+.code-card,
+.mini-card,
+.offer-card{
+border:1px solid var(--line)!important;
+border-radius:22px!important;
+background:#fff!important;
+box-shadow:0 12px 32px rgba(16,33,25,.055)!important;
+overflow:hidden!important;
+transition:.25s ease!important
+}
+
+.code-card:hover,
+.mini-card:hover,
+.offer-card:hover{
+transform:translateY(-3px);
+box-shadow:0 18px 42px rgba(16,33,25,.09)!important
+}
+
+.mini-visual{
+height:180px!important
+}
+
+.mini-body{
+padding:15px!important
+}
+
+.mini-body h3{
+font-family:var(--serif)!important;
+font-size:21px!important;
+letter-spacing:-.03em!important
+}
+
+.mini-discount{
+font-size:11px!important;
+padding:4px 8px!important
+}
+
+.mini-code{
+border-radius:12px!important;
+background:var(--pale)!important;
+color:var(--accent)!important;
+border:1px dashed rgba(78,112,47,.28)!important
+}
+
+.mini-save{
+background:rgba(255,255,255,.92)!important;
+border:1px solid var(--line)!important
+}
+
+.brands{
+gap:10px!important;
+overflow-x:auto!important;
+padding-bottom:4px!important;
+scrollbar-width:none
+}
+
+.brand-card{
+min-width:145px!important;
+height:115px!important;
+border-radius:20px!important;
+box-shadow:0 10px 28px rgba(16,33,25,.07)!important
+}
+
+.brand-card b{
+font-family:var(--serif)!important;
+font-size:17px!important
+}
+
+.category-grid{
+gap:11px!important
+}
+
+.category{
+border-radius:20px!important;
+box-shadow:0 10px 28px rgba(16,33,25,.07)!important
+}
+
+.challenge.image-challenge{
+border-radius:30px!important;
+box-shadow:var(--shadow)!important;
+min-height:350px!important
+}
+
+.challenge.image-challenge h2{
+font-family:var(--serif)!important;
+font-size:31px!important;
+letter-spacing:-.04em!important
+}
+
+.rank{
+border:1px solid rgba(255,255,255,.16)!important;
+background:rgba(255,255,255,.08)!important;
+border-radius:15px!important
+}
+
+.trust{
+border-radius:24px!important;
+background:#fff!important;
+border:1px solid var(--line)!important;
+box-shadow:0 10px 30px rgba(16,33,25,.04)!important
+}
+
+.smart{
+border-radius:25px!important;
+background:var(--pale)!important;
+border:1px solid rgba(78,112,47,.10)!important
+}
+
+.smart h3{
+font-family:var(--serif)!important;
+font-size:25px!important
+}
+
+.smart button,
+.primary{
+background:
+linear-gradient(
+135deg,
+var(--accent),
+var(--accent2)
+)!important;
+border-radius:14px!important;
+box-shadow:0 12px 25px rgba(78,112,47,.18)!important
+}
+
+.bottom{
+background:rgba(247,245,238,.88)!important;
+backdrop-filter:blur(20px)!important;
+border-top:1px solid rgba(16,33,25,.07)!important
+}
+
+.nav{
+color:var(--muted)!important
+}
+
+.nav.active{
+color:var(--accent)!important
+}
+
+.nav.publish span{
+background:var(--text)!important;
+color:#fff!important;
+box-shadow:0 12px 26px rgba(16,33,25,.20)!important
+}
+
+.sheet-bg{
+backdrop-filter:blur(8px)!important;
+background:rgba(16,33,25,.28)!important
+}
+
+.sheet{
+border-radius:30px 30px 0 0!important;
+box-shadow:0 -20px 60px rgba(16,33,25,.18)!important
+}
+
+.form input,
+.form textarea{
+border-radius:14px!important;
+border:1px solid var(--line)!important;
+background:#faf9f5!important
+}
+
+.profile-cover{
+border-radius:28px!important
+}
+
+.profile{
+background:#fff!important;
+border:1px solid var(--line)!important;
+border-radius:28px!important;
+box-shadow:var(--shadow)!important
+}
+
+.stats .stat{
+background:var(--pale)!important;
+border-radius:16px!important
+}
+
+.tabs{
+background:rgba(255,255,255,.7)!important;
+border:1px solid var(--line)!important;
+border-radius:15px!important;
+padding:4px!important
+}
+
+.tabs button.active{
+background:var(--text)!important;
+color:#fff!important;
+border-radius:11px!important
+}
+
+.list-card{
+background:#fff!important;
+border:1px solid var(--line)!important;
+border-radius:19px!important;
+box-shadow:0 8px 25px rgba(16,33,25,.035)!important
+}
+
+@media(max-width:480px){
+
+main{
+padding-left:15px!important;
+padding-right:15px!important
+}
+
+.hero{
+padding-top:32px!important
+}
+
+/* important : la réduction reste petite sur mobile */
+.featured .discount{
+font-size:12px!important;
+padding:5px 9px!important
+}
+
+.quick button{
+min-height:64px!important
+}
+
+.featured .visual{
+height:245px!important
+}
+
+.featured h3{
+font-size:27px!important
+}
+
+.mini-visual{
+height:150px!important
+}
+
+.section{
+margin-bottom:32px!important
+}
+
+}
+
+@media(prefers-reduced-motion:reduce){
+
+*{
+scroll-behavior:auto!important;
+transition:none!important;
+animation:none!important
+}
+
+}
+</style>
+
+<link rel="preconnect" href="https://images.unsplash.com">
+<link rel="dns-prefetch" href="//images.unsplash.com">
+
 </head>
+
 <body>
+
 <div class="app">
-<header class="header">
-  <button class="logo" onclick="goPage('home')"><div class="logo-globe">C.</div>COD.IA</button>
-  <div style="display:flex;gap:8px">
-    <button class="icon-btn" onclick="openNotifications()">🔔<span id="notificationDot" class="notification-dot"></span></button>
-    <button class="icon-btn" onclick="openMenu()">☰</button>
-  </div>
+
+<header class="topbar">
+
+<button
+class="brand"
+onclick="go('home')"
+aria-label="Accueil COD.IA">
+
+<span class="mark">➤</span>
+
+<span>
+<strong>COD.IA</strong>
+<small>UN MONDE TOUS ENSEMBLE</small>
+</span>
+
+</button>
+
+<div class="top-actions">
+
+<button
+class="icon"
+onclick="openSheet('notifications')"
+aria-label="Notifications">
+
+<span style="position:relative">
+♡
+<i id="notifDot" class="dot hidden"></i>
+</span>
+
+</button>
+
+<button
+class="icon"
+onclick="go('profile')"
+aria-label="Profil">
+
+<svg
+viewBox="0 0 24 24"
+fill="none"
+stroke="currentColor"
+stroke-width="1.7">
+
+<circle cx="12" cy="8" r="3.5"/>
+
+<path d="M5.5 20c.8-4 3-6 6.5-6s5.7 2 6.5 6"/>
+
+</svg>
+
+</button>
+
+</div>
+
 </header>
-<main class="content">
-<section id="page-home" class="page active">
-  <div class="section-head"><div><div class="eyebrow">COD.IA</div><div class="section-title">Un monde tous ensemble</div></div></div>
-  <div class="search"><input id="searchInput" type="search" placeholder="Rechercher un code, une marque..."></div>
-  <div class="section-head"><div class="section-title">Les stories</div></div>
-  <div class="stories">
-    <div class="story" onclick="loadTopCodes()"><div class="story-circle"><div class="story-inner">🔥</div></div><div class="story-name">Populaires</div></div>
-    <div class="story" onclick="setKind('PROMO')"><div class="story-circle"><div class="story-inner">🏷️</div></div><div class="story-name">Promos</div></div>
-    <div class="story" onclick="setKind('PARRAINAGE')"><div class="story-circle"><div class="story-inner">🤝</div></div><div class="story-name">Parrainages</div></div>
-  </div>
-  <div class="section-head"><div class="section-title">Les meilleurs codes</div><button class="see-all" onclick="loadTopCodes()">Voir tout</button></div>
-  <div class="filters">
-    <button class="filter active" data-category="TOUS" onclick="setCategory(this)">Tout</button>
-    <button class="filter" data-category="MODE" onclick="setCategory(this)">Mode</button>
-    <button class="filter" data-category="SHOPPING" onclick="setCategory(this)">Shopping</button>
-    <button class="filter" data-category="FOOD" onclick="setCategory(this)">Food</button>
-    <button class="filter" data-category="VOYAGE" onclick="setCategory(this)">Voyage</button>
-    <button class="filter" data-category="TECH" onclick="setCategory(this)">Tech</button>
-  </div>
-  <div id="feed" class="loading"><div class="spinner"></div>Chargement des offres...</div>
+
+<main>
+
+<section
+id="page-home"
+class="page active">
+
+<div class="hero">
+
+<div class="eyebrow">
+COD.IA · LES OFFRES DU MOMENT
+</div>
+
+<h1>
+Les bonnes offres,<br>
+<em>au bon moment.</em>
+</h1>
+
+<p>
+Découvre les codes utiles, garde tes favoris et profite
+des récompenses créées par la communauté.
+</p>
+
+</div>
+
+<div class="search">
+
+<svg
+viewBox="0 0 24 24"
+fill="none"
+stroke="currentColor"
+stroke-width="1.8">
+
+<circle
+cx="11"
+cy="11"
+r="6.5"/>
+
+<path
+d="m16 16 4.5 4.5"/>
+
+</svg>
+
+<input
+id="homeSearch"
+placeholder="Rechercher une marque, un code..."
+oninput="filterHome(this.value)">
+
+</div>
+
+<div
+class="chips"
+id="chips">
+
+<button
+class="chip active"
+onclick="setCategory('all',this)">
+Tout
+</button>
+
+<button
+class="chip"
+onclick="setCategory('mode',this)">
+Mode
+</button>
+
+<button
+class="chip"
+onclick="setCategory('sport',this)">
+Sport
+</button>
+
+<button
+class="chip"
+onclick="setCategory('beaute',this)">
+Beauté
+</button>
+
+<button
+class="chip"
+onclick="setCategory('voyage',this)">
+Voyage
+</button>
+
+<button
+class="chip"
+onclick="setCategory('food',this)">
+Food
+</button>
+
+<button
+class="chip"
+onclick="setCategory('shopping',this)">
+Shopping
+</button>
+
+</div>
+
+<div class="quick">
+
+<button onclick="filterHome('')">
+<b>🔥</b>
+Tendance
+</button>
+
+<button onclick="go('explore')">
+<b>⌕</b>
+Explorer
+</button>
+
+<button onclick="go('challenge')">
+<b>★</b>
+Récompenses
+</button>
+
+<button onclick="openSheet('publish')">
+<b>＋</b>
+Publier
+</button>
+
+</div>
+
+<div class="section">
+
+<div class="section-head">
+
+<h2>
+À la une
+</h2>
+
+<button onclick="go('explore')">
+Voir toutes les offres →
+</button>
+
+</div>
+
+<div id="featured"></div>
+
+</div>
+
+<div class="section">
+
+<div class="section-head">
+
+<h2>
+Marques du moment
+</h2>
+
+<span class="kicker">
+LES PLUS COPIÉES
+</span>
+
+</div>
+
+<div
+class="brands"
+id="brandStrip">
+</div>
+
+</div>
+
+<div class="section">
+
+<div class="section-head">
+
+<h2>
+Populaires
+</h2>
+
+<button onclick="sortPopular()">
+Les plus utiles
+</button>
+
+</div>
+
+<div
+id="popular"
+class="grid">
+</div>
+
+</div>
+
+<div class="section">
+
+<div class="challenge image-challenge">
+
+<img
+class="challenge-media"
+src="https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=1200&q=82"
+alt="Communauté COD.IA"
+loading="lazy">
+
+<div class="eyebrow">
+Offre de lancement
+</div>
+
+<h2>
+Ton partage peut devenir une récompense.
+</h2>
+
+<p>
+Chaque personne qui rejoint COD.IA avec ton code
+de parrainage te rapporte 1 point pendant la période
+de lancement.
+</p>
+
+<div class="progress">
+
+<span id="homeProgress"></span>
+
+</div>
+
+<div class="challenge-foot">
+
+<span id="homePoints">
+742 / 1 000 points
+</span>
+
+<span>
+20 jours de lancement
+</span>
+
+</div>
+
+<div class="ranks">
+
+<div class="rank">
+<b>500 €</b>
+<span>500 points</span>
+</div>
+
+<div class="rank">
+<b>1 000 €</b>
+<span>1 000 points</span>
+</div>
+
+<div class="rank">
+<b>1 500 €</b>
+<span>1 500 points</span>
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+<div class="section">
+
+<div class="section-head">
+
+<h2>
+Dernières offres
+</h2>
+
+</div>
+
+<div
+id="latest"
+class="list">
+</div>
+
+</div>
+
+<div class="section">
+
+<div class="trust">
+
+<div>
+<b>✓ Vérifiées</b>
+<span>
+Des offres contrôlées et utiles.
+</span>
+</div>
+
+<div>
+<b>♡ Communauté</b>
+<span>
+Des codes partagés par les membres.
+</span>
+</div>
+
+<div>
+<b>€ Récompenses</b>
+<span>
+Partage et progresse avec COD.IA.
+</span>
+</div>
+
+</div>
+
+</div>
+
+<div class="section">
+
+<div class="smart">
+
+<div>
+
+<div class="eyebrow">
+Ton espace
+</div>
+
+<h3>
+Garde tes meilleures offres.
+</h3>
+
+<p>
+Retrouve tes codes sauvegardés quand tu en as besoin.
+</p>
+
+</div>
+
+<button onclick="go('profile')">
+Mes favoris →
+</button>
+
+</div>
+
+</div>
+
 </section>
 
-<section id="page-promos" class="page">
-  <div class="section-head"><div><div class="eyebrow">COMMUNAUTÉ</div><div class="section-title">Top Codes</div></div><button class="secondary" onclick="openPublish()">+ Publier</button></div>
-  <div class="search"><input id="promoSearch" type="search" placeholder="Chercher une offre..."></div>
-  <div id="promoFeed" class="loading"><div class="spinner"></div>Chargement...</div>
+
+<section
+id="page-explore"
+class="page">
+
+<div class="eyebrow">
+Découvrir
+</div>
+
+<div class="explore-box">
+
+<h1>
+Trouve ton prochain bon plan.
+</h1>
+
+<p style="
+color:var(--muted);
+font-size:12px;
+line-height:1.6">
+
+Recherche une marque,
+une catégorie ou une offre.
+
+</p>
+
+<div
+class="search"
+style="margin-bottom:0">
+
+<svg
+viewBox="0 0 24 24"
+fill="none"
+stroke="currentColor"
+stroke-width="1.8">
+
+<circle
+cx="11"
+cy="11"
+r="6.5"/>
+
+<path
+d="m16 16 4.5 4.5"/>
+
+</svg>
+
+<input
+id="exploreSearch"
+placeholder="Zara, Nike, voyage..."
+oninput="renderExplore(this.value)">
+
+</div>
+
+</div>
+
+<div class="section">
+
+<div class="section-head">
+
+<h2>
+Catégories
+</h2>
+
+</div>
+
+<div class="category-grid">
+
+<button
+class="category"
+onclick="quickCategory('mode')">
+
+<img
+src="https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=900&q=80"
+alt="mode"
+loading="lazy">
+
+<b>
+Mode
+</b>
+
+<span>
+Vêtements & accessoires
+</span>
+
+</button>
+
+<button
+class="category"
+onclick="quickCategory('sport')">
+
+<img
+src="https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&w=900&q=80"
+alt="sport"
+loading="lazy">
+
+<b>
+Sport
+</b>
+
+<span>
+Sneakers & équipement
+</span>
+
+</button>
+
+<button
+class="category"
+onclick="quickCategory('beaute')">
+
+<img
+src="https://images.unsplash.com/photo-1596462502278-27bfdc403348?auto=format&fit=crop&w=900&q=80"
+alt="beaute"
+loading="lazy">
+
+<b>
+Beauté
+</b>
+
+<span>
+Soins & parfums
+</span>
+
+</button>
+
+<button
+class="category"
+onclick="quickCategory('voyage')">
+
+<img
+src="https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=900&q=80"
+alt="voyage"
+loading="lazy">
+
+<b>
+Voyage
+</b>
+
+<span>
+Hôtels & escapades
+</span>
+
+</button>
+
+<button
+class="category"
+onclick="quickCategory('food')">
+
+<img
+src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=900&q=80"
+alt="food"
+loading="lazy">
+
+<b>
+Food
+</b>
+
+<span>
+Restaurants & livraison
+</span>
+
+</button>
+
+<button
+class="category"
+onclick="quickCategory('shopping')">
+
+<img
+src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=900&q=80"
+alt="shopping"
+loading="lazy">
+
+<b>
+Shopping
+</b>
+
+<span>
+Les offres du moment
+</span>
+
+</button>
+
+</div>
+
+</div>
+
+<div class="section">
+
+<div class="section-head">
+
+<h2>
+Résultats
+</h2>
+
+</div>
+
+<div
+id="exploreList"
+class="list">
+</div>
+
+</div>
+
 </section>
 
-<section id="page-challenge" class="page">
-  <div class="ch-wrap">
-    <div class="section-head" style="margin-top:4px"><div><div class="eyebrow">👑 CHALLENGE COD.IA</div><div class="section-title">Gagne des récompenses</div></div></div>
-    <div class="ch-hero">
-      <div>
-        <small>⏳ L’OFFRE DE LANCEMENT SE TERMINE DANS</small>
-        <div class="ch-count">
-          <div><b id="cdD">18</b><span>JOURS</span></div>
-          <div><b id="cdH">04</b><span>HEURES</span></div>
-          <div><b id="cdM">17</b><span>MINUTES</span></div>
-          <div><b id="cdS">36</b><span>SECONDES</span></div>
-        </div>
-        <p>Chaque inscription avec ton code = +1 point</p>
-      </div>
-      <div class="ch-gift">🎁<span class="ch-live">OFFRE ACTIVE</span></div>
-    </div>
-    <div class="race">
-      <div class="eyebrow">🏆 TA COURSE</div>
-      <div class="race-top">
-        <div class="race-ava-wrap">
-          <div class="race-ring"><div id="raceAvatar" class="race-ava">M</div></div>
-          <div class="lvl-pill" id="raceLevel">NIVEAU 7</div>
-        </div>
-        <div>
-          <div class="race-pts"><span id="racePoints">742</span> <small style="font-size:14px">points</small></div>
-          <div class="race-sub"><span id="raceRefs">742</span> filleuls validés</div>
-        </div>
-        <div class="next-box">
-          <small>Objectif suivant</small>
-          <b id="raceNext">🥈 1 000 €</b>
-          <div class="code-desc" id="raceRemain">Encore 258 filleuls pour Argent</div>
-        </div>
-      </div>
-      <div class="track">
-        <div class="track-line"><div class="track-fill" id="raceFill"></div></div>
-        <div class="track-pts" style="left:8%"><div class="lock" style="background:#617b35;color:#fff">✓</div><div class="track-label">🥉 500 € BRONZE<div class="unlock">DÉBLOQUÉ 🔓</div></div></div>
-        <div class="track-pts" id="mePinWrap" style="left:49.5%"><div id="mePin" class="me-pin">M</div></div>
-        <div class="track-pts" style="left:66.6%"><div class="lock">🥈</div><div class="track-label">1 000 € ARGENT</div></div>
-        <div class="track-pts" style="left:92%"><div class="lock">🥇</div><div class="track-label">1 500 € OR</div></div>
-      </div>
-      <div class="share-bar">
-        <small>TON CODE DE PARRAINAGE</small>
-        <div class="share-code"><span id="raceCode">MARIE-CODIA</span><button type="button" onclick="copyReferralCode()">Copier</button></div>
-        <div class="share-actions">
-          <button class="share-now" type="button" onclick="copyReferralCode()">⧉ Copier</button>
-          <button class="share-now" type="button" onclick="shareReferral()">📤 Partager</button>
-        </div>
-        <div class="share-hint">Plus tu partages, plus tu gagnes</div>
-      </div>
-    </div>
-    <div class="ch-grid">
-      <div class="mini">
-        <h3>📈 TON ACTIVITÉ</h3>
-        <div class="today">
-          <div>👥<b id="actRefs">0</b>filleuls</div>
-          <div>📋<b id="actCopies">0</b>copies</div>
-          <div>⭐<b id="actPts">0</b>points</div>
-        </div>
-        <div class="code-desc" id="actHint" style="margin-top:8px">Aucune activité récente</div>
-      </div>
-      <div class="mini">
-        <h3>🎯 OBJECTIF DU JOUR · 10 filleuls</h3>
-        <div><b id="dailyNow">0</b> / 10</div>
-        <div class="prog"><div id="dailyBar" style="width:0"></div></div>
-        <div class="code-desc" id="dailyLeft">Nouveau compte : 0</div>
-      </div>
-      <div class="mini">
-        <h3>🎁 OFFRE DE LANCEMENT</h3>
-        <div class="code-desc">🥉 500 = 500 €<br>🥈 1 000 = 1 000 €<br>🥇 1 500 = 1 500 €</div>
-        <div class="p-badge" style="margin-top:8px"><span id="launchPts">0</span> points / filleuls</div>
-        <button class="see-all" onclick="document.getElementById('rulesModal').classList.add('open')">Comment ça marche ? →</button>
-      </div>
-      <div class="mini">
-        <h3>📋 OFFRE DE COPIES</h3>
-        <div style="display:flex;justify-content:space-between;align-items:center"><b id="bestCodeName">—</b><span class="badge">MEILLEUR CODE</span></div>
-        <div><span id="copyNow">0</span> / 250 copies</div>
-        <div class="prog gold-prog"><div id="copyBar" style="width:0"></div></div>
-        <div class="code-desc"><span id="copyLeft">250</span> restantes · 🎁 100 € à 250</div>
-        <button class="see-all" onclick="setProfileTab('codes');goPage('profile')">Voir tous mes codes →</button>
-      </div>
-    </div>
-    <div class="ch-grid">
-      <div class="lb">
-        <div class="lb-head"><b>🏆 CLASSEMENT</b><small><span class="live-dot"></span>Actualisé en temps réel</small></div>
-        <div id="liveBoard"></div>
-        <button class="see-all" style="color:#d7e4b8;margin-top:8px" onclick="document.getElementById('fullRankModal').classList.add('open')">Voir le classement complet →</button>
-      </div>
-      <div class="mini">
-        <h3>👤 TA POSITION</h3>
-        <div class="pos"><b id="myPos">—</b> · <span id="myPosPts">0</span> points</div>
-        <div id="gainMsg" class="gain-msg" style="display:none"></div>
-        <svg class="spark" viewBox="0 0 120 46" preserveAspectRatio="none"><polyline fill="none" stroke="#617b35" stroke-width="2.5" points="0,34 18,30 30,32 45,22 60,24 75,16 90,18 105,10 120,8"/></svg>
-      </div>
-    </div>
-    <div class="card">
-      <div class="card-title">TES BADGES</div>
-      <div class="badges-row" id="badgeRow"></div>
-    </div>
-    <div class="help-row">
-      <button type="button" onclick="document.getElementById('rulesModal').classList.add('open')">🛡️ Comment fonctionne le challenge ?</button>
-      <button type="button" onclick="openSupport()">🎧 Besoin d’aide ? Support COD.IA</button>
-    </div>
-    <div id="challengeTimer" class="timer" style="display:none">--</div>
-    <div id="challengePoints" style="display:none"></div>
-    <div id="challengeProgress" style="display:none"></div>
-    <div id="miniRank" style="display:none"></div>
-    <div id="myRank" style="display:none"></div>
-    <div id="leaderboard" style="display:none"></div>
-  </div>
+
+<section
+id="page-challenge"
+class="page">
+
+<div class="hero">
+
+<div class="eyebrow">
+Récompenses
+</div>
+
+<h1>
+Fais grandir<br>
+<em>ton impact.</em>
+</h1>
+
+<p>
+Partage des codes utiles, aide la communauté
+et progresse vers les récompenses.
+</p>
+
+</div>
+
+<div class="challenge">
+
+<div class="eyebrow">
+Challenge en cours
+</div>
+
+<h2>
+20 jours. Un objectif.
+</h2>
+
+<p>
+Chaque parrainage validé ajoute 1 point.
+Les paliers récompensent ton impact.
+</p>
+
+<div class="progress">
+<span style="width:74%"></span>
+</div>
+
+<div class="challenge-foot">
+
+<span>
+742 points
+</span>
+
+<span>
+1 000 objectif
+</span>
+
+</div>
+
+</div>
+
+<div class="section">
+
+<div class="section-head">
+
+<h2>
+Les paliers
+</h2>
+
+</div>
+
+<div class="list">
+
+<div class="list-card">
+
+<div class="list-logo">
+01
+</div>
+
+<div>
+<h3>
+Bronze
+</h3>
+
+<p>
+Atteins 500 points
+</p>
+</div>
+
+<div class="list-right">
+<b>
+500 €
+</b>
+</div>
+
+</div>
+
+<div class="list-card">
+
+<div class="list-logo">
+02
+</div>
+
+<div>
+<h3>
+Argent
+</h3>
+
+<p>
+Atteins 1 000 points
+</p>
+</div>
+
+<div class="list-right">
+<b>
+1 000 €
+</b>
+</div>
+
+</div>
+
+<div class="list-card">
+
+<div class="list-logo">
+03
+</div>
+
+<div>
+<h3>
+Or
+</h3>
+
+<p>
+Atteins 1 500 points
+</p>
+</div>
+
+<div class="list-right">
+<b>
+1 500 €
+</b>
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+<div class="section">
+
+<div class="section-head">
+
+<h2>
+Classement
+</h2>
+
+<span class="kicker">
+CETTE SEMAINE
+</span>
+
+</div>
+
+<div class="list">
+
+<div class="list-card">
+
+<div class="list-logo">
+01
+</div>
+
+<div>
+<h3>
+Alex
+</h3>
+
+<p>
+Impact communauté
+</p>
+</div>
+
+<div class="list-right">
+
+<b>
+1 284
+</b>
+
+<small>
+points
+</small>
+
+</div>
+
+</div>
+
+<div class="list-card">
+
+<div class="list-logo">
+02
+</div>
+
+<div>
+<h3>
+Marie
+</h3>
+
+<p>
+Impact communauté
+</p>
+</div>
+
+<div class="list-right">
+
+<b>
+1 041
+</b>
+
+<small>
+points
+</small>
+
+</div>
+
+</div>
+
+<div class="list-card">
+
+<div class="list-logo">
+03
+</div>
+
+<div>
+<h3>
+Jordan
+</h3>
+
+<p>
+Impact communauté
+</p>
+</div>
+
+<div class="list-right">
+
+<b>
+918
+</b>
+
+<small>
+points
+</small>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+<div class="section">
+
+<div class="list-card">
+
+<div class="list-logo">
+250
+</div>
+
+<div>
+
+<h3>
+Offre copies
+</h3>
+
+<p>
+Un même code copié 250 fois = 100 €
+</p>
+
+</div>
+
+<div class="list-right">
+
+<b>
+100 €
+</b>
+
+</div>
+
+</div>
+
+</div>
+
 </section>
 
-<section id="page-profile" class="page">
-  <div class="p-hero">
-    <div class="p-row">
-      <div id="profileAvatar" class="p-ava">CO<span class="p-crown">👑</span></div>
-      <div>
-        <h2 id="profileName" class="p-name">Profil</h2>
-        <div class="p-badge">🌱 Membre COD.IA</div>
-        <div id="profileMeta" class="code-desc">Communauté COD.IA</div>
-        <div id="profileBio" class="bio">Bienvenue sur COD.IA.</div>
-      </div>
-      <button class="edit-pill" onclick="openEditProfile()">✎ Éditer le profil</button>
-    </div>
-    <div class="p-stats">
-      <div class="p-stat"><b id="statCodes">0</b><span>Mes Codes</span></div>
-      <div class="p-stat">♡<b id="statFavs">0</b><span>Favoris</span></div>
-      <div class="p-stat"><b id="statFollowers">0</b><span>Abonnés</span></div>
-      <div class="p-stat">+<b id="statFollowing">0</b><span>Abonnements</span></div>
-      <div class="p-stat">★<b id="statPoints">0</b><span>Points</span></div>
-    </div>
-    <div class="ptabs">
-      <button class="ptab on" onclick="setProfileTab('overview')">Aperçu</button>
-      <button class="ptab" onclick="setProfileTab('codes')">Mes Codes</button>
-      <button class="ptab" onclick="setProfileTab('favs')">Favoris</button>
-      <button class="ptab" onclick="setProfileTab('refs')">Parrainages</button>
-      <button class="ptab" onclick="setProfileTab('badges')">Badges</button>
-    </div>
-  </div>
-  <div id="profilePanel"></div>
+
+<section
+id="page-profile"
+class="page">
+
+<div class="profile-cover">
+
+<img
+src="https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=1200&q=80"
+alt="Univers COD.IA"
+loading="lazy">
+
+</div>
+
+<div class="profile-wrap">
+
+<div class="profile">
+
+<div class="profile-top">
+
+<div
+class="avatar"
+id="profileAvatar">
+
+<img
+src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=300&q=80"
+alt="Profil membre"
+loading="lazy">
+
+</div>
+
+<div>
+
+<h1 id="profileName">
+@membre
+</h1>
+
+<p id="profileBio">
+Membre de la communauté COD.IA
+</p>
+
+</div>
+
+</div>
+
+<div class="stats">
+
+<div class="stat">
+
+<b id="statCodes">
+12
+</b>
+
+<span>
+codes
+</span>
+
+</div>
+
+<div class="stat">
+
+<b id="statCopies">
+1 842
+</b>
+
+<span>
+copies
+</span>
+
+</div>
+
+<div class="stat">
+
+<b id="statFav">
+36
+</b>
+
+<span>
+favoris
+</span>
+
+</div>
+
+</div>
+
+<div class="profile-actions">
+
+<button
+class="action"
+onclick="openSheet('publish')">
+
+＋ Publier un code
+
+</button>
+
+<button
+class="action"
+onclick="toast('Profil partagé')">
+
+Partager mon profil
+
+</button>
+
+</div>
+
+</div>
+
+<div class="tabs">
+
+<button
+class="active"
+onclick="profileTab('codes',this)">
+
+Mes codes
+
+</button>
+
+<button
+onclick="profileTab('favorites',this)">
+
+Favoris
+
+</button>
+
+<button
+onclick="profileTab('impact',this)">
+
+Impact
+
+</button>
+
+</div>
+
+<div
+id="profileContent"
+style="margin-top:15px">
+</div>
+
+</div>
+
 </section>
 
-<section id="page-admin" class="page">
-  <div class="section-head">
-    <div>
-      <div class="eyebrow">ADMIN</div>
-      <div class="section-title">Tableau de bord</div>
-    </div>
-  </div>
-  <div class="ov-grid" id="adminStats"></div>
-  <div class="ptabs" style="margin-top:14px">
-    <button class="ptab on" onclick="setAdminTab('users')">Utilisateurs</button>
-    <button class="ptab" onclick="setAdminTab('codes')">Codes</button>
-    <button class="ptab" onclick="setAdminTab('tickets')">Support</button>
-    <button class="ptab" onclick="setAdminTab('reports')">Signalements</button>
-  </div>
-  <div class="search"><input id="adminSearch" type="search" placeholder="Rechercher..."></div>
-  <div id="adminPanel" class="loading"><div class="spinner"></div></div>
-</section>
 </main>
-<nav class="bottom-nav">
-  <button class="nav-item active" data-page="home" onclick="goPage('home')"><span class="nav-ico">🏠</span>Accueil</button>
-  <button class="nav-item" data-page="promos" onclick="goPage('promos')"><span class="nav-ico">🔥</span>Top Codes</button>
-  <button class="nav-item" onclick="openPublish()"><div class="publish-float">＋</div>Publier</button>
-  <button class="nav-item" data-page="challenge" onclick="goPage('challenge')"><span class="nav-ico">🏆</span>Challenge</button>
-  <button class="nav-item" data-page="profile" onclick="goPage('profile')"><span class="nav-ico">👤</span>Profil</button>
+
+
+<nav class="bottom">
+
+<div class="navgrid">
+
+<button
+class="nav active"
+data-page="home"
+onclick="go('home')">
+
+<svg
+viewBox="0 0 24 24"
+fill="none"
+stroke="currentColor"
+stroke-width="1.7">
+
+<path
+d="m4 10 8-6 8 6v9a1 1 0 0 1-1 1h-5v-6H10v6H5a1 1 0 0 1-1-1z"/>
+
+</svg>
+
+<span>
+Accueil
+</span>
+
+</button>
+
+<button
+class="nav"
+data-page="explore"
+onclick="go('explore')">
+
+<svg
+viewBox="0 0 24 24"
+fill="none"
+stroke="currentColor"
+stroke-width="1.7">
+
+<circle
+cx="11"
+cy="11"
+r="6.5"/>
+
+<path
+d="m16 16 4.5 4.5"/>
+
+</svg>
+
+<span>
+Explorer
+</span>
+
+</button>
+
+<button
+class="nav publish"
+onclick="openSheet('publish')">
+
+<span>
++
+</span>
+
+<small>
+Publier
+</small>
+
+</button>
+
+<button
+class="nav"
+data-page="challenge"
+onclick="go('challenge')">
+
+<svg
+viewBox="0 0 24 24"
+fill="none"
+stroke="currentColor"
+stroke-width="1.7">
+
+<path
+d="M8 21h8M12 17v4M7 4h10v7a5 5 0 0 1-10 0z"/>
+
+<path
+d="M7 6H4v2a4 4 0 0 0 4 4M17 6h3v2a4 4 0 0 1-4 4"/>
+
+</svg>
+
+<span>
+Défis
+</span>
+
+</button>
+
+<button
+class="nav"
+data-page="profile"
+onclick="go('profile')">
+
+<svg
+viewBox="0 0 24 24"
+fill="none"
+stroke="currentColor"
+stroke-width="1.7">
+
+<circle
+cx="12"
+cy="8"
+r="3.5"/>
+
+<path
+d="M5.5 20c.8-4 3-6 6.5-6s5.7 2 6.5 6"/>
+
+</svg>
+
+<span>
+Profil
+</span>
+
+</button>
+
+</div>
+
 </nav>
+
 </div>
 
-<div id="userPage" class="user-page">
-  <div class="detail-top">
-    <button class="icon-btn" onclick="closeUserPage()">‹</button>
-    <button class="logo" onclick="closeUserPage()"><div class="logo-globe">C.</div>COD.IA</button>
-    <span></span>
-  </div>
-  <div class="detail-wrap" id="userPageContent"></div>
+
+<div
+id="sheet-publish"
+class="sheet-bg"
+onclick="sheetBackdrop(event,'publish')">
+
+<div class="sheet">
+
+<div class="handle"></div>
+
+<div class="sheet-head">
+
+<h2>
+Publier un code
+</h2>
+
+<button
+class="close"
+onclick="closeSheet('publish')">
+×
+</button>
+
 </div>
 
-<div id="publishModal" class="modal"><div class="sheet">
-  <div class="sheet-head"><div class="section-title">Publier une offre</div><button class="close" onclick="closeModal('publishModal')">✕</button></div>
-  <div class="field"><label>Type</label><select id="publishKind"><option value="PROMO">Code promo</option><option value="PARRAINAGE">Parrainage</option></select></div>
-  <div class="field"><label>Marque</label><input id="publishBrand" placeholder="Ex : Nike, Uber..."></div>
-  <div class="field"><label>Titre</label><input id="publishTitle" placeholder="-20% sur toute la boutique"></div>
-  <div class="field"><label>Description</label><textarea id="publishDescription"></textarea></div>
-  <div class="field"><label>Catégorie</label><select id="publishCategory"><option>MODE</option><option>SHOPPING</option><option>FOOD</option><option>VOYAGE</option><option>TECH</option><option>AUTRES</option></select></div>
-  <div class="field"><label>Code</label><input id="publishCode" placeholder="NIKE20"></div>
-  <div class="field"><label>Lien du site</label><input id="publishUrl" type="url" placeholder="https://nike.com"></div>
-  <div class="field"><label>Expiration</label><input id="publishExpiration" type="datetime-local"></div>
-  <button class="primary" onclick="publishCode()">Publier mon offre</button>
-</div></div>
+<form
+class="form"
+onsubmit="publishCode(event)">
 
-<div id="editModal" class="modal"><div class="sheet">
-  <div class="sheet-head"><div class="section-title">Modifier mon profil</div><button class="close" onclick="closeModal('editModal')">✕</button></div>
-  <div class="field"><label>Photo de profil</label><input id="editPhoto" type="file" accept="image/*"></div>
-  <div class="field"><label>Bio / À propos</label><textarea id="editBio"></textarea></div>
-  <div class="field"><label>Ville</label><input id="editCity" placeholder="Lyon, France"></div>
-  <div class="field"><label>Instagram</label><input id="editIg" placeholder="@compte"></div>
-  <div class="field"><label>Snapchat</label><input id="editSnap"></div>
-  <div class="field"><label>Email</label><input id="editEmail" type="email"></div>
-  <p class="code-desc">Le nom d’utilisateur ne peut pas être modifié.</p>
-  <button class="primary" onclick="saveProfile()">Enregistrer</button>
-</div></div>
+<div>
 
-<div id="supportModal" class="modal"><div class="sheet">
-  <div class="sheet-head"><div class="section-title">Support</div><button class="close" onclick="closeModal('supportModal')">✕</button></div>
-  <div id="myTickets"></div>
-  <div class="field"><label>Sujet</label><input id="supportSubject"></div>
-  <div class="field"><label>Message</label><textarea id="supportMessage"></textarea></div>
-  <button class="primary" onclick="sendSupport()">Envoyer</button>
-</div></div>
+<label>
+Marque
+</label>
 
-<div id="notificationModal" class="modal"><div class="sheet">
-  <div class="sheet-head"><div class="section-title">Notifications</div><button class="close" onclick="closeModal('notificationModal')">✕</button></div>
-  <div id="notificationsList"></div>
-</div></div>
+<input
+id="pubBrand"
+required
+placeholder="Ex. Zara">
 
-<div id="launchModal" class="modal"><div class="sheet">
-  <div class="sheet-head"><div class="section-title">Offre de Lancement</div><button class="close" onclick="closeModal('launchModal')">✕</button></div>
-  <p class="code-desc">1 point est attribué à chaque personne qui s’inscrit avec ton code pendant le challenge de 21 jours.</p>
-  <div class="levels"><div class="level">500 pts<br>500 €</div><div class="level">1000 pts<br>1000 €</div><div class="level">1500 pts<br>1500 €</div></div>
-  <button class="primary" onclick="closeModal('launchModal');goPage('challenge')">Voir le challenge</button>
-</div></div>
-
-<div id="copiesModal" class="modal"><div class="sheet">
-  <div class="sheet-head"><div class="section-title">Offre Copies</div><button class="close" onclick="closeModal('copiesModal')">✕</button></div>
-  <p class="code-desc">Dès qu’un de tes codes atteint 250 copies, tu gagnes 100 €.</p>
-  <button class="primary" onclick="closeModal('copiesModal')">C’est compris</button>
-</div></div>
-
-<div id="faqModal" class="modal"><div class="sheet">
-  <div class="sheet-head"><div class="section-title">FAQ</div><button class="close" onclick="closeModal('faqModal')">✕</button></div>
-  <div class="card"><strong>Comment ça marche ?</strong><p class="code-desc">Tu publies tes codes promo et parrainages. La communauté les utilise.</p></div>
-  <div class="card"><strong>Challenge</strong><p class="code-desc">1 point par inscription avec ton code. Palier Bronze / Argent / Or.</p></div>
-  <div class="card"><strong>Offre Copies</strong><p class="code-desc">250 copies sur un même code = 100 €.</p></div>
-  <div class="card"><strong>Profils & commentaires</strong><p class="code-desc">Clique sur le nom de la personne qui a partagé un code pour voir son profil et t’abonner. L’onglet Commentaires permet de laisser un avis.</p></div>
-</div></div>
-
-<div id="rulesModal" class="modal"><div class="sheet">
-  <div class="sheet-head"><div class="section-title">Comment fonctionne le challenge ?</div><button class="close" onclick="closeModal('rulesModal')">✕</button></div>
-  <div class="card"><p class="code-desc">• Offre active pendant 21 jours<br>• 1 inscription valide avec ton code = 1 point / 1 filleul<br>• Les inscriptions sont contrôlées<br>• Paliers : 500 / 1 000 / 1 500<br>• 250 copies sur un même code = 100 €</p></div>
-</div></div>
-<div id="fullRankModal" class="modal"><div class="sheet">
-  <div class="sheet-head"><div class="section-title">Classement complet</div><button class="close" onclick="closeModal('fullRankModal')">✕</button></div>
-  <div id="fullRankList"></div>
-</div></div>
-
-<div id="codeMenuModal" class="modal"><div class="sheet">
-  <div class="sheet-head"><div class="section-title">Actions</div><button class="close" onclick="closeModal('codeMenuModal')">✕</button></div>
-  <button class="primary" onclick="copyCode(window._menuCodeId);closeModal('codeMenuModal')">Copier</button>
-  <button class="secondary" style="width:100%;margin-top:8px" onclick="favoriteCode(window._menuCodeId);closeModal('codeMenuModal')">Favori</button>
-  <button class="secondary" style="width:100%;margin-top:8px" onclick="openDetail(window._menuCodeId,'comments');closeModal('codeMenuModal')">💬 Commenter</button>
-  <button class="secondary" style="width:100%;margin-top:8px" onclick="reportCode(window._menuCodeId);closeModal('codeMenuModal')">Signaler</button>
-  <button class="secondary" style="width:100%;margin-top:8px" onclick="hideCode(window._menuCodeId);closeModal('codeMenuModal')">Ne plus voir</button>
-  <button class="danger" onclick="deleteCode(window._menuCodeId)">Supprimer définitivement</button>
-</div></div>
-
-<div id="menuModal" class="modal"><div class="sheet">
-  <div class="sheet-head"><div class="section-title">Menu</div><button class="close" onclick="closeModal('menuModal')">✕</button></div>
-  <div class="menu-card">
-    <button class="menu-item" onclick="goPage('profile');closeModal('menuModal')"><div class="menu-icon">👤</div>Mon profil</button>
-    <button class="menu-item" onclick="openEditProfile()"><div class="menu-icon">✎</div>Modifier email / photo / bio</button>
-    <button class="menu-item" onclick="openNotifications()"><div class="menu-icon">🔔</div>Notifications</button>
-    <button class="menu-item" onclick="document.getElementById('launchModal').classList.add('open');closeModal('menuModal')"><div class="menu-icon">🚀</div>Offre de Lancement</button>
-    <button class="menu-item" onclick="document.getElementById('copiesModal').classList.add('open');closeModal('menuModal')"><div class="menu-icon">⧉</div>Offre Copies</button>
-    <button class="menu-item" onclick="openSupport()"><div class="menu-icon">💬</div>Support</button>
-    <button class="menu-item" onclick="openFAQ()"><div class="menu-icon">❓</div>FAQ</button>
-    <button class="menu-item" id="adminMenuBtn" style="display:none" onclick="goPage('admin');closeModal('menuModal')"><div class="menu-icon">🛡️</div>Admin</button>
-    <button class="menu-item" onclick="logout()"><div class="menu-icon">🚪</div>Déconnexion</button>
-  </div>
-</div></div>
-
-<div id="auth" class="auth"><div class="auth-inner">
-  <div class="auth-logo"><span class="logo-globe" style="display:inline-flex;margin-right:8px;vertical-align:middle">C.</span>COD.IA</div>
-  <div style="text-align:center;color:#6f766a;margin-top:7px;font-size:13px">Un monde tous ensemble</div>
-  <div class="auth-card">
-    <div class="auth-switch">
-      <button id="loginTab" class="active" onclick="showAuth('login')">Connexion</button>
-      <button id="registerTab" onclick="showAuth('register')">Inscription</button>
-    </div>
-    <div id="loginForm">
-      <div class="field"><label>Email ou username</label><input id="loginIdentifier"></div>
-      <div class="field"><label>Mot de passe</label><input id="loginPassword" type="password"></div>
-      <button class="primary" onclick="login()">Se connecter</button>
-    </div>
-    <div id="registerForm" style="display:none">
-      <div class="field"><label>Nom</label><input id="registerName"></div>
-      <div class="field"><label>Username</label><input id="registerUsername"></div>
-      <div class="field"><label>Email</label><input id="registerEmail" type="email"></div>
-      <div class="field"><label>Mot de passe</label><input id="registerPassword" type="password"></div>
-      <div class="field"><label>Code de parrainage</label><input id="registerReferral" placeholder="CODIAXXXXXX"></div>
-      <button class="primary" onclick="register()">Créer mon compte</button>
-      <button class="secondary" style="width:100%;margin-top:10px" onclick="showAuth('login')">← Retour à la connexion</button>
-    </div>
-  </div>
-</div></div>
-
-<div class="paywall" id="paywall">
-  <div class="paywall-card">
-    <div style="width:58px;height:58px;border-radius:20px;margin:0 auto 16px;background:#eef3e4;display:flex;align-items:center;justify-content:center;font-family:Georgia,serif;font-weight:800;color:#2a3f1c">C.</div>
-    <h2>Passe à COD.IA</h2>
-    <p style="color:#6a7362;margin:0 0 8px">La plateforme est devant toi. Un paiement unique suffit pour tout ouvrir.</p>
-    <div class="price">9,99 €</div>
-    <p style="color:#6a7362;font-size:13px;margin:0 0 16px">une fois · accès immédiat</p>
-    <button class="primary" onclick="startPayment()">Déverrouiller COD.IA</button>
-    <div id="paywallIntro">
-      <p style="font-size:11px;color:#8b9183;margin-top:12px">Paiement Stripe · Sans abonnement · Accès à vie</p>
-    </div>
-    <div id="stripeBox" style="display:none;margin-top:12px;text-align:left">
-      <div id="stripeCheckout"></div>
-      <button class="secondary" type="button" onclick="backPaywall()">Retour</button>
-    </div>
-    <p id="paywallError" class="error"></p>
-  </div>
 </div>
 
-<div id="onboard" class="onboard"><div class="onboard-card">
-  <div class="onboard-ico" id="onboardIco"></div>
-  <h2 id="onboardTitle">Accueil</h2>
-  <p class="code-desc" id="onboardText">Découvre les codes promo et parrainages.</p>
-  <button class="primary" onclick="nextOnboard()">Suivant</button>
-</div></div>
+<div>
 
-<div id="detailPage" class="detail">
-  <div class="detail-top">
-    <button class="icon-btn" onclick="closeDetail()">‹</button>
-    <button class="logo" onclick="closeDetail()"><div class="logo-globe">C.</div>COD.IA</button>
-    <button class="icon-btn" onclick="shareCurrent()">📤</button>
-  </div>
-  <div class="detail-wrap" id="detailContent"></div>
-  <div class="use-bar">
-    <button class="secondary" onclick="likeCurrent()">♡</button>
-    <button class="primary" style="margin:0" onclick="useCurrent()">Utiliser ce code</button>
-    <button class="secondary" onclick="setDetailTab('comments')">💬</button>
-  </div>
+<label>
+Code
+</label>
+
+<input
+id="pubCode"
+required
+placeholder="Ex. ZARA20">
+
 </div>
 
-<div id="refOverlay" class="paywall">
-  <div class="paywall-card">
-    <div class="eyebrow">PARRAINAGE</div>
-    <h2>Ajoute ton code parrainage ici</h2>
-    <p class="code-desc">S’il est valide, il compte pour ton parrain. Cette carte ne reviendra plus.</p>
-    <div class="field" style="text-align:left">
-      <label>Code de parrainage</label>
-      <input id="refCode" placeholder="CODIAXXXXXX" style="text-transform:uppercase">
-    </div>
-    <button class="primary" type="button" onclick="saveReferral()">Valider le code</button>
-    <button class="secondary" style="width:100%;margin-top:8px" type="button" onclick="skipReferral()">Je n’ai pas de code parrainage</button>
-    <p id="refMessage" class="error"></p>
-  </div>
+<div>
+
+<label>
+Réduction
+</label>
+
+<input
+id="pubDiscount"
+placeholder="Ex. -20%">
+
 </div>
-<div id="toast" class="toast"></div>
+
+<div>
+
+<label>
+Description
+</label>
+
+<textarea
+id="pubDesc"
+placeholder="Décris rapidement l'offre...">
+</textarea>
+
+</div>
+
+<div>
+
+<label>
+Lien
+</label>
+
+<input
+id="pubUrl"
+type="url"
+placeholder="https://...">
+
+</div>
+
+<button
+class="primary">
+
+Publier l'offre
+
+</button>
+
+</form>
+
+</div>
+
+</div>
+
+
+<div
+id="sheet-notifications"
+class="sheet-bg"
+onclick="sheetBackdrop(event,'notifications')">
+
+<div class="sheet">
+
+<div class="handle"></div>
+
+<div class="sheet-head">
+
+<h2>
+Notifications
+</h2>
+
+<button
+class="close"
+onclick="closeSheet('notifications')">
+×
+</button>
+
+</div>
+
+<div class="list">
+
+<div class="list-card">
+
+<img
+class="notification-image"
+src="https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=200&q=80"
+alt="Bienvenue"
+loading="lazy">
+
+<div>
+
+<h3>
+Bienvenue sur COD.IA
+</h3>
+
+<p>
+Ton espace est prêt.
+</p>
+
+</div>
+
+</div>
+
+<div class="list-card">
+
+<img
+class="notification-image"
+src="https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=200&q=80"
+alt="Challenge"
+loading="lazy">
+
+<div>
+
+<h3>
+Ton challenge avance
+</h3>
+
+<p>
+Tu es à 742 points.
+</p>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+
+<div
+id="sheet-offer"
+class="sheet-bg"
+onclick="sheetBackdrop(event,'offer')">
+
+<div class="sheet">
+
+<div class="handle"></div>
+
+<div class="sheet-head">
+
+<h2 id="offerSheetTitle">
+Offre
+</h2>
+
+<button
+class="close"
+onclick="closeSheet('offer')">
+×
+</button>
+
+</div>
+
+<div id="offerSheetBody">
+</div>
+
+</div>
+
+</div>
+
+
+<div
+id="toast"
+class="toast">
+</div>
+
 
 <script>
-const RACE_ONLY=new Set(["alexandre","maxime","sofia","karim"]);
-const DEMO_USERS={
-  lea:{id:"lea",username:"lea",display_name:"Léa",bio:"Chasseuse de bons plans mode 💚",city:"Lyon",followers:128,following:42,points:982,likes:410,copies:260,initials:"LÉ"},
-  hugo:{id:"hugo",username:"hugo",display_name:"Hugo",bio:"Je partage mes codes voyage & mobilité.",city:"Paris",followers:96,following:31,points:610,likes:238,copies:149,initials:"HU"},
-  camille:{id:"camille",username:"camille",display_name:"Camille",bio:"Toujours un code sous le coude.",city:"Nantes",followers:54,following:20,points:210,likes:90,copies:40,initials:"CA"},
-  noah:{id:"noah",username:"noah",display_name:"Noah",bio:"Testeur officiel des promos.",followers:33,following:18,points:90,likes:40,copies:22,initials:"NO"},
-  ines:{id:"ines",username:"ines",display_name:"Inès",bio:"Food & sorties.",followers:41,following:22,points:140,likes:70,copies:33,initials:"IN"},
-  adam:{id:"adam",username:"adam",display_name:"Adam",bio:"Parrainages & cashback.",followers:29,following:15,points:75,likes:20,copies:12,initials:"AD"},
-  alexandre:{id:"alexandre",username:"alexandre",display_name:"Alexandre",bio:"Ambassadeur COD.IA.",city:"Bordeaux",followers:840,following:120,points:1248,likes:920,copies:610,initials:"AL",no_codes:true},
-  maxime:{id:"maxime",username:"maxime",display_name:"Maxime",bio:"Course challenge en cours.",city:"Lille",followers:310,following:88,points:775,likes:540,copies:301,initials:"MA",no_codes:true},
-  sofia:{id:"sofia",username:"sofia",display_name:"Sofia",bio:"Active tous les jours.",followers:190,following:70,points:520,likes:260,copies:180,initials:"SO",no_codes:true},
-  karim:{id:"karim",username:"karim",display_name:"Karim",bio:"Objectif Or.",followers:150,following:40,points:430,likes:200,copies:140,initials:"KA",no_codes:true}
+
+const IMG={
+
+ZARA:
+'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&w=1200&q=82',
+
+NIKE:
+'https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=1200&q=82',
+
+SHEIN:
+'https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=1200&q=82',
+
+BOOKING:
+'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=82',
+
+'UBER EATS':
+'https://images.unsplash.com/photo-1515003197210-e0cd71810b5f?auto=format&fit=crop&w=1200&q=82',
+
+AMAZON:
+'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?auto=format&fit=crop&w=1200&q=82'
+
 };
-const DEMO_BOARD=[
-  {id:"alexandre",name:"Alexandre",points:1248,initials:"AL"},
-  {id:"lea",name:"Léa",points:982,initials:"LÉ"},
-  {id:"maxime",name:"Maxime",points:775,initials:"MA"},
-  {id:"sofia",name:"Sofia",points:520,initials:"SO"},
-  {id:"karim",name:"Karim",points:430,initials:"KA"}
+
+const DEMO=[
+
+{
+id:1,
+brand:'ZARA',
+discount:'-20%',
+title:'-20% sur votre prochaine commande',
+desc:'Une réduction simple pour renouveler votre dressing.',
+code:'ZARA20',
+category:'mode',
+copies:1248,
+likes:248,
+expire:'12 jours',
+verified:true,
+image:IMG.ZARA
+},
+
+{
+id:2,
+brand:'NIKE',
+discount:'-15%',
+title:'-15% sur une sélection sneakers',
+desc:'Profite d’une sélection sport et sneakers.',
+code:'RUN15',
+category:'sport',
+copies:934,
+likes:184,
+expire:'8 jours',
+verified:true,
+image:IMG.NIKE
+},
+
+{
+id:3,
+brand:'SHEIN',
+discount:'-15%',
+title:'-15% sur votre panier',
+desc:'Une offre mode à utiliser avant expiration.',
+code:'STYLE15',
+category:'mode',
+copies:812,
+likes:162,
+expire:'5 jours',
+verified:true,
+image:IMG.SHEIN
+},
+
+{
+id:4,
+brand:'BOOKING',
+discount:'-10%',
+title:'-10% sur votre séjour',
+desc:'Réduis le prix de ta prochaine réservation.',
+code:'TRAVEL10',
+category:'voyage',
+copies:645,
+likes:139,
+expire:'18 jours',
+verified:true,
+image:IMG.BOOKING
+},
+
+{
+id:5,
+brand:'UBER EATS',
+discount:'-12€',
+title:'12 € de réduction',
+desc:'Une offre food pour ta prochaine commande.',
+code:'FOOD12',
+category:'food',
+copies:521,
+likes:97,
+expire:'4 jours',
+verified:true,
+image:IMG['UBER EATS']
+},
+
+{
+id:6,
+brand:'AMAZON',
+discount:'-10%',
+title:'10% sur une sélection',
+desc:'Une sélection shopping mise à jour.',
+code:'SAVE10',
+category:'shopping',
+copies:433,
+likes:81,
+expire:'15 jours',
+verified:true,
+image:IMG.AMAZON
+}
+
 ];
-const DEMO_CODES=[
-  {id:101,kind:"PROMO",brand:"Nike",title:"-20% sur toute la boutique Nike",description:"Réduction de 20% sur sneakers, vêtements et accessoires Nike.",category:"MODE",code:"NIKE20",url:"https://www.nike.com",likes:254,clicks:300,copies:160,reports:2,added_by:"Léa",author_id:"lea",created_at:"2026-08-12T10:00:00.000Z",expires_at:"2026-12-31T23:59:00.000Z"},
-  {id:102,kind:"PARRAINAGE",brand:"Uber",title:"-15€ sur ta 1re course Uber",description:"Utilise le code de parrainage pour une réduction sur ta première course.",category:"VOYAGE",code:"UBER15",url:"https://www.uber.com",likes:238,clicks:276,copies:149,reports:1,added_by:"Hugo",author_id:"hugo",created_at:"2026-08-18T14:20:00.000Z",expires_at:"2026-11-30T23:59:00.000Z"},
-  {id:103,kind:"PROMO",brand:"Shein",title:"-15% sur tout Shein",description:"Code promo -15% valable sur une large sélection Shein.",category:"MODE",code:"SHEIN15",url:"https://www.shein.com",likes:247,clicks:291,copies:155,reports:1,added_by:"Camille",author_id:"camille",created_at:"2026-08-25T11:30:00.000Z",expires_at:"2026-12-15T23:59:00.000Z"},
-  {id:104,kind:"PROMO",brand:"Shein",title:"-65% sur Shein",description:"Code promo -65% Shein. À tester avant paiement.",category:"MODE",code:"frugsf082826",url:"https://www.shein.com",likes:251,clicks:288,copies:157,reports:2,added_by:"Inès",author_id:"ines",created_at:"2026-08-28T09:40:00.000Z",expires_at:"2026-09-30T23:59:00.000Z"}
-];
-const DEMO_COMMENTS={
-  101:[{author:"Camille",author_id:"camille",message:"Validé ce matin sur nike.com, -20% bien pris en compte.",created_at:"2026-08-20T09:12:00.000Z"},{author:"Noah",author_id:"noah",message:"Fonctionne aussi sur l’app Nike.",created_at:"2026-08-22T18:40:00.000Z"}],
-  102:[{author:"Inès",author_id:"ines",message:"-15€ reçus sur ma première course.",created_at:"2026-08-21T11:05:00.000Z"},{author:"Adam",author_id:"adam",message:"Pense à créer un nouveau compte Uber.",created_at:"2026-08-24T16:33:00.000Z"}],
-  103:[{author:"Léa",author_id:"lea",message:"Le -15% est passé sans souci au paiement.",created_at:"2026-08-26T10:18:00.000Z"},{author:"Hugo",author_id:"hugo",message:"Nickel sur l’app Shein aussi.",created_at:"2026-08-27T19:05:00.000Z"}],
-  104:[{author:"Camille",author_id:"camille",message:"Le code frugsf082826 a bien pris -65% chez moi.",created_at:"2026-08-28T14:22:00.000Z"},{author:"Léa",author_id:"lea",message:"Valable sur une grosse partie du panier.",created_at:"2026-08-29T08:11:00.000Z"}]
+
+let codes=[...DEMO];
+
+let category='all';
+
+let currentPage='home';
+
+const $=id=>document.getElementById(id);
+
+const esc=s=>String(s??'').replace(
+/[&<>"']/g,
+m=>({
+'&':'&amp;',
+'<':'&lt;',
+'>':'&gt;',
+'"':'&quot;',
+"'":'&#039;'
+}[m])
+);
+
+function toast(msg){
+
+const t=$('toast');
+
+t.textContent=msg;
+
+t.classList.add('show');
+
+clearTimeout(window.__toast);
+
+window.__toast=setTimeout(
+()=>t.classList.remove('show'),
+1800
+);
+
+}
+
+function go(page){
+
+currentPage=page;
+
+document
+.querySelectorAll('.page')
+.forEach(
+p=>p.classList.remove('active')
+);
+
+$('page-'+page)
+.classList.add('active');
+
+document
+.querySelectorAll('.nav[data-page]')
+.forEach(
+n=>n.classList.toggle(
+'active',
+n.dataset.page===page
+)
+);
+
+if(page==='home')
+renderHome();
+
+if(page==='explore')
+renderExplore(
+$('exploreSearch')?.value||''
+);
+
+if(page==='profile')
+renderProfile();
+
+window.scrollTo({
+top:0,
+behavior:'smooth'
+});
+
+}
+
+function setCategory(cat,btn){
+
+category=cat;
+
+document
+.querySelectorAll('#chips .chip')
+.forEach(
+x=>x.classList.remove('active')
+);
+
+btn.classList.add('active');
+
+renderHome();
+
+}
+
+function filterHome(q){
+
+q=(q||'')
+.toLowerCase()
+.trim();
+
+const list=codes.filter(
+c=>
+(category==='all'||c.category===category)&&
+(
+!q||
+[
+c.brand,
+c.title,
+c.desc,
+c.code,
+c.category
+]
+.join(' ')
+.toLowerCase()
+.includes(q)
+)
+);
+
+renderHome(list);
+
+}
+
+function imgTag(src,alt='',cls='media'){
+
+return src
+?
+`<img
+class="${cls}"
+src="${src}"
+alt="${esc(alt)}"
+loading="lazy"
+decoding="async"
+onerror="this.style.display='none'">`
+:'';
+
+}
+
+function card(c,feature=false){
+
+return `
+
+<article
+class="${feature?'featured':'card'}"
+onclick="openOffer(${c.id})">
+
+<div
+class="${feature?'visual':'mini-visual'}">
+
+${imgTag(c.image,c.brand)}
+
+<span class="pill">
+${esc(c.brand)}
+${c.verified?'✓':''}
+</span>
+
+<span
+class="${feature?'discount':'mini-discount'}">
+
+${esc(c.discount)}
+
+</span>
+
+${
+feature
+?
+`<span class="visual-word">
+${esc(c.brand)}
+</span>`
+:
+`<strong>
+${esc(c.brand)}
+</strong>`
+}
+
+<button
+class="${feature?'save':'mini-save'}"
+onclick="event.stopPropagation();saveCode(${c.id},this)"
+aria-label="Sauvegarder">
+
+♡
+
+</button>
+
+${
+feature
+?
+`<span class="hot">
+🔥 ${c.copies.toLocaleString('fr-FR')} copies
+</span>`
+:
+''
+}
+
+</div>
+
+<div
+class="${feature?'body':'mini-body'}">
+
+${
+feature
+?
+`
+<div class="feature-source">
+
+${imgTag(c.image,c.brand,'')}
+
+<span>
+${esc(c.brand)} ·
+${c.verified
+?'Offre vérifiée'
+:'Offre communautaire'}
+</span>
+
+</div>
+`
+:
+''
+}
+
+<div
+class="${feature?'offer-title':'mini-brand'}">
+
+${
+feature
+?
+esc(c.title)
+:
+esc(c.brand)
+}
+
+</div>
+
+${
+feature
+?
+`
+<p class="desc">
+${esc(c.desc)}
+</p>
+`
+:
+`
+<div class="mini-title">
+${esc(c.title)}
+</div>
+
+<div class="mini-code">
+${esc(c.code)}
+</div>
+`
+}
+
+<div class="code-row">
+
+<span class="code">
+${esc(c.code)}
+</span>
+
+<button
+class="copy"
+onclick="event.stopPropagation();copyCode(${c.id},this)">
+
+Copier
+
+</button>
+
+</div>
+
+<div
+class="${feature?'meta':'mini-foot'}">
+
+<span>
+♡ ${c.likes} ·
+${c.copies.toLocaleString('fr-FR')}
+</span>
+
+<span>
+
+${
+feature
+?
+'Expire '+esc(c.expire)
+:
+esc(c.discount)
+}
+
+</span>
+
+</div>
+
+</div>
+
+</article>
+
+`;
+
+}
+
+function renderHome(list=null){
+
+const filtered=
+list||
+codes.filter(
+c=>
+category==='all'||
+c.category===category
+);
+
+const sorted=
+[...filtered]
+.sort(
+(a,b)=>b.copies-a.copies
+);
+
+$('featured').innerHTML=
+sorted[0]
+?
+card(sorted[0],true)
+:
+'<div class="empty">Aucune offre trouvée.</div>';
+
+$('popular').innerHTML=
+sorted
+.slice(0,4)
+.map(c=>card(c))
+.join('')
+||
+'<div class="empty">Aucune offre.</div>';
+
+$('latest').innerHTML=
+[...filtered]
+.reverse()
+.map(
+c=>
+`
+<div
+class="list-card"
+onclick="openOffer(${c.id})">
+
+<div class="list-logo">
+
+${imgTag(c.image,c.brand,'')}
+
+<span>
+${esc(c.brand.slice(0,2))}
+</span>
+
+</div>
+
+<div>
+
+<h3>
+${esc(c.brand)}
+</h3>
+
+<p>
+${esc(c.title)}
+</p>
+
+</div>
+
+<div class="list-right">
+
+<b>
+${esc(c.discount)}
+</b>
+
+<small>
+${c.copies.toLocaleString('fr-FR')}
+copies
+</small>
+
+</div>
+
+</div>
+`
+)
+.join('')
+||
+'<div class="empty">Aucune offre.</div>';
+
+renderBrands(sorted);
+
+}
+
+function renderBrands(sorted){
+
+$('brandStrip').innerHTML=
+sorted
+.slice(0,6)
+.map(
+c=>
+`
+<button
+class="brand-card"
+onclick="openOffer(${c.id})">
+
+${imgTag(c.image,c.brand,'')}
+
+<b>
+${esc(c.brand)}
+</b>
+
+<span>
+${esc(c.category)}
+·
+${esc(c.discount)}
+</span>
+
+</button>
+`
+)
+.join('');
+
+}
+
+function sortPopular(){
+
+category='all';
+
+document
+.querySelectorAll('#chips .chip')
+.forEach(
+x=>x.classList.remove('active')
+);
+
+document
+.querySelector('#chips .chip')
+.classList.add('active');
+
+renderHome(
+[...codes]
+.sort(
+(a,b)=>b.copies-a.copies
+)
+);
+
+toast(
+'Les offres les plus copiées sont affichées'
+);
+
+}
+
+function copyCode(id,btn){
+
+const c=
+codes.find(x=>x.id===id);
+
+if(!c)return;
+
+if(navigator.clipboard)
+navigator.clipboard
+.writeText(c.code)
+.catch(()=>{});
+
+c.copies++;
+
+btn.textContent='✓ Copié';
+
+btn.classList.add('copied');
+
+setTimeout(
+()=>{
+btn.textContent='Copier';
+btn.classList.remove('copied')
+},
+1300
+);
+
+toast('Code copié');
+
+}
+
+function saveCode(id,btn){
+
+const c=
+codes.find(x=>x.id===id);
+
+if(!c)return;
+
+c.saved=!c.saved;
+
+btn.textContent=
+c.saved
+?
+'♥'
+:
+'♡';
+
+btn.style.color=
+c.saved
+?
+'var(--green)'
+:
+'';
+
+toast(
+c.saved
+?
+'Ajouté aux favoris'
+:
+'Retiré des favoris'
+);
+
+$('statFav').textContent=
+codes.filter(x=>x.saved).length||0;
+
+}
+
+function openOffer(id){
+
+const c=
+codes.find(x=>x.id===id);
+
+if(!c)return;
+
+$('offerSheetTitle')
+.textContent=c.brand;
+
+$('offerSheetBody').innerHTML=
+
+`
+
+<div class="detail">
+
+${imgTag(
+c.image,
+c.brand,
+'detail-image'
+)}
+
+<div class="eyebrow">
+
+${esc(c.category)}
+·
+${c.verified
+?'Offre vérifiée'
+:'Offre communautaire'}
+
+</div>
+
+<h1 class="detail-title">
+${esc(c.title)}
+</h1>
+
+<p style="
+color:var(--muted);
+font-size:12px;
+line-height:1.7;
+margin:0">
+
+${esc(c.desc)}
+
+</p>
+
+<div class="detail-stats">
+
+<div>
+<b>
+${esc(c.discount)}
+</b>
+<span>
+réduction
+</span>
+</div>
+
+<div>
+<b>
+${c.copies.toLocaleString('fr-FR')}
+</b>
+<span>
+copies
+</span>
+</div>
+
+<div>
+<b>
+${esc(c.expire)}
+</b>
+<span>
+expiration
+</span>
+</div>
+
+</div>
+
+<div class="code-row">
+
+<span class="code">
+${esc(c.code)}
+</span>
+
+<button
+class="copy"
+onclick="copyCode(${c.id},this)">
+
+Copier
+
+</button>
+
+</div>
+
+<button
+class="primary"
+onclick="copyCode(${c.id},this);openLink('${esc(c.brand)}')">
+
+Copier & ouvrir le site →
+
+</button>
+
+<button
+class="secondary"
+onclick="saveCode(${c.id},this)">
+
+♡ Sauvegarder l'offre
+
+</button>
+
+</div>
+
+`;
+
+openSheet('offer');
+
+}
+
+function openLink(brand){
+
+const urls={
+
+ZARA:'https://www.zara.com',
+
+NIKE:'https://www.nike.com',
+
+SHEIN:'https://www.shein.com',
+
+BOOKING:'https://www.booking.com',
+
+'UBER EATS':'https://www.ubereats.com',
+
+AMAZON:'https://www.amazon.fr'
+
 };
-let currentUser=null,currentStats=null,currentChallenge=null,currentCategory="TOUS",currentKind="",pendingPhoto="",onboardStep=0,currentCode=null,detailTab="details",profileTab="overview",myCodesCache=[],myFavsCache=[],leaderRows=[],viewedUser=null,adminTab="users";
-const ONBOARD=[{ico:"🏠",title:"Accueil",text:"Les meilleurs codes."},{ico:"➕",title:"Publier",text:"Ajoute une offre."},{ico:"🏆",title:"Challenge",text:"1 point par parrainage."},{ico:"👤",title:"Profil",text:"Photo, bio et lien."}];
-const BRAND_DOMAINS={nike:"nike.com",adidas:"adidas.com",uber:"uber.com","uber eats":"ubereats.com",amazon:"amazon.fr",booking:"booking.com",airbnb:"airbnb.com",shein:"shein.com",zalando:"zalando.fr",zara:"zara.com",deliveroo:"deliveroo.fr",mcdonald:"mcdonalds.fr",spotify:"spotify.com",netflix:"netflix.com",disney:"disneyplus.com",fnac:"fnac.com",darty:"darty.com",boulanger:"boulanger.com",carrefour:"carrefour.fr",leclerc:"e.leclerc",action:"action.com",temu:"temu.com",aliexpress:"aliexpress.com",wish:"wish.com",sncf:"sncf-connect.com",ryanair:"ryanair.com","air france":"airfrance.fr",sephora:"sephora.fr",nocibe:"nocibe.fr","yves rocher":"yves-rocher.fr",decathlon:"decathlon.fr",gosport:"gosport.fr",intersport:"intersport.fr",cdiscount:"cdiscount.com","la redoute":"laredoute.fr",vertbaudet:"vertbaudet.fr",dominos:"dominos.fr","burger king":"burgerking.fr",kfc:"kfc.fr",paypal:"paypal.com",revolut:"revolut.com"};
 
-function norm(s){return String(s||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").trim()}
-function getFollows(){try{return JSON.parse(localStorage.getItem("codia_follows")||"[]")}catch(e){return []}}
-function setFollows(a){localStorage.setItem("codia_follows",JSON.stringify(a))}
-function isFollowing(id){return getFollows().includes(norm(id))}
-function getLocalComments(){try{return JSON.parse(localStorage.getItem("codia_comments")||"{}")}catch(e){return {}}}
-function setLocalComments(map){localStorage.setItem("codia_comments",JSON.stringify(map))}
-function commentsFor(id){return (DEMO_COMMENTS[id]||[]).concat(getLocalComments()[id]||[])}
-function findUserByName(name){
-  const q=norm(name);
-  return Object.values(DEMO_USERS).find(u=>norm(u.id)===q||norm(u.username)===q||norm(u.display_name)===q)
-    || {id:q,username:q,display_name:name||"Membre",bio:"Membre de la communauté COD.IA.",followers:0,following:0,points:0,initials:String(name||"M").slice(0,2).toUpperCase()};
-}
-function emptyMessage(kind){
-  const title=kind==="PARRAINAGE"?"Aucun parrainage pour le moment":kind==="PROMO"?"Aucune promo pour le moment":"Aucun code pour le moment";
-  return `<div class="card empty-box"><div class="empty-ico">🌱</div><div class="card-title">${title}</div><p class="code-desc">La communauté commence tout juste à s’installer ici. Soyez les premiers à poster : un petit code peut faire gagner du temps (et de l’argent) à tout le monde.</p><button class="primary" onclick="openPublish()">✨ Poster le premier code</button></div>`;
-}
-function mergeFeed(server){
-  const map=new Map();
-  DEMO_CODES.forEach(c=>map.set(String(c.id),{...c}));
-  (server||[]).forEach(c=>{const key=String(c.id);if(!map.has(key)) map.set(key,c)});
-  let list=[...map.values()];
-  if(currentCategory!=="TOUS") list=list.filter(c=>c.category===currentCategory);
-  if(currentKind) list=list.filter(c=>c.kind===currentKind);
-  return list;
-}
-function uid(){return String((currentUser&&(currentUser.id||currentUser.username))||"guest")}
-function isOwnerAccount(){if(!currentUser)return false;const n=norm(currentUser.username||"")+" "+norm(currentUser.display_name||"")+" "+norm(currentUser.email||"");return !!(currentUser.is_admin||n.includes("marie")||localStorage.getItem("codia_owner_id")===uid())}
-function chKey(){return "codia_ch_"+uid()}
-function getCh(){try{return JSON.parse(localStorage.getItem(chKey())||"null")}catch(e){return null}}
-function setCh(s){localStorage.setItem(chKey(),JSON.stringify(s));return s}
-function initCh(){let s=getCh();if(s)return s;const owner=isOwnerAccount();if(owner&&!localStorage.getItem("codia_owner_id"))localStorage.setItem("codia_owner_id",uid());s={points:owner?742:0,copies:owner?187:0,bestCode:owner?"ZARA20":"—",todayRefs:owner?8:0,todayCopies:owner?34:0,todayPts:owner?42:0,lastRank:null};return setCh(s)}
-function addReferralPoints(n){const s=initCh();n=Number(n||1);s.points=(s.points||0)+n;s.todayRefs=(s.todayRefs||0)+n;s.todayPts=(s.todayPts||0)+n;setCh(s);if(currentChallenge)currentChallenge.points=s.points;if(currentStats)currentStats.points=s.points;renderChallenge();loadLeaderboard()}
-function recordReferralUse(code){code=String(code||"").toUpperCase().trim();if(!code)return;const hits=JSON.parse(localStorage.getItem("codia_ref_hits")||"{}");hits[code]=(hits[code]||0)+1;localStorage.setItem("codia_ref_hits",JSON.stringify(hits))}
-function consumeReferralHits(){if(!currentUser||!currentUser.referral_code)return;const code=String(currentUser.referral_code).toUpperCase();const hits=JSON.parse(localStorage.getItem("codia_ref_hits")||"{}");const n=Number(hits[code]||0);if(n>0){hits[code]=0;localStorage.setItem("codia_ref_hits",JSON.stringify(hits));addReferralPoints(n);toast("+"+n+" filleul validé 🎉")}}
-function myPoints(){return Number((initCh().points)||0)}
+toast('Code copié');
 
-async function api(url,options={}){const config={credentials:"same-origin",...options};config.headers={"Content-Type":"application/json",...(options.headers||{})};try{const response=await fetch(url,config);const raw=await response.text();let data;try{data=JSON.parse(raw)}catch(e){data={ok:false,error:"Réponse serveur invalide ("+response.status+")"}}if(!response.ok&&!data.error)data.error="Erreur "+response.status;return data}catch(e){return {ok:false,error:"Hors ligne"}}}
-async function apiFirst(urls,options={}){let last={ok:false,error:"Erreur"};for(const u of urls){last=await api(u,options);if(last.ok)return last}return last}
-function toast(m){const el=document.getElementById("toast");el.textContent=m;el.classList.add("show");clearTimeout(window.toastTimer);window.toastTimer=setTimeout(()=>el.classList.remove("show"),2800)}
-function escapeHtml(v){return String(v??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;")}
-function formatNumber(v){return new Intl.NumberFormat("fr-FR").format(Number(v||0))}
-function extra(){try{return JSON.parse(localStorage.getItem("codia_profile_extra")||"{}")}catch(e){return {}}}
-function saveUserLocal(u){if(u&&u.id)localStorage.setItem("codia_user_id",String(u.id))}
-function brandDomain(code){if(code.url){try{return new URL(code.url.startsWith("http")?code.url:"https://"+code.url).hostname.replace(/^www\./,"")}catch(e){}}const key=String(code.brand||code.title||"").toLowerCase();for(const name in BRAND_DOMAINS){if(key.includes(name))return BRAND_DOMAINS[name]}return key.replace(/[^a-z0-9]/g,"")+".com"}
-function logoUrl(code){return "https://www.google.com/s2/favicons?sz=128&domain_url=https://"+brandDomain(code)}
-function rankName(pts){return pts>=1500?"Or":pts>=1000?"Argent":pts>=500?"Bronze":"Départ"}
-function authorKey(code){return code.author_id||code.added_by||code.author||"membre"}
-function showAdminEntry(){const btn=document.getElementById("adminMenuBtn");if(btn)btn.style.display=(currentUser&&currentUser.is_admin)?"flex":"none"}
+if(urls[brand])
+window.open(
+urls[brand],
+'_blank',
+'noopener,noreferrer'
+);
 
-function showAuth(mode="login"){document.getElementById("auth").classList.add("show");document.getElementById("paywall").classList.remove("show");document.getElementById("loginForm").style.display=mode==="login"?"block":"none";document.getElementById("registerForm").style.display=mode==="register"?"block":"none";document.getElementById("loginTab").classList.toggle("active",mode==="login");document.getElementById("registerTab").classList.toggle("active",mode==="register");const ref=new URLSearchParams(location.search).get("ref");if(ref)document.getElementById("registerReferral").value=ref}
-async function login(){const result=await apiFirst(["/api/login","/auth/login"],{method:"POST",body:JSON.stringify({identifier:document.getElementById("loginIdentifier").value.trim(),password:document.getElementById("loginPassword").value})});if(!result.ok){toast(result.error);return}saveUserLocal(result.user);currentUser=result.user;document.getElementById("auth").classList.remove("show");await boot()}
-async function register(){const result=await apiFirst(["/api/register","/auth/register"],{method:"POST",body:JSON.stringify({display_name:document.getElementById("registerName").value.trim(),username:document.getElementById("registerUsername").value.trim(),email:document.getElementById("registerEmail").value.trim(),password:document.getElementById("registerPassword").value,referral_code:document.getElementById("registerReferral").value.trim().toUpperCase()})});if(!result.ok){toast(result.error);return}const refCode=document.getElementById("registerReferral").value.trim().toUpperCase();
-if(refCode)recordReferralUse(refCode);saveUserLocal(result.user);currentUser=result.user;document.getElementById("auth").classList.remove("show");
-document.getElementById("paywall").classList.remove("show");
-document.body.classList.remove("locked");
-loadFeed();
-onboardStep=0;
-const s=ONBOARD[0];
-document.getElementById("onboardIco").textContent=s.ico;
-document.getElementById("onboardTitle").textContent=s.title;
-document.getElementById("onboardText").textContent=s.text;
-document.getElementById("onboard").classList.add("show");
-}
-async function cancelSignup(){await api("/api/cancel-signup",{method:"POST"});backPaywall();document.getElementById("paywall").classList.remove("show");showAuth("login")}
-function logout(){location.href="/logout"}
-
-async function boot(){
-  const params=new URLSearchParams(location.search);
-  if(params.get("auth")==="login"){
-    document.getElementById("paywall").classList.remove("show");
-    document.getElementById("onboard").classList.remove("show");
-    document.body.classList.remove("locked");
-    showAuth("login");
-    history.replaceState({}, "", "/app");
-    return;
-  }
-  if(params.get("paid")==="1"&&params.get("session_id")){
-    await api("/api/confirm-payment?session_id="+encodeURIComponent(params.get("session_id")));
-  }
-  const result=await apiFirst(["/api/me","/auth/me","/api/session"]);
-  if(result.blocked){
-    toast("Compte bloqué");
-    showAuth();
-    return;
-  }
-  if(result.pending&&(!result.user||!result.user.is_paid)){
-  document.getElementById("auth").classList.remove("show");
-  if(!localStorage.getItem("codia_onboard")){
-    document.getElementById("onboard").classList.add("show");
-  }else{
-    showLockedApp();
-  }
-  loadFeed();
-  return;
-}
-  if(!result.ok||!result.user){
-    showAuth();
-    loadFeed();
-    return;
-  }
-  saveUserLocal(result.user);
-  currentUser=result.user;
-  showAdminEntry();
-  initCh();
-  consumeReferralHits();
-  currentStats=result.stats||{referrals:0,points:0,likes:0,clicks:0,followers:0,following:0};
-  currentStats.points=myPoints();
-  currentChallenge=result.challenge||{points:myPoints(),remaining_seconds:18*86400+4*3600+17*60+36};
-  currentChallenge.points=myPoints();
-  document.getElementById("auth").classList.remove("show");
-  updateProfileUI();
- if(!currentUser.is_paid&&!currentUser.is_admin){
-  if(!localStorage.getItem("codia_onboard")){
-    document.getElementById("onboard").classList.add("show");
-  }else{
-    showLockedApp();
-  }
-  loadFeed();
-  return;
-}
-unlockApp();
-showReferralCard();
-  if(!localStorage.getItem("codia_onboard")) document.getElementById("onboard").classList.add("show");
-  loadFeed();
-  loadNotificationsCount();
-  startCountdown();
-  loadLeaderboard();
-  renderChallenge();
-  if(params.get("code")) openDetail(Number(params.get("code")));
-}
-function setAvatarEl(el,user){if(!el)return;if(user.avatar_url){el.style.backgroundImage="url("+user.avatar_url+")";el.innerHTML='<span class="p-crown">👑</span>'}else{el.style.backgroundImage="";el.innerHTML=(user.avatar_initials||user.initials||"CO")+'<span class="p-crown">👑</span>'}}
-function updateProfileUI(){if(!currentUser)return;setAvatarEl(document.getElementById("profileAvatar"),currentUser);document.getElementById("profileName").textContent=currentUser.display_name||currentUser.username||"Membre";document.getElementById("profileBio").textContent=currentUser.bio||"Passionné de bons plans & d’opportunités.";const x=extra();const meta=document.getElementById("profileMeta");if(meta)meta.textContent=(x.city?x.city+" · ":"Communauté COD.IA · ")+"Membre COD.IA";const pts=myPoints();if(document.getElementById("statPoints"))document.getElementById("statPoints").textContent=formatNumber(pts);const fingEl=document.getElementById("statFollowing");if(fingEl)fingEl.textContent=formatNumber((currentStats&&currentStats.following)||getFollows().length);showAdminEntry()}
-
-function goPage(page){closeUserPage();document.querySelectorAll(".page").forEach(el=>el.classList.remove("active"));const t=document.getElementById("page-"+page);if(t)t.classList.add("active");document.querySelectorAll(".nav-item[data-page]").forEach(el=>el.classList.toggle("active",el.dataset.page===page));if(page==="home")loadFeed();if(page==="promos")loadFeed("promoFeed");if(page==="challenge"){loadLeaderboard();renderChallenge()}if(page==="profile")loadProfileExtras();if(page==="admin")loadAdmin()}
-
-function setAdminTab(tab){
-  adminTab=tab;
-  document.querySelectorAll("#page-admin .ptab").forEach((el,i)=>{
-    el.classList.toggle("on",["users","codes","tickets","reports"][i]===tab);
-  });
-  loadAdmin();
-}
-async function loadAdmin(){
-  if(!currentUser||!currentUser.is_admin){toast("Accès admin refusé");goPage("home");return}
-  const panel=document.getElementById("adminPanel");
-  const q=(document.getElementById("adminSearch")?.value||"").trim();
-  const ov=await api("/api/admin/overview");
-  const s=ov.stats||{};
-  document.getElementById("adminStats").innerHTML=`
-    <div class="card"><b>${formatNumber(s.users)}</b><div class="code-desc">Utilisateurs</div></div>
-    <div class="card"><b>${formatNumber(s.paid)}</b><div class="code-desc">Payés</div></div>
-    <div class="card"><b>${formatNumber(s.codes)}</b><div class="code-desc">Codes</div></div>
-    <div class="card"><b>${formatNumber(s.tickets)}</b><div class="code-desc">Tickets ouverts</div></div>`;
-  if(adminTab==="users"){
-    const r=await api("/api/admin/users?q="+encodeURIComponent(q));
-    panel.innerHTML=(r.users||[]).map(u=>`
-      <div class="rank-card" style="align-items:flex-start;flex-wrap:wrap">
-        <div style="flex:1;min-width:180px">
-          <b>${escapeHtml(u.display_name||u.username)}</b>
-          <div class="code-desc">${escapeHtml(u.email||"")} · @${escapeHtml(u.username||"")}</div>
-          <div class="code-desc">${u.is_admin?"ADMIN ":""}${u.is_paid?"PAYÉ":"NON PAYÉ"}${u.is_blocked?" · BANNI":""} · signalements: ${u.warnings_count||0}</div>
-        </div>
-        <div style="min-width:160px">
-          ${u.protected?`<div class="code-desc">Compte protégé</div>`:`
-          <button class="secondary" onclick="adminTogglePaid(${u.id})">${u.is_paid?"Retirer accès":"Activer"}</button>
-          <button class="danger" style="width:100%;margin-top:6px" onclick="adminToggleBlock(${u.id})">${u.is_blocked?"Débannir":"Bannir du site"}</button>
-          <button class="danger" style="width:auto;margin-top:6px" onclick="adminDeleteUser(${u.id})">Supprimer</button>`}
-          <textarea id="warn-${u.id}" style="width:100%;min-height:56px;margin-top:8px;border:1px solid #dfe3d8;background:#f9faf6;border-radius:13px;padding:10px" placeholder="Motif du signalement (spam, faux code...)"></textarea>
-          <button class="secondary" style="width:100%;margin-top:6px" onclick="adminWarnUser(${u.id})">Envoyer un signalement</button>
-        </div>
-      </div>`).join("")||'<div class="card">Aucun utilisateur</div>';
-    return;
-  }
-  if(adminTab==="codes"){
-    const r=await api("/api/admin/codes?q="+encodeURIComponent(q));
-    panel.innerHTML=(r.codes||[]).map(c=>`
-      <div class="code-card">
-        <div class="code-title">${escapeHtml(c.title||"")}</div>
-        <div class="code-desc">${escapeHtml(c.brand||"")} · ${escapeHtml(c.code||"")} · ${escapeHtml(c.added_by||"")}</div>
-        <div class="code-desc">${escapeHtml(c.author_email||"")} · ${escapeHtml(c.status||"")}</div>
-        <button class="danger" onclick="adminDeleteCode(${c.id})">Supprimer</button>
-      </div>`).join("")||'<div class="card">Aucun code</div>';
-    return;
-  }
-  if(adminTab==="reports"){
-    const r=await api("/api/admin/reports");
-    panel.innerHTML=(r.reports||[]).map(x=>`
-      <div class="card">
-        <div class="card-title">${escapeHtml(x.code_title||x.code||"Code signalé")}</div>
-        <div class="code-desc">${escapeHtml(x.brand||"")} · ${escapeHtml(x.code||"")}</div>
-        <div class="code-desc">Par : ${escapeHtml(x.author||"—")} · ${escapeHtml(x.author_email||"")}</div>
-        <div class="code-desc">Signalé par : ${escapeHtml(x.reporter||"—")} · motif : ${escapeHtml(x.reason||"")}</div>
-        ${x.code_id?`<button class="danger" style="width:auto;margin-top:8px" onclick="adminDeleteCode(${x.code_id})">Supprimer le code</button>`:""}
-      </div>`).join("")||'<div class="card">Aucun signalement communautaire</div>';
-    return;
-  }
-  const tickets=await api("/api/admin/tickets");
-  const casts=await api("/api/admin/broadcasts");
-  panel.innerHTML=`
-    <div class="card">
-      <div class="card-title">Messages COD.IA</div>
-      <div class="code-desc">Envoyé à tous les membres. Visible 24 h dans les notifications, puis disparaît.</div>
-      <div class="field"><label>Titre</label><input id="broadcastTitle" placeholder="Info COD.IA"></div>
-      <div class="field"><label>Message</label><textarea id="broadcastMessage" placeholder="Écrire le message à toute la communauté..."></textarea></div>
-      <button class="primary" onclick="adminSendBroadcast()">Envoyer à tous</button>
-      ${(casts.broadcasts||[]).map(b=>`
-        <div class="code-desc" style="margin-top:10px">
-          <b>${escapeHtml(b.title||"Message COD.IA")}</b>
-          ${b.active?" · actif 24h":" · expiré"}<br>
-          ${escapeHtml(b.message||"")}
-        </div>`).join("")||'<div class="code-desc" style="margin-top:10px">Aucun message envoyé.</div>'}
-    </div>
-    `+(tickets.tickets||[]).map(t=>`
-    <div class="card">
-      <div class="card-title">${escapeHtml(t.subject||"Support")}</div>
-      <div class="code-desc">${escapeHtml(t.user||"")} · ${escapeHtml(t.email||"")} · ${escapeHtml(t.status)}</div>
-      <p class="code-desc"><b>Message :</b> ${escapeHtml(t.message||"")}</p>
-      ${t.reply?`<p class="code-desc"><b>Ta réponse :</b> ${escapeHtml(t.reply)}</p>`:""}
-      <textarea id="reply-${t.id}" style="width:100%;min-height:70px;border:1px solid #dfe3d8;background:#f9faf6;border-radius:13px;padding:12px;margin-top:8px" placeholder="Écrire une réponse..."></textarea>
-      <button class="primary" onclick="adminReplyTicket(${t.id})">Envoyer la réponse</button>
-      ${t.status!=="CLOSED"?`<button class="secondary" style="width:100%;margin-top:8px" onclick="adminCloseTicket(${t.id})">Clôturer</button>`:""}
-    </div>`).join("")||'<div class="card">Aucun ticket</div>';
-}
-async function adminTogglePaid(id){const r=await api("/api/admin/users/"+id+"/toggle-paid",{method:"POST"});toast(r.ok?(r.is_paid?"Accès activé":"Accès retiré"):(r.error||"Erreur"));loadAdmin()}
-async function adminToggleBlock(id){const r=await api("/api/admin/users/"+id+"/block",{method:"POST"});toast(r.ok?(r.is_blocked?"Utilisateur banni":"Utilisateur débanni"):(r.error||"Erreur"));loadAdmin()}
-async function adminWarnUser(id){
-  const message=(document.getElementById("warn-"+id)?.value||"").trim();
-  if(!message){toast("Écris le motif");return}
-  const r=await api("/api/admin/users/"+id+"/warn",{method:"POST",body:JSON.stringify({reason:message})});
-  toast(r.ok?("Signalement envoyé ("+(r.warnings_count||1)+")"):(r.error||"Erreur"));
-  if(r.ok) loadAdmin();
-}
-async function adminSendBroadcast(){
-  const title=(document.getElementById("broadcastTitle")?.value||"Message COD.IA").trim();
-  const message=(document.getElementById("broadcastMessage")?.value||"").trim();
-  if(!message){toast("Écris un message");return}
-  const r=await api("/api/admin/broadcasts",{method:"POST",body:JSON.stringify({title,message})});
-  toast(r.ok?"Message envoyé à tous les membres":(r.error||"Erreur"));
-  if(r.ok) loadAdmin();
-}
-async function adminDeleteUser(id){if(!confirm("Supprimer cet utilisateur et ses codes ?"))return;const r=await api("/api/admin/users/"+id+"/delete",{method:"POST"});toast(r.ok?"Utilisateur supprimé":(r.error||"Erreur"));loadAdmin()}
-async function adminDeleteCode(id){if(!confirm("Supprimer ce code ?"))return;const r=await api("/api/admin/codes/"+id+"/delete",{method:"POST"});toast(r.ok?"Code supprimé":(r.error||"Erreur"));loadAdmin()}
-async function adminReplyTicket(id){
-  const message=(document.getElementById("reply-"+id)?.value||"").trim();
-  if(!message){toast("Écris une réponse");return}
-  const r=await api("/api/admin/tickets/"+id+"/reply",{method:"POST",body:JSON.stringify({message})});
-  toast(r.ok?"Réponse envoyée":(r.error||"Erreur"));
-  if(r.ok) loadAdmin();
-}
-async function adminCloseTicket(id){const r=await api("/api/admin/tickets/"+id+"/close",{method:"POST"});toast(r.ok?"Ticket clôturé":(r.error||"Erreur"));loadAdmin()}
-
-async function loadFeed(targetId="feed"){
-  const target=document.getElementById(targetId);if(!target)return;
-  const search=targetId==="promoFeed"?(document.getElementById("promoSearch")?.value||""):(document.getElementById("searchInput")?.value||"");
-  const result=await api(`/api/feed?category=${encodeURIComponent(currentCategory)}&kind=${encodeURIComponent(currentKind)}&search=${encodeURIComponent(search)}`);
-  let codes=mergeFeed(result.codes||[]);
-  const q=search.toLowerCase();
-  if(q) codes=codes.filter(c=>[c.title,c.brand,c.code,c.description,c.added_by].join(" ").toLowerCase().includes(q));
-  renderCodes(target,codes);
-}
-function renderCodes(target,codes){window._lastCodes=codes;if(!codes.length){target.innerHTML=emptyMessage(currentKind);return}target.innerHTML=codes.map(codeCard).join("")}
-function codeCard(code){
-  const nCom=code.comments_count||commentsFor(code.id).length;
-  const author=code.added_by||code.author||"Membre";
-  const key=authorKey(code);
-  return `<article class="code-card" onclick="openDetail(${code.id})"><div class="code-top"><img class="brand-logo" src="${logoUrl(code)}" alt="" onerror="this.style.display='none'"><div><span class="badge">${code.kind==="PARRAINAGE"?"PARRAINAGE":"PROMO"}</span><div class="code-title">${escapeHtml(code.title||"")}</div><div class="code-desc">${escapeHtml(code.brand||code.description||"")} · par <button class="author-link" onclick="event.stopPropagation();openUserPage('${escapeHtml(key)}')">${escapeHtml(author)}</button></div></div></div><button class="more" onclick="event.stopPropagation();openCodeMenu(${code.id})">⋮</button>${code.code?`<div class="code-bottom"><div class="code-chip">${escapeHtml(code.code)}</div><button class="code-copy" onclick="event.stopPropagation();copyCode(${code.id})">⧉</button></div>`:""}<div class="code-actions"><button class="action" onclick="event.stopPropagation();likeCode(${code.id})">♡ ${formatNumber(code.likes)}</button><button class="action" onclick="event.stopPropagation();openDetail(${code.id},'comments')">💬 ${formatNumber(nCom)}</button><button class="action" onclick="event.stopPropagation();favoriteCode(${code.id})">☆ Favoris</button><button class="action" onclick="event.stopPropagation();copyAndOpen(${code.id})">Ouvrir</button><span class="action">⧉ ${formatNumber(code.copies)}</span></div></article>`;
 }
 
-async function openDetail(id,tab){
-  let code=(window._lastCodes||[]).concat(myCodesCache||[]).concat(myFavsCache||[]).concat(DEMO_CODES).find(c=>Number(c.id)===Number(id));
-  if(!code){const r=await api("/api/codes/"+id);if(!r.ok||!r.code){toast(r.error||"Code introuvable");return}code=r.code}
-  currentCode=code;detailTab=tab||"details";
-  document.getElementById("detailPage").classList.add("show");
-  api("/api/codes/"+id+"/click",{method:"POST"});
-  if(detailTab==="comments") await loadComments();
-  else renderDetail();
-}
-function closeDetail(){document.getElementById("detailPage").classList.remove("show");currentCode=null}
-async function setDetailTab(t){detailTab=t;if(t==="comments") await loadComments();else renderDetail()}
-function renderDetail(){
-  const c=currentCode;if(!c)return;
-  const date=c.expires_at?new Date(c.expires_at).toLocaleDateString("fr-FR"):"Sans date";
-  const author=c.added_by||c.author||"Membre";
-  const key=authorKey(c);
-  const details=c.details||["Valable selon les conditions du site","Hors produits déjà en promotion","Non cumulable avec d'autres codes","Utilisable plusieurs fois selon le site"];
-  const comments=c.comments||commentsFor(c.id);
-  const commentsHtml=comments.length
-    ? comments.map(n=>`<div class="comment"><div class="c-ava">${escapeHtml((n.author||"C").slice(0,1).toUpperCase())}</div><div><button class="author-link" onclick="openUserPage('${escapeHtml(n.author_id||n.author)}')">${escapeHtml(n.author||"Membre")}</button><div class="code-desc">${escapeHtml(n.message||"")}</div><div class="comment-meta">${n.created_at?new Date(n.created_at).toLocaleString("fr-FR"):""}</div></div></div>`).join("")
-    : `<div class="comment"><div class="c-ava">💬</div><div><b>Aucun commentaire</b><div class="code-desc">Soyez le premier à donner votre avis.</div></div></div>`;
-  document.getElementById("detailContent").innerHTML=`<div class="detail-hero"><div class="detail-head"><img class="brand-mark" src="${logoUrl(c)}" alt=""><div><span class="badge">${c.kind==="PARRAINAGE"?"PARRAINAGE":"PROMO"}</span><div class="code-title" style="font-size:22px;margin-top:6px">${escapeHtml(c.title||"")}</div><div class="code-desc">${escapeHtml(c.brand||"")} · partagé par <button class="author-link" onclick="openUserPage('${escapeHtml(key)}')">${escapeHtml(author)}</button></div></div><div class="trend">🔥 Top tendance</div></div><p class="code-desc" style="margin:12px 0">${escapeHtml(c.description||"")}</p><div class="chips"><div class="chip">Expire le<b>${date}</b></div><div class="chip">Vérifié<b>Aujourd'hui</b></div><div class="chip">Ajouté par<b><button class="author-link" onclick="openUserPage('${escapeHtml(key)}')">${escapeHtml(author)}</button></b></div><div class="chip">Confiance<b>98%</b></div></div><div class="code-box"><div class="code-desc">Code promo</div><div class="big">${escapeHtml(c.code||"—")}</div><div class="code-desc">Le code a été copié ${formatNumber(c.copies)} fois</div><button class="copy-big" onclick="copyCode(${c.id})">⧉<br>Copier</button></div><div class="two-btns"><button class="primary" style="margin:0" onclick="copyAndOpen(${c.id})">Voir l'offre</button><button class="secondary" onclick="copyAndOpen(${c.id})">⧉ Copier et aller sur le site</button></div><div class="stat-row"><div><b>${formatNumber(c.likes)}</b>Likes</div><div><b>${formatNumber(c.copies)}</b>Copies</div><div><b>${formatNumber(c.clicks)}</b>Clics</div><div><b>${formatNumber(comments.length)}</b>Avis</div></div><div class="dtabs"><button class="dtab ${detailTab==="details"?"on":""}" onclick="setDetailTab('details')">Détails</button><button class="dtab ${detailTab==="comments"?"on":""}" onclick="setDetailTab('comments')">Commentaires</button><button class="dtab ${detailTab==="history"?"on":""}" onclick="setDetailTab('history')">Historique</button></div><div>${detailTab==="details"?`<div class="card-title">Détails de l'offre</div><div class="checks">${details.map(x=>`<div>✓ ${escapeHtml(x)}</div>`).join("")}</div>`:detailTab==="comments"?`<div class="card-title">Commentaires</div><div class="comment-form"><textarea id="commentInput" maxlength="400" placeholder="Écris un commentaire..."></textarea><button class="comment-send" onclick="sendComment()">Envoyer</button></div>${commentsHtml}`:`<div class="code-desc">Ajouté ${c.created_at?new Date(c.created_at).toLocaleDateString("fr-FR"):""}</div>`}</div><button class="danger" onclick="deleteCode(${c.id})">Supprimer définitivement</button></div>`;
-}
-function likeCurrent(){if(currentCode)likeCode(currentCode.id)}
-function useCurrent(){if(currentCode)copyAndOpen(currentCode.id)}
-async function shareCurrent(){if(!currentCode)return;const url=location.origin+"/app?code="+currentCode.id;if(navigator.share){try{await navigator.share({title:currentCode.title,text:currentCode.code,url})}catch(e){}}else{await navigator.clipboard.writeText(url);toast("Lien copié")}}
-async function loadComments(){
-  if(!currentCode)return;
-  const r=await api("/api/codes/"+currentCode.id+"/comments");
-  const server=r.ok?(r.comments||[]):[];
-  const local=commentsFor(currentCode.id);
-  const seen=new Set();const merged=[];
-  [...server,...local].forEach(n=>{const k=(n.author||"")+"|"+(n.message||"");if(!seen.has(k)){seen.add(k);merged.push(n)}});
-  currentCode.comments=merged;currentCode.comments_count=merged.length;renderDetail();
-}
-async function sendComment(){
-  if(!currentCode)return;
-  const input=document.getElementById("commentInput");
-  const message=(input&&input.value||"").trim();
-  if(!message){toast("Écris un commentaire");return}
-  const author=(currentUser&&(currentUser.display_name||currentUser.username))||"Toi";
-  const comment={author,author_id:currentUser&&currentUser.id,message,created_at:new Date().toISOString()};
-  const r=await api("/api/codes/"+currentCode.id+"/comments",{method:"POST",body:JSON.stringify({message})});
-  const map=getLocalComments();map[currentCode.id]=(map[currentCode.id]||[]).concat([comment]);setLocalComments(map);
-  if(input)input.value="";
-  toast(r.ok?"Commentaire publié":"Commentaire enregistré");
-  await loadComments();loadFeed();
+function renderExplore(q=''){
+
+q=
+q
+.toLowerCase()
+.trim();
+
+const list=
+codes
+.filter(
+c=>
+!q||
+[
+c.brand,
+c.title,
+c.category,
+c.code
+]
+.join(' ')
+.toLowerCase()
+.includes(q)
+)
+.sort(
+(a,b)=>b.copies-a.copies
+);
+
+$('exploreList').innerHTML=
+list
+.map(
+c=>
+`
+<div
+class="list-card"
+onclick="openOffer(${c.id})">
+
+<div class="list-logo">
+
+${imgTag(c.image,c.brand,'')}
+
+<span>
+${esc(c.brand.slice(0,2))}
+</span>
+
+</div>
+
+<div>
+
+<h3>
+${esc(c.brand)}
+</h3>
+
+<p>
+${esc(c.title)}
+</p>
+
+</div>
+
+<div class="list-right">
+
+<b>
+${esc(c.discount)}
+</b>
+
+<small>
+${c.copies.toLocaleString('fr-FR')}
+copies
+</small>
+
+</div>
+
+</div>
+`
+)
+.join('')
+||
+'<div class="empty">Aucune offre trouvée.</div>';
+
 }
 
-function openUserPage(name){viewedUser=findUserByName(name);renderUserPage();document.getElementById("userPage").classList.add("show")}
-function closeUserPage(){document.getElementById("userPage").classList.remove("show");viewedUser=null}
-async function toggleFollow(id){
-  id=norm(id);
-  const list=getFollows();
-  const i=list.indexOf(id);
-  if(i>=0){list.splice(i,1);toast("Désabonné")}
-  else{list.push(id);toast("Abonné 🎉");await api("/api/users/"+id+"/follow",{method:"POST"})}
-  setFollows(list);
-  if(currentStats) currentStats.following=list.length;
-  const fingEl=document.getElementById("statFollowing");
-  if(fingEl) fingEl.textContent=formatNumber(list.length);
-  if(viewedUser) renderUserPage();
-}
-function renderUserPage(){
-  const u=viewedUser;if(!u)return;
-  const mine=currentUser&&(String(currentUser.id)===String(u.id)||norm(currentUser.username)===norm(u.username)||norm(currentUser.display_name)===norm(u.display_name));
-  const followed=isFollowing(u.id);
-  const noCodes=u.no_codes||RACE_ONLY.has(norm(u.id));
-  const posts=noCodes?[]:(window._lastCodes||[]).concat(DEMO_CODES).filter(c=>norm(authorKey(c))===norm(u.id)||norm(c.added_by)===norm(u.display_name));
-  const uniq=[];const seen=new Set();posts.forEach(p=>{if(!seen.has(p.id)){seen.add(p.id);uniq.push(p)}});
-  const extraFollowers=(u.followers||0)+(followed?1:0);
-  document.getElementById("userPageContent").innerHTML=`
-    <div class="p-row">
-      <div class="p-ava">${escapeHtml(u.initials||"CO")}<span class="p-crown">👑</span></div>
-      <div>
-        <h2 class="p-name">${escapeHtml(u.display_name)}</h2>
-        <div class="p-badge">@${escapeHtml(u.username)} · ${rankName(u.points||0)}</div>
-        <div class="bio">${escapeHtml(u.bio||"Membre COD.IA")}</div>
-        <div class="code-desc">${u.city?escapeHtml(u.city)+" · ":""}${formatNumber(extraFollowers)} abonnés · ${formatNumber(u.likes||0)} likes · ${formatNumber(u.copies||0)} copies</div>
-      </div>
-    </div>
-    <div class="p-stats">
-      <div class="p-stat"><b>${uniq.length}</b><span>Codes</span></div>
-      <div class="p-stat"><b>${formatNumber(extraFollowers)}</b><span>Abonnés</span></div>
-      <div class="p-stat"><b>${formatNumber(u.following||0)}</b><span>Abonnements</span></div>
-      <div class="p-stat"><b>${formatNumber(u.points||0)}</b><span>Points</span></div>
-      <div class="p-stat"><b>${rankName(u.points||0)}</b><span>Rang</span></div>
-    </div>
-    ${mine?`<div class="card">C’est votre profil.</div>`:`<button class="primary follow-btn ${followed?"on":""}" onclick="toggleFollow('${escapeHtml(u.id)}')">${followed?"✓ Abonné — Ne plus suivre":"+ S’abonner"}</button>`}
-    <div class="section-title" style="margin-top:18px">Codes partagés</div>
-    ${uniq.length?uniq.map(codeCard).join(""):`<div class="card empty-box"><div class="empty-ico">🏁</div><div class="card-title">Pas encore de code publié</div><p class="code-desc">${escapeHtml(u.display_name)} est actif sur la course (${formatNumber(u.points||0)} filleuls / points) mais n’a pas encore partagé d’offre.</p></div>`}`;
+function quickCategory(cat){
+
+$('exploreSearch').value=cat;
+
+renderExplore(cat);
+
 }
 
-function setCategory(btn){document.querySelectorAll(".filter").forEach(el=>el.classList.remove("active"));btn.classList.add("active");currentCategory=btn.dataset.category;loadFeed()}
-function setKind(k){currentKind=k;loadFeed()}
-let searchTimer;document.getElementById("searchInput").addEventListener("input",()=>{clearTimeout(searchTimer);searchTimer=setTimeout(()=>loadFeed(),300)});document.getElementById("promoSearch").addEventListener("input",()=>{clearTimeout(searchTimer);searchTimer=setTimeout(()=>loadFeed("promoFeed"),300)});
-document.getElementById("adminSearch").addEventListener("input",()=>{clearTimeout(searchTimer);searchTimer=setTimeout(loadAdmin,300)});
+function renderProfile(){
 
-async function copyCode(id){const demo=DEMO_CODES.find(c=>Number(c.id)===Number(id));const r=await api(`/api/codes/${id}/copy`,{method:"POST"});const val=(r&&r.code)||(demo&&demo.code);if(val){try{await navigator.clipboard.writeText(val)}catch(e){}}if(!r.ok&&!demo){toast(r.error);return}toast("Code copié");loadFeed()}
-async function copyAndOpen(id){const demo=DEMO_CODES.find(c=>Number(c.id)===Number(id));const r=await api(`/api/codes/${id}/copy`,{method:"POST"});if(r.code){try{await navigator.clipboard.writeText(r.code)}catch(e){}}else if(demo&&demo.code){try{await navigator.clipboard.writeText(demo.code)}catch(e){}}const url=r.url||(demo&&demo.url);if(url)window.open(url,"_blank","noopener")}
-async function likeCode(id){await api(`/api/codes/${id}/like`,{method:"POST"});const demo=DEMO_CODES.find(c=>Number(c.id)===Number(id));if(demo)demo.likes=(demo.likes||0)+1;if(currentCode&&Number(currentCode.id)===Number(id)){currentCode.likes=(currentCode.likes||0)+1;renderDetail()}loadFeed();if(document.getElementById("page-profile").classList.contains("active"))loadProfileExtras()}
-async function favoriteCode(id){const r=await api(`/api/codes/${id}/favorite`,{method:"POST"});toast(r.favorite||r.ok?"Ajouté aux favoris":(r.error||"Favori mis à jour"));loadFeed();loadProfileExtras()}
-async function deleteCode(id){if(!id||!confirm("Supprimer définitivement ce code ?"))return;const r=await api("/api/codes/"+id+"/delete",{method:"POST"});if(!r.ok&&!DEMO_CODES.some(c=>Number(c.id)===Number(id))){toast(r.error||"Suppression impossible");return}toast("Code supprimé");closeModal("codeMenuModal");closeDetail();loadFeed();loadProfileExtras()}
-function openPublish(){document.getElementById("publishModal").classList.add("open")}
-async function publishCode(){const payload={kind:document.getElementById("publishKind").value,brand:document.getElementById("publishBrand").value,title:document.getElementById("publishTitle").value||document.getElementById("publishBrand").value,description:document.getElementById("publishDescription").value,category:document.getElementById("publishCategory").value,code:document.getElementById("publishCode").value,url:document.getElementById("publishUrl").value,expires_at:document.getElementById("publishExpiration").value?new Date(document.getElementById("publishExpiration").value).toISOString():null};const r=await api("/api/codes",{method:"POST",body:JSON.stringify(payload)});if(!r.ok){toast(r.error||"Publication impossible");return}closeModal("publishModal");toast("Offre publiée");loadFeed();loadProfileExtras()}
+const own=
+codes.slice(0,4);
 
-async function copyReferral(){await navigator.clipboard.writeText((currentUser&&currentUser.referral_link)||location.origin+"/?ref="+((currentUser&&currentUser.referral_code)||"MARIE-CODIA"));toast("✅ Lien copié ! Partage-le à tes amis pour gagner des points.")}
-async function copyReferralCode(){await navigator.clipboard.writeText((currentUser&&currentUser.referral_code)||"MARIE-CODIA");toast("✅ Code copié ! Partage-le à tes amis pour gagner des points.")}
-async function shareReferral(){const url=(currentUser&&currentUser.referral_link)||location.origin+"/?ref="+((currentUser&&currentUser.referral_code)||"MARIE-CODIA");if(navigator.share){try{await navigator.share({title:"COD.IA",url})}catch(e){copyReferral()}}else copyReferral()}
+$('profileContent').innerHTML=
+own
+.map(
+c=>
+`
+<div
+class="list-card"
+onclick="openOffer(${c.id})">
 
-function renderChallenge(){
-  const s=initCh();const p=Number(s.points||0);
-  const next=p>=1000?1500:p>=500?1000:500;
-  const remain=Math.max(0,next-p);
-  const el=id=>document.getElementById(id);
-  if(el("racePoints"))el("racePoints").textContent=formatNumber(p);
-  if(el("raceRefs"))el("raceRefs").textContent=formatNumber(p);
-  if(el("launchPts"))el("launchPts").textContent=formatNumber(p);
-  if(el("raceLevel"))el("raceLevel").textContent="NIVEAU "+Math.max(1,Math.min(10,Math.floor(p/100)+1));
-  if(el("raceNext"))el("raceNext").textContent=(p>=1000?"🥇 1 500 €":p>=500?"🥈 1 000 €":"🥉 500 €");
-  if(el("raceRemain"))el("raceRemain").textContent=p>=1500?"Palier Or atteint":("Encore "+formatNumber(remain)+" filleuls pour "+(p>=1000?"Or":p>=500?"Argent":"Bronze"));
-  if(el("raceFill"))el("raceFill").style.width=Math.min(100,p/1500*100)+"%";
-  if(el("mePinWrap"))el("mePinWrap").style.left=Math.min(92,Math.max(8,8+(p/1500)*84))+"%";
-  const ini=((currentUser&&(currentUser.avatar_initials||currentUser.display_name))||"M").toString().slice(0,1).toUpperCase();
-  if(el("raceAvatar"))el("raceAvatar").textContent=ini;
-  if(el("mePin"))el("mePin").textContent=ini;
-  if(el("raceCode"))el("raceCode").textContent=(currentUser&&currentUser.referral_code)||"—";
-  if(el("actRefs"))el("actRefs").textContent="+"+(s.todayRefs||0);
-  if(el("actCopies"))el("actCopies").textContent="+"+(s.todayCopies||0);
-  if(el("actPts"))el("actPts").textContent="+"+(s.todayPts||0);
-  if(el("actHint"))el("actHint").textContent=(s.todayRefs||s.todayCopies||s.todayPts)?"Activité enregistrée":"Aucune activité récente";
-  if(el("dailyNow"))el("dailyNow").textContent=s.todayRefs||0;
-  if(el("dailyBar"))el("dailyBar").style.width=Math.min(100,(s.todayRefs||0)/10*100)+"%";
-  if(el("dailyLeft"))el("dailyLeft").textContent=(s.todayRefs||0)>=10?"Objectif du jour atteint":("Plus que "+Math.max(0,10-(s.todayRefs||0)));
-  if(el("bestCodeName"))el("bestCodeName").textContent=s.bestCode||"—";
-  if(el("copyNow"))el("copyNow").textContent=s.copies||0;
-  if(el("copyBar"))el("copyBar").style.width=Math.min(100,(s.copies||0)/250*100)+"%";
-  if(el("copyLeft"))el("copyLeft").textContent=Math.max(0,250-(s.copies||0));
-  if(el("badgeRow")){
-    const need=[1,10,50,100,500],ico=["🌱","🔥","🚀","💎","👑"],lab=["Départ","Ambassadeur","Actif","Influenceur","Élite"];
-    el("badgeRow").innerHTML=need.map((n,i)=>`<div><div class="badge-ico ${p>=n?"":"off"}">${ico[i]}</div>${lab[i]}<br>${n}</div>`).join("")+`<div><div class="badge-ico">⋯</div>Voir tous</div>`;
-  }
-  if(document.getElementById("statPoints"))document.getElementById("statPoints").textContent=formatNumber(p);
+<div class="list-logo">
+
+${imgTag(c.image,c.brand,'')}
+
+<span>
+${esc(c.brand.slice(0,2))}
+</span>
+
+</div>
+
+<div>
+
+<h3>
+${esc(c.brand)}
+</h3>
+
+<p>
+${esc(c.title)}
+</p>
+
+</div>
+
+<div class="list-right">
+
+<b>
+${esc(c.discount)}
+</b>
+
+<small>
+Actif
+</small>
+
+</div>
+
+</div>
+`
+)
+.join('');
+
+$('statCodes').textContent=
+own.length;
+
+$('statCopies').textContent=
+codes
+.reduce(
+(n,c)=>n+c.copies,
+0
+)
+.toLocaleString('fr-FR');
+
+$('statFav').textContent=
+codes.filter(
+c=>c.saved
+).length;
+
 }
 
-async function loadProfileExtras(){
-  const mine=await api("/api/my-codes");
-  const favs=await api("/api/favorites");
-  myCodesCache=mine.codes||[];
-  myFavsCache=favs.codes||[];
-  const codesEl=document.getElementById("statCodes");
-  const favsEl=document.getElementById("statFavs");
-  const folEl=document.getElementById("statFollowers");
-  const fingEl=document.getElementById("statFollowing");
-  if(codesEl)codesEl.textContent=formatNumber(myCodesCache.length);
-  if(favsEl)favsEl.textContent=formatNumber(myFavsCache.length);
-  if(folEl)folEl.textContent=formatNumber(currentStats&&currentStats.followers||0);
-  if(fingEl)fingEl.textContent=formatNumber((currentStats&&currentStats.following)||getFollows().length);
-  window._contrib={likes:myCodesCache.reduce((s,c)=>s+(c.likes||0),0),clicks:myCodesCache.reduce((s,c)=>s+(c.clicks||0),0),saved:myFavsCache.length,reports:myCodesCache.reduce((s,c)=>s+(c.reports||0),0)};
-  renderProfilePanel();
-}
-function setProfileTab(tab){
-  profileTab=tab;
-  document.querySelectorAll(".ptab").forEach((el,i)=>{
-    const keys=["overview","codes","favs","refs","badges"];
-    el.classList.toggle("on", keys[i]===tab);
-  });
-  renderProfilePanel();
-}
-function codeStatus(c){return (c.expires_at&&new Date(c.expires_at)<new Date())?"expire":"actif"}
-function mineCard(c){
-  const st=codeStatus(c);
-  const host=(()=>{try{return new URL(c.url||"https://"+brandDomain(c)).hostname.replace(/^www\./,"")}catch(e){return brandDomain(c)}})();
-  return `<article class="mine-card" onclick="openDetail(${c.id})">
-    <img class="brand-logo" src="${logoUrl(c)}" alt="">
-    <div>
-      <span class="badge">${c.kind==="PARRAINAGE"?"PARRAINAGE":"PROMO"}</span>
-      <div class="code-title">${escapeHtml(c.title||"")}</div>
-      ${c.code?`<div class="mini-code">${escapeHtml(c.code)} ⧉</div>`:""}
-      <div class="code-desc" style="margin-top:6px">${c.expires_at?"Expire le "+new Date(c.expires_at).toLocaleDateString("fr-FR")+" • ":""}${escapeHtml(host)}</div>
-    </div>
-    <div>
-      <div class="${st==="expire"?"st-expire":"st-actif"}">${st==="expire"?"EXPIRÉ":"ACTIF"}</div>
-      <div class="mstats">♡ ${formatNumber(c.likes)}<br>⧉ ${formatNumber(c.copies)}<br>${formatNumber(c.clicks)}<br>⚑ ${formatNumber(c.reports||0)}</div>
-      <button class="danger" style="padding:6px 8px;font-size:11px;margin-top:6px" onclick="event.stopPropagation();deleteCode(${c.id})">Supprimer</button>
-    </div>
-  </article>`;
-}
-function renderProfilePanel(){
-  const box=document.getElementById("profilePanel");
-  if(!box||!currentUser)return;
-  const x=extra();
-  const co=window._contrib||{likes:0,clicks:0,saved:0,reports:0};
-  const pts=myPoints();
-  if(profileTab==="overview"){
-    const top=(leaderRows||[]).slice(0,3).map((r,i)=>`<div class="rank-card"><span>#${r.rank||i+1} <button class="author-link" onclick="openUserPage('${escapeHtml(r.id||r.name||"")}')">${escapeHtml(r.name||"Membre")}</button></span><b>${formatNumber(r.points)} pts</b></div>`).join("")||"<div class='code-desc'>Pas encore de classement.</div>";
-    const me=(leaderRows||[]).find(r=>r.me);
-    box.innerHTML=`
-      <div class="ov-grid">
-        <div class="card"><div class="card-title">À propos de moi</div>
-          <div class="code-desc">${escapeHtml(currentUser.bio||"J’adore chercher les meilleures offres et les partager avec la communauté COD.IA.")}</div>
-          ${x.ig?`<a class="social" target="_blank" href="https://instagram.com/${encodeURIComponent(String(x.ig).replace("@",""))}">Instagram ${escapeHtml(x.ig)}</a>`:`<div class="social">Instagram</div>`}
-          ${x.snap?`<div class="social">Snapchat ${escapeHtml(x.snap)}</div>`:`<div class="social">Snapchat</div>`}
-        </div>
-        <div class="card"><div class="card-title">Ma contribution</div>
-          <div class="code-desc">${formatNumber(co.clicks)} vues<br>♡ ${formatNumber(co.likes)} likes reçus<br>☆ ${formatNumber(co.saved)} enregistrées<br>⚑ ${formatNumber(co.reports)} signalements</div>
-        </div>
-      </div>
-      <div class="impact"><div class="globe"></div><div><b>Un impact ensemble</b><div class="code-desc">Grâce à la communauté COD.IA, chacun partage et aide les autres.</div><div class="p-badge">+12K membres actifs</div></div></div>
-      <div class="challenge">
-        <div style="display:flex;justify-content:space-between"><b>Challenge 21 jours</b><span class="timer" id="ovTimer">--</span></div>
-        <div class="challenge-desc">Rang actuel : <b>${rankName(pts)}</b> · ${formatNumber(pts)} points${me?` · Classement #${me.rank}`:""}</div>
-        <div class="bronze-row">
-          <div class="level"><b>Bronze</b><div class="code-desc">500 pts · 500 €</div></div>
-          <div>${top}</div>
-        </div>
-      </div>
-      <div class="card"><div class="card-title">Mon lien de parrainage</div>
-        <div class="referral-row"><input class="referral-input" value="${escapeHtml(currentUser.referral_link||"")}" readonly><button class="copy-small" onclick="copyReferral()">⧉</button></div>
-        <button class="primary" onclick="shareReferral()">Partager mon lien</button>
-      </div>
-      <div class="card" onclick="document.getElementById('launchModal').classList.add('open')"><div class="card-title">Offre de Lancement</div><div class="code-desc">1 point par inscription avec ton code.</div></div>
-      <div class="card" onclick="document.getElementById('copiesModal').classList.add('open')"><div class="card-title">Offre Copies</div><div class="code-desc">250 copies = 100 €.</div></div>
-      <div class="card"><div class="card-title">Activité récente</div>
-        <div class="act"><span>A publié ${myCodesCache.length} code(s)</span><span>toi</span></div>
-        <div class="act"><span>A enregistré ${myFavsCache.length} offre(s)</span><span>toi</span></div>
-      </div>`;
-    startCountdown();
-    return;
-  }
-  if(profileTab==="favs"){
-    box.innerHTML=`<div class="section-head"><div class="section-title">Favoris</div></div>${myFavsCache.map(mineCard).join("")||'<div class="card">Aucun favori</div>'}`;
-    return;
-  }
-  if(profileTab==="refs"){
-    box.innerHTML=`<div class="card"><div class="card-title">Parrainages</div>
-      <div class="code-desc">Ton code : <b>${escapeHtml(currentUser.referral_code||"")}</b></div>
-      <div class="referral-row" style="margin-top:10px"><input class="referral-input" id="referralLink" value="${escapeHtml(currentUser.referral_link||"")}" readonly><button class="copy-small" onclick="copyReferral()">⧉</button></div>
-      <div class="referral-row" style="margin-top:8px"><input class="referral-input" id="referralCode" value="${escapeHtml(currentUser.referral_code||"")}" readonly><button class="copy-small" onclick="copyReferralCode()">⧉</button></div>
-      <button class="primary" onclick="shareReferral()">Partager mon lien</button>
-    </div>`;
-    return;
-  }
-  if(profileTab==="badges"){
-    box.innerHTML=`<div class="card"><div class="card-title">Badges</div>
-      <div class="badges3">
-        <div><div class="hex" style="background:#f3e0b8">★</div><b>Débutant</b></div>
-        <div><div class="hex" style="background:#d7e6c4">♡</div><b>Partageur</b></div>
-        <div><div class="hex" style="background:#ddd">●</div><b>Actif</b></div>
-      </div>
-      <div class="code-desc" style="margin-top:12px">Membre COD.IA · Rang ${rankName(pts)}</div>
-    </div>`;
-    return;
-  }
-  const filter=window._mineFilter||"all";
-  const list=myCodesCache.filter(c=>{
-    if(filter==="actif") return codeStatus(c)==="actif";
-    if(filter==="expire") return codeStatus(c)==="expire";
-    return true;
-  });
-  box.innerHTML=`<div class="section-head"><div><div class="section-title">Mes Codes</div><div class="code-desc">Gère et suis tes codes publiés.</div></div>
-    <button class="primary" style="width:auto;margin:0" onclick="openPublish()">+ Publier un code</button></div>
-    <div class="chip-row">
-      <button class="pchip ${filter==="all"?"on":""}" onclick="window._mineFilter='all';renderProfilePanel()">Tous (${myCodesCache.length})</button>
-      <button class="pchip ${filter==="actif"?"on":""}" onclick="window._mineFilter='actif';renderProfilePanel()">Actifs (${myCodesCache.filter(c=>codeStatus(c)==='actif').length})</button>
-      <button class="pchip ${filter==="expire"?"on":""}" onclick="window._mineFilter='expire';renderProfilePanel()">Expirés (${myCodesCache.filter(c=>codeStatus(c)==='expire').length})</button>
-    </div>
-    ${list.map(mineCard).join("")||emptyMessage("")}`;
+function profileTab(type,btn){
+
+document
+.querySelectorAll('.tabs button')
+.forEach(
+x=>x.classList.remove('active')
+);
+
+btn.classList.add('active');
+
+if(type==='impact'){
+
+$('profileContent').innerHTML=
+
+`
+<div class="impact-grid">
+
+<div class="impact">
+
+<b>
+1 842
+</b>
+
+<span>
+copies générées
+</span>
+
+</div>
+
+<div class="impact">
+
+<b>
++12%
+</b>
+
+<span>
+cette semaine
+</span>
+
+</div>
+
+</div>
+
+<div class="section">
+
+<div class="challenge">
+
+<div class="eyebrow">
+Ton impact
+</div>
+
+<h2>
+Tu aides la communauté à économiser.
+</h2>
+
+<p>
+Continue à partager des offres utiles
+et fais progresser ton score.
+</p>
+
+<div class="progress">
+
+<span style="width:78%"></span>
+
+</div>
+
+<div class="challenge-foot">
+
+<span>
+1 842 copies
+</span>
+
+<span>
++12% cette semaine
+</span>
+
+</div>
+
+</div>
+
+</div>
+
+`;
+
 }
 
-function startCountdown(){
-  if(!currentChallenge)currentChallenge={points:myPoints(),remaining_seconds:18*86400+4*3600+17*60+36};
-  function update(){
-    let s=currentChallenge.remaining_seconds||0;
-    if(s<=0){["cdD","cdH","cdM","cdS","challengeTimer","ovTimer"].forEach(id=>{const e=document.getElementById(id);if(e)e.textContent=id&&id.startsWith("cd")?"00":"Terminé"});return}
-    s--;currentChallenge.remaining_seconds=s;
-    const d=Math.floor(s/86400),h=Math.floor((s%86400)/3600),m=Math.floor((s%3600)/60),sec=s%60;
-    const pad=v=>String(v).padStart(2,"0");
-    const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v};
-    set("cdD",pad(d));set("cdH",pad(h));set("cdM",pad(m));set("cdS",pad(sec));
-    const txt=`${d}j ${pad(h)}h ${pad(m)}m`;
-    ["challengeTimer","ovTimer"].forEach(id=>set(id,txt));
-    const p=document.getElementById("challengePoints");if(p)p.textContent=formatNumber(currentChallenge.points)+" points";
-    const bar=document.getElementById("challengeProgress");if(bar)bar.style.width=Math.min(100,(currentChallenge.points||0)/1500*100)+"%";
-  }
-  update();
-  clearInterval(window.challengeInterval);window.challengeInterval=setInterval(update,1000);
-  if(window.lbInterval){clearInterval(window.lbInterval);window.lbInterval=null}
+else if(type==='favorites'){
+
+const fav=
+codes.filter(
+c=>c.saved
+);
+
+$('profileContent').innerHTML=
+
+fav.length
+
+?
+
+fav
+.map(
+c=>
+`
+<div
+class="list-card"
+onclick="openOffer(${c.id})">
+
+<div class="list-logo">
+♥
+</div>
+
+<div>
+
+<h3>
+${esc(c.brand)}
+</h3>
+
+<p>
+${esc(c.title)}
+</p>
+
+</div>
+
+<div class="list-right">
+
+<b>
+${esc(c.discount)}
+</b>
+
+</div>
+
+</div>
+`
+)
+.join('')
+
+:
+
+`
+<div class="empty">
+
+Aucun favori pour le moment.
+<br>
+
+Appuie sur ♡ sur une offre.
+
+</div>
+`;
+
 }
 
-async function loadLeaderboard(){
-  const result=await api("/api/leaderboard");
-  const meName=(currentUser&&(currentUser.display_name||currentUser.username))||"Toi";
-  leaderRows=(result.challenge&&result.challenge.length)?result.challenge.map(r=>({...r})):DEMO_BOARD.map(r=>({...r}));
-  leaderRows=leaderRows.filter(r=>!r.me);
-  leaderRows.push({id:"me",name:meName,points:myPoints(),initials:(meName||"T").slice(0,2).toUpperCase(),me:true});
-  leaderRows.sort((a,b)=>(b.points||0)-(a.points||0));
-  leaderRows.forEach((r,i)=>r.rank=i+1);
-  const medals=["🥇","🥈","🥉"];
-  const live=document.getElementById("liveBoard");
-  if(live)live.innerHTML=leaderRows.slice(0,3).map((r,i)=>`<div class="lb-row"><span><span class="lb-ava">${escapeHtml((r.initials||r.name||"A").toString().slice(0,2))}</span><button class="author-link" style="color:#fff" onclick="openUserPage('${escapeHtml(r.id||r.name)}')">${medals[i]} ${escapeHtml(r.name)}</button></span><b>${formatNumber(r.points)} pts</b></div>`).join("");
-  const full=document.getElementById("fullRankList");
-  if(full)full.innerHTML=leaderRows.map(r=>`<div class="rank-card"><span>#${r.rank} ${r.me?"(toi) ":""}<button class="author-link" onclick="openUserPage('${escapeHtml(r.id||r.name)}');closeModal('fullRankModal')">${escapeHtml(r.name)}</button></span><b>${formatNumber(r.points)} pts</b></div>`).join("");
-  const me=leaderRows.find(r=>r.me);
-  if(me){
-    const a=document.getElementById("myPos"),b=document.getElementById("myPosPts");
-    if(a)a.textContent="#"+me.rank;if(b)b.textContent=formatNumber(me.points);
-    const st=initCh();let gained=0;
-    if(st.lastRank&&me.rank<st.lastRank)gained=st.lastRank-me.rank;
-    st.lastRank=me.rank;setCh(st);
-    const msg=document.getElementById("gainMsg");
-    if(msg){if(gained>0){msg.style.display="block";msg.textContent="⬆️ Tu as gagné "+gained+" place"+(gained>1?"s":"")}else msg.style.display="none"}
-  }
-  renderChallenge();
+else{
+
+renderProfile();
+
 }
 
-async function loadTopCodes(){goPage("promos");const r=await api("/api/top-codes");renderCodes(document.getElementById("promoFeed"),mergeFeed(r.codes||[]))}
-async function loadNotificationsCount(){const r=await api("/api/notifications");if(r.ok)document.getElementById("notificationDot").style.display=r.unread>0?"block":"none"}
-async function openNotifications(){closeAllModals();document.getElementById("notificationModal").classList.add("open");const r=await api("/api/notifications");document.getElementById("notificationsList").innerHTML=`<div class="card" onclick="closeModal('notificationModal');document.getElementById('launchModal').classList.add('open')"><div class="card-title">OFFRE DE LANCEMENT</div><div class="code-desc">1 point par inscription avec ton code.</div></div><div class="card" onclick="closeModal('notificationModal');document.getElementById('copiesModal').classList.add('open')"><div class="card-title">OFFRE COPIES</div><div class="code-desc">250 copies = 100 €.</div></div>`+((r.notifications||[]).map(n=>`<div class="card"><div class="card-title">${escapeHtml(n.title)}</div><div class="code-desc">${escapeHtml(n.message)}</div></div>`).join(""));await api("/api/notifications/read",{method:"POST"})}
-
-function openEditProfile(){pendingPhoto=currentUser.avatar_url||"";const x=extra();document.getElementById("editBio").value=currentUser.bio||"";document.getElementById("editCity").value=x.city||"";document.getElementById("editIg").value=x.ig||"";document.getElementById("editSnap").value=x.snap||"";document.getElementById("editEmail").value=currentUser.email||"";document.getElementById("editModal").classList.add("open");closeModal("menuModal")}
-document.getElementById("editPhoto").addEventListener("change",e=>{const f=e.target.files[0];if(!f)return;if(f.size>250000){toast("Image trop lourde (max 250 Ko).");return}const reader=new FileReader();reader.onload=()=>{pendingPhoto=reader.result};reader.readAsDataURL(f)});
-async function saveProfile(){localStorage.setItem("codia_profile_extra",JSON.stringify({city:document.getElementById("editCity").value,ig:document.getElementById("editIg").value,snap:document.getElementById("editSnap").value}));const r=await api("/api/profile",{method:"PATCH",body:JSON.stringify({bio:document.getElementById("editBio").value,email:document.getElementById("editEmail").value,avatar_url:pendingPhoto})});if(!r.ok){toast(r.error);return}closeModal("editModal");toast("Profil mis à jour");await boot();loadProfileExtras()}
-
-async function openSupport(){
-  closeAllModals();
-  document.getElementById("supportModal").classList.add("open");
-  const box=document.getElementById("myTickets");
-  if(!box)return;
-  const r=await api("/api/support");
-  box.innerHTML=(r.tickets||[]).map(t=>`
-    <div class="card">
-      <div class="card-title">${escapeHtml(t.subject||"Support")}</div>
-      <div class="code-desc">${escapeHtml(t.status||"")}</div>
-      <p class="code-desc">${escapeHtml(t.message||"")}</p>
-      ${t.reply
-        ? `<p class="code-desc"><b>Réponse COD.IA :</b> ${escapeHtml(t.reply)}</p>`
-        : `<p class="code-desc">En attente de réponse.</p>`}
-    </div>`).join("")||'<div class="code-desc">Aucun message pour le moment.</div>';
 }
-async function sendSupport(){const r=await api("/api/support",{method:"POST",body:JSON.stringify({subject:document.getElementById("supportSubject").value,message:document.getElementById("supportMessage").value})});if(!r.ok){toast(r.error);return}closeModal("supportModal");toast("Message envoyé")}
-function openFAQ(){closeAllModals();document.getElementById("faqModal").classList.add("open")}
-function openMenu(){document.getElementById("menuModal").classList.add("open")}
-function openCodeMenu(id){window._menuCodeId=id;document.getElementById("codeMenuModal").classList.add("open")}
-async function reportCode(id){const r=await api(`/api/codes/${id}/report`,{method:"POST"});toast(r.ok?"Signalement enregistré":r.error);loadFeed()}
-async function hideCode(id){await api(`/api/codes/${id}/hide`,{method:"POST"});closeModal("codeMenuModal");loadFeed()}
 
-async function startPayment(){const uid=currentUser&&currentUser.id?currentUser.id:localStorage.getItem("codia_user_id");toast("Ouverture du paiement...");const r=await api("/api/create-checkout",{method:"POST",body:JSON.stringify({user_id:uid})});if(!r.ok){toast(r.error||"Paiement impossible");return}if(r.already_paid){document.getElementById("paywall").classList.remove("show");await boot();return}const secret=r.client_secret||r.clientSecret;if(!secret){toast("Stripe n'a pas renvoyé de session.");return}document.getElementById("paywallIntro").style.display="none";document.getElementById("stripeBox").style.display="block";try{await initializeStripe(secret)}catch(e){toast("Stripe JS : "+e.message);backPaywall()}}
-async function initializeStripe(clientSecret){let cfg=await api("/config");if(!cfg.stripe_pk)cfg=await api("/api/stripe-config");const key=cfg.stripe_pk||cfg.publishable_key;if(!key)throw new Error("STRIPE_PUBLISHABLE_KEY manquante");const checkout=await Stripe(key).initEmbeddedCheckout({clientSecret});document.getElementById("stripeCheckout").innerHTML="";checkout.mount("#stripeCheckout")}
-function backPaywall(){document.getElementById("stripeBox").style.display="none";document.getElementById("paywallIntro").style.display="block";document.getElementById("stripeCheckout").innerHTML=""}
-function showLockedApp(){document.getElementById("auth").classList.remove("show");document.getElementById("onboard").classList.remove("show");document.body.classList.add("locked");document.getElementById("paywall").classList.add("show");loadFeed();}
-function unlockApp(){document.body.classList.remove("locked");document.getElementById("paywall").classList.remove("show");}
-function showReferralCard(){
-  if(localStorage.getItem("codia_ref_card_done")==="1") return false;
-  const el=document.getElementById("refOverlay");
-  if(!el) return false;
-  el.classList.add("show");
-  return true;
+function openSheet(name){
+
+$('sheet-'+name)
+.classList.add('open');
+
+document.body.style.overflow='hidden';
+
 }
-function nextOnboard(){
-  onboardStep++;
-  if(onboardStep>=ONBOARD.length){
-    localStorage.setItem("codia_onboard","1");
-    document.getElementById("onboard").classList.remove("show");
-    showLockedApp();
-    return;
-  }
-  const s=ONBOARD[onboardStep];
-  document.getElementById("onboardIco").textContent=s.ico;
-  document.getElementById("onboardTitle").textContent=s.title;
-  document.getElementById("onboardText").textContent=s.text;
+
+function closeSheet(name){
+
+$('sheet-'+name)
+.classList.remove('open');
+
+document.body.style.overflow='';
+
 }
-function closeModal(id){document.getElementById(id)?.classList.remove("open")}
-function closeAllModals(){document.querySelectorAll(".modal").forEach(el=>el.classList.remove("open"))}
-document.addEventListener("DOMContentLoaded",()=>{const ref=new URLSearchParams(location.search).get("ref");if(ref)document.getElementById("registerReferral").value=ref;boot()});
+
+function sheetBackdrop(e,name){
+
+if(e.target===e.currentTarget)
+closeSheet(name);
+
+}
+
+function publishCode(e){
+
+e.preventDefault();
+
+const brand=
+$('pubBrand')
+.value
+.trim()
+.toUpperCase();
+
+const code=
+$('pubCode')
+.value
+.trim()
+.toUpperCase();
+
+const discount=
+$('pubDiscount')
+.value
+.trim()
+||
+'Offre';
+
+const desc=
+$('pubDesc')
+.value
+.trim()
+||
+'Nouvelle offre partagée sur COD.IA.';
+
+const url=
+$('pubUrl')
+.value
+.trim();
+
+codes.unshift({
+
+id:Date.now(),
+
+brand,
+
+code,
+
+discount,
+
+title:
+discount+
+' chez '+
+brand,
+
+desc,
+
+category:'shopping',
+
+copies:0,
+
+likes:0,
+
+expire:'30 jours',
+
+verified:false,
+
+image:
+IMG[brand]||''
+
+});
+
+fetch(
+'/codes',
+{
+method:'POST',
+credentials:'same-origin',
+headers:{
+'Content-Type':
+'application/json'
+},
+body:
+JSON.stringify({
+brand,
+code,
+discount,
+description:desc,
+url
+})
+}
+)
+.catch(()=>{});
+
+e.target.reset();
+
+closeSheet('publish');
+
+toast('Offre publiée');
+
+go('home');
+
+}
+
+function loadUser(){
+
+fetch(
+'/me',
+{
+credentials:'same-origin'
+}
+)
+.then(
+r=>r.ok?r.json():null
+)
+.then(
+d=>{
+
+if(!d?.user)return;
+
+const u=d.user;
+
+const name=
+u.username
+?
+('@'+u.username)
+:
+(u.display_name||'Membre');
+
+$('profileName')
+.textContent=name;
+
+$('profileAvatar')
+.dataset.initial=
+(
+name
+.replace('@','')[0]
+||
+'M'
+).toUpperCase();
+
+if(u.bio)
+$('profileBio')
+.textContent=u.bio;
+
+}
+)
+.catch(()=>{});
+
+}
+
+function syncCodes(){
+
+fetch(
+'/codes',
+{
+credentials:'same-origin'
+}
+)
+.then(
+r=>r.ok?r.json():null
+)
+.then(
+d=>{
+
+const list=
+Array.isArray(d)
+?
+d
+:
+d?.codes;
+
+if(
+!Array.isArray(list)||
+!list.length
+)
+return;
+
+codes=
+list.map(normalize);
+
+renderHome();
+
+renderExplore('');
+
+renderProfile();
+
+}
+)
+.catch(()=>{});
+
+}
+
+function normalize(c){
+
+return {
+
+id:
+c.id||
+Date.now()+Math.random(),
+
+brand:
+(
+c.site||
+c.brand||
+'MARQUE'
+).toUpperCase(),
+
+discount:
+c.discount||
+c.reduction||
+'Offre',
+
+title:
+c.title||
+c.description||
+'Offre à découvrir',
+
+desc:
+c.description||
+c.title||
+'Découvrez cette offre.',
+
+code:
+c.code||
+'CODE',
+
+category:
+(
+c.category||
+c.type||
+'shopping'
+).toLowerCase(),
+
+copies:
+Number(c.copies||0),
+
+likes:
+Number(
+c.likes||
+c.like_count||
+0
+),
+
+expire:
+c.expires_at
+?
+new Date(
+c.expires_at
+)
+.toLocaleDateString('fr-FR')
+:
+'bientôt',
+
+verified:
+!!(
+c.verified||
+c.is_verified
+)
+
+};
+
+}
+
+renderHome();
+
+renderExplore('');
+
+renderProfile();
+
+loadUser();
+
+syncCodes();
+
 </script>
 
-<script>
-(function () {
-  const API = "https://countapi.mileshilliard.com/api/v1";
-  const KEYS = {
-    visits: "codia-fr-visites-unique-xyz123",
-    connexion: "codia-fr-clics-connexion-xyz123",
-    inscription: "codia-fr-clics-inscription-xyz123"
-  };
-
-  const hit = (key) => {
-    fetch(`${API}/hit/${encodeURIComponent(key)}`).catch(() => {});
-  };
-
-  try {
-    if (!sessionStorage.getItem("codia_visit_counted")) {
-      hit(KEYS.visits);
-      sessionStorage.setItem("codia_visit_counted", "1");
-    }
-  } catch (e) {
-    hit(KEYS.visits);
-  }
-
-  document.addEventListener("click", (e) => {
-    const el = e.target.closest("a, button, [role='button']");
-    if (!el) return;
-    const t = (el.innerText || el.textContent || "").trim().toLowerCase();
-
-    if (t.includes("connexion") || t.includes("se connecter")) {
-      hit(KEYS.connexion);
-    }
-    if (t.includes("inscription") || t.includes("créer mon compte")) {
-      hit(KEYS.inscription);
-    }
-  });
-})();
-</script>
 </body>
 </html>

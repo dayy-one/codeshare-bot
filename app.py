@@ -1,5 +1,6 @@
 import logging
 import os
+import random
 import re
 import secrets
 import string
@@ -187,6 +188,27 @@ def init_db():
                 ensure_column(cur, "users", c, d)
 
             cur.execute(
+                """SELECT id FROM users
+                   WHERE referral_code IS NULL OR TRIM(referral_code) = ''"""
+            )
+            missing = cur.fetchall() or []
+            for row in missing:
+                code = None
+                for _ in range(40):
+                    alphabet = string.ascii_uppercase + string.digits
+                    candidate = "CODIA" + "".join(secrets.choice(alphabet) for _ in range(6))
+                    cur.execute("SELECT 1 FROM users WHERE referral_code=%s", (candidate,))
+                    if not cur.fetchone():
+                        code = candidate
+                        break
+                if not code:
+                    code = "CODIA" + secrets.token_hex(3).upper()
+                cur.execute(
+                    "UPDATE users SET referral_code=%s WHERE id=%s",
+                    (code, row["id"]),
+                )
+
+            cur.execute(
                 """CREATE TABLE IF NOT EXISTS pending_signups (
                 id BIGSERIAL PRIMARY KEY,
                 email TEXT NOT NULL,
@@ -249,7 +271,27 @@ def init_db():
                     title TEXT NOT NULL,
                     message TEXT NOT NULL,
                     created_by BIGINT,
-                    created_at TIMESTAMPTZ DEFAULT NOW());"""
+                    created_at TIMESTAMPTZ DEFAULT NOW());
+                CREATE TABLE IF NOT EXISTS follows (
+                    follower_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                    following_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                    created_at TIMESTAMPTZ DEFAULT NOW(),
+                    PRIMARY KEY (follower_id, following_id)
+                );
+                CREATE TABLE IF NOT EXISTS follow_requests (
+                    id BIGSERIAL PRIMARY KEY,
+                    from_user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                    to_user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                    created_at TIMESTAMPTZ DEFAULT NOW(),
+                    UNIQUE (from_user_id, to_user_id)
+                );
+                CREATE TABLE IF NOT EXISTS activities (
+                    id BIGSERIAL PRIMARY KEY,
+                    user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                    title TEXT NOT NULL,
+                    detail TEXT DEFAULT '',
+                    created_at TIMESTAMPTZ DEFAULT NOW()
+                );"""
             )
             ensure_column(cur, "support_tickets", "reply", "TEXT DEFAULT ''")
             ensure_column(cur, "support_tickets", "replied_at", "TIMESTAMPTZ")
@@ -260,6 +302,7 @@ def init_db():
             )
             cleanup_unpaid(cur)
             cur.execute("DELETE FROM pending_signups WHERE created_at < NOW() - INTERVAL '24 hours'")
+            cur.execute("DELETE FROM activities WHERE created_at < NOW() - INTERVAL '24 hours'")
             for email in ADMIN_EMAILS:
                 cur.execute(
                     "UPDATE users SET is_admin=TRUE, is_paid=TRUE WHERE LOWER(email)=%s",
@@ -352,6 +395,16 @@ def create_notification(cur, user_id, title, message, kind="INFO"):
         pass
 
 
+def add_activity(cur, user_id, title, detail=""):
+    try:
+        cur.execute(
+            "INSERT INTO activities(user_id,title,detail) VALUES(%s,%s,%s)",
+            (user_id, title, detail),
+        )
+    except Exception:
+        pass
+
+
 def user_stats(user_id):
     conn = db()
     try:
@@ -416,9 +469,43 @@ def challenge_info(user_id=None):
     return {"points": points, "remaining_seconds": max(0, int((end - now_utc()).total_seconds()))}
 
 
+def serialize_user_public(row, include_private=False):
+    if not row:
+        return None
+    data = {
+        "id": row["id"],
+        "username": row.get("username"),
+        "display_name": row.get("display_name") or row.get("username") or "Membre",
+        "avatar_url": row.get("avatar_url") or "",
+        "avatar": row.get("avatar_url") or "",
+        "avatar_initials": row.get("avatar_initials") or "CO",
+    }
+    if include_private:
+        data["bio"] = row.get("bio") or ""
+    return data
+
+
+def follow_relation(cur, me_id, other_id):
+    if int(me_id) == int(other_id):
+        return "self"
+    cur.execute(
+        "SELECT 1 FROM follows WHERE follower_id=%s AND following_id=%s",
+        (me_id, other_id),
+    )
+    if cur.fetchone():
+        return "accepted"
+    cur.execute(
+        "SELECT 1 FROM follow_requests WHERE from_user_id=%s AND to_user_id=%s",
+        (me_id, other_id),
+    )
+    if cur.fetchone():
+        return "pending"
+    return "none"
+
+
 def serialize_code(row, uid=None):
     liked = favorite = False
-    added_by = None
+    author = None
     if uid:
         conn = db()
         try:
@@ -438,23 +525,28 @@ def serialize_code(row, uid=None):
     try:
         with conn.cursor() as cur:
             cur.execute(
-                "SELECT username, display_name FROM users WHERE id=%s", (row.get("user_id"),)
+                """SELECT id, username, display_name, avatar_url, avatar_initials, bio
+                   FROM users WHERE id=%s""",
+                (row.get("user_id"),),
             )
             author = cur.fetchone()
-            if author:
-                added_by = author.get("display_name") or author.get("username")
     except Exception:
-        pass
+        author = None
     finally:
         conn.close()
+    added_by = "Membre"
+    if author:
+        added_by = author.get("display_name") or author.get("username") or "Membre"
     return {
         "id": row["id"],
         "kind": row.get("kind") or "PROMO",
         "brand": row.get("brand") or row.get("site"),
+        "site": row.get("site") or row.get("brand"),
         "title": row.get("title"),
         "description": row.get("description"),
         "code": row.get("code"),
         "url": row.get("url"),
+        "category": row.get("category") or "Autres",
         "expires_at": iso(row.get("expires_at")),
         "created_at": iso(row.get("created_at")),
         "likes": row.get("likes_count") or 0,
@@ -463,8 +555,14 @@ def serialize_code(row, uid=None):
         "reports": row.get("reports_count") or 0,
         "liked": liked,
         "favorite": favorite,
-        "added_by": added_by or "Membre",
+        "added_by": added_by,
         "owner_id": row.get("user_id"),
+        "user_id": row.get("user_id"),
+        "author_id": row.get("user_id"),
+        "author": serialize_user_public(author) if author else None,
+        "username": (author or {}).get("username") if author else None,
+        "name": added_by,
+        "avatar": (author or {}).get("avatar_url") if author else "",
     }
 
 
@@ -496,7 +594,6 @@ def activate_paid_user(pending_id=None, user_id=None, stripe_session_id=None, ex
                 pending = cur.fetchone()
 
             email = normalize_email(extra.get("email"))
-            username = clean_username(extra.get("username"))
 
             if not user and not pending and email:
                 cur.execute(
@@ -575,6 +672,7 @@ def activate_paid_user(pending_id=None, user_id=None, stripe_session_id=None, ex
                             f"{user['display_name']} a rejoint avec ton code. +1 point.",
                             "REFERRAL",
                         )
+                        add_activity(cur, referred_by, "Nouveau parrainage", "+1 point")
                 cur.execute("DELETE FROM pending_signups WHERE id=%s", (pending["id"],))
 
             conn.commit()
@@ -596,6 +694,25 @@ def landing():
 @app.route("/miniapp")
 def miniapp():
     return send_from_directory(BASE_DIR, "miniapp.html")
+
+
+@app.route("/feed")
+def feed_page():
+    return send_from_directory(BASE_DIR, "feed.html")
+
+
+@app.route("/explore")
+@app.route("/explore.html")
+@app.route("/explorez")
+@app.route("/explorez.html")
+def explore_page():
+    name = "explore.html" if os.path.exists(os.path.join(BASE_DIR, "explore.html")) else "explorez.html"
+    return send_from_directory(BASE_DIR, name)
+
+
+@app.route("/profile")
+def profile_page():
+    return send_from_directory(BASE_DIR, "profile.html")
 
 
 @app.route("/login")
@@ -817,6 +934,7 @@ def apply_referral():
                     f"{user.get('display_name') or user.get('username')} a rejoint avec ton code. +1 point.",
                     "REFERRAL",
                 )
+                add_activity(cur, ref["id"], "Nouveau parrainage", "+1 point")
             elif pending_id:
                 cur.execute(
                     "UPDATE pending_signups SET referral_code=%s WHERE id=%s",
@@ -892,6 +1010,7 @@ def login():
 
 
 @app.get("/api/me")
+@app.get("/me")
 def me_any():
     user = get_current_user()
     if not user:
@@ -1070,6 +1189,7 @@ def stripe_webhook():
 
 
 @app.get("/api/feed")
+@app.get("/codes")
 @require_auth
 def feed(user):
     search = (request.args.get("search") or "").strip()
@@ -1112,6 +1232,502 @@ def feed(user):
         conn.close()
 
 
+def _counts(cur, uid):
+    cur.execute(
+        """SELECT COUNT(*) AS c FROM codes
+           WHERE user_id=%s AND COALESCE(status,'VALIDEE')='VALIDEE'""",
+        (uid,),
+    )
+    codes_n = int(cur.fetchone()["c"] or 0)
+    cur.execute("SELECT COUNT(*) AS c FROM follows WHERE following_id=%s", (uid,))
+    followers = int(cur.fetchone()["c"] or 0)
+    cur.execute("SELECT COUNT(*) AS c FROM follows WHERE follower_id=%s", (uid,))
+    following = int(cur.fetchone()["c"] or 0)
+    return codes_n, followers, following
+
+
+@app.get("/api/explore-people")
+@require_auth
+def api_explore_people(user):
+    conn = db()
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT u.id, u.username, u.display_name, u.bio,
+                       u.avatar_url, u.avatar_initials,
+                       (SELECT COUNT(*) FROM codes c
+                         WHERE c.user_id=u.id
+                           AND COALESCE(c.status,'VALIDEE')='VALIDEE') AS posts,
+                       (SELECT COALESCE(SUM(c.copies_count),0) FROM codes c
+                         WHERE c.user_id=u.id) AS copies
+                FROM users u
+                WHERE COALESCE(u.is_paid, FALSE) = TRUE
+                  AND COALESCE(u.is_blocked, FALSE) = FALSE
+                  AND u.id <> %s
+                ORDER BY RANDOM()
+                LIMIT 12
+                """,
+                (user["id"],),
+            )
+            rows = cur.fetchall() or []
+        people = []
+        for r in rows[:3]:
+            uname = r.get("username") or "membre"
+            people.append(
+                {
+                    "id": r["id"],
+                    "name": r.get("display_name") or uname,
+                    "display_name": r.get("display_name") or uname,
+                    "username": uname,
+                    "bio": r.get("bio") or "",
+                    "avatar": r.get("avatar_url") or "",
+                    "avatar_url": r.get("avatar_url") or "",
+                    "avatar_initials": r.get("avatar_initials") or "CO",
+                    "posts": int(r.get("posts") or 0),
+                    "copies": int(r.get("copies") or 0),
+                    "verified": int(r.get("posts") or 0) >= 2,
+                }
+            )
+        return jsonify({"ok": True, "people": people})
+    except Exception as exc:
+        logging.error("EXPLORE PEOPLE: %s", exc)
+        return jsonify({"ok": True, "people": []})
+    finally:
+        conn.close()
+
+
+@app.post("/api/seed-explore")
+@require_admin
+def api_seed_explore(admin):
+    seed_users = [
+        ("emma", "Emma Martin", "Mode, beauté & bons plans du quotidien."),
+        ("julien", "Julien Roux", "Tech, voyage et offres qui valent le coup."),
+        ("camille", "Camille Bernard", "Maison, lifestyle & petites découvertes."),
+        ("lucas", "Lucas Petit", "Sport, sneakers et bons plans terrain."),
+        ("chloe", "Chloé Dubois", "Beauté, mode et pépites à ne pas rater."),
+        ("thomas", "Thomas Leroy", "Tech, gaming, acheter mieux sans payer plus."),
+        ("sarah", "Sarah Nguyen", "Voyage, hôtels et expériences communautaires."),
+        ("alex", "Alex Morel", "Offres simples, utiles, vraiment intéressantes."),
+        ("lea", "Léa Fontaine", "Lifestyle, maison et découvertes du moment."),
+        ("nolan", "Nolan Caron", "Je ne partage que ce qui vaut le détour."),
+    ]
+    seed_codes = [
+        ("emma", "Zara", "Mode", "PROMO", "-20% dès 60€", "ZARA20"),
+        ("emma", "Sephora", "Beauté", "PROMO", "15% beauté", "SEPH15"),
+        ("julien", "Amazon", "Tech", "PARRAINAGE", "Parrainage Amazon", "AMZ-JULIEN"),
+        ("julien", "Booking", "Voyage", "PROMO", "-12% hébergement", "BOOK12"),
+        ("camille", "IKEA", "Maison", "PROMO", "10% déco", "IKEA10"),
+        ("lucas", "Nike", "Sport", "PROMO", "Sneakers -25%", "NIKE25"),
+        ("lucas", "Adidas", "Sport", "PARRAINAGE", "Parrain sport", "ADI-LUCAS"),
+        ("chloe", "SHEIN", "Mode", "PROMO", "Code welcome", "SHEIN15"),
+        ("chloe", "H&M", "Mode", "PROMO", "-20% nouvelle collab", "HM20"),
+        ("thomas", "Fnac", "Tech", "PROMO", "Tech week -10%", "FNAC10"),
+        ("sarah", "Booking", "Voyage", "PARRAINAGE", "Parrain voyage", "BOOK-SARAH"),
+        ("sarah", "Airbnb", "Voyage", "PROMO", "Crédit voyage", "AIR40"),
+        ("alex", "Amazon", "Shopping", "PROMO", "Livraison / code", "AMZ5"),
+        ("lea", "Maisons du Monde", "Maison", "PROMO", "-15% salon", "MDM15"),
+        ("nolan", "Decathlon", "Sport", "PROMO", "Outdoor -10%", "DECA10"),
+    ]
+    conn = db()
+    ids = {}
+    try:
+        with conn.cursor() as cur:
+            for uname, name, bio in seed_users:
+                email = f"{uname}@seed.cod-ia.fr"
+                cur.execute("SELECT id FROM users WHERE LOWER(username)=LOWER(%s)", (uname,))
+                row = cur.fetchone()
+                if row:
+                    cur.execute(
+                        """UPDATE users
+                           SET display_name=%s, bio=%s, is_paid=TRUE, is_blocked=FALSE
+                           WHERE id=%s""",
+                        (name, bio, row["id"]),
+                    )
+                    ids[uname] = row["id"]
+                    continue
+                initials = "".join(x[0] for x in name.split() if x)[:2].upper() or "CO"
+                cur.execute(
+                    """INSERT INTO users(
+                        email, username, password_hash, display_name, bio,
+                        avatar_initials, referral_code, is_admin, is_paid
+                    ) VALUES(%s,%s,%s,%s,%s,%s,%s,FALSE,TRUE)
+                    RETURNING id""",
+                    (
+                        email,
+                        uname,
+                        generate_password_hash(secrets.token_urlsafe(12)),
+                        name,
+                        bio,
+                        initials,
+                        make_referral_code(),
+                    ),
+                )
+                ids[uname] = cur.fetchone()["id"]
+
+            names = list(ids)
+            for i, me in enumerate(names):
+                others = names[i + 1 :] + names[:i]
+                n = 3 + (i % 3)
+                for other in others[:n]:
+                    cur.execute(
+                        """INSERT INTO follows(follower_id, following_id)
+                           VALUES(%s,%s) ON CONFLICT DO NOTHING""",
+                        (ids[me], ids[other]),
+                    )
+
+            for author, brand, cat, kind, title, code in seed_codes:
+                copies = random.randint(40, 420)
+                likes = random.randint(12, 280)
+                if copies >= 100 or likes >= 100:
+                    copies = max(copies, 100)
+                cur.execute(
+                    "SELECT id FROM codes WHERE code=%s AND user_id=%s",
+                    (code, ids[author]),
+                )
+                if cur.fetchone():
+                    cur.execute(
+                        """UPDATE codes
+                           SET title=%s, copies_count=%s, likes_count=%s, status='VALIDEE'
+                           WHERE code=%s AND user_id=%s""",
+                        (title, copies, likes, code, ids[author]),
+                    )
+                    continue
+                cur.execute(
+                    """INSERT INTO codes(
+                        user_id, kind, category, brand, site, title, description,
+                        code, status, likes_count, copies_count
+                    ) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,'VALIDEE',%s,%s)""",
+                    (
+                        ids[author],
+                        kind,
+                        cat,
+                        brand,
+                        brand,
+                        title,
+                        title,
+                        code,
+                        likes,
+                        copies,
+                    ),
+                )
+        conn.commit()
+        return jsonify({"ok": True, "users": len(ids), "codes": len(seed_codes)})
+    except Exception as exc:
+        logging.error("SEED EXPLORE: %s", exc)
+        conn.rollback()
+        return json_error("Seed impossible : " + str(exc), 500)
+    finally:
+        conn.close()
+
+
+@app.get("/api/users/<int:uid>")
+@require_auth
+def get_user_profile(user, uid):
+    conn = db()
+    try:
+        with conn.cursor() as cur:
+            cur.execute("SELECT * FROM users WHERE id=%s", (uid,))
+            other = cur.fetchone()
+            if not other:
+                return json_error("Utilisateur introuvable.", 404)
+            relation = follow_relation(cur, user["id"], uid)
+            visible = relation in ("self", "accepted")
+            codes_n, followers, following = _counts(cur, uid)
+            payload = {
+                "ok": True,
+                "user": {
+                    **serialize_user_public(other, include_private=True),
+                    "bio": (other.get("bio") or "") if visible else "",
+                },
+                "relation": relation,
+                "follow_status": relation,
+                "codes_count": codes_n if visible else None,
+                "followers": followers if visible else None,
+                "following": following if visible else None,
+                "followers_count": followers if visible else None,
+                "following_count": following if visible else None,
+                "codes": [],
+            }
+            if visible:
+                cur.execute(
+                    """SELECT * FROM codes
+                       WHERE user_id=%s AND COALESCE(status,'VALIDEE')='VALIDEE'
+                         AND (expires_at IS NULL OR expires_at>NOW())
+                       ORDER BY created_at DESC LIMIT 80""",
+                    (uid,),
+                )
+                payload["codes"] = [serialize_code(r, user["id"]) for r in cur.fetchall()]
+            return jsonify(payload)
+    finally:
+        conn.close()
+
+
+@app.post("/api/users/<int:uid>/follow")
+@require_auth
+def follow_user(user, uid):
+    if uid == user["id"]:
+        return json_error("Tu ne peux pas t'abonner à toi-même.")
+    conn = db()
+    try:
+        with conn.cursor() as cur:
+            cur.execute("SELECT id FROM users WHERE id=%s", (uid,))
+            if not cur.fetchone():
+                return json_error("Utilisateur introuvable.", 404)
+            cur.execute(
+                "SELECT 1 FROM follows WHERE follower_id=%s AND following_id=%s",
+                (user["id"], uid),
+            )
+            if cur.fetchone():
+                return jsonify({"ok": True, "status": "accepted", "following": True})
+            cur.execute(
+                """INSERT INTO follow_requests(from_user_id, to_user_id)
+                   VALUES(%s,%s) ON CONFLICT (from_user_id, to_user_id) DO NOTHING""",
+                (user["id"], uid),
+            )
+            create_notification(
+                cur,
+                uid,
+                "Demande d'abonnement",
+                f"{user.get('display_name') or user.get('username')} souhaite s'abonner à ton profil.",
+                "FOLLOW",
+            )
+        conn.commit()
+        return jsonify({"ok": True, "status": "pending", "following": False})
+    finally:
+        conn.close()
+
+
+@app.post("/api/users/<int:uid>/unfollow")
+@require_auth
+def unfollow_user(user, uid):
+    conn = db()
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                "DELETE FROM follows WHERE follower_id=%s AND following_id=%s",
+                (user["id"], uid),
+            )
+            cur.execute(
+                "DELETE FROM follow_requests WHERE from_user_id=%s AND to_user_id=%s",
+                (user["id"], uid),
+            )
+        conn.commit()
+        return jsonify({"ok": True, "status": "none"})
+    finally:
+        conn.close()
+
+
+@app.post("/api/users/<int:uid>/follow/accept")
+@require_auth
+def accept_follow(user, uid):
+    conn = db()
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                """DELETE FROM follow_requests
+                   WHERE from_user_id=%s AND to_user_id=%s
+                   RETURNING from_user_id""",
+                (uid, user["id"]),
+            )
+            row = cur.fetchone()
+            if not row:
+                return json_error("Aucune demande à accepter.", 404)
+            cur.execute(
+                """INSERT INTO follows(follower_id, following_id)
+                   VALUES(%s,%s) ON CONFLICT DO NOTHING""",
+                (uid, user["id"]),
+            )
+            create_notification(
+                cur,
+                uid,
+                "Demande acceptée",
+                f"{user.get('display_name') or user.get('username')} a accepté ton abonnement.",
+                "FOLLOW",
+            )
+            add_activity(cur, user["id"], "Nouvel abonné", "Demande acceptée")
+            add_activity(cur, uid, "Ton abonnement a été accepté", "Tu vois maintenant ses codes")
+        conn.commit()
+        return jsonify({"ok": True, "status": "accepted"})
+    finally:
+        conn.close()
+
+
+@app.route("/u/<username>")
+@app.route("/profile/<int:uid>")
+def public_profile_page(username=None, uid=None):
+    return send_from_directory(BASE_DIR, "profile.html")
+
+
+@app.get("/api/users/lookup/<username>")
+@require_auth
+def lookup_user(user, username):
+    uname = clean_username(username)
+    if not uname:
+        return json_error("Utilisateur introuvable.", 404)
+    conn = db()
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                """SELECT id, username, display_name, bio, avatar_url, avatar_initials
+                   FROM users WHERE LOWER(username)=LOWER(%s)""",
+                (uname,),
+            )
+            row = cur.fetchone()
+        if not row:
+            return json_error("Utilisateur introuvable.", 404)
+        return jsonify(
+            {
+                "ok": True,
+                "id": row["id"],
+                "user": {
+                    "id": row["id"],
+                    "username": row.get("username"),
+                    "name": row.get("display_name") or row.get("username"),
+                    "display_name": row.get("display_name") or row.get("username"),
+                    "bio": row.get("bio") or "",
+                    "avatar": row.get("avatar_url") or "",
+                    "avatar_url": row.get("avatar_url") or "",
+                    "avatar_initials": row.get("avatar_initials") or "CO",
+                },
+            }
+        )
+    finally:
+        conn.close()
+
+
+def _serialize_mini_user(row):
+    return {
+        "id": row["id"],
+        "username": row.get("username"),
+        "display_name": row.get("display_name") or row.get("username") or "Membre",
+        "avatar_url": row.get("avatar_url") or "",
+        "avatar_initials": row.get("avatar_initials") or "CO",
+    }
+
+
+@app.get("/api/users/<int:uid>/followers")
+@require_auth
+def list_followers(user, uid):
+    conn = db()
+    try:
+        with conn.cursor() as cur:
+            relation = follow_relation(cur, user["id"], uid)
+            if relation not in ("self", "accepted"):
+                return jsonify({"ok": True, "locked": True, "users": []})
+            cur.execute(
+                """SELECT u.id, u.username, u.display_name, u.avatar_url, u.avatar_initials
+                   FROM follows f
+                   JOIN users u ON u.id=f.follower_id
+                   WHERE f.following_id=%s
+                   ORDER BY f.created_at DESC
+                   LIMIT 200""",
+                (uid,),
+            )
+            rows = cur.fetchall()
+        return jsonify({"ok": True, "locked": False, "users": [_serialize_mini_user(r) for r in rows]})
+    finally:
+        conn.close()
+
+
+@app.get("/api/users/<int:uid>/following")
+@require_auth
+def list_following(user, uid):
+    conn = db()
+    try:
+        with conn.cursor() as cur:
+            relation = follow_relation(cur, user["id"], uid)
+            if relation not in ("self", "accepted"):
+                return jsonify({"ok": True, "locked": True, "users": []})
+            cur.execute(
+                """SELECT u.id, u.username, u.display_name, u.avatar_url, u.avatar_initials
+                   FROM follows f
+                   JOIN users u ON u.id=f.following_id
+                   WHERE f.follower_id=%s
+                   ORDER BY f.created_at DESC
+                   LIMIT 200""",
+                (uid,),
+            )
+            rows = cur.fetchall()
+        return jsonify({"ok": True, "locked": False, "users": [_serialize_mini_user(r) for r in rows]})
+    finally:
+        conn.close()
+
+
+@app.get("/api/follow-requests")
+@require_auth
+def list_follow_requests(user):
+    conn = db()
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                """SELECT fr.id, fr.from_user_id, fr.created_at,
+                          u.username, u.display_name, u.avatar_url, u.avatar_initials
+                   FROM follow_requests fr
+                   JOIN users u ON u.id=fr.from_user_id
+                   WHERE fr.to_user_id=%s
+                   ORDER BY fr.created_at DESC""",
+                (user["id"],),
+            )
+            rows = cur.fetchall()
+        return jsonify(
+            {
+                "ok": True,
+                "requests": [
+                    {
+                        "id": r["id"],
+                        "from_user_id": r["from_user_id"],
+                        "from": {
+                            "id": r["from_user_id"],
+                            "username": r.get("username"),
+                            "display_name": r.get("display_name"),
+                            "avatar": r.get("avatar_url") or "",
+                            "avatar_url": r.get("avatar_url") or "",
+                            "avatar_initials": r.get("avatar_initials") or "CO",
+                        },
+                    }
+                    for r in rows
+                ],
+            }
+        )
+    finally:
+        conn.close()
+
+
+@app.get("/api/activity")
+@require_auth
+def activity(user):
+    conn = db()
+    try:
+        with conn.cursor() as cur:
+            cur.execute("DELETE FROM activities WHERE created_at < NOW() - INTERVAL '24 hours'")
+            cur.execute(
+                """SELECT title, detail, created_at
+                   FROM activities
+                   WHERE user_id=%s AND created_at > NOW() - INTERVAL '24 hours'
+                   ORDER BY created_at DESC
+                   LIMIT 30""",
+                (user["id"],),
+            )
+            rows = cur.fetchall()
+        conn.commit()
+        return jsonify(
+            {
+                "ok": True,
+                "activities": [
+                    {
+                        "title": r["title"],
+                        "detail": r.get("detail") or "",
+                        "created_at": iso(r.get("created_at")),
+                    }
+                    for r in rows
+                ],
+            }
+        )
+    finally:
+        conn.close()
+
+
 @app.get("/api/top-codes")
 def top_codes():
     user = get_current_user()
@@ -1147,6 +1763,7 @@ def get_code(user, code_id):
 
 
 @app.post("/api/codes")
+@app.post("/codes")
 @require_auth
 def create_code(user):
     data = request.get_json(silent=True) or {}
@@ -1182,6 +1799,7 @@ def create_code(user):
                 ),
             )
             row = cur.fetchone()
+            add_activity(cur, user["id"], f"Tu as publié un code {brand}", "Code actif")
         conn.commit()
         return jsonify({"ok": True, "code": serialize_code(row, user["id"])})
     except Exception as exc:
@@ -1235,6 +1853,13 @@ def copy_code(user, code_id):
                 "UPDATE codes SET copies_count=COALESCE(copies_count,0)+1 WHERE id=%s",
                 (code_id,),
             )
+            if code.get("user_id") and code["user_id"] != user["id"]:
+                add_activity(
+                    cur,
+                    code["user_id"],
+                    f"Ton code {code.get('brand') or code.get('site') or ''} a été copié",
+                    "+1 copie",
+                )
         conn.commit()
         return jsonify({"ok": True, "code": code.get("code"), "url": code.get("url")})
     finally:
@@ -1400,6 +2025,11 @@ def update_profile(user):
     email = normalize_email(
         data.get("email") if data.get("email") is not None else user.get("email")
     )
+    display_name = str(
+        data.get("display_name")
+        if data.get("display_name") is not None
+        else user.get("display_name") or user.get("username") or "Membre"
+    )[:60]
     avatar_url = (
         data.get("avatar_url") if data.get("avatar_url") is not None else user.get("avatar_url")
     )
@@ -1418,9 +2048,9 @@ def update_profile(user):
                 if cur.fetchone():
                     return json_error("Cet email est déjà utilisé.")
             cur.execute(
-                """UPDATE users SET bio=%s, email=%s, avatar_url=%s, updated_at=NOW()
+                """UPDATE users SET bio=%s, email=%s, avatar_url=%s, display_name=%s, updated_at=NOW()
                    WHERE id=%s""",
-                (bio, email, avatar_url or "", user["id"]),
+                (bio, email, avatar_url or "", display_name, user["id"]),
             )
         conn.commit()
         return jsonify({"ok": True})
@@ -1736,13 +2366,7 @@ def admin_warn_user(admin, user_id):
                 (user_id,),
             )
             count = int(cur.fetchone()["warnings_count"] or 1)
-            create_notification(
-                cur,
-                user_id,
-                "Signalement COD.IA",
-                reason[:400],
-                "ALERT",
-            )
+            create_notification(cur, user_id, "Signalement COD.IA", reason[:400], "ALERT")
         conn.commit()
         return jsonify({"ok": True, "warnings_count": count})
     finally:
@@ -1771,6 +2395,12 @@ def admin_delete_user(admin, user_id):
             cur.execute("DELETE FROM reports WHERE user_id=%s", (user_id,))
             cur.execute("DELETE FROM notifications WHERE user_id=%s", (user_id,))
             cur.execute("DELETE FROM support_tickets WHERE user_id=%s", (user_id,))
+            cur.execute("DELETE FROM activities WHERE user_id=%s", (user_id,))
+            cur.execute("DELETE FROM follows WHERE follower_id=%s OR following_id=%s", (user_id, user_id))
+            cur.execute(
+                "DELETE FROM follow_requests WHERE from_user_id=%s OR to_user_id=%s",
+                (user_id, user_id),
+            )
             cur.execute("UPDATE users SET referred_by=NULL WHERE referred_by=%s", (user_id,))
             cur.execute("DELETE FROM users WHERE id=%s", (user_id,))
         conn.commit()
@@ -1930,13 +2560,7 @@ def admin_reply_ticket(admin, ticket_id):
                 (reply, admin["id"], ticket_id),
             )
             if ticket.get("user_id"):
-                create_notification(
-                    cur,
-                    ticket["user_id"],
-                    "Réponse du support",
-                    reply[:280],
-                    "SUPPORT",
-                )
+                create_notification(cur, ticket["user_id"], "Réponse du support", reply[:280], "SUPPORT")
         conn.commit()
         return jsonify({"ok": True})
     finally:
@@ -1949,10 +2573,7 @@ def admin_close_ticket(admin, ticket_id):
     conn = db()
     try:
         with conn.cursor() as cur:
-            cur.execute(
-                "UPDATE support_tickets SET status='CLOSED' WHERE id=%s",
-                (ticket_id,),
-            )
+            cur.execute("UPDATE support_tickets SET status='CLOSED' WHERE id=%s", (ticket_id,))
         conn.commit()
         return jsonify({"ok": True})
     finally:
