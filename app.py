@@ -346,7 +346,7 @@ def pay_session(user):
     if not stripe.api_key or not STRIPE_PK:
         return jsonify({"message": "Stripe non configuré"}), 500
     session_obj = stripe.checkout.Session.create(
-        ui_mode="embedded",
+        ui_mode="embedded_page",
         mode="payment",
         customer_email=user["email"],
         client_reference_id=str(user["id"]),
