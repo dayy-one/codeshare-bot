@@ -392,8 +392,41 @@ async function loadActivity(){if(locked())return;try{const d=await api('/api/act
 async function loadMembers(){if(locked())return;const d=await api('/api/members?q='+encodeURIComponent($('search')?.value||''));$('members').innerHTML=d.members.map(x=>`<div class="card"><div class="row"><div class="mav">${av(x)}</div><div class="mi"><strong>${esc(x.name)}</strong><small>@${esc(x.username)}</small></div><div class="mp"><strong>${x.points}</strong><small>pts</small></div></div></div>`).join('')||'<div class="card">Aucun membre.</div>'}
 async function loadRanking(){if(locked())return;const d=await api('/api/ranking');$('myRank').textContent=d.me.position?'#'+d.me.position:'#—';$('ranking').innerHTML=d.ranking.map(x=>`<div class="row rank ${S.d&&x.id===S.d.user.id?'me':''}"><div>${x.position}</div><div class="mav">${av(x)}</div><div class="mi"><strong>${esc(x.name)}</strong></div><div class="mp"><strong>${x.points}</strong></div></div>`).join('')}
 function renderRewards(){if(!S.d||!S.levels)return;const u=S.d.user,a=S.levels[u.level].rewards,r=S.d.reward;$('currentReward').textContent=money(r.current);$('rewardList').innerHTML=a.map(x=>`<div class="reward ${u.points>=x.points?'':'lock'}"><strong>${x.points}</strong><div><b>${money(x.reward)}</b></div></div>`).join('')}
-function renderProfile(){if(!S.d)return;const u=S.d.user;$('profileAvatar').innerHTML=av(u);$('profileName').textContent=u.name;$('profileUsername').textContent='@'+u.username;$('profileLevel').textContent=u.level;$('profileCode').textContent=u.code;$('profilePoints').textContent=u.points;$('profileReward').textContent=money(S.d.reward.current);$('walletAmount').textContent=money(S.d.wallet.available);$('withdrawBtn').disabled=S.d.wallet.available<=0;$('editUser').value=u.username;$('payFirst').value=u.firstName||'';$('payLast').value=u.lastName||'';$('payIban').value=u.iban||'';
-  if(S.levels)$('levels').innerHTML=['START','PRO','ELITE'].map(n=>{const l=S.levels[n],cur=n===u.level;return `<div class="card level ${cur?'current':''}"><span class="badge ${cur?'gold':'lockb'}">${cur?'NIVEAU ACTUEL':'À DÉBLOQUER'}</span><h2>${n}</h2><div class="price">${money(l.price)}</div></div>`}).join('');
+function renderProfile(){
+  if(!S.d)return;
+  const u=S.d.user;
+  $('profileAvatar').innerHTML=av(u);
+  $('profileName').textContent=u.name;
+  $('profileUsername').textContent='@'+u.username;
+  $('profileLevel').textContent=u.level;
+  $('profileCode').textContent=u.code;
+  $('profilePoints').textContent=u.points;
+  $('profileReward').textContent=money(S.d.reward.current);
+  $('walletAmount').textContent=money(S.d.wallet.available);
+  $('withdrawBtn').disabled=S.d.wallet.available<=0;
+  $('editUser').value=u.username;
+  $('payFirst').value=u.firstName||'';
+  $('payLast').value=u.lastName||'';
+  $('payIban').value=u.iban||'';
+
+  const LEVELS = S.levels || {
+    START:{price:9.99,rewards:[{points:10,reward:20},{points:25,reward:50},{points:50,reward:120}]},
+    PRO:{price:29.99,rewards:[{points:10,reward:40},{points:25,reward:110},{points:50,reward:250}]},
+    ELITE:{price:79.99,rewards:[{points:10,reward:80},{points:25,reward:220},{points:50,reward:500}]}
+  };
+
+  $('levels').innerHTML=['START','PRO','ELITE'].map(n=>{
+    const l=LEVELS[n],cur=n===u.level;
+    const tiers=(l.rewards||[]).map(x=>`<div class="tier"><span>${x.points} pts</span><b>${money(x.reward)}</b></div>`).join('');
+    return `<div class="card level ${cur?'current':''}">
+      <span class="badge ${cur?'gold':'lockb'}">${cur?'NIVEAU ACTUEL':'À DÉBLOQUER'}</span>
+      <h2>${n}</h2>
+      <div class="price">${money(l.price)}</div>
+      <div class="sub">Paliers & récompenses</div>
+      ${tiers}
+    </div>`;
+  }).join('');
+
   const mine=S.posts.filter(p=>p.userId===u.id);
   $('myCodes').innerHTML=mine.length?mine.map(p=>`<div class="myc"><div><b>${esc(p.code)}</b><div class="sub">${esc(p.desc)}</div></div><button class="btn soft" onclick="deleteCode(${p.id})">Supprimer</button></div>`).join(''):'<p class="sub">Aucun code publié.</p>';
 }
