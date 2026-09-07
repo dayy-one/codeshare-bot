@@ -7,14 +7,13 @@ from email.message import EmailMessage
 from functools import wraps
 from datetime import datetime
 
+import stripe
 from flask import Flask, request, jsonify, session, send_from_directory
 from werkzeug.security import generate_password_hash, check_password_hash
 
 BASE = os.path.dirname(os.path.abspath(__file__))
 DATA = os.path.join(BASE, "data")
 DB = os.path.join(DATA, "codia.db")
-
-STRIPE_LINK = "https://buy.stripe.com/6oU4gA7zefq47hP75ycMM0l"
 
 os.makedirs(DATA, exist_ok=True)
 
@@ -26,6 +25,11 @@ SMTP_HOST = os.environ.get("SMTP_HOST", "smtp.gmail.com")
 SMTP_PORT = int(os.environ.get("SMTP_PORT", "587"))
 SMTP_USER = os.environ.get("SMTP_USER", "")
 SMTP_PASS = os.environ.get("SMTP_PASS", "")
+
+stripe.api_key = os.environ.get("STRIPE_SECRET_KEY", "")
+STRIPE_WEBHOOK_SECRET = os.environ.get("STRIPE_WEBHOOK_SECRET", "")
+STRIPE_PK = os.environ.get("STRIPE_PUBLISHABLE_KEY", "")
+APP_URL = os.environ.get("APP_URL", "http://127.0.0.1:3000").rstrip("/")
 
 LEVELS = {
     "START": {"price": 9.99, "rewards": [{"points": 10, "reward": 20}, {"points": 25, "reward": 50}, {"points": 50, "reward": 120}]},
@@ -183,7 +187,6 @@ def dashboard(con, user):
         "reward": reward,
         "wallet": {"available": max(0, reward["current"] - (user["claimed"] or 0))},
         "progress": progress_of(user["level"], user["points"]),
-        "stripe": STRIPE_LINK + "?prefilled_email=" + user["email"],
     }
 
 
@@ -231,13 +234,30 @@ def validate_referral(con, user):
     return True
 
 
+def mark_paid_user(con, user):
+    if not user or user["paid"]:
+        return user
+    con.execute("UPDATE users SET paid=1 WHERE id=?", (user["id"],))
+    add_activity(con, user["id"], "info", "Entrée payée", "Stripe")
+    con.commit()
+    user = user_by_id(con, user["id"])
+    validate_referral(con, user)
+    con.commit()
+    return user_by_id(con, user["id"])
+
+
 @app.get("/")
 def landing():
-    return send_from_directory(BASE, "landing.html")
+    path = os.path.join(BASE, "landing.html")
+    if os.path.exists(path):
+        return send_from_directory(BASE, "landing.html")
+    return send_from_directory(BASE, "index.html")
+
 
 @app.get("/app")
 def spa():
     return send_from_directory(BASE, "index.html")
+
 
 @app.get("/pay/success")
 def pay_success_page():
@@ -246,7 +266,7 @@ def pay_success_page():
 
 @app.get("/api/config")
 def config():
-    return jsonify({"levels": LEVELS, "brand": "COD-IA", "payoutHours": 48, "stripe": STRIPE_LINK})
+    return jsonify({"levels": LEVELS, "brand": "COD-IA", "payoutHours": 48})
 
 
 @app.post("/api/auth/register")
@@ -313,21 +333,84 @@ def me():
     return jsonify({"authenticated": True, "paid": bool(user["paid"]), "dashboard": payload, "needPay": not bool(user["paid"])})
 
 
-@app.post("/api/pay/complete")
+@app.get("/api/pay/config")
+def pay_config():
+    return jsonify({"pk": STRIPE_PK})
+
+
+@app.post("/api/pay/session")
 @require_auth
-def pay_complete(user):
+def pay_session(user):
+    if user["paid"]:
+        return jsonify({"paid": True})
+    if not stripe.api_key or not STRIPE_PK:
+        return jsonify({"message": "Stripe non configuré"}), 500
+    session_obj = stripe.checkout.Session.create(
+        ui_mode="embedded",
+        mode="payment",
+        customer_email=user["email"],
+        client_reference_id=str(user["id"]),
+        line_items=[{
+            "price_data": {
+                "currency": "eur",
+                "unit_amount": 999,
+                "product_data": {"name": "Accès COD-IA"},
+            },
+            "quantity": 1,
+        }],
+        return_url=APP_URL + "/pay/success?session_id={CHECKOUT_SESSION_ID}",
+    )
+    return jsonify({"clientSecret": session_obj.client_secret, "paid": False})
+
+
+@app.get("/api/pay/confirm")
+@require_auth
+def pay_confirm(user):
+    session_id = request.args.get("session_id") or ""
     con = db()
-    if not user["paid"]:
-        con.execute("UPDATE users SET paid=1 WHERE id=?", (user["id"],))
-        add_activity(con, user["id"], "info", "Entrée payée", "Stripe")
-        con.commit()
-        user = user_by_id(con, user["id"])
-        validate_referral(con, user)
-        con.commit()
-        user = user_by_id(con, user["id"])
+    user = user_by_id(con, user["id"])
+    if session_id and stripe.api_key:
+        try:
+            s = stripe.checkout.Session.retrieve(session_id)
+            email = ((s.get("customer_details") or {}).get("email") or s.get("customer_email") or "").lower()
+            same_user = str(s.get("client_reference_id") or "") == str(user["id"])
+            same_email = email == (user["email"] or "").lower()
+            if s.get("payment_status") == "paid" and (same_user or same_email):
+                user = mark_paid_user(con, user)
+        except Exception:
+            pass
     payload = dashboard(con, user)
+    paid = bool(user["paid"])
     con.close()
-    return jsonify({"ok": True, "dashboard": payload})
+    return jsonify({"ok": True, "paid": paid, "dashboard": payload})
+
+
+@app.post("/stripe/webhook")
+def stripe_webhook():
+    payload = request.get_data()
+    sig = request.headers.get("Stripe-Signature", "")
+    try:
+        event = stripe.Webhook.construct_event(payload, sig, STRIPE_WEBHOOK_SECRET)
+    except Exception:
+        return jsonify({"message": "Webhook invalide"}), 400
+    if event["type"] == "checkout.session.completed":
+        s = event["data"]["object"]
+        con = db()
+        user = None
+        uid = s.get("client_reference_id")
+        if uid:
+            try:
+                user = user_by_id(con, int(uid))
+            except Exception:
+                user = None
+        if not user:
+            email = ((s.get("customer_details") or {}).get("email") or s.get("customer_email") or "").lower()
+            if email:
+                user = con.execute("SELECT * FROM users WHERE email=?", (email,)).fetchone()
+        if user:
+            mark_paid_user(con, user)
+        con.close()
+    return jsonify({"ok": True})
 
 
 @app.post("/api/referral/attach")
@@ -514,9 +597,6 @@ def payout(user):
     con.close()
     return jsonify({"ok": True, "dashboard": payload})
 
-
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=3000, debug=True)
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 3000)), debug=True)
