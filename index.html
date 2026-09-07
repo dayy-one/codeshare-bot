@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>COD-IA</title>
+<script src="https://js.stripe.com/v3/"></script>
 <style>
 :root{--bg:#f3f5ef;--c:#fff;--s:#e8f0e4;--t:#142013;--m:#6f7a6d;--l:#dce4d6;--g:#3f6a32;--d:#243f1f;--sh:0 10px 30px #1d331814}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--t);font-family:Inter,system-ui,sans-serif}
@@ -64,67 +65,35 @@ h2{font-size:22px;margin:0 0 4px}.sub{color:var(--m);line-height:1.5}
 .gate{display:none;position:fixed;inset:0;z-index:120;background:#102010;color:#fff;padding:24px}
 .gate.show{display:flex;flex-direction:column}
 .gate h1{color:#fff;font-size:clamp(28px,7vw,46px)}
-.gate iframe{flex:1;width:100%;border:0;border-radius:18px;background:#fff;min-height:55vh}
 .toast{position:fixed;z-index:200;bottom:90px;left:50%;transform:translateX(-50%);background:#1d331c;color:#fff;padding:10px 14px;border-radius:12px;display:none}
 .toast.show{display:block}.hidden{display:none}
-
-/* décor login.html en overlay */
-.authgate{
-  display:none;position:fixed;inset:0;z-index:140;
-  background:
-    radial-gradient(circle at 50% 28%,rgba(255,255,255,.96),transparent 36%),
-    radial-gradient(circle at 0% 100%,rgba(225,234,207,.42),transparent 28%),
-    #f8f7f1;
-}
+.authgate{display:none;position:fixed;inset:0;z-index:140;background:radial-gradient(circle at 50% 28%,rgba(255,255,255,.96),transparent 36%),radial-gradient(circle at 0% 100%,rgba(225,234,207,.42),transparent 28%),#f8f7f1}
 .authgate.show{display:block}
-.authgate .nav{
-  height:78px;padding:0 clamp(20px,5vw,76px);
-  display:flex;align-items:center;justify-content:space-between
-}
-.authgate .back{
-  display:inline-flex;align-items:center;gap:8px;
-  padding:9px 14px;border:1px solid rgba(48,67,45,.11);
-  border-radius:999px;background:rgba(255,255,255,.66);
-  color:#59635d;font-size:11px;font-weight:850
-}
+.authgate .nav{height:78px;padding:0 clamp(20px,5vw,76px);display:flex;align-items:center;justify-content:space-between}
+.authgate .back{display:inline-flex;align-items:center;gap:8px;padding:9px 14px;border:1px solid rgba(48,67,45,.11);border-radius:999px;background:rgba(255,255,255,.66);color:#59635d;font-size:11px;font-weight:850}
 .authgate .main{min-height:calc(100vh - 78px);display:flex;justify-content:center;align-items:center;padding:0 20px 22vh;overflow:auto}
 .authgate .content{width:min(500px,100%);text-align:center}
-.authgate .eyebrow{display:inline-block;font-size:10px;font-weight:900;letter-spacing:3px;color:#668052;margin-bottom:9px}
-.authgate .intro h1{margin:0;font:700 clamp(32px,5vw,50px)/.98 Georgia,serif;letter-spacing:-2.7px}
-.authgate .intro p{margin:11px 0 22px;color:#7a837d;font-size:14px}
-.authgate .card{
-  text-align:left;background:rgba(255,255,255,.96);
-  border:1px solid rgba(48,67,45,.11);border-radius:27px;
-  padding:34px 32px 28px;box-shadow:0 24px 70px rgba(44,61,39,.075)
-}
+.authgate .card{text-align:left;background:rgba(255,255,255,.96);border:1px solid rgba(48,67,45,.11);border-radius:27px;padding:34px 32px 28px;box-shadow:0 24px 70px rgba(44,61,39,.075)}
 .authgate .card-head{text-align:center;margin-bottom:22px}
 .authgate .card h1{margin:0;font:700 34px/1.02 Georgia,serif;letter-spacing:-1.7px}
 .authgate .card-sub{margin:9px 0 0;color:#737c77;font-size:13px}
 .authgate .tabs{display:grid;grid-template-columns:1fr 1fr;padding:4px;background:#f1f3ee;border:1px solid #e2e7de;border-radius:14px;margin-bottom:22px}
 .authgate .tab{height:42px;border:0;border-radius:10px;background:transparent;color:#7a837d;font-size:12px;font-weight:850;cursor:pointer}
 .authgate .tab.active{background:#fff;color:#45672f;box-shadow:0 4px 14px rgba(30,52,30,.075)}
-.authgate .form-panel{display:none}
-.authgate .form-panel.active{display:block}
+.authgate .form-panel{display:none}.authgate .form-panel.active{display:block}
 .authgate .field{margin-top:15px}
 .authgate .field label{display:block;font-size:13px;font-weight:800;margin:0 0 8px 2px;color:#172019}
 .authgate .input-wrap{position:relative}
-.authgate .input-wrap input{
-  width:100%;height:56px;border-radius:15px;border:1px solid #d8ded4;
-  background:#fefefd;padding:0 17px;outline:none
-}
+.authgate .input-wrap input{width:100%;height:56px;border-radius:15px;border:1px solid #d8ded4;background:#fefefd;padding:0 17px;outline:none}
 .authgate .input-wrap input:focus{border-color:#7f9d61;box-shadow:0 0 0 4px rgba(105,139,69,.085)}
 .authgate .eye{position:absolute;right:7px;top:8px;width:40px;height:40px;border:0;background:transparent;cursor:pointer;color:#668052}
 .authgate .row{display:flex;justify-content:flex-end;margin:10px 2px 0}
-.authgate .forgot{font-size:12px;color:#55743a;font-weight:800}
-.authgate .primary{
-  width:100%;height:56px;margin-top:21px;border:0;border-radius:15px;color:#fff;
-  background:linear-gradient(135deg,#5b7f3a,#45682b);font-weight:850;cursor:pointer
-}
+.authgate .forgot{font-size:12px;color:#55743a;font-weight:800;background:none}
+.authgate .primary{width:100%;height:56px;margin-top:21px;border:0;border-radius:15px;color:#fff;background:linear-gradient(135deg,#5b7f3a,#45682b);font-weight:850;cursor:pointer}
 .authgate .primary:disabled{opacity:.65}
 .authgate .message{min-height:18px;margin:11px 2px 0;text-align:center;color:#a3473f;font-size:12px;font-weight:700}
 .authgate .message.ok{color:#4e702f}
 .authgate .hint{color:#8b938e;font-size:10px;margin-top:6px}
-
 @media(min-width:820px){.desktop{display:flex;gap:4px}.desktop button{background:none;padding:9px 12px;border-radius:12px;color:var(--m);font-weight:800}.desktop button.active{background:var(--s);color:var(--g)}.bottom{display:none}.sheet{align-items:center}.sheetbox{border-radius:26px}}
 @media(max-width:760px){.g2,.g3{grid-template-columns:1fr}.herorow{flex-direction:column;align-items:flex-start}}
 </style>
@@ -216,11 +185,8 @@ h2{font-size:22px;margin:0 0 4px}.sub{color:var(--m);line-height:1.5}
   <header class="nav">
     <button class="back" type="button" onclick="closeAuth()">← Retour à COD.IA</button>
   </header>
-  <main class="main">
+  <div class="main">
     <section class="content">
-      <div class="intro">
-        <span class="eyebrow">ESPACE PERSONNEL</span>
-      </div>
       <section class="card">
         <div class="card-head">
           <h1 id="cardTitle">Se connecter</h1>
@@ -231,58 +197,30 @@ h2{font-size:22px;margin:0 0 4px}.sub{color:var(--m);line-height:1.5}
           <button class="tab" id="registerTab" type="button" onclick="showTab('register')">Inscription</button>
         </div>
         <form id="loginPanel" class="form-panel active" onsubmit="event.preventDefault();login()">
-          <div class="field">
-            <label for="identifier">Email ou username</label>
-            <div class="input-wrap"><input id="identifier" type="text" autocomplete="username" required></div>
-          </div>
-          <div class="field">
-            <label for="password">Mot de passe</label>
-            <div class="input-wrap">
-              <input id="password" type="password" autocomplete="current-password" required>
-              <button class="eye" type="button" onclick="togglePassword('password')">👁</button>
-            </div>
-          </div>
-          <div class="row">
-            <a class="forgot" href="mailto:contact@cod-ia.fr?subject=Mot%20de%20passe%20oublié">Mot de passe oublié ?</a>
-          </div>
+          <div class="field"><label for="identifier">Email ou username</label><div class="input-wrap"><input id="identifier" type="text" autocomplete="username" required></div></div>
+          <div class="field"><label for="password">Mot de passe</label><div class="input-wrap"><input id="password" type="password" autocomplete="current-password" required><button class="eye" type="button" onclick="togglePassword('password')">👁</button></div></div>
+          <div class="row"><a class="forgot" href="mailto:contact@cod-ia.fr?subject=Mot%20de%20passe%20oublié">Mot de passe oublié ?</a></div>
           <button id="loginBtn" class="primary" type="submit">Se connecter →</button>
           <div id="loginMessage" class="message"></div>
         </form>
         <form id="registerPanel" class="form-panel" onsubmit="event.preventDefault();register()">
-          <div class="field">
-            <label for="registerName">Nom / prénom</label>
-            <div class="input-wrap"><input id="registerName" required></div>
-          </div>
-          <div class="field">
-            <label for="registerUsername">Nom utilisateur</label>
-            <div class="input-wrap"><input id="registerUsername" minlength="3" required></div>
-            <div class="hint">3 caractères minimum</div>
-          </div>
-          <div class="field">
-            <label for="registerEmail">Adresse e-mail</label>
-            <div class="input-wrap"><input id="registerEmail" type="email" required></div>
-          </div>
-          <div class="field">
-            <label for="registerPassword">Mot de passe</label>
-            <div class="input-wrap">
-              <input id="registerPassword" type="password" minlength="8" required>
-              <button class="eye" type="button" onclick="togglePassword('registerPassword')">👁</button>
-            </div>
-          </div>
+          <div class="field"><label for="registerName">Nom / prénom</label><div class="input-wrap"><input id="registerName" required></div></div>
+          <div class="field"><label for="registerUsername">Nom utilisateur</label><div class="input-wrap"><input id="registerUsername" minlength="3" required></div><div class="hint">3 caractères minimum</div></div>
+          <div class="field"><label for="registerEmail">Adresse e-mail</label><div class="input-wrap"><input id="registerEmail" type="email" required></div></div>
+          <div class="field"><label for="registerPassword">Mot de passe</label><div class="input-wrap"><input id="registerPassword" type="password" minlength="8" required><button class="eye" type="button" onclick="togglePassword('registerPassword')">👁</button></div></div>
           <button id="registerBtn" class="primary" type="submit">Créer mon compte →</button>
           <div id="registerMessage" class="message"></div>
         </form>
       </section>
     </section>
-  </main>
+  </div>
 </div>
 
 <div class="gate" id="payGate">
   <div class="ey">COD-IA</div>
   <h1>Paiement de l’entrée</h1>
-  <p class="sub" style="color:#cfe4c9">Règle l’accès pour débloquer le site.</p>
-  <iframe id="stripeFrame" title="Stripe"></iframe>
-  <button class="btn white full" style="margin-top:12px" onclick="confirmPay()">J’ai payé</button>
+  <p class="sub" style="color:#cfe4c9">9,99 € · une fois · le site s’ouvre après confirmation Stripe</p>
+  <div id="stripeEmbed" style="margin-top:16px;background:#fff;border-radius:18px;overflow:auto;min-height:520px;flex:1"></div>
 </div>
 <div class="gate" id="refGate">
   <div class="ey">COD-IA</div>
@@ -295,7 +233,6 @@ h2{font-size:22px;margin:0 0 4px}.sub{color:var(--m);line-height:1.5}
   <h1>Point parrainage comptabilisé</h1>
   <button class="btn white" style="margin-top:18px" onclick="closeGates()">Continuer</button>
 </div>
-
 <div class="sheet" id="sheet" onclick="if(event.target===this)closeSheet()"><div class="sheetbox" id="sheetbox"></div></div>
 <div class="toast" id="toast"></div>
 <script>
@@ -303,48 +240,27 @@ const $=id=>document.getElementById(id);
 const money=v=>new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR',maximumFractionDigits:0}).format(Number(v||0));
 const esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
 const S={auth:false,paid:false,d:null,levels:null,posts:[],afterAuth:null};
+let stripeCheckout=null;
 function toast(t){$('toast').textContent=t;$('toast').classList.add('show');clearTimeout(window.tt);window.tt=setTimeout(()=>$('toast').classList.remove('show'),2200)}
 function av(u){return u&&u.photo?`<img src="${u.photo}">`:esc((u&&u.initials)||'C')}
 async function api(u,o={}){const r=await fetch(u,{credentials:'same-origin',headers:{'Content-Type':'application/json'},...o});const d=await r.json().catch(()=>({message:'Erreur'}));if(!r.ok) throw Object.assign(Error(d.message||d.error||'Erreur'),d);return d}
 function locked(){return !S.auth||!S.paid}
-
 function showTab(tab){
-  const loginActive = tab === "login";
-  $('loginTab').classList.toggle("active", loginActive);
-  $('registerTab').classList.toggle("active", !loginActive);
-  $('loginPanel').classList.toggle("active", loginActive);
-  $('registerPanel').classList.toggle("active", !loginActive);
-  $('cardTitle').textContent = loginActive ? "Se connecter" : "Créer ton compte";
-  $('cardSub').textContent = loginActive ? "Accède à ton espace COD.IA" : "Rejoins COD.IA en quelques secondes";
+  const loginActive=tab==='login';
+  $('loginTab').classList.toggle('active',loginActive);
+  $('registerTab').classList.toggle('active',!loginActive);
+  $('loginPanel').classList.toggle('active',loginActive);
+  $('registerPanel').classList.toggle('active',!loginActive);
+  $('cardTitle').textContent=loginActive?'Se connecter':'Créer ton compte';
+  $('cardSub').textContent=loginActive?'Accède à ton espace COD.IA':'Rejoins COD.IA en quelques secondes';
 }
-function togglePassword(id){
-  const el=$(id);
-  el.type = el.type === "password" ? "text" : "password";
-}
-function setMessage(id,text,ok){
-  const el=$(id);
-  if(!el) return;
-  el.textContent=text||"";
-  el.classList.toggle("ok",!!ok);
-}
-function openAuth(mode, nextPage){
-  S.afterAuth = nextPage || null;
-  showTab(mode === 'register' ? 'register' : 'login');
-  $('authGate').classList.add('show');
-}
-function closeAuth(){
-  $('authGate').classList.remove('show');
-}
-
+function togglePassword(id){const el=$(id);el.type=el.type==='password'?'text':'password'}
+function setMessage(id,text,ok){const el=$(id);if(!el)return;el.textContent=text||'';el.classList.toggle('ok',!!ok)}
+function openAuth(mode,nextPage){S.afterAuth=nextPage||null;showTab(mode==='register'?'register':'login');$('authGate').classList.add('show')}
+function closeAuth(){$('authGate').classList.remove('show')}
 function go(p){
-  if(['explore','ranking','space','profile','rewards','edit'].includes(p) && !S.auth){
-    openAuth('login', p);
-    return;
-  }
-  if(['explore','ranking','space','profile','rewards','edit','home'].includes(p) && S.auth && !S.paid){
-    showPay();
-    return;
-  }
+  if(['explore','ranking','space','profile','rewards','edit'].includes(p)&&!S.auth){openAuth('login',p);return}
+  if(['explore','ranking','space','profile','rewards','edit','home'].includes(p)&&S.auth&&!S.paid){showPay();return}
   document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
   $('page-'+p).classList.add('active');
   document.querySelectorAll('[data-n]').forEach(x=>x.classList.toggle('active',x.dataset.n===p||(p==='edit'&&x.dataset.n==='profile')));
@@ -354,79 +270,67 @@ function go(p){
   if(p==='profile'||p==='edit')renderProfile();
   if(p==='rewards')renderRewards();
 }
-function onTopAvatar(){
-  if(!S.auth){ openAuth('login','profile'); return; }
-  if(!S.paid){ showPay(); return; }
-  if($('page-profile').classList.contains('active')) go('edit');
-  else go('profile');
-}
+function onTopAvatar(){if(!S.auth){openAuth('login','profile');return}if(!S.paid){showPay();return}if($('page-profile').classList.contains('active'))go('edit');else go('profile')}
 function closeSheet(){$('sheet').classList.remove('show')}
-function showPay(){$('payGate').classList.add('show');$('stripeFrame').src=(S.d&&S.d.stripe)||'https://buy.stripe.com/cNi6oIg5K3HmcC9ahKcMM0n'}
 function closeGates(){['payGate','refGate','refOk'].forEach(id=>$(id).classList.remove('show'));go('home')}
-
+async function showPay(){
+  $('payGate').classList.add('show');
+  const box=$('stripeEmbed');
+  box.innerHTML='';
+  try{
+    const cfg=await api('/api/pay/config');
+    const sess=await api('/api/pay/session',{method:'POST',body:'{}'});
+    if(sess.paid){S.paid=true;$('payGate').classList.remove('show');renderAll();return}
+    if(!cfg.pk||!sess.clientSecret) throw Error('Stripe non configuré');
+    const stripe=Stripe(cfg.pk);
+    if(stripeCheckout){try{stripeCheckout.destroy()}catch(e){}}
+    stripeCheckout=await stripe.initEmbeddedCheckout({clientSecret:sess.clientSecret});
+    stripeCheckout.mount('#stripeEmbed');
+  }catch(e){
+    box.innerHTML='<p style="color:#333;padding:16px">Impossible de charger le paiement Stripe.</p>';
+    toast(e.message);
+  }
+}
+async function confirmPay(){
+  const sid=new URLSearchParams(location.search).get('session_id')||'';
+  try{
+    const d=await api('/api/pay/confirm?session_id='+encodeURIComponent(sid));
+    if(!d.paid){showPay();toast('Paiement non confirmé');return}
+    S.d=d.dashboard;S.paid=true;$('payGate').classList.remove('show');
+    if(S.d&&!S.d.user.refLocked)$('refGate').classList.add('show');
+    else{renderAll();go(S.afterAuth||'home')}
+  }catch(e){toast(e.message);showPay()}
+}
 async function afterLoginOk(d){
   S.auth=true;S.d=d.dashboard;S.paid=!!(d.dashboard&&d.dashboard.user&&d.dashboard.user.paid);
   closeAuth();
   if(!S.paid) showPay();
-  else if(S.d && !S.d.user.refLocked) $('refGate').classList.add('show');
-  else {renderAll();go(S.afterAuth||'home')}
+  else if(S.d&&!S.d.user.refLocked)$('refGate').classList.add('show');
+  else{renderAll();go(S.afterAuth||'home')}
 }
-
 async function login(){
-  const btn=$('loginBtn');
-  if(btn) btn.disabled=true;
-  setMessage("loginMessage","");
-  try{
-    const d=await api('/api/auth/login',{method:'POST',body:JSON.stringify({
-      identifier:$('identifier').value.trim(),
-      password:$('password').value
-    })});
-    await afterLoginOk(d);
-  }catch(e){
-    setMessage("loginMessage", e.message || "Email ou mot de passe incorrect.");
-  }
-  if(btn) btn.disabled=false;
+  const btn=$('loginBtn');if(btn)btn.disabled=true;setMessage('loginMessage','');
+  try{const d=await api('/api/auth/login',{method:'POST',body:JSON.stringify({identifier:$('identifier').value.trim(),password:$('password').value})});await afterLoginOk(d)}
+  catch(e){setMessage('loginMessage',e.message||'Email ou mot de passe incorrect.')}
+  if(btn)btn.disabled=false;
 }
-
 async function register(){
-  const btn=$('registerBtn');
-  if(btn) btn.disabled=true;
-  setMessage("registerMessage","");
-  try{
-    const d=await api('/api/auth/register',{method:'POST',body:JSON.stringify({
-      name:$('registerName').value.trim(),
-      username:$('registerUsername').value.trim(),
-      email:$('registerEmail').value.trim(),
-      password:$('registerPassword').value
-    })});
-    await afterLoginOk(d);
-  }catch(e){
-    setMessage("registerMessage", e.message || "Impossible de créer le compte.");
-  }
-  if(btn) btn.disabled=false;
-}
-
-async function confirmPay(){
-  try{
-    const d=await api('/api/pay/complete',{method:'POST',body:'{}'});
-    S.d=d.dashboard;S.paid=true;$('payGate').classList.remove('show');
-    if(!S.d.user.refLocked) $('refGate').classList.add('show');
-    else {renderAll();go(S.afterAuth||'home')}
-  }catch(e){toast(e.message)}
+  const btn=$('registerBtn');if(btn)btn.disabled=true;setMessage('registerMessage','');
+  try{const d=await api('/api/auth/register',{method:'POST',body:JSON.stringify({name:$('registerName').value.trim(),username:$('registerUsername').value.trim(),email:$('registerEmail').value.trim(),password:$('registerPassword').value})});await afterLoginOk(d)}
+  catch(e){setMessage('registerMessage',e.message||'Impossible de créer le compte.')}
+  if(btn)btn.disabled=false;
 }
 async function saveRef(skip){
   try{
     const d=await api('/api/referral/attach',{method:'POST',body:JSON.stringify({code:skip?'':$('refAttach').value})});
     S.d=d.dashboard;$('refGate').classList.remove('show');
-    if(d.counted) $('refOk').classList.add('show');
-    else closeGates();
+    if(d.counted)$('refOk').classList.add('show');else closeGates();
     renderAll();
   }catch(e){toast(e.message)}
 }
 async function logout(){await api('/api/auth/logout',{method:'POST'});location.href='/'}
-
 function renderAll(){
-  if(!S.d){return}
+  if(!S.d)return;
   const d=S.d,u=d.user,n=d.reward.next;
   $('topAvatar').innerHTML=av(u);$('hlevel').textContent=u.level;$('pts').textContent=u.points;
   $('validated').textContent=d.referrals.validated;$('rank').textContent=d.ranking.position?'#'+d.ranking.position:'#—';
@@ -459,11 +363,11 @@ async function boot(){
   try{
     const d=await api('/api/auth/me');
     if(d.authenticated){S.auth=true;S.d=d.dashboard;S.paid=!!d.paid;renderAll();
-      if(!S.paid) showPay();
+      if(location.pathname==='/pay/success') await confirmPay();
+      else if(!S.paid) showPay();
       else if(!S.d.user.refLocked) $('refGate').classList.add('show');
     }
   }catch(e){}
-  if(location.pathname==='/pay/success' && S.auth) confirmPay();
 }
 boot();
 </script>
