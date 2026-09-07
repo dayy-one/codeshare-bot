@@ -22,7 +22,7 @@ app.secret_key = os.environ.get("CODIA_SECRET", secrets.token_hex(32))
 
 PAYOUT_TO = "contact@cod-ia.fr"
 SMTP_HOST = os.environ.get("SMTP_HOST", "smtp.gmail.com")
-SMTP_PORT = int(os.environ.get("SMTP_PORT", "587"))
+SMTP_PORT = int(os.environ.get("SMTP_PORT", "465"))
 SMTP_USER = os.environ.get("SMTP_USER", "")
 SMTP_PASS = os.environ.get("SMTP_PASS", "")
 
