@@ -1,2645 +1,519 @@
-import logging
 import os
-import random
 import re
+import sqlite3
 import secrets
-import string
-from datetime import datetime, timedelta, timezone
+import smtplib
+from email.message import EmailMessage
 from functools import wraps
+from datetime import datetime
 
-import psycopg2
-import psycopg2.extras
-from flask import Flask, jsonify, redirect, request, send_from_directory, session
-from werkzeug.middleware.proxy_fix import ProxyFix
-from werkzeug.security import check_password_hash, generate_password_hash
+from flask import Flask, request, jsonify, session, send_from_directory
+from werkzeug.security import generate_password_hash, check_password_hash
 
-try:
-    import stripe
-except ImportError:
-    stripe = None
+BASE = os.path.dirname(os.path.abspath(__file__))
+DATA = os.path.join(BASE, "data")
+DB = os.path.join(DATA, "codia.db")
 
-logging.basicConfig(level=logging.INFO)
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+STRIPE_LINK = "https://buy.stripe.com/6oU4gA7zefq47hP75ycMM0l"
+
+os.makedirs(DATA, exist_ok=True)
+
 app = Flask(__name__)
-app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_port=1)
-app.secret_key = os.getenv("SECRET_KEY", secrets.token_hex(32))
-app.permanent_session_lifetime = timedelta(days=90)
-app.config.update(
-    SESSION_COOKIE_HTTPONLY=True,
-    SESSION_COOKIE_SECURE=True,
-    SESSION_COOKIE_SAMESITE="Lax",
-    PREFERRED_URL_SCHEME="https",
-)
+app.secret_key = os.environ.get("CODIA_SECRET", secrets.token_hex(32))
 
-DATABASE_URL = os.getenv("DATABASE_URL", "")
-SERVER_URL = os.getenv("SERVER_URL", "https://cod-ia.fr").rstrip("/")
-ADMIN_EMAILS = {
-    x.strip().lower()
-    for x in os.getenv("ADMIN_EMAILS", "contact@cod-ia.fr").split(",")
-    if x.strip()
+PAYOUT_TO = "contact@cod-ia.fr"
+SMTP_HOST = os.environ.get("SMTP_HOST", "smtp.gmail.com")
+SMTP_PORT = int(os.environ.get("SMTP_PORT", "587"))
+SMTP_USER = os.environ.get("SMTP_USER", "")
+SMTP_PASS = os.environ.get("SMTP_PASS", "")
+
+LEVELS = {
+    "START": {"price": 9.99, "rewards": [{"points": 10, "reward": 20}, {"points": 25, "reward": 50}, {"points": 50, "reward": 120}]},
+    "PRO": {"price": 29.99, "rewards": [{"points": 10, "reward": 40}, {"points": 25, "reward": 110}, {"points": 50, "reward": 250}]},
+    "ELITE": {"price": 79.99, "rewards": [{"points": 10, "reward": 80}, {"points": 25, "reward": 220}, {"points": 50, "reward": 500}]},
 }
-PROTECTED_USERNAMES = {"codiaadmin"}
-PROTECTED_EMAILS = {"contact@cod-ia.fr"}
-try:
-    PRICE_CENTS = int(os.getenv("PRICE_CENTS", "999"))
-except ValueError:
-    PRICE_CENTS = 999
-STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY", "")
-STRIPE_PUBLISHABLE_KEY = os.getenv("STRIPE_PUBLISHABLE_KEY", "")
-STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET", "")
-STRIPE_PRICE_ID = os.getenv("STRIPE_PRICE_ID", "")
-if stripe and STRIPE_SECRET_KEY:
-    stripe.api_key = STRIPE_SECRET_KEY
 
 
 def db():
-    if not DATABASE_URL:
-        raise RuntimeError("DATABASE_URL est manquante.")
-    return psycopg2.connect(
-        DATABASE_URL, cursor_factory=psycopg2.extras.RealDictCursor, sslmode="require"
-    )
-
-
-def now_utc():
-    return datetime.now(timezone.utc)
-
-
-def iso(dt):
-    return dt.astimezone(timezone.utc).isoformat() if dt else None
-
-
-def normalize_email(v):
-    return (v or "").strip().lower()
-
-
-def clean_username(v):
-    return re.sub(r"[^a-z0-9_.-]", "", (v or "").strip().lower())[:30]
-
-
-def as_int(v):
-    s = str(v or "").strip()
-    return int(s) if s.isdigit() else None
-
-
-def as_meta(obj):
-    if not obj:
-        return {}
-    raw = obj.get("metadata") if hasattr(obj, "get") else None
-    if raw is None and hasattr(obj, "metadata"):
-        raw = obj.metadata
-    if not raw:
-        return {}
-    try:
-        return {str(k): str(v) for k, v in dict(raw).items() if v is not None}
-    except Exception:
-        return {}
-
-
-def ensure_column(cur, table, column, definition):
-    cur.execute(
-        """SELECT 1 FROM information_schema.columns
-           WHERE table_schema='public' AND table_name=%s AND column_name=%s""",
-        (table, column),
-    )
-    if not cur.fetchone():
-        cur.execute(f"ALTER TABLE {table} ADD COLUMN {column} {definition}")
-
-
-def is_protected_user(email=None, username=None, is_admin_flag=False):
-    if clean_username(username) in PROTECTED_USERNAMES:
-        return True
-    if normalize_email(email) in PROTECTED_EMAILS:
-        return True
-    return False
-
-
-def cleanup_unpaid(cur):
-    emails = list(ADMIN_EMAILS) or ["contact@cod-ia.fr"]
-    names = list(PROTECTED_USERNAMES)
-    cur.execute(
-        """DELETE FROM users
-           WHERE COALESCE(is_paid, FALSE) = FALSE
-             AND COALESCE(is_admin, FALSE) = FALSE
-             AND COALESCE(stripe_session_id, '') = ''
-             AND created_at < NOW() - INTERVAL '48 hours'
-             AND LOWER(email) <> ALL(%s)
-             AND LOWER(username) <> ALL(%s)""",
-        (emails, names),
-    )
-    if cur.rowcount:
-        logging.info("Comptes non payés supprimés: %s", cur.rowcount)
-
-
-def make_referral_code():
-    alphabet = string.ascii_uppercase + string.digits
-    for _ in range(30):
-        code = "CODIA" + "".join(secrets.choice(alphabet) for _ in range(6))
-        conn = db()
-        try:
-            with conn.cursor() as cur:
-                cur.execute("SELECT id FROM users WHERE referral_code=%s", (code,))
-                if not cur.fetchone():
-                    return code
-        finally:
-            conn.close()
-    return "CODIA" + secrets.token_hex(3).upper()
+    con = sqlite3.connect(DB)
+    con.row_factory = sqlite3.Row
+    con.execute("PRAGMA foreign_keys = ON")
+    return con
 
 
 def init_db():
-    conn = db()
-    try:
-        with conn.cursor() as cur:
-            cur.execute(
-                """CREATE TABLE IF NOT EXISTS users (
-                id BIGSERIAL PRIMARY KEY,
-                email TEXT UNIQUE NOT NULL,
-                username TEXT UNIQUE NOT NULL,
-                password_hash TEXT NOT NULL,
-                display_name TEXT NOT NULL,
-                bio TEXT DEFAULT '',
-                avatar_initials TEXT DEFAULT 'CO',
-                avatar_url TEXT DEFAULT '',
-                referral_code TEXT UNIQUE NOT NULL,
-                referred_by BIGINT,
-                is_admin BOOLEAN DEFAULT FALSE,
-                is_paid BOOLEAN DEFAULT FALSE,
-                is_blocked BOOLEAN DEFAULT FALSE,
-                warnings_count INTEGER DEFAULT 0,
-                stripe_session_id TEXT,
-                hidden_codes JSONB DEFAULT '[]'::jsonb,
-                created_at TIMESTAMPTZ DEFAULT NOW(),
-                updated_at TIMESTAMPTZ DEFAULT NOW())"""
-            )
-            for c, d in [
-                ("password_hash", "TEXT"),
-                ("display_name", "TEXT"),
-                ("bio", "TEXT DEFAULT ''"),
-                ("avatar_initials", "TEXT DEFAULT 'CO'"),
-                ("avatar_url", "TEXT DEFAULT ''"),
-                ("referral_code", "TEXT"),
-                ("referred_by", "BIGINT"),
-                ("is_admin", "BOOLEAN DEFAULT FALSE"),
-                ("is_paid", "BOOLEAN DEFAULT FALSE"),
-                ("is_blocked", "BOOLEAN DEFAULT FALSE"),
-                ("warnings_count", "INTEGER DEFAULT 0"),
-                ("stripe_session_id", "TEXT"),
-                ("hidden_codes", "JSONB DEFAULT '[]'::jsonb"),
-            ]:
-                ensure_column(cur, "users", c, d)
-
-            cur.execute(
-                """SELECT id FROM users
-                   WHERE referral_code IS NULL OR TRIM(referral_code) = ''"""
-            )
-            missing = cur.fetchall() or []
-            for row in missing:
-                code = None
-                for _ in range(40):
-                    alphabet = string.ascii_uppercase + string.digits
-                    candidate = "CODIA" + "".join(secrets.choice(alphabet) for _ in range(6))
-                    cur.execute("SELECT 1 FROM users WHERE referral_code=%s", (candidate,))
-                    if not cur.fetchone():
-                        code = candidate
-                        break
-                if not code:
-                    code = "CODIA" + secrets.token_hex(3).upper()
-                cur.execute(
-                    "UPDATE users SET referral_code=%s WHERE id=%s",
-                    (code, row["id"]),
-                )
-
-            cur.execute(
-                """CREATE TABLE IF NOT EXISTS pending_signups (
-                id BIGSERIAL PRIMARY KEY,
-                email TEXT NOT NULL,
-                username TEXT NOT NULL,
-                password_hash TEXT NOT NULL,
-                display_name TEXT DEFAULT '',
-                referral_code TEXT DEFAULT '',
-                created_at TIMESTAMPTZ DEFAULT NOW())"""
-            )
-
-            cur.execute(
-                """CREATE TABLE IF NOT EXISTS codes (
-                id BIGSERIAL PRIMARY KEY,
-                user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-                kind TEXT DEFAULT 'PROMO',
-                category TEXT DEFAULT 'Autres',
-                brand TEXT DEFAULT '',
-                site TEXT DEFAULT '',
-                title TEXT NOT NULL,
-                description TEXT DEFAULT '',
-                code TEXT DEFAULT '',
-                url TEXT DEFAULT '',
-                expires_at TIMESTAMPTZ,
-                status TEXT DEFAULT 'VALIDEE',
-                likes_count INTEGER DEFAULT 0,
-                copies_count INTEGER DEFAULT 0,
-                clicks_count INTEGER DEFAULT 0,
-                reports_count INTEGER DEFAULT 0,
-                copy_reward_awarded BOOLEAN DEFAULT FALSE,
-                created_at TIMESTAMPTZ DEFAULT NOW())"""
-            )
-            for c, d in [
-                ("kind", "TEXT DEFAULT 'PROMO'"),
-                ("category", "TEXT DEFAULT 'Autres'"),
-                ("brand", "TEXT DEFAULT ''"),
-                ("site", "TEXT DEFAULT ''"),
-                ("title", "TEXT"),
-                ("description", "TEXT DEFAULT ''"),
-                ("code", "TEXT DEFAULT ''"),
-                ("url", "TEXT DEFAULT ''"),
-                ("expires_at", "TIMESTAMPTZ"),
-                ("status", "TEXT DEFAULT 'VALIDEE'"),
-                ("likes_count", "INTEGER DEFAULT 0"),
-                ("copies_count", "INTEGER DEFAULT 0"),
-                ("clicks_count", "INTEGER DEFAULT 0"),
-                ("reports_count", "INTEGER DEFAULT 0"),
-                ("copy_reward_awarded", "BOOLEAN DEFAULT FALSE"),
-            ]:
-                ensure_column(cur, "codes", c, d)
-
-            cur.execute(
-                """CREATE TABLE IF NOT EXISTS likes(user_id BIGINT, code_id BIGINT, PRIMARY KEY(user_id,code_id));
-                CREATE TABLE IF NOT EXISTS favorites(user_id BIGINT, code_id BIGINT, PRIMARY KEY(user_id,code_id));
-                CREATE TABLE IF NOT EXISTS reports(id BIGSERIAL PRIMARY KEY, user_id BIGINT, code_id BIGINT, reason TEXT, UNIQUE(user_id,code_id));
-                CREATE TABLE IF NOT EXISTS notifications(id BIGSERIAL PRIMARY KEY, user_id BIGINT, title TEXT, message TEXT, type TEXT DEFAULT 'INFO', is_read BOOLEAN DEFAULT FALSE, created_at TIMESTAMPTZ DEFAULT NOW());
-                CREATE TABLE IF NOT EXISTS support_tickets(id BIGSERIAL PRIMARY KEY, user_id BIGINT, subject TEXT, message TEXT, reply TEXT DEFAULT '', replied_at TIMESTAMPTZ, replied_by BIGINT, status TEXT DEFAULT 'OPEN', created_at TIMESTAMPTZ DEFAULT NOW());
-                CREATE TABLE IF NOT EXISTS settings(key TEXT PRIMARY KEY, value TEXT NOT NULL);
-                CREATE TABLE IF NOT EXISTS broadcasts (
-                    id BIGSERIAL PRIMARY KEY,
-                    title TEXT NOT NULL,
-                    message TEXT NOT NULL,
-                    created_by BIGINT,
-                    created_at TIMESTAMPTZ DEFAULT NOW());
-                CREATE TABLE IF NOT EXISTS follows (
-                    follower_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-                    following_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-                    created_at TIMESTAMPTZ DEFAULT NOW(),
-                    PRIMARY KEY (follower_id, following_id)
-                );
-                CREATE TABLE IF NOT EXISTS follow_requests (
-                    id BIGSERIAL PRIMARY KEY,
-                    from_user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-                    to_user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-                    created_at TIMESTAMPTZ DEFAULT NOW(),
-                    UNIQUE (from_user_id, to_user_id)
-                );
-                CREATE TABLE IF NOT EXISTS activities (
-                    id BIGSERIAL PRIMARY KEY,
-                    user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-                    title TEXT NOT NULL,
-                    detail TEXT DEFAULT '',
-                    created_at TIMESTAMPTZ DEFAULT NOW()
-                );"""
-            )
-            ensure_column(cur, "support_tickets", "reply", "TEXT DEFAULT ''")
-            ensure_column(cur, "support_tickets", "replied_at", "TIMESTAMPTZ")
-            ensure_column(cur, "support_tickets", "replied_by", "BIGINT")
-            cur.execute(
-                "INSERT INTO settings(key,value) VALUES('challenge_start',%s) ON CONFLICT DO NOTHING",
-                (now_utc().isoformat(),),
-            )
-            cleanup_unpaid(cur)
-            cur.execute("DELETE FROM pending_signups WHERE created_at < NOW() - INTERVAL '24 hours'")
-            cur.execute("DELETE FROM activities WHERE created_at < NOW() - INTERVAL '24 hours'")
-            for email in ADMIN_EMAILS:
-                cur.execute(
-                    "UPDATE users SET is_admin=TRUE, is_paid=TRUE WHERE LOWER(email)=%s",
-                    (email,),
-                )
-            admin_pass = os.getenv("ADMIN_PASSWORD", "")
-            if admin_pass:
-                for email in ADMIN_EMAILS:
-                    uname = "codiaadmin"
-                    cur.execute("SELECT id FROM users WHERE LOWER(email)=LOWER(%s)", (email,))
-                    if not cur.fetchone():
-                        cur.execute(
-                            """INSERT INTO users(
-                                email,username,password_hash,display_name,avatar_initials,
-                                referral_code,is_admin,is_paid
-                            ) VALUES(%s,%s,%s,%s,%s,%s,TRUE,TRUE)""",
-                            (
-                                email,
-                                uname,
-                                generate_password_hash(admin_pass),
-                                "Admin COD.IA",
-                                "AD",
-                                make_referral_code(),
-                            ),
-                        )
-        conn.commit()
-        logging.info("DB initialisée")
-    finally:
-        conn.close()
+    con = db()
+    con.executescript(
+        """
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            username TEXT NOT NULL UNIQUE,
+            email TEXT NOT NULL UNIQUE,
+            password_hash TEXT NOT NULL,
+            code TEXT NOT NULL UNIQUE,
+            referred_by INTEGER,
+            level TEXT NOT NULL DEFAULT 'START',
+            points INTEGER NOT NULL DEFAULT 0,
+            claimed INTEGER NOT NULL DEFAULT 0,
+            paid INTEGER NOT NULL DEFAULT 0,
+            ref_locked INTEGER NOT NULL DEFAULT 0,
+            first_name TEXT DEFAULT '',
+            last_name TEXT DEFAULT '',
+            iban TEXT DEFAULT '',
+            photo TEXT DEFAULT '',
+            created_at TEXT NOT NULL
+        );
+        CREATE TABLE IF NOT EXISTS referrals (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            referrer_id INTEGER NOT NULL,
+            referred_id INTEGER NOT NULL UNIQUE,
+            status TEXT NOT NULL DEFAULT 'pending',
+            created_at TEXT NOT NULL
+        );
+        CREATE TABLE IF NOT EXISTS activities (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            kind TEXT NOT NULL,
+            title TEXT NOT NULL,
+            description TEXT,
+            created_at TEXT NOT NULL
+        );
+        CREATE TABLE IF NOT EXISTS posts (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            type TEXT NOT NULL,
+            code TEXT NOT NULL,
+            description TEXT NOT NULL,
+            created_at TEXT NOT NULL
+        );
+        CREATE TABLE IF NOT EXISTS payouts (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            amount INTEGER NOT NULL,
+            status TEXT NOT NULL DEFAULT 'pending',
+            created_at TEXT NOT NULL
+        );
+        """
+    )
+    con.commit()
+    con.close()
 
 
-def is_admin(user):
-    return bool(user) and (
-        bool(user.get("is_admin")) or normalize_email(user.get("email")) in ADMIN_EMAILS
+init_db()
+
+
+def now():
+    return datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+
+
+def initials(name):
+    parts = [p for p in re.split(r"\s+", name or "") if p]
+    return ("".join(p[0] for p in parts)[:2].upper() or "C")
+
+
+def make_code():
+    a = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
+    return "COD-" + "".join(secrets.choice(a) for _ in range(6))
+
+
+def is_iban(value):
+    s = re.sub(r"\s+", "", str(value or "")).upper()
+    return bool(re.match(r"^[A-Z]{2}[0-9]{2}[A-Z0-9]{10,30}$", s))
+
+
+def best_reward(level, points):
+    rewards = LEVELS[level]["rewards"]
+    reached = next((x for x in reversed(rewards) if points >= x["points"]), None)
+    nxt = next((x for x in rewards if points < x["points"]), None)
+    return {"current": reached["reward"] if reached else 0, "current_points": reached["points"] if reached else 0, "next": nxt}
+
+
+def progress_of(level, points):
+    rewards = LEVELS[level]["rewards"]
+    nxt = next((x for x in rewards if points < x["points"]), None)
+    if not nxt:
+        return 100
+    prev = next((x for x in reversed(rewards) if points >= x["points"]), None)
+    start = prev["points"] if prev else 0
+    return min(100, round(((points - start) / (nxt["points"] - start)) * 100))
+
+
+def user_by_id(con, user_id):
+    return con.execute("SELECT * FROM users WHERE id=?", (user_id,)).fetchone()
+
+
+def add_activity(con, user_id, kind, title, description=""):
+    con.execute(
+        "INSERT INTO activities (user_id, kind, title, description, created_at) VALUES (?, ?, ?, ?, ?)",
+        (user_id, kind, title, description, now()),
     )
 
 
-def get_current_user():
-    uid = session.get("user_id")
+def public_user(con, user):
+    refs = con.execute(
+        "SELECT COUNT(*) c FROM referrals WHERE referrer_id=? AND status='validated'",
+        (user["id"],),
+    ).fetchone()["c"]
+    return {
+        "id": user["id"], "name": user["name"], "username": user["username"],
+        "initials": initials(user["name"]), "level": user["level"], "points": user["points"],
+        "photo": user["photo"] or "", "refs": refs,
+    }
+
+
+def dashboard(con, user):
+    validated = con.execute(
+        "SELECT COUNT(*) c FROM referrals WHERE referrer_id=? AND status='validated'",
+        (user["id"],),
+    ).fetchone()["c"]
+    higher = con.execute("SELECT COUNT(*) c FROM users WHERE paid=1 AND points > ?", (user["points"],)).fetchone()["c"]
+    reward = best_reward(user["level"], user["points"])
+    return {
+        "user": {
+            "id": user["id"], "name": user["name"], "username": user["username"],
+            "initials": initials(user["name"]), "level": user["level"], "points": user["points"],
+            "code": user["code"], "photo": user["photo"] or "",
+            "firstName": user["first_name"] or "", "lastName": user["last_name"] or "",
+            "iban": user["iban"] or "", "claimed": user["claimed"] or 0,
+            "paid": bool(user["paid"]), "refLocked": bool(user["ref_locked"]),
+        },
+        "referrals": {"validated": validated},
+        "ranking": {"position": higher + 1 if user["paid"] else None},
+        "reward": reward,
+        "wallet": {"available": max(0, reward["current"] - (user["claimed"] or 0))},
+        "progress": progress_of(user["level"], user["points"]),
+        "stripe": STRIPE_LINK + "?prefilled_email=" + user["email"],
+    }
+
+
+def current_user():
+    uid = session.get("uid")
     if not uid:
         return None
-    conn = db()
-    try:
-        with conn.cursor() as cur:
-            cur.execute("SELECT * FROM users WHERE id=%s", (uid,))
-            return cur.fetchone()
-    finally:
-        conn.close()
+    con = db()
+    user = user_by_id(con, uid)
+    con.close()
+    return user
 
 
 def require_auth(fn):
     @wraps(fn)
     def wrapper(*args, **kwargs):
-        user = get_current_user()
+        user = current_user()
         if not user:
-            return jsonify({"ok": False, "error": "AUTH_REQUIRED"}), 401
-        if user.get("is_blocked") and not is_admin(user):
-            return jsonify({"ok": False, "error": "Compte bloqué."}), 403
-        if not user.get("is_paid") and not is_admin(user):
-            return jsonify({"ok": False, "error": "Paiement requis."}), 402
+            return jsonify({"message": "Non connecté"}), 401
         return fn(user, *args, **kwargs)
-
     return wrapper
 
 
-def require_admin(fn):
+def require_paid(fn):
     @wraps(fn)
     def wrapper(*args, **kwargs):
-        user = get_current_user()
+        user = current_user()
         if not user:
-            return jsonify({"ok": False, "error": "AUTH_REQUIRED"}), 401
-        if not is_admin(user):
-            return jsonify({"ok": False, "error": "Accès admin refusé."}), 403
+            return jsonify({"message": "Non connecté"}), 401
+        if not user["paid"]:
+            return jsonify({"message": "Paiement requis", "needPay": True}), 402
         return fn(user, *args, **kwargs)
-
     return wrapper
 
 
-def json_error(msg, status=400):
-    return jsonify({"ok": False, "error": msg}), status
+def validate_referral(con, user):
+    if not user["paid"] or not user["referred_by"]:
+        return False
+    ref = con.execute("SELECT * FROM referrals WHERE referred_id=?", (user["id"],)).fetchone()
+    if not ref or ref["status"] == "validated":
+        return False
+    con.execute("UPDATE referrals SET status='validated' WHERE id=?", (ref["id"],))
+    con.execute("UPDATE users SET points = points + 1 WHERE id=?", (ref["referrer_id"],))
+    add_activity(con, ref["referrer_id"], "point", "Parrainage validé", user["name"])
+    return True
 
 
-def create_notification(cur, user_id, title, message, kind="INFO"):
-    try:
-        cur.execute(
-            "INSERT INTO notifications(user_id,title,message,type) VALUES(%s,%s,%s,%s)",
-            (user_id, title, message, kind),
-        )
-    except Exception:
-        pass
-
-
-def add_activity(cur, user_id, title, detail=""):
-    try:
-        cur.execute(
-            "INSERT INTO activities(user_id,title,detail) VALUES(%s,%s,%s)",
-            (user_id, title, detail),
-        )
-    except Exception:
-        pass
-
-
-def user_stats(user_id):
-    conn = db()
-    try:
-        with conn.cursor() as cur:
-            cur.execute("SELECT COUNT(*) AS c FROM users WHERE referred_by=%s", (user_id,))
-            refs = int(cur.fetchone()["c"] or 0)
-            try:
-                cur.execute(
-                    """SELECT COALESCE(SUM(likes_count),0) AS likes,
-                              COALESCE(SUM(clicks_count),0) AS clicks
-                       FROM codes WHERE user_id=%s""",
-                    (user_id,),
-                )
-                row = cur.fetchone() or {}
-            except Exception:
-                conn.rollback()
-                row = {}
-        return {
-            "referrals": refs,
-            "points": refs,
-            "likes": int(row.get("likes") or 0),
-            "clicks": int(row.get("clicks") or 0),
-        }
-    finally:
-        conn.close()
-
-
-def challenge_start():
-    conn = db()
-    try:
-        with conn.cursor() as cur:
-            cur.execute("SELECT value FROM settings WHERE key='challenge_start'")
-            row = cur.fetchone()
-        return datetime.fromisoformat(row["value"].replace("Z", "+00:00")) if row else now_utc()
-    except Exception:
-        return now_utc()
-    finally:
-        try:
-            conn.close()
-        except Exception:
-            pass
-
-
-def challenge_info(user_id=None):
-    start = challenge_start()
-    end = start + timedelta(days=21)
-    points = 0
-    conn = db()
-    try:
-        with conn.cursor() as cur:
-            if user_id:
-                cur.execute(
-                    """SELECT COUNT(*) AS total FROM users
-                       WHERE referred_by=%s AND created_at>=%s AND created_at<=%s""",
-                    (user_id, start, end),
-                )
-                points = int(cur.fetchone()["total"] or 0)
-    except Exception:
-        pass
-    finally:
-        conn.close()
-    return {"points": points, "remaining_seconds": max(0, int((end - now_utc()).total_seconds()))}
-
-
-def serialize_user_public(row, include_private=False):
-    if not row:
-        return None
-    data = {
-        "id": row["id"],
-        "username": row.get("username"),
-        "display_name": row.get("display_name") or row.get("username") or "Membre",
-        "avatar_url": row.get("avatar_url") or "",
-        "avatar": row.get("avatar_url") or "",
-        "avatar_initials": row.get("avatar_initials") or "CO",
-    }
-    if include_private:
-        data["bio"] = row.get("bio") or ""
-    return data
-
-
-def follow_relation(cur, me_id, other_id):
-    if int(me_id) == int(other_id):
-        return "self"
-    cur.execute(
-        "SELECT 1 FROM follows WHERE follower_id=%s AND following_id=%s",
-        (me_id, other_id),
-    )
-    if cur.fetchone():
-        return "accepted"
-    cur.execute(
-        "SELECT 1 FROM follow_requests WHERE from_user_id=%s AND to_user_id=%s",
-        (me_id, other_id),
-    )
-    if cur.fetchone():
-        return "pending"
-    return "none"
-
-
-def serialize_code(row, uid=None):
-    liked = favorite = False
-    author = None
-    if uid:
-        conn = db()
-        try:
-            with conn.cursor() as cur:
-                cur.execute(
-                    "SELECT 1 FROM likes WHERE user_id=%s AND code_id=%s", (uid, row["id"])
-                )
-                liked = bool(cur.fetchone())
-                cur.execute(
-                    "SELECT 1 FROM favorites WHERE user_id=%s AND code_id=%s",
-                    (uid, row["id"]),
-                )
-                favorite = bool(cur.fetchone())
-        finally:
-            conn.close()
-    conn = db()
-    try:
-        with conn.cursor() as cur:
-            cur.execute(
-                """SELECT id, username, display_name, avatar_url, avatar_initials, bio
-                   FROM users WHERE id=%s""",
-                (row.get("user_id"),),
-            )
-            author = cur.fetchone()
-    except Exception:
-        author = None
-    finally:
-        conn.close()
-    added_by = "Membre"
-    if author:
-        added_by = author.get("display_name") or author.get("username") or "Membre"
-    return {
-        "id": row["id"],
-        "kind": row.get("kind") or "PROMO",
-        "brand": row.get("brand") or row.get("site"),
-        "site": row.get("site") or row.get("brand"),
-        "title": row.get("title"),
-        "description": row.get("description"),
-        "code": row.get("code"),
-        "url": row.get("url"),
-        "category": row.get("category") or "Autres",
-        "expires_at": iso(row.get("expires_at")),
-        "created_at": iso(row.get("created_at")),
-        "likes": row.get("likes_count") or 0,
-        "copies": row.get("copies_count") or 0,
-        "clicks": row.get("clicks_count") or 0,
-        "reports": row.get("reports_count") or 0,
-        "liked": liked,
-        "favorite": favorite,
-        "added_by": added_by,
-        "owner_id": row.get("user_id"),
-        "user_id": row.get("user_id"),
-        "author_id": row.get("user_id"),
-        "author": serialize_user_public(author) if author else None,
-        "username": (author or {}).get("username") if author else None,
-        "name": added_by,
-        "avatar": (author or {}).get("avatar_url") if author else "",
-    }
-
-
-def _remove_code(cur, code_id):
-    cur.execute("DELETE FROM likes WHERE code_id=%s", (code_id,))
-    cur.execute("DELETE FROM favorites WHERE code_id=%s", (code_id,))
-    cur.execute("DELETE FROM reports WHERE code_id=%s", (code_id,))
-    cur.execute("DELETE FROM codes WHERE id=%s", (code_id,))
-
-
-def activate_paid_user(pending_id=None, user_id=None, stripe_session_id=None, extra=None):
-    extra = extra or {}
-    conn = db()
-    try:
-        with conn.cursor() as cur:
-            user = None
-            pending = None
-
-            if user_id:
-                cur.execute(
-                    """UPDATE users SET is_paid=TRUE, stripe_session_id=COALESCE(%s, stripe_session_id)
-                       WHERE id=%s RETURNING *""",
-                    (stripe_session_id, user_id),
-                )
-                user = cur.fetchone()
-
-            if not user and pending_id:
-                cur.execute("SELECT * FROM pending_signups WHERE id=%s", (pending_id,))
-                pending = cur.fetchone()
-
-            email = normalize_email(extra.get("email"))
-
-            if not user and not pending and email:
-                cur.execute(
-                    "SELECT * FROM pending_signups WHERE LOWER(email)=LOWER(%s) ORDER BY id DESC LIMIT 1",
-                    (email,),
-                )
-                pending = cur.fetchone()
-
-            if not user and not pending and email:
-                cur.execute("SELECT * FROM users WHERE LOWER(email)=LOWER(%s)", (email,))
-                existing = cur.fetchone()
-                if existing:
-                    cur.execute(
-                        """UPDATE users SET is_paid=TRUE, stripe_session_id=COALESCE(%s, stripe_session_id)
-                           WHERE id=%s RETURNING *""",
-                        (stripe_session_id, existing["id"]),
-                    )
-                    user = cur.fetchone()
-
-            if not user and pending:
-                cur.execute(
-                    """SELECT * FROM users
-                       WHERE LOWER(email)=LOWER(%s) OR LOWER(username)=LOWER(%s)""",
-                    (pending["email"], pending["username"]),
-                )
-                existing = cur.fetchone()
-                if existing:
-                    cur.execute(
-                        """UPDATE users SET is_paid=TRUE, stripe_session_id=%s
-                           WHERE id=%s RETURNING *""",
-                        (stripe_session_id, existing["id"]),
-                    )
-                    user = cur.fetchone()
-                else:
-                    referred_by = None
-                    if pending.get("referral_code"):
-                        cur.execute(
-                            "SELECT id FROM users WHERE referral_code=%s",
-                            (pending["referral_code"],),
-                        )
-                        ref = cur.fetchone()
-                        if ref:
-                            referred_by = ref["id"]
-                    initials = (
-                        "".join(
-                            x[0]
-                            for x in (pending.get("display_name") or pending["username"]).split()
-                            if x
-                        )[:2].upper()
-                        or "CO"
-                    )
-                    admin = is_protected_user(pending["email"], pending["username"])
-                    cur.execute(
-                        """INSERT INTO users(
-                            email,username,password_hash,display_name,avatar_initials,
-                            referral_code,referred_by,is_admin,is_paid,stripe_session_id
-                        ) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,TRUE,%s) RETURNING *""",
-                        (
-                            pending["email"],
-                            pending["username"],
-                            pending["password_hash"],
-                            pending.get("display_name") or pending["username"],
-                            initials,
-                            make_referral_code(),
-                            referred_by,
-                            admin,
-                            stripe_session_id,
-                        ),
-                    )
-                    user = cur.fetchone()
-                    if referred_by:
-                        create_notification(
-                            cur,
-                            referred_by,
-                            "Nouveau parrainage",
-                            f"{user['display_name']} a rejoint avec ton code. +1 point.",
-                            "REFERRAL",
-                        )
-                        add_activity(cur, referred_by, "Nouveau parrainage", "+1 point")
-                cur.execute("DELETE FROM pending_signups WHERE id=%s", (pending["id"],))
-
-            conn.commit()
-            return user
-    except Exception as exc:
-        logging.error("ACTIVATE PAID: %s", exc)
-        conn.rollback()
-        return None
-    finally:
-        conn.close()
-
-
-@app.route("/")
+@app.get("/")
 def landing():
-    return send_from_directory(BASE_DIR, "landing.html")
+    return send_from_directory(BASE, "landing.html")
+
+@app.get("/app")
+def spa():
+    return send_from_directory(BASE, "index.html")
+
+@app.get("/pay/success")
+def pay_success_page():
+    return send_from_directory(BASE, "index.html")
 
 
-@app.route("/app")
-@app.route("/miniapp")
-def miniapp():
-    return send_from_directory(BASE_DIR, "miniapp.html")
-
-
-@app.route("/feed")
-def feed_page():
-    return send_from_directory(BASE_DIR, "feed.html")
-
-
-@app.route("/explore")
-@app.route("/explore.html")
-@app.route("/explorez")
-@app.route("/explorez.html")
-def explore_page():
-    name = "explore.html" if os.path.exists(os.path.join(BASE_DIR, "explore.html")) else "explorez.html"
-    return send_from_directory(BASE_DIR, name)
-
-
-@app.route("/profile")
-def profile_page():
-    return send_from_directory(BASE_DIR, "profile.html")
-
-
-@app.route("/login")
-@app.route("/register")
-@app.route("/auth")
-def auth_page():
-    return send_from_directory(BASE_DIR, "login.html")
-
-
-DASHBOARD_PASSWORD = os.getenv("DASHBOARD_PASSWORD", "CodiaAdmin2026!")
-
-
-@app.route("/dashboard", methods=["GET", "POST"])
-@app.route("/dashboard.html", methods=["GET", "POST"])
-def dashboard():
-    if request.method == "POST":
-        password = (request.form.get("password") or "").strip()
-        if password == DASHBOARD_PASSWORD:
-            session["dashboard_ok"] = True
-            return redirect("/dashboard")
-        error = "Mot de passe incorrect."
-    else:
-        error = ""
-
-    if session.get("dashboard_ok"):
-        return send_from_directory(BASE_DIR, "dashboard.html")
-
-    err_html = f'<p style="color:#ff6b6b;margin:0 0 12px">{error}</p>' if error else ""
-    return f"""<!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>COD.IA — Accès stats</title>
-  <style>
-    body{{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;
-         background:#07080d;font-family:Inter,system-ui,sans-serif;color:#f4f6fb}}
-    form{{width:min(380px,92vw);background:#12141c;border:1px solid #232636;
-          border-radius:18px;padding:28px}}
-    h1{{margin:0 0 8px;font-size:22px}}
-    p{{color:#9aa3b8;margin:0 0 18px}}
-    input{{width:100%;box-sizing:border-box;padding:12px 14px;border-radius:12px;
-           border:1px solid #232636;background:#0c0e14;color:#fff;font-size:15px}}
-    button{{width:100%;margin-top:12px;padding:12px;border:0;border-radius:12px;
-            background:#7c5cff;color:#fff;font-weight:700;cursor:pointer}}
-  </style>
-</head>
-<body>
-  <form method="post">
-    <h1>Accès stats</h1>
-    <p>Entre le mot de passe pour voir l’analyse.</p>
-    {err_html}
-    <input type="password" name="password" placeholder="Mot de passe" autofocus required>
-    <button type="submit">Entrer</button>
-  </form>
-</body>
-</html>"""
-
-
-@app.route("/logout")
-def logout_get():
-    session.clear()
-    return redirect("/")
-
-
-@app.get("/config")
-@app.get("/api/stripe-config")
+@app.get("/api/config")
 def config():
-    return jsonify(
-        {"ok": True, "stripe_pk": STRIPE_PUBLISHABLE_KEY, "publishable_key": STRIPE_PUBLISHABLE_KEY}
-    )
+    return jsonify({"levels": LEVELS, "brand": "COD-IA", "payoutHours": 48, "stripe": STRIPE_LINK})
 
 
-@app.get("/health")
-def health():
-    return jsonify({"ok": True})
-
-
-@app.post("/api/register")
-@app.post("/auth/register")
+@app.post("/api/auth/register")
 def register():
     data = request.get_json(silent=True) or {}
-    email = normalize_email(data.get("email"))
-    username = clean_username(data.get("username"))
+    name = (data.get("name") or "Membre").strip()
+    username = (data.get("username") or "").strip().lower()
+    email = (data.get("email") or "").strip().lower()
     password = data.get("password") or ""
-    display_name = (data.get("display_name") or username).strip()
-    referral_code = (data.get("referral_code") or "").strip().upper()
-    if "@" not in email:
-        return json_error("Adresse email invalide.")
-    if len(username) < 3:
-        return json_error("Nom utilisateur trop court.")
-    if len(password) < 8:
-        return json_error("Mot de passe : 8 caractères minimum.")
-    if is_protected_user(email, username):
-        return json_error("Ce compte est réservé.")
-
-    password_hash = generate_password_hash(password)
-    conn = db()
+    if len(username) < 3 or "@" not in email or len(password) < 8:
+        return jsonify({"message": "Champs invalides"}), 400
+    con = db()
     try:
-        with conn.cursor() as cur:
-            cleanup_unpaid(cur)
-            cur.execute(
-                """SELECT * FROM users
-                   WHERE LOWER(email)=LOWER(%s) OR LOWER(username)=LOWER(%s)""",
-                (email, username),
-            )
-            existing = cur.fetchone()
-            if existing:
-                if existing.get("is_paid") or is_admin(existing):
-                    return json_error("Cet email ou ce nom utilisateur existe déjà.", 409)
-                cur.execute(
-                    """UPDATE users SET password_hash=%s, display_name=%s, email=%s, username=%s
-                       WHERE id=%s RETURNING *""",
-                    (password_hash, display_name or username, email, username, existing["id"]),
-                )
-                user = cur.fetchone()
-            else:
-                referred_by = None
-                if referral_code:
-                    cur.execute("SELECT id FROM users WHERE referral_code=%s", (referral_code,))
-                    ref = cur.fetchone()
-                    if ref:
-                        referred_by = ref["id"]
-                initials = (
-                    "".join(x[0] for x in (display_name or username).split() if x)[:2].upper()
-                    or "CO"
-                )
-                cur.execute(
-                    """INSERT INTO users(
-                        email,username,password_hash,display_name,avatar_initials,
-                        referral_code,referred_by,is_admin,is_paid
-                    ) VALUES(%s,%s,%s,%s,%s,%s,%s,FALSE,FALSE) RETURNING *""",
-                    (
-                        email,
-                        username,
-                        password_hash,
-                        display_name or username,
-                        initials,
-                        make_referral_code(),
-                        referred_by,
-                    ),
-                )
-                user = cur.fetchone()
-
-            cur.execute(
-                """DELETE FROM pending_signups
-                   WHERE LOWER(email)=LOWER(%s) OR LOWER(username)=LOWER(%s)""",
-                (email, username),
-            )
-            cur.execute(
-                """INSERT INTO pending_signups(email,username,password_hash,display_name,referral_code)
-                   VALUES(%s,%s,%s,%s,%s) RETURNING id""",
-                (email, username, password_hash, display_name or username, referral_code),
-            )
-            pending_id = cur.fetchone()["id"]
-        conn.commit()
-    except Exception as exc:
-        logging.error("REGISTER ERROR: %s", exc)
-        conn.rollback()
-        return json_error("Inscription impossible : " + str(exc), 500)
+        code = make_code()
+        while con.execute("SELECT id FROM users WHERE code=?", (code,)).fetchone():
+            code = make_code()
+        cur = con.execute(
+            """INSERT INTO users (name,username,email,password_hash,code,referred_by,level,points,claimed,paid,ref_locked,created_at)
+               VALUES (?,?,?,?,?,NULL,'START',0,0,0,0,?)""",
+            (name, username, email, generate_password_hash(password), code, now()),
+        )
+        uid = cur.lastrowid
+        add_activity(con, uid, "info", "Compte créé", "En attente de paiement")
+        con.commit()
+        user = user_by_id(con, uid)
+        session["uid"] = uid
+        return jsonify({"dashboard": dashboard(con, user), "needPay": True})
+    except sqlite3.IntegrityError:
+        return jsonify({"message": "Email ou nom d’utilisateur déjà utilisé"}), 400
     finally:
-        conn.close()
-
-    session.permanent = True
-    session["user_id"] = user["id"]
-    session["pending_id"] = pending_id
-    return jsonify(
-        {
-            "ok": True,
-            "pending": True,
-            "user": {
-                "id": user["id"],
-                "email": email,
-                "username": username,
-                "is_paid": False,
-                "is_admin": False,
-            },
-        }
-    )
+        con.close()
 
 
-@app.post("/api/apply-referral")
-def apply_referral():
-    data = request.get_json(silent=True) or {}
-    skip = bool(data.get("skip"))
-    code = (data.get("referral_code") or "").strip().upper()
-    user = get_current_user()
-    pending_id = session.get("pending_id")
-
-    if skip:
-        session["referral_done"] = True
-        return jsonify({"ok": True, "skipped": True})
-
-    if not code:
-        return json_error("Entre un code de parrainage.")
-
-    conn = db()
-    try:
-        with conn.cursor() as cur:
-            cur.execute("SELECT id, display_name FROM users WHERE referral_code=%s", (code,))
-            ref = cur.fetchone()
-            if not ref:
-                return json_error("Ce code de parrainage n'existe pas.")
-
-            if user:
-                if user["id"] == ref["id"]:
-                    return json_error("Tu ne peux pas utiliser ton propre code.")
-                if user.get("referred_by"):
-                    session["referral_done"] = True
-                    return jsonify({"ok": True, "already": True})
-                cur.execute(
-                    "UPDATE users SET referred_by=%s WHERE id=%s AND referred_by IS NULL",
-                    (ref["id"], user["id"]),
-                )
-                create_notification(
-                    cur,
-                    ref["id"],
-                    "Nouveau parrainage",
-                    f"{user.get('display_name') or user.get('username')} a rejoint avec ton code. +1 point.",
-                    "REFERRAL",
-                )
-                add_activity(cur, ref["id"], "Nouveau parrainage", "+1 point")
-            elif pending_id:
-                cur.execute(
-                    "UPDATE pending_signups SET referral_code=%s WHERE id=%s",
-                    (code, pending_id),
-                )
-            else:
-                return json_error("Connecte-toi d'abord.", 401)
-        conn.commit()
-    finally:
-        conn.close()
-
-    session["referral_done"] = True
-    return jsonify({"ok": True})
-
-
-@app.post("/api/cancel-signup")
-def cancel_signup():
-    pending_id = session.pop("pending_id", None)
-    session.pop("user_id", None)
-    session.pop("pending_email", None)
-    session.pop("pending_username", None)
-    if pending_id:
-        conn = db()
-        try:
-            with conn.cursor() as cur:
-                cur.execute("DELETE FROM pending_signups WHERE id=%s", (pending_id,))
-            conn.commit()
-        finally:
-            conn.close()
-    return jsonify({"ok": True})
-
-
-@app.post("/api/login")
-@app.post("/auth/login")
+@app.post("/api/auth/login")
 def login():
     data = request.get_json(silent=True) or {}
-    identifier = (data.get("identifier") or "").strip()
+    identifier = (data.get("identifier") or "").strip().lower()
     password = data.get("password") or ""
-    conn = db()
-    try:
-        with conn.cursor() as cur:
-            cleanup_unpaid(cur)
-            conn.commit()
-            cur.execute(
-                """SELECT * FROM users
-                   WHERE LOWER(email)=LOWER(%s) OR LOWER(username)=LOWER(%s)""",
-                (identifier, identifier.lstrip("@")),
-            )
-            user = cur.fetchone()
-    finally:
-        conn.close()
-    if not user or not user.get("password_hash") or not check_password_hash(user["password_hash"], password):
-        return json_error("Email/username ou mot de passe incorrect.", 401)
-    admin = is_admin(user)
-    if user.get("is_blocked") and not admin:
-        return json_error("Ce compte a été bloqué.", 403)
-    if not user.get("is_paid") and not admin:
-        return json_error("Ce compte n'est pas activé. Inscris-toi puis paie 9,99 €.", 401)
-    session.permanent = True
-    session["user_id"] = user["id"]
-    session.pop("pending_id", None)
-    return jsonify(
-        {
-            "ok": True,
-            "user": {
-                "id": user["id"],
-                "email": user.get("email"),
-                "is_paid": True,
-                "is_admin": admin,
-            },
-        }
-    )
+    con = db()
+    user = con.execute("SELECT * FROM users WHERE email=? OR username=?", (identifier, identifier)).fetchone()
+    if not user or not check_password_hash(user["password_hash"], password):
+        con.close()
+        return jsonify({"message": "Identifiants incorrects"}), 400
+    session["uid"] = user["id"]
+    payload = dashboard(con, user)
+    con.close()
+    return jsonify({"dashboard": payload, "needPay": not bool(user["paid"])})
 
 
-@app.get("/api/me")
-@app.get("/me")
-def me_any():
-    user = get_current_user()
+@app.post("/api/auth/logout")
+def logout():
+    session.clear()
+    return jsonify({"ok": True})
+
+
+@app.get("/api/auth/me")
+def me():
+    user = current_user()
     if not user:
-        return jsonify({"ok": True, "user": None, "pending": bool(session.get("pending_id"))})
-    admin = is_admin(user)
-    if user.get("is_blocked") and not admin:
-        session.clear()
-        return jsonify({"ok": False, "error": "Compte bloqué.", "blocked": True})
-    paid = bool(user.get("is_paid")) or admin
-    if not paid:
-        return jsonify({"ok": True, "user": None, "pending": True})
-    return jsonify(
-        {
-            "ok": True,
-            "user": {
-                "id": user["id"],
-                "email": user.get("email"),
-                "username": user.get("username"),
-                "display_name": user.get("display_name"),
-                "bio": user.get("bio") or "",
-                "avatar_initials": user.get("avatar_initials") or "CO",
-                "avatar_url": user.get("avatar_url") or "",
-                "referral_code": user.get("referral_code"),
-                "referral_link": f"{SERVER_URL}/app?ref={user.get('referral_code') or ''}",
-                "is_admin": admin,
-                "is_paid": paid,
-                "paid": paid,
-                "is_blocked": bool(user.get("is_blocked")),
-            },
-            "stats": user_stats(user["id"]),
-            "challenge": challenge_info(user["id"]),
-        }
-    )
+        return jsonify({"authenticated": False, "paid": False})
+    con = db()
+    payload = dashboard(con, user)
+    con.close()
+    return jsonify({"authenticated": True, "paid": bool(user["paid"]), "dashboard": payload, "needPay": not bool(user["paid"])})
 
 
-@app.post("/api/create-checkout")
-def create_checkout():
-    user = get_current_user()
-    pending_id = session.get("pending_id")
-    if user and (user.get("is_paid") or is_admin(user)):
-        return jsonify({"ok": True, "already_paid": True})
-    if not pending_id and not user:
-        return json_error("Inscris-toi d'abord.", 401)
-    if not stripe or not STRIPE_SECRET_KEY:
-        return json_error("Stripe n'est pas configuré sur Railway.", 503)
-    items = (
-        [{"price": STRIPE_PRICE_ID, "quantity": 1}]
-        if STRIPE_PRICE_ID
-        else [
-            {
-                "price_data": {
-                    "currency": "eur",
-                    "product_data": {"name": "Accès COD.IA"},
-                    "unit_amount": PRICE_CENTS,
-                },
-                "quantity": 1,
-            }
-        ]
-    )
-    return_url = f"{SERVER_URL}/app?paid=1&session_id={{CHECKOUT_SESSION_ID}}"
-    pending_email = session.get("pending_email") or ""
-    pending_username = session.get("pending_username") or ""
-    if pending_id:
-        conn = db()
-        try:
-            with conn.cursor() as cur:
-                cur.execute(
-                    "SELECT email, username FROM pending_signups WHERE id=%s",
-                    (pending_id,),
-                )
-                row = cur.fetchone()
-                if row:
-                    pending_email = row.get("email") or pending_email
-                    pending_username = row.get("username") or pending_username
-        finally:
-            conn.close()
+@app.post("/api/pay/complete")
+@require_auth
+def pay_complete(user):
+    con = db()
+    if not user["paid"]:
+        con.execute("UPDATE users SET paid=1 WHERE id=?", (user["id"],))
+        add_activity(con, user["id"], "info", "Entrée payée", "Stripe")
+        con.commit()
+        user = user_by_id(con, user["id"])
+        validate_referral(con, user)
+        con.commit()
+        user = user_by_id(con, user["id"])
+    payload = dashboard(con, user)
+    con.close()
+    return jsonify({"ok": True, "dashboard": payload})
 
-    meta = {}
-    if pending_id:
-        meta["pending_id"] = str(pending_id)
-    if user:
-        meta["user_id"] = str(user["id"])
-        meta["email"] = user.get("email") or ""
-        meta["username"] = user.get("username") or ""
-    if pending_email:
-        meta["email"] = pending_email
-    if pending_username:
-        meta["username"] = pending_username
 
-    try:
-        checkout = stripe.checkout.Session.create(
-            mode="payment",
-            line_items=items,
-            ui_mode="embedded_page",
-            return_url=return_url,
-            client_reference_id=str(pending_id or (user["id"] if user else "")),
-            metadata=meta,
+@app.post("/api/referral/attach")
+@require_auth
+def attach_referral(user):
+    if not user["paid"]:
+        return jsonify({"message": "Paiement requis"}), 402
+    if user["ref_locked"]:
+        return jsonify({"message": "Code déjà enregistré", "counted": False})
+    data = request.get_json(silent=True) or {}
+    code = (data.get("code") or "").strip().upper()
+    if not code:
+        con = db()
+        con.execute("UPDATE users SET ref_locked=1 WHERE id=?", (user["id"],))
+        con.commit()
+        payload = dashboard(con, user_by_id(con, user["id"]))
+        con.close()
+        return jsonify({"ok": True, "counted": False, "dashboard": payload})
+    con = db()
+    sponsor = con.execute("SELECT * FROM users WHERE code=?", (code,)).fetchone()
+    if not sponsor or sponsor["id"] == user["id"]:
+        con.close()
+        return jsonify({"message": "Code parrain invalide"}), 400
+    existing = con.execute("SELECT id FROM referrals WHERE referred_id=?", (user["id"],)).fetchone()
+    if not existing:
+        con.execute(
+            "INSERT INTO referrals (referrer_id, referred_id, status, created_at) VALUES (?, ?, 'pending', ?)",
+            (sponsor["id"], user["id"], now()),
         )
-        secret = getattr(checkout, "client_secret", None)
-        if not secret:
-            raise RuntimeError("Stripe n'a pas renvoyé de client_secret")
-        return jsonify({"ok": True, "client_secret": secret, "clientSecret": secret})
-    except Exception as exc:
-        logging.exception("STRIPE CHECKOUT ERROR")
-        return json_error("Stripe : " + str(exc), 500)
-
-
-@app.get("/api/confirm-payment")
-def confirm_payment():
-    sid = request.args.get("session_id") or ""
-    if not (sid and stripe):
-        return jsonify({"ok": False, "paid": False})
-    try:
-        checkout = stripe.checkout.Session.retrieve(sid)
-        status = str(checkout.get("payment_status") or "").lower()
-        if status not in ("paid", "no_payment_required"):
-            return jsonify({"ok": False, "paid": False, "status": status})
-
-        meta = as_meta(checkout)
-        pending_id = as_int(
-            meta.get("pending_id")
-            or session.get("pending_id")
-            or checkout.get("client_reference_id")
-        )
-        user_id = as_int(meta.get("user_id"))
-        if not meta.get("email"):
-            meta["email"] = session.get("pending_email") or ""
-        if not meta.get("username"):
-            meta["username"] = session.get("pending_username") or ""
-
-        user = activate_paid_user(
-            pending_id=pending_id,
-            user_id=user_id,
-            stripe_session_id=sid,
-            extra=meta,
-        )
-        if not user:
-            return jsonify({"ok": False, "paid": False, "error": "Compte introuvable après paiement"})
-
-        session["user_id"] = user["id"]
-        session.pop("pending_id", None)
-        session.pop("pending_email", None)
-        session.pop("pending_username", None)
-        session.permanent = True
-        return jsonify({"ok": True, "paid": True, "email": user.get("email")})
-    except Exception as exc:
-        logging.error("Confirm payment: %s", exc)
-        return jsonify({"ok": False, "paid": False, "error": str(exc)})
-
-
-@app.post("/stripe/webhook")
-def stripe_webhook():
-    if not stripe:
-        return "no stripe", 503
-    try:
-        event = (
-            stripe.Webhook.construct_event(
-                request.data, request.headers.get("Stripe-Signature"), STRIPE_WEBHOOK_SECRET
-            )
-            if STRIPE_WEBHOOK_SECRET
-            else stripe.Event.construct_from(request.json, stripe.api_key)
-        )
-    except Exception:
-        return "invalid", 400
-    if event["type"] in ("checkout.session.completed", "checkout.session.async_payment_succeeded"):
-        obj = event["data"]["object"]
-        meta = as_meta(obj)
-        pending_id = as_int(meta.get("pending_id") or obj.get("client_reference_id"))
-        activate_paid_user(
-            pending_id=pending_id,
-            user_id=as_int(meta.get("user_id")),
-            stripe_session_id=obj.get("id"),
-            extra=meta,
-        )
-    return "ok", 200
-
-
-@app.get("/api/feed")
-@app.get("/codes")
-@require_auth
-def feed(user):
-    search = (request.args.get("search") or "").strip()
-    category = (request.args.get("category") or "TOUS").upper()
-    kind = (request.args.get("kind") or "").upper()
-    hidden = user.get("hidden_codes") or []
-    conn = db()
-    try:
-        with conn.cursor() as cur:
-            params = [user["id"]]
-            q = """SELECT * FROM codes c
-                   WHERE COALESCE(status,'VALIDEE')='VALIDEE'
-                     AND (expires_at IS NULL OR expires_at>NOW())
-                     AND NOT EXISTS (
-                        SELECT 1 FROM reports r
-                        WHERE r.user_id=%s AND r.code_id=c.id
-                     )"""
-            if hidden:
-                q += " AND id <> ALL(%s)"
-                params.append(hidden)
-            if category not in ("TOUS", ""):
-                q += " AND UPPER(category)=UPPER(%s)"
-                params.append(category)
-            if kind in ("PROMO", "PARRAINAGE"):
-                q += " AND kind=%s"
-                params.append(kind)
-            if search:
-                q += """ AND (title ILIKE %s OR description ILIKE %s
-                              OR COALESCE(brand,site,'') ILIKE %s OR code ILIKE %s)"""
-                t = f"%{search}%"
-                params.extend([t, t, t, t])
-            q += " ORDER BY created_at DESC LIMIT 80"
-            cur.execute(q, params)
-            rows = cur.fetchall()
-        return jsonify({"ok": True, "codes": [serialize_code(r, user["id"]) for r in rows]})
-    except Exception as exc:
-        logging.error("FEED: %s", exc)
-        return jsonify({"ok": True, "codes": []})
-    finally:
-        conn.close()
-
-
-def _counts(cur, uid):
-    cur.execute(
-        """SELECT COUNT(*) AS c FROM codes
-           WHERE user_id=%s AND COALESCE(status,'VALIDEE')='VALIDEE'""",
-        (uid,),
-    )
-    codes_n = int(cur.fetchone()["c"] or 0)
-    cur.execute("SELECT COUNT(*) AS c FROM follows WHERE following_id=%s", (uid,))
-    followers = int(cur.fetchone()["c"] or 0)
-    cur.execute("SELECT COUNT(*) AS c FROM follows WHERE follower_id=%s", (uid,))
-    following = int(cur.fetchone()["c"] or 0)
-    return codes_n, followers, following
-
-
-@app.get("/api/explore-people")
-@require_auth
-def api_explore_people(user):
-    conn = db()
-    try:
-        with conn.cursor() as cur:
-            cur.execute(
-                """
-                SELECT u.id, u.username, u.display_name, u.bio,
-                       u.avatar_url, u.avatar_initials,
-                       (SELECT COUNT(*) FROM codes c
-                         WHERE c.user_id=u.id
-                           AND COALESCE(c.status,'VALIDEE')='VALIDEE') AS posts,
-                       (SELECT COALESCE(SUM(c.copies_count),0) FROM codes c
-                         WHERE c.user_id=u.id) AS copies
-                FROM users u
-                WHERE COALESCE(u.is_paid, FALSE) = TRUE
-                  AND COALESCE(u.is_blocked, FALSE) = FALSE
-                  AND u.id <> %s
-                ORDER BY RANDOM()
-                LIMIT 12
-                """,
-                (user["id"],),
-            )
-            rows = cur.fetchall() or []
-        people = []
-        for r in rows[:3]:
-            uname = r.get("username") or "membre"
-            people.append(
-                {
-                    "id": r["id"],
-                    "name": r.get("display_name") or uname,
-                    "display_name": r.get("display_name") or uname,
-                    "username": uname,
-                    "bio": r.get("bio") or "",
-                    "avatar": r.get("avatar_url") or "",
-                    "avatar_url": r.get("avatar_url") or "",
-                    "avatar_initials": r.get("avatar_initials") or "CO",
-                    "posts": int(r.get("posts") or 0),
-                    "copies": int(r.get("copies") or 0),
-                    "verified": int(r.get("posts") or 0) >= 2,
-                }
-            )
-        return jsonify({"ok": True, "people": people})
-    except Exception as exc:
-        logging.error("EXPLORE PEOPLE: %s", exc)
-        return jsonify({"ok": True, "people": []})
-    finally:
-        conn.close()
-
-
-@app.post("/api/seed-explore")
-@require_admin
-def api_seed_explore(admin):
-    seed_users = [
-        ("emma", "Emma Martin", "Mode, beauté & bons plans du quotidien."),
-        ("julien", "Julien Roux", "Tech, voyage et offres qui valent le coup."),
-        ("camille", "Camille Bernard", "Maison, lifestyle & petites découvertes."),
-        ("lucas", "Lucas Petit", "Sport, sneakers et bons plans terrain."),
-        ("chloe", "Chloé Dubois", "Beauté, mode et pépites à ne pas rater."),
-        ("thomas", "Thomas Leroy", "Tech, gaming, acheter mieux sans payer plus."),
-        ("sarah", "Sarah Nguyen", "Voyage, hôtels et expériences communautaires."),
-        ("alex", "Alex Morel", "Offres simples, utiles, vraiment intéressantes."),
-        ("lea", "Léa Fontaine", "Lifestyle, maison et découvertes du moment."),
-        ("nolan", "Nolan Caron", "Je ne partage que ce qui vaut le détour."),
-    ]
-    seed_codes = [
-        ("emma", "Zara", "Mode", "PROMO", "-20% dès 60€", "ZARA20"),
-        ("emma", "Sephora", "Beauté", "PROMO", "15% beauté", "SEPH15"),
-        ("julien", "Amazon", "Tech", "PARRAINAGE", "Parrainage Amazon", "AMZ-JULIEN"),
-        ("julien", "Booking", "Voyage", "PROMO", "-12% hébergement", "BOOK12"),
-        ("camille", "IKEA", "Maison", "PROMO", "10% déco", "IKEA10"),
-        ("lucas", "Nike", "Sport", "PROMO", "Sneakers -25%", "NIKE25"),
-        ("lucas", "Adidas", "Sport", "PARRAINAGE", "Parrain sport", "ADI-LUCAS"),
-        ("chloe", "SHEIN", "Mode", "PROMO", "Code welcome", "SHEIN15"),
-        ("chloe", "H&M", "Mode", "PROMO", "-20% nouvelle collab", "HM20"),
-        ("thomas", "Fnac", "Tech", "PROMO", "Tech week -10%", "FNAC10"),
-        ("sarah", "Booking", "Voyage", "PARRAINAGE", "Parrain voyage", "BOOK-SARAH"),
-        ("sarah", "Airbnb", "Voyage", "PROMO", "Crédit voyage", "AIR40"),
-        ("alex", "Amazon", "Shopping", "PROMO", "Livraison / code", "AMZ5"),
-        ("lea", "Maisons du Monde", "Maison", "PROMO", "-15% salon", "MDM15"),
-        ("nolan", "Decathlon", "Sport", "PROMO", "Outdoor -10%", "DECA10"),
-    ]
-    conn = db()
-    ids = {}
-    try:
-        with conn.cursor() as cur:
-            for uname, name, bio in seed_users:
-                email = f"{uname}@seed.cod-ia.fr"
-                cur.execute("SELECT id FROM users WHERE LOWER(username)=LOWER(%s)", (uname,))
-                row = cur.fetchone()
-                if row:
-                    cur.execute(
-                        """UPDATE users
-                           SET display_name=%s, bio=%s, is_paid=TRUE, is_blocked=FALSE
-                           WHERE id=%s""",
-                        (name, bio, row["id"]),
-                    )
-                    ids[uname] = row["id"]
-                    continue
-                initials = "".join(x[0] for x in name.split() if x)[:2].upper() or "CO"
-                cur.execute(
-                    """INSERT INTO users(
-                        email, username, password_hash, display_name, bio,
-                        avatar_initials, referral_code, is_admin, is_paid
-                    ) VALUES(%s,%s,%s,%s,%s,%s,%s,FALSE,TRUE)
-                    RETURNING id""",
-                    (
-                        email,
-                        uname,
-                        generate_password_hash(secrets.token_urlsafe(12)),
-                        name,
-                        bio,
-                        initials,
-                        make_referral_code(),
-                    ),
-                )
-                ids[uname] = cur.fetchone()["id"]
-
-            names = list(ids)
-            for i, me in enumerate(names):
-                others = names[i + 1 :] + names[:i]
-                n = 3 + (i % 3)
-                for other in others[:n]:
-                    cur.execute(
-                        """INSERT INTO follows(follower_id, following_id)
-                           VALUES(%s,%s) ON CONFLICT DO NOTHING""",
-                        (ids[me], ids[other]),
-                    )
-
-            for author, brand, cat, kind, title, code in seed_codes:
-                copies = random.randint(40, 420)
-                likes = random.randint(12, 280)
-                if copies >= 100 or likes >= 100:
-                    copies = max(copies, 100)
-                cur.execute(
-                    "SELECT id FROM codes WHERE code=%s AND user_id=%s",
-                    (code, ids[author]),
-                )
-                if cur.fetchone():
-                    cur.execute(
-                        """UPDATE codes
-                           SET title=%s, copies_count=%s, likes_count=%s, status='VALIDEE'
-                           WHERE code=%s AND user_id=%s""",
-                        (title, copies, likes, code, ids[author]),
-                    )
-                    continue
-                cur.execute(
-                    """INSERT INTO codes(
-                        user_id, kind, category, brand, site, title, description,
-                        code, status, likes_count, copies_count
-                    ) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,'VALIDEE',%s,%s)""",
-                    (
-                        ids[author],
-                        kind,
-                        cat,
-                        brand,
-                        brand,
-                        title,
-                        title,
-                        code,
-                        likes,
-                        copies,
-                    ),
-                )
-        conn.commit()
-        return jsonify({"ok": True, "users": len(ids), "codes": len(seed_codes)})
-    except Exception as exc:
-        logging.error("SEED EXPLORE: %s", exc)
-        conn.rollback()
-        return json_error("Seed impossible : " + str(exc), 500)
-    finally:
-        conn.close()
-
-
-@app.get("/api/users/<int:uid>")
-@require_auth
-def get_user_profile(user, uid):
-    conn = db()
-    try:
-        with conn.cursor() as cur:
-            cur.execute("SELECT * FROM users WHERE id=%s", (uid,))
-            other = cur.fetchone()
-            if not other:
-                return json_error("Utilisateur introuvable.", 404)
-            relation = follow_relation(cur, user["id"], uid)
-            visible = relation in ("self", "accepted")
-            codes_n, followers, following = _counts(cur, uid)
-            payload = {
-                "ok": True,
-                "user": {
-                    **serialize_user_public(other, include_private=True),
-                    "bio": (other.get("bio") or "") if visible else "",
-                },
-                "relation": relation,
-                "follow_status": relation,
-                "codes_count": codes_n if visible else None,
-                "followers": followers if visible else None,
-                "following": following if visible else None,
-                "followers_count": followers if visible else None,
-                "following_count": following if visible else None,
-                "codes": [],
-            }
-            if visible:
-                cur.execute(
-                    """SELECT * FROM codes
-                       WHERE user_id=%s AND COALESCE(status,'VALIDEE')='VALIDEE'
-                         AND (expires_at IS NULL OR expires_at>NOW())
-                       ORDER BY created_at DESC LIMIT 80""",
-                    (uid,),
-                )
-                payload["codes"] = [serialize_code(r, user["id"]) for r in cur.fetchall()]
-            return jsonify(payload)
-    finally:
-        conn.close()
-
-
-@app.post("/api/users/<int:uid>/follow")
-@require_auth
-def follow_user(user, uid):
-    if uid == user["id"]:
-        return json_error("Tu ne peux pas t'abonner à toi-même.")
-    conn = db()
-    try:
-        with conn.cursor() as cur:
-            cur.execute("SELECT id FROM users WHERE id=%s", (uid,))
-            if not cur.fetchone():
-                return json_error("Utilisateur introuvable.", 404)
-            cur.execute(
-                "SELECT 1 FROM follows WHERE follower_id=%s AND following_id=%s",
-                (user["id"], uid),
-            )
-            if cur.fetchone():
-                return jsonify({"ok": True, "status": "accepted", "following": True})
-            cur.execute(
-                """INSERT INTO follow_requests(from_user_id, to_user_id)
-                   VALUES(%s,%s) ON CONFLICT (from_user_id, to_user_id) DO NOTHING""",
-                (user["id"], uid),
-            )
-            create_notification(
-                cur,
-                uid,
-                "Demande d'abonnement",
-                f"{user.get('display_name') or user.get('username')} souhaite s'abonner à ton profil.",
-                "FOLLOW",
-            )
-        conn.commit()
-        return jsonify({"ok": True, "status": "pending", "following": False})
-    finally:
-        conn.close()
-
-
-@app.post("/api/users/<int:uid>/unfollow")
-@require_auth
-def unfollow_user(user, uid):
-    conn = db()
-    try:
-        with conn.cursor() as cur:
-            cur.execute(
-                "DELETE FROM follows WHERE follower_id=%s AND following_id=%s",
-                (user["id"], uid),
-            )
-            cur.execute(
-                "DELETE FROM follow_requests WHERE from_user_id=%s AND to_user_id=%s",
-                (user["id"], uid),
-            )
-        conn.commit()
-        return jsonify({"ok": True, "status": "none"})
-    finally:
-        conn.close()
-
-
-@app.post("/api/users/<int:uid>/follow/accept")
-@require_auth
-def accept_follow(user, uid):
-    conn = db()
-    try:
-        with conn.cursor() as cur:
-            cur.execute(
-                """DELETE FROM follow_requests
-                   WHERE from_user_id=%s AND to_user_id=%s
-                   RETURNING from_user_id""",
-                (uid, user["id"]),
-            )
-            row = cur.fetchone()
-            if not row:
-                return json_error("Aucune demande à accepter.", 404)
-            cur.execute(
-                """INSERT INTO follows(follower_id, following_id)
-                   VALUES(%s,%s) ON CONFLICT DO NOTHING""",
-                (uid, user["id"]),
-            )
-            create_notification(
-                cur,
-                uid,
-                "Demande acceptée",
-                f"{user.get('display_name') or user.get('username')} a accepté ton abonnement.",
-                "FOLLOW",
-            )
-            add_activity(cur, user["id"], "Nouvel abonné", "Demande acceptée")
-            add_activity(cur, uid, "Ton abonnement a été accepté", "Tu vois maintenant ses codes")
-        conn.commit()
-        return jsonify({"ok": True, "status": "accepted"})
-    finally:
-        conn.close()
-
-
-@app.route("/u/<username>")
-@app.route("/profile/<int:uid>")
-def public_profile_page(username=None, uid=None):
-    return send_from_directory(BASE_DIR, "profile.html")
-
-
-@app.get("/api/users/lookup/<username>")
-@require_auth
-def lookup_user(user, username):
-    uname = clean_username(username)
-    if not uname:
-        return json_error("Utilisateur introuvable.", 404)
-    conn = db()
-    try:
-        with conn.cursor() as cur:
-            cur.execute(
-                """SELECT id, username, display_name, bio, avatar_url, avatar_initials
-                   FROM users WHERE LOWER(username)=LOWER(%s)""",
-                (uname,),
-            )
-            row = cur.fetchone()
-        if not row:
-            return json_error("Utilisateur introuvable.", 404)
-        return jsonify(
-            {
-                "ok": True,
-                "id": row["id"],
-                "user": {
-                    "id": row["id"],
-                    "username": row.get("username"),
-                    "name": row.get("display_name") or row.get("username"),
-                    "display_name": row.get("display_name") or row.get("username"),
-                    "bio": row.get("bio") or "",
-                    "avatar": row.get("avatar_url") or "",
-                    "avatar_url": row.get("avatar_url") or "",
-                    "avatar_initials": row.get("avatar_initials") or "CO",
-                },
-            }
-        )
-    finally:
-        conn.close()
-
-
-def _serialize_mini_user(row):
-    return {
-        "id": row["id"],
-        "username": row.get("username"),
-        "display_name": row.get("display_name") or row.get("username") or "Membre",
-        "avatar_url": row.get("avatar_url") or "",
-        "avatar_initials": row.get("avatar_initials") or "CO",
-    }
-
-
-@app.get("/api/users/<int:uid>/followers")
-@require_auth
-def list_followers(user, uid):
-    conn = db()
-    try:
-        with conn.cursor() as cur:
-            relation = follow_relation(cur, user["id"], uid)
-            if relation not in ("self", "accepted"):
-                return jsonify({"ok": True, "locked": True, "users": []})
-            cur.execute(
-                """SELECT u.id, u.username, u.display_name, u.avatar_url, u.avatar_initials
-                   FROM follows f
-                   JOIN users u ON u.id=f.follower_id
-                   WHERE f.following_id=%s
-                   ORDER BY f.created_at DESC
-                   LIMIT 200""",
-                (uid,),
-            )
-            rows = cur.fetchall()
-        return jsonify({"ok": True, "locked": False, "users": [_serialize_mini_user(r) for r in rows]})
-    finally:
-        conn.close()
-
-
-@app.get("/api/users/<int:uid>/following")
-@require_auth
-def list_following(user, uid):
-    conn = db()
-    try:
-        with conn.cursor() as cur:
-            relation = follow_relation(cur, user["id"], uid)
-            if relation not in ("self", "accepted"):
-                return jsonify({"ok": True, "locked": True, "users": []})
-            cur.execute(
-                """SELECT u.id, u.username, u.display_name, u.avatar_url, u.avatar_initials
-                   FROM follows f
-                   JOIN users u ON u.id=f.following_id
-                   WHERE f.follower_id=%s
-                   ORDER BY f.created_at DESC
-                   LIMIT 200""",
-                (uid,),
-            )
-            rows = cur.fetchall()
-        return jsonify({"ok": True, "locked": False, "users": [_serialize_mini_user(r) for r in rows]})
-    finally:
-        conn.close()
-
-
-@app.get("/api/follow-requests")
-@require_auth
-def list_follow_requests(user):
-    conn = db()
-    try:
-        with conn.cursor() as cur:
-            cur.execute(
-                """SELECT fr.id, fr.from_user_id, fr.created_at,
-                          u.username, u.display_name, u.avatar_url, u.avatar_initials
-                   FROM follow_requests fr
-                   JOIN users u ON u.id=fr.from_user_id
-                   WHERE fr.to_user_id=%s
-                   ORDER BY fr.created_at DESC""",
-                (user["id"],),
-            )
-            rows = cur.fetchall()
-        return jsonify(
-            {
-                "ok": True,
-                "requests": [
-                    {
-                        "id": r["id"],
-                        "from_user_id": r["from_user_id"],
-                        "from": {
-                            "id": r["from_user_id"],
-                            "username": r.get("username"),
-                            "display_name": r.get("display_name"),
-                            "avatar": r.get("avatar_url") or "",
-                            "avatar_url": r.get("avatar_url") or "",
-                            "avatar_initials": r.get("avatar_initials") or "CO",
-                        },
-                    }
-                    for r in rows
-                ],
-            }
-        )
-    finally:
-        conn.close()
+        con.execute("UPDATE users SET referred_by=? WHERE id=?", (sponsor["id"], user["id"]))
+    con.execute("UPDATE users SET ref_locked=1 WHERE id=?", (user["id"],))
+    user = user_by_id(con, user["id"])
+    counted = validate_referral(con, user)
+    con.commit()
+    payload = dashboard(con, user_by_id(con, user["id"]))
+    con.close()
+    return jsonify({"ok": True, "counted": counted, "dashboard": payload})
 
 
 @app.get("/api/activity")
-@require_auth
+@require_paid
 def activity(user):
-    conn = db()
-    try:
-        with conn.cursor() as cur:
-            cur.execute("DELETE FROM activities WHERE created_at < NOW() - INTERVAL '24 hours'")
-            cur.execute(
-                """SELECT title, detail, created_at
-                   FROM activities
-                   WHERE user_id=%s AND created_at > NOW() - INTERVAL '24 hours'
-                   ORDER BY created_at DESC
-                   LIMIT 30""",
-                (user["id"],),
-            )
-            rows = cur.fetchall()
-        conn.commit()
-        return jsonify(
-            {
-                "ok": True,
-                "activities": [
-                    {
-                        "title": r["title"],
-                        "detail": r.get("detail") or "",
-                        "created_at": iso(r.get("created_at")),
-                    }
-                    for r in rows
-                ],
-            }
-        )
-    finally:
-        conn.close()
+    con = db()
+    rows = con.execute("SELECT kind, title, description FROM activities WHERE user_id=? ORDER BY id DESC LIMIT 20", (user["id"],)).fetchall()
+    con.close()
+    return jsonify({"activities": [dict(r) for r in rows]})
 
 
-@app.get("/api/top-codes")
-def top_codes():
-    user = get_current_user()
-    uid = user["id"] if user else None
-    conn = db()
-    try:
-        with conn.cursor() as cur:
-            cur.execute(
-                """SELECT * FROM codes
-                   WHERE COALESCE(likes_count,0)>=100 OR COALESCE(copies_count,0)>=100
-                   ORDER BY (COALESCE(likes_count,0)+COALESCE(copies_count,0)) DESC
-                   LIMIT 30"""
-            )
-            rows = cur.fetchall()
-        return jsonify({"ok": True, "codes": [serialize_code(r, uid) for r in rows]})
-    finally:
-        conn.close()
+@app.get("/api/members")
+@require_paid
+def members(user):
+    q = f"%{(request.args.get('q') or '').strip()}%"
+    con = db()
+    rows = con.execute(
+        "SELECT * FROM users WHERE paid=1 AND (name LIKE ? OR username LIKE ?) ORDER BY points DESC, id ASC LIMIT 50",
+        (q, q),
+    ).fetchall()
+    out = [public_user(con, r) for r in rows]
+    con.close()
+    return jsonify({"members": out})
 
 
-@app.get("/api/codes/<int:code_id>")
-@require_auth
-def get_code(user, code_id):
-    conn = db()
-    try:
-        with conn.cursor() as cur:
-            cur.execute("SELECT * FROM codes WHERE id=%s", (code_id,))
-            row = cur.fetchone()
-        if not row:
-            return json_error("Code introuvable.", 404)
-        return jsonify({"ok": True, "code": serialize_code(row, user["id"])})
-    finally:
-        conn.close()
+@app.get("/api/ranking")
+@require_paid
+def ranking(user):
+    con = db()
+    rows = con.execute("SELECT * FROM users WHERE paid=1 ORDER BY points DESC, id ASC LIMIT 50").fetchall()
+    ranking_list = []
+    for i, r in enumerate(rows, start=1):
+        item = public_user(con, r)
+        item["position"] = i
+        ranking_list.append(item)
+    higher = con.execute("SELECT COUNT(*) c FROM users WHERE paid=1 AND points > ?", (user["points"],)).fetchone()["c"]
+    con.close()
+    return jsonify({"me": {"position": higher + 1, "points": user["points"]}, "ranking": ranking_list})
 
 
-@app.post("/api/codes")
-@app.post("/codes")
-@require_auth
-def create_code(user):
+@app.get("/api/posts")
+@require_paid
+def list_posts(user):
+    con = db()
+    rows = con.execute(
+        """SELECT p.id, p.user_id, p.type, p.code, p.description, p.created_at, u.name
+           FROM posts p JOIN users u ON u.id=p.user_id ORDER BY p.id DESC LIMIT 100"""
+    ).fetchall()
+    con.close()
+    return jsonify({"posts": [{"id": r["id"], "userId": r["user_id"], "type": r["type"], "code": r["code"], "desc": r["description"], "by": r["name"], "at": r["created_at"]} for r in rows]})
+
+
+@app.post("/api/posts")
+@require_paid
+def create_post(user):
     data = request.get_json(silent=True) or {}
-    kind = "PARRAINAGE" if (data.get("kind") or "").upper() == "PARRAINAGE" else "PROMO"
-    title = (data.get("title") or data.get("brand") or "").strip()
-    code = (data.get("code") or "").strip()
-    brand = (data.get("brand") or title).strip()
-    if len(title) < 2 or not code:
-        return json_error("Marque/titre et code sont obligatoires.")
-    expires = None
-    if data.get("expires_at"):
-        try:
-            expires = datetime.fromisoformat(str(data["expires_at"]).replace("Z", "+00:00"))
-        except Exception:
-            expires = None
-    conn = db()
-    try:
-        with conn.cursor() as cur:
-            cur.execute(
-                """INSERT INTO codes(user_id,kind,category,brand,site,title,description,code,url,expires_at,status)
-                   VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,'VALIDEE') RETURNING *""",
-                (
-                    user["id"],
-                    kind,
-                    data.get("category") or "Autres",
-                    brand,
-                    brand,
-                    title,
-                    data.get("description") or "",
-                    code,
-                    data.get("url") or "",
-                    expires,
-                ),
-            )
-            row = cur.fetchone()
-            add_activity(cur, user["id"], f"Tu as publié un code {brand}", "Code actif")
-        conn.commit()
-        return jsonify({"ok": True, "code": serialize_code(row, user["id"])})
-    except Exception as exc:
-        logging.error("CREATE CODE: %s", exc)
-        conn.rollback()
-        return json_error("Publication impossible : " + str(exc), 500)
-    finally:
-        conn.close()
+    ptype, code, desc = data.get("type"), (data.get("code") or "").strip().upper(), (data.get("desc") or "").strip()
+    if ptype not in ("promo", "parrainage") or len(code) < 4 or len(desc) < 8:
+        return jsonify({"message": "Publication invalide"}), 400
+    con = db()
+    con.execute("INSERT INTO posts (user_id, type, code, description, created_at) VALUES (?, ?, ?, ?, ?)", (user["id"], ptype, code, desc, now()))
+    con.commit()
+    con.close()
+    return jsonify({"ok": True})
 
 
-def _delete_code_impl(user, code_id):
-    conn = db()
-    try:
-        with conn.cursor() as cur:
-            cur.execute("SELECT user_id FROM codes WHERE id=%s", (code_id,))
-            row = cur.fetchone()
-            if not row:
-                return json_error("Code introuvable.", 404)
-            if row["user_id"] != user["id"] and not is_admin(user):
-                return json_error("Tu ne peux supprimer que tes codes.", 403)
-            _remove_code(cur, code_id)
-        conn.commit()
-        return jsonify({"ok": True})
-    finally:
-        conn.close()
+@app.delete("/api/posts/<int:post_id>")
+@require_paid
+def delete_post(user, post_id):
+    con = db()
+    row = con.execute("SELECT * FROM posts WHERE id=?", (post_id,)).fetchone()
+    if not row or row["user_id"] != user["id"]:
+        con.close()
+        return jsonify({"message": "Impossible de supprimer"}), 403
+    con.execute("DELETE FROM posts WHERE id=?", (post_id,))
+    con.commit()
+    con.close()
+    return jsonify({"ok": True})
 
 
-@app.delete("/api/codes/<int:code_id>")
-@require_auth
-def delete_code(user, code_id):
-    return _delete_code_impl(user, code_id)
-
-
-@app.post("/api/codes/<int:code_id>/delete")
-@require_auth
-def delete_code_post(user, code_id):
-    return _delete_code_impl(user, code_id)
-
-
-@app.post("/api/codes/<int:code_id>/copy")
-@require_auth
-def copy_code(user, code_id):
-    conn = db()
-    try:
-        with conn.cursor() as cur:
-            cur.execute("SELECT * FROM codes WHERE id=%s", (code_id,))
-            code = cur.fetchone()
-            if not code:
-                return json_error("Code introuvable.", 404)
-            cur.execute(
-                "UPDATE codes SET copies_count=COALESCE(copies_count,0)+1 WHERE id=%s",
-                (code_id,),
-            )
-            if code.get("user_id") and code["user_id"] != user["id"]:
-                add_activity(
-                    cur,
-                    code["user_id"],
-                    f"Ton code {code.get('brand') or code.get('site') or ''} a été copié",
-                    "+1 copie",
-                )
-        conn.commit()
-        return jsonify({"ok": True, "code": code.get("code"), "url": code.get("url")})
-    finally:
-        conn.close()
-
-
-@app.post("/api/codes/<int:code_id>/click")
-@require_auth
-def click_code(user, code_id):
-    conn = db()
-    try:
-        with conn.cursor() as cur:
-            cur.execute(
-                "UPDATE codes SET clicks_count=COALESCE(clicks_count,0)+1 WHERE id=%s",
-                (code_id,),
-            )
-        conn.commit()
-        return jsonify({"ok": True})
-    finally:
-        conn.close()
-
-
-@app.post("/api/codes/<int:code_id>/like")
-@require_auth
-def like_code(user, code_id):
-    conn = db()
-    try:
-        with conn.cursor() as cur:
-            cur.execute(
-                "SELECT 1 FROM likes WHERE user_id=%s AND code_id=%s", (user["id"], code_id)
-            )
-            if cur.fetchone():
-                cur.execute(
-                    "DELETE FROM likes WHERE user_id=%s AND code_id=%s",
-                    (user["id"], code_id),
-                )
-                cur.execute(
-                    "UPDATE codes SET likes_count=GREATEST(COALESCE(likes_count,0)-1,0) WHERE id=%s",
-                    (code_id,),
-                )
-            else:
-                cur.execute(
-                    "INSERT INTO likes(user_id,code_id) VALUES(%s,%s) ON CONFLICT DO NOTHING",
-                    (user["id"], code_id),
-                )
-                cur.execute(
-                    "UPDATE codes SET likes_count=COALESCE(likes_count,0)+1 WHERE id=%s",
-                    (code_id,),
-                )
-        conn.commit()
-        return jsonify({"ok": True})
-    finally:
-        conn.close()
-
-
-@app.post("/api/codes/<int:code_id>/favorite")
-@require_auth
-def favorite_code(user, code_id):
-    conn = db()
-    try:
-        with conn.cursor() as cur:
-            cur.execute(
-                "SELECT 1 FROM favorites WHERE user_id=%s AND code_id=%s",
-                (user["id"], code_id),
-            )
-            exists = bool(cur.fetchone())
-            if exists:
-                cur.execute(
-                    "DELETE FROM favorites WHERE user_id=%s AND code_id=%s",
-                    (user["id"], code_id),
-                )
-            else:
-                cur.execute(
-                    "INSERT INTO favorites(user_id,code_id) VALUES(%s,%s) ON CONFLICT DO NOTHING",
-                    (user["id"], code_id),
-                )
-        conn.commit()
-        return jsonify({"ok": True, "favorite": not exists})
-    finally:
-        conn.close()
-
-
-@app.post("/api/codes/<int:code_id>/hide")
-@require_auth
-def hide_code(user, code_id):
-    hidden = list(user.get("hidden_codes") or [])
-    if code_id not in hidden:
-        hidden.append(code_id)
-    conn = db()
-    try:
-        with conn.cursor() as cur:
-            cur.execute(
-                "UPDATE users SET hidden_codes=%s WHERE id=%s",
-                (psycopg2.extras.Json(hidden), user["id"]),
-            )
-        conn.commit()
-        return jsonify({"ok": True})
-    finally:
-        conn.close()
-
-
-@app.get("/api/favorites")
-@require_auth
-def favorites(user):
-    conn = db()
-    try:
-        with conn.cursor() as cur:
-            cur.execute(
-                """SELECT c.* FROM codes c
-                   JOIN favorites f ON f.code_id=c.id
-                   WHERE f.user_id=%s""",
-                (user["id"],),
-            )
-            rows = cur.fetchall()
-        return jsonify({"ok": True, "codes": [serialize_code(r, user["id"]) for r in rows]})
-    finally:
-        conn.close()
-
-
-@app.get("/api/my-codes")
-@require_auth
-def my_codes(user):
-    conn = db()
-    try:
-        with conn.cursor() as cur:
-            cur.execute(
-                "SELECT * FROM codes WHERE user_id=%s ORDER BY created_at DESC",
-                (user["id"],),
-            )
-            rows = cur.fetchall()
-        return jsonify({"ok": True, "codes": [serialize_code(r, user["id"]) for r in rows]})
-    finally:
-        conn.close()
-
-
-@app.post("/api/codes/<int:code_id>/report")
-@require_auth
-def report_code(user, code_id):
-    conn = db()
-    try:
-        with conn.cursor() as cur:
-            cur.execute(
-                """INSERT INTO reports(user_id,code_id,reason)
-                   VALUES(%s,%s,%s) ON CONFLICT DO NOTHING""",
-                (user["id"], code_id, "Signalement"),
-            )
-            cur.execute("SELECT COUNT(*) AS c FROM reports WHERE code_id=%s", (code_id,))
-            total = int(cur.fetchone()["c"])
-            cur.execute("UPDATE codes SET reports_count=%s WHERE id=%s", (total, code_id))
-            if total >= 10:
-                cur.execute("UPDATE codes SET status='SUPPRIMEE' WHERE id=%s", (code_id,))
-        conn.commit()
-        return jsonify({"ok": True, "removed": total >= 10})
-    finally:
-        conn.close()
-
-
-@app.patch("/api/profile")
-@require_auth
+@app.post("/api/profile")
+@require_paid
 def update_profile(user):
     data = request.get_json(silent=True) or {}
-    bio = str(data.get("bio") if data.get("bio") is not None else user.get("bio") or "")[:300]
-    email = normalize_email(
-        data.get("email") if data.get("email") is not None else user.get("email")
-    )
-    display_name = str(
-        data.get("display_name")
-        if data.get("display_name") is not None
-        else user.get("display_name") or user.get("username") or "Membre"
-    )[:60]
-    avatar_url = (
-        data.get("avatar_url") if data.get("avatar_url") is not None else user.get("avatar_url")
-    )
-    if avatar_url and len(str(avatar_url)) > 350000:
-        return json_error("Photo trop lourde.")
-    if "@" not in email:
-        return json_error("Adresse email invalide.")
-    conn = db()
+    username = (data.get("username") or user["username"]).strip().lower()
+    photo = data.get("photo") if data.get("photo") is not None else user["photo"]
+    if len(username) < 3:
+        return jsonify({"message": "Username trop court"}), 400
+    con = db()
     try:
-        with conn.cursor() as cur:
-            if email != normalize_email(user.get("email")):
-                cur.execute(
-                    "SELECT id FROM users WHERE LOWER(email)=LOWER(%s) AND id<>%s",
-                    (email, user["id"]),
-                )
-                if cur.fetchone():
-                    return json_error("Cet email est déjà utilisé.")
-            cur.execute(
-                """UPDATE users SET bio=%s, email=%s, avatar_url=%s, display_name=%s, updated_at=NOW()
-                   WHERE id=%s""",
-                (bio, email, avatar_url or "", display_name, user["id"]),
-            )
-        conn.commit()
-        return jsonify({"ok": True})
+        con.execute("UPDATE users SET username=?, photo=? WHERE id=?", (username, photo or "", user["id"]))
+        con.commit()
+        return jsonify({"dashboard": dashboard(con, user_by_id(con, user["id"]))})
+    except sqlite3.IntegrityError:
+        return jsonify({"message": "Username déjà utilisé"}), 400
     finally:
-        conn.close()
+        con.close()
 
 
-@app.get("/api/leaderboard")
-def leaderboard():
-    user = get_current_user()
-    start = challenge_start()
-    conn = db()
+@app.post("/api/profile/bank")
+@require_paid
+def update_bank(user):
+    data = request.get_json(silent=True) or {}
+    first, last, iban = (data.get("firstName") or "").strip(), (data.get("lastName") or "").strip(), re.sub(r"\s+", "", data.get("iban") or "").upper()
+    if len(first) < 2 or len(last) < 2 or not is_iban(iban):
+        return jsonify({"message": "Coordonnées invalides"}), 400
+    con = db()
+    con.execute("UPDATE users SET first_name=?, last_name=?, iban=?, name=? WHERE id=?", (first, last, iban, f"{first} {last}", user["id"]))
+    con.commit()
+    payload = dashboard(con, user_by_id(con, user["id"]))
+    con.close()
+    return jsonify({"dashboard": payload})
+
+
+@app.post("/api/payout")
+@require_paid
+def payout(user):
+    reward = best_reward(user["level"], user["points"])
+    amount = max(0, reward["current"] - (user["claimed"] or 0))
+    first = (user["first_name"] or "").strip()
+    last = (user["last_name"] or "").strip()
+    iban = re.sub(r"\s+", "", user["iban"] or "").upper()
+    if amount <= 0:
+        return jsonify({"message": "Aucune récompense à retirer"}), 400
+    if len(first) < 2 or len(last) < 2 or not is_iban(iban):
+        return jsonify({"message": "Coordonnées bancaires manquantes"}), 400
+    if not SMTP_USER or not SMTP_PASS:
+        return jsonify({"message": "SMTP non configuré"}), 500
+    msg = EmailMessage()
+    msg["Subject"] = f"Demande de retrait COD-IA — {first} {last}"
+    msg["From"] = SMTP_USER
+    msg["To"] = PAYOUT_TO
+    msg.set_content(f"Prénom : {first}\nNom : {last}\nIBAN : {iban}\nRécompense : {amount} €\nPoints : {user['points']}\nNiveau : {user['level']}\nCode : {user['code']}\nDélai : 48h\n")
     try:
-        with conn.cursor() as cur:
-            cur.execute(
-                """SELECT u.id,
-                          COALESCE(u.display_name,u.username,'Membre') AS name,
-                          COALESCE(u.avatar_initials,'CO') AS initials,
-                          COUNT(r.id) AS points
-                   FROM users u
-                   LEFT JOIN users r
-                     ON r.referred_by=u.id AND r.created_at>=%s AND r.created_at<=%s
-                   GROUP BY u.id,u.display_name,u.username,u.avatar_initials
-                   ORDER BY points DESC
-                   LIMIT 3""",
-                (start, start + timedelta(days=21)),
-            )
-            rows = cur.fetchall()
-        challenge = [
-            {
-                "rank": i,
-                "name": r["name"],
-                "initials": r.get("initials") or "CO",
-                "points": int(r["points"] or 0),
-                "me": bool(user and r["id"] == user["id"]),
-            }
-            for i, r in enumerate(rows, 1)
-        ]
-        return jsonify({"ok": True, "challenge": challenge, "weekly": []})
-    finally:
-        conn.close()
-
-
-@app.get("/api/notifications")
-@require_auth
-def notifications(user):
-    conn = db()
-    try:
-        with conn.cursor() as cur:
-            cur.execute(
-                """SELECT title, message, created_at, 'USER' AS kind
-                   FROM notifications
-                   WHERE user_id=%s
-                   ORDER BY created_at DESC LIMIT 50""",
-                (user["id"],),
-            )
-            rows = list(cur.fetchall() or [])
-            cur.execute(
-                """SELECT title, message, created_at, 'BROADCAST' AS kind
-                   FROM broadcasts
-                   WHERE created_at > NOW() - INTERVAL '24 hours'
-                   ORDER BY created_at DESC"""
-            )
-            rows = list(cur.fetchall() or []) + rows
-            cur.execute(
-                """SELECT COUNT(*) AS c FROM notifications
-                   WHERE user_id=%s AND COALESCE(is_read,FALSE)=FALSE""",
-                (user["id"],),
-            )
-            unread = int(cur.fetchone()["c"] or 0)
-            cur.execute(
-                """SELECT COUNT(*) AS c FROM broadcasts
-                   WHERE created_at > NOW() - INTERVAL '24 hours'"""
-            )
-            unread += int(cur.fetchone()["c"] or 0)
-        rows.sort(key=lambda r: r.get("created_at") or now_utc(), reverse=True)
-        return jsonify(
-            {
-                "ok": True,
-                "unread": unread,
-                "notifications": [
-                    {
-                        "title": r.get("title"),
-                        "message": r.get("message"),
-                        "kind": r.get("kind"),
-                    }
-                    for r in rows[:50]
-                ],
-            }
-        )
+        with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as s:
+            s.starttls()
+            s.login(SMTP_USER, SMTP_PASS)
+            s.send_message(msg)
     except Exception:
-        return jsonify({"ok": True, "unread": 0, "notifications": []})
-    finally:
-        conn.close()
+        return jsonify({"message": "Envoi mail impossible"}), 500
+    con = db()
+    con.execute("UPDATE users SET claimed=? WHERE id=?", (user["claimed"] + amount, user["id"]))
+    con.execute("INSERT INTO payouts (user_id, amount, status, created_at) VALUES (?, ?, 'pending', ?)", (user["id"], amount, now()))
+    add_activity(con, user["id"], "money", "Retrait demandé", f"{amount} € · 48h")
+    con.commit()
+    payload = dashboard(con, user_by_id(con, user["id"]))
+    con.close()
+    return jsonify({"ok": True, "dashboard": payload})
 
-
-@app.post("/api/notifications/read")
-@require_auth
-def notifications_read(user):
-    conn = db()
-    try:
-        with conn.cursor() as cur:
-            cur.execute("UPDATE notifications SET is_read=TRUE WHERE user_id=%s", (user["id"],))
-        conn.commit()
-        return jsonify({"ok": True})
-    finally:
-        conn.close()
-
-
-@app.post("/api/support")
-@require_auth
-def support(user):
-    data = request.get_json(silent=True) or {}
-    if len((data.get("message") or "")) < 3:
-        return json_error("Message trop court.")
-    conn = db()
-    try:
-        with conn.cursor() as cur:
-            cur.execute(
-                "INSERT INTO support_tickets(user_id,subject,message) VALUES(%s,%s,%s)",
-                (user["id"], data.get("subject") or "Support", data.get("message")),
-            )
-        conn.commit()
-        return jsonify({"ok": True})
-    finally:
-        conn.close()
-
-
-@app.get("/api/support")
-@require_auth
-def my_support(user):
-    conn = db()
-    try:
-        with conn.cursor() as cur:
-            cur.execute(
-                """SELECT id,subject,message,reply,status,created_at,replied_at
-                   FROM support_tickets WHERE user_id=%s
-                   ORDER BY created_at DESC LIMIT 50""",
-                (user["id"],),
-            )
-            rows = cur.fetchall()
-        return jsonify(
-            {
-                "ok": True,
-                "tickets": [
-                    {
-                        "id": r["id"],
-                        "subject": r.get("subject"),
-                        "message": r.get("message"),
-                        "reply": r.get("reply") or "",
-                        "status": r.get("status") or "OPEN",
-                        "created_at": iso(r.get("created_at")),
-                        "replied_at": iso(r.get("replied_at")),
-                    }
-                    for r in rows
-                ],
-            }
-        )
-    finally:
-        conn.close()
-
-
-@app.get("/api/admin/overview")
-@require_admin
-def admin_overview(admin):
-    conn = db()
-    try:
-        with conn.cursor() as cur:
-            cur.execute("SELECT COUNT(*) AS c FROM users")
-            users_n = int(cur.fetchone()["c"] or 0)
-            cur.execute("SELECT COUNT(*) AS c FROM users WHERE COALESCE(is_paid,FALSE)=TRUE")
-            paid_n = int(cur.fetchone()["c"] or 0)
-            cur.execute("SELECT COUNT(*) AS c FROM codes")
-            codes_n = int(cur.fetchone()["c"] or 0)
-            cur.execute(
-                "SELECT COUNT(*) AS c FROM support_tickets WHERE COALESCE(status,'OPEN')='OPEN'"
-            )
-            tickets_n = int(cur.fetchone()["c"] or 0)
-        return jsonify(
-            {
-                "ok": True,
-                "stats": {
-                    "users": users_n,
-                    "paid": paid_n,
-                    "codes": codes_n,
-                    "tickets": tickets_n,
-                },
-            }
-        )
-    finally:
-        conn.close()
-
-
-@app.get("/api/admin/users")
-@require_admin
-def admin_users(admin):
-    q = (request.args.get("q") or "").strip()
-    conn = db()
-    try:
-        with conn.cursor() as cur:
-            if q:
-                like = f"%{q}%"
-                cur.execute(
-                    """SELECT id,email,username,display_name,is_admin,is_paid,is_blocked,
-                              warnings_count,referral_code,created_at
-                       FROM users
-                       WHERE email ILIKE %s OR username ILIKE %s OR display_name ILIKE %s
-                       ORDER BY created_at DESC LIMIT 200""",
-                    (like, like, like),
-                )
-            else:
-                cur.execute(
-                    """SELECT id,email,username,display_name,is_admin,is_paid,is_blocked,
-                              warnings_count,referral_code,created_at
-                       FROM users ORDER BY created_at DESC LIMIT 200"""
-                )
-            rows = cur.fetchall()
-        return jsonify(
-            {
-                "ok": True,
-                "users": [
-                    {
-                        "id": r["id"],
-                        "email": r.get("email"),
-                        "username": r.get("username"),
-                        "display_name": r.get("display_name"),
-                        "is_admin": bool(r.get("is_admin")),
-                        "is_paid": bool(r.get("is_paid")),
-                        "is_blocked": bool(r.get("is_blocked")),
-                        "warnings_count": int(r.get("warnings_count") or 0),
-                        "referral_code": r.get("referral_code"),
-                        "created_at": iso(r.get("created_at")),
-                        "protected": is_protected_user(
-                            r.get("email"), r.get("username"), r.get("is_admin")
-                        ),
-                    }
-                    for r in rows
-                ],
-            }
-        )
-    finally:
-        conn.close()
-
-
-@app.post("/api/admin/users/<int:user_id>/toggle-paid")
-@require_admin
-def admin_toggle_paid(admin, user_id):
-    conn = db()
-    try:
-        with conn.cursor() as cur:
-            cur.execute("SELECT * FROM users WHERE id=%s", (user_id,))
-            row = cur.fetchone()
-            if not row:
-                return json_error("Utilisateur introuvable.", 404)
-            if is_protected_user(row.get("email"), row.get("username"), row.get("is_admin")):
-                return json_error("Compte protégé.")
-            new_val = not bool(row.get("is_paid"))
-            cur.execute("UPDATE users SET is_paid=%s WHERE id=%s", (new_val, user_id))
-        conn.commit()
-        return jsonify({"ok": True, "is_paid": new_val})
-    finally:
-        conn.close()
-
-
-@app.post("/api/admin/users/<int:user_id>/block")
-@require_admin
-def admin_block_user(admin, user_id):
-    if user_id == admin["id"]:
-        return json_error("Tu ne peux pas te bloquer.")
-    conn = db()
-    try:
-        with conn.cursor() as cur:
-            cur.execute("SELECT * FROM users WHERE id=%s", (user_id,))
-            row = cur.fetchone()
-            if not row:
-                return json_error("Utilisateur introuvable.", 404)
-            if is_protected_user(row.get("email"), row.get("username"), row.get("is_admin")):
-                return json_error("Compte protégé.")
-            blocked = not bool(row.get("is_blocked"))
-            cur.execute("UPDATE users SET is_blocked=%s WHERE id=%s", (blocked, user_id))
-            if blocked:
-                create_notification(
-                    cur,
-                    user_id,
-                    "Compte bloqué",
-                    "Ton compte a été bloqué par l’équipe COD.IA.",
-                    "ALERT",
-                )
-        conn.commit()
-        return jsonify({"ok": True, "is_blocked": blocked})
-    finally:
-        conn.close()
-
-
-@app.post("/api/admin/users/<int:user_id>/warn")
-@require_admin
-def admin_warn_user(admin, user_id):
-    data = request.get_json(silent=True) or {}
-    reason = (data.get("reason") or data.get("message") or "").strip()
-    if len(reason) < 3:
-        return json_error("Précise le motif du signalement.")
-    conn = db()
-    try:
-        with conn.cursor() as cur:
-            cur.execute("SELECT * FROM users WHERE id=%s", (user_id,))
-            row = cur.fetchone()
-            if not row:
-                return json_error("Utilisateur introuvable.", 404)
-            if user_id == admin["id"]:
-                return json_error("Tu ne peux pas te signaler.")
-            cur.execute(
-                "UPDATE users SET warnings_count=COALESCE(warnings_count,0)+1 WHERE id=%s RETURNING warnings_count",
-                (user_id,),
-            )
-            count = int(cur.fetchone()["warnings_count"] or 1)
-            create_notification(cur, user_id, "Signalement COD.IA", reason[:400], "ALERT")
-        conn.commit()
-        return jsonify({"ok": True, "warnings_count": count})
-    finally:
-        conn.close()
-
-
-@app.post("/api/admin/users/<int:user_id>/delete")
-@require_admin
-def admin_delete_user(admin, user_id):
-    if user_id == admin["id"]:
-        return json_error("Tu ne peux pas te supprimer.")
-    conn = db()
-    try:
-        with conn.cursor() as cur:
-            cur.execute("SELECT * FROM users WHERE id=%s", (user_id,))
-            row = cur.fetchone()
-            if not row:
-                return json_error("Utilisateur introuvable.", 404)
-            if is_protected_user(row.get("email"), row.get("username"), row.get("is_admin")):
-                return json_error("Compte protégé.")
-            cur.execute("SELECT id FROM codes WHERE user_id=%s", (user_id,))
-            for c in cur.fetchall():
-                _remove_code(cur, c["id"])
-            cur.execute("DELETE FROM likes WHERE user_id=%s", (user_id,))
-            cur.execute("DELETE FROM favorites WHERE user_id=%s", (user_id,))
-            cur.execute("DELETE FROM reports WHERE user_id=%s", (user_id,))
-            cur.execute("DELETE FROM notifications WHERE user_id=%s", (user_id,))
-            cur.execute("DELETE FROM support_tickets WHERE user_id=%s", (user_id,))
-            cur.execute("DELETE FROM activities WHERE user_id=%s", (user_id,))
-            cur.execute("DELETE FROM follows WHERE follower_id=%s OR following_id=%s", (user_id, user_id))
-            cur.execute(
-                "DELETE FROM follow_requests WHERE from_user_id=%s OR to_user_id=%s",
-                (user_id, user_id),
-            )
-            cur.execute("UPDATE users SET referred_by=NULL WHERE referred_by=%s", (user_id,))
-            cur.execute("DELETE FROM users WHERE id=%s", (user_id,))
-        conn.commit()
-        return jsonify({"ok": True})
-    finally:
-        conn.close()
-
-
-@app.get("/api/admin/codes")
-@require_admin
-def admin_codes(admin):
-    q = (request.args.get("q") or "").strip()
-    conn = db()
-    try:
-        with conn.cursor() as cur:
-            if q:
-                like = f"%{q}%"
-                cur.execute(
-                    """SELECT c.*, u.username, u.display_name, u.email
-                       FROM codes c
-                       LEFT JOIN users u ON u.id=c.user_id
-                       WHERE c.title ILIKE %s OR c.code ILIKE %s
-                          OR COALESCE(c.brand,c.site,'') ILIKE %s
-                       ORDER BY c.created_at DESC LIMIT 200""",
-                    (like, like, like),
-                )
-            else:
-                cur.execute(
-                    """SELECT c.*, u.username, u.display_name, u.email
-                       FROM codes c
-                       LEFT JOIN users u ON u.id=c.user_id
-                       ORDER BY c.created_at DESC LIMIT 200"""
-                )
-            rows = cur.fetchall()
-        return jsonify(
-            {
-                "ok": True,
-                "codes": [
-                    {
-                        **serialize_code(r, admin["id"]),
-                        "status": r.get("status"),
-                        "author_email": r.get("email"),
-                        "author_username": r.get("username"),
-                    }
-                    for r in rows
-                ],
-            }
-        )
-    finally:
-        conn.close()
-
-
-@app.post("/api/admin/codes/<int:code_id>/delete")
-@require_admin
-def admin_delete_code(admin, code_id):
-    return _delete_code_impl(admin, code_id)
-
-
-@app.get("/api/admin/reports")
-@require_admin
-def admin_reports(admin):
-    conn = db()
-    try:
-        with conn.cursor() as cur:
-            cur.execute(
-                """SELECT r.id, r.reason, r.code_id, r.user_id,
-                          c.title AS code_title, c.code AS code_value, c.brand,
-                          u.username AS reporter, u.email AS reporter_email,
-                          a.username AS author, a.email AS author_email, a.id AS author_id
-                   FROM reports r
-                   LEFT JOIN codes c ON c.id=r.code_id
-                   LEFT JOIN users u ON u.id=r.user_id
-                   LEFT JOIN users a ON a.id=c.user_id
-                   ORDER BY r.id DESC LIMIT 200"""
-            )
-            rows = cur.fetchall()
-        return jsonify(
-            {
-                "ok": True,
-                "reports": [
-                    {
-                        "id": r["id"],
-                        "reason": r.get("reason") or "Signalement",
-                        "code_id": r.get("code_id"),
-                        "code_title": r.get("code_title"),
-                        "code": r.get("code_value"),
-                        "brand": r.get("brand"),
-                        "reporter": r.get("reporter"),
-                        "reporter_email": r.get("reporter_email"),
-                        "author": r.get("author"),
-                        "author_email": r.get("author_email"),
-                        "author_id": r.get("author_id"),
-                    }
-                    for r in rows
-                ],
-            }
-        )
-    finally:
-        conn.close()
-
-
-@app.get("/api/admin/tickets")
-@require_admin
-def admin_tickets(admin):
-    conn = db()
-    try:
-        with conn.cursor() as cur:
-            cur.execute(
-                """SELECT t.*, u.email, u.username, u.display_name
-                   FROM support_tickets t
-                   LEFT JOIN users u ON u.id=t.user_id
-                   ORDER BY t.created_at DESC LIMIT 200"""
-            )
-            rows = cur.fetchall()
-        return jsonify(
-            {
-                "ok": True,
-                "tickets": [
-                    {
-                        "id": r["id"],
-                        "subject": r.get("subject"),
-                        "message": r.get("message"),
-                        "reply": r.get("reply") or "",
-                        "status": r.get("status") or "OPEN",
-                        "created_at": iso(r.get("created_at")),
-                        "replied_at": iso(r.get("replied_at")),
-                        "user": r.get("display_name") or r.get("username") or "Membre",
-                        "email": r.get("email"),
-                        "user_id": r.get("user_id"),
-                    }
-                    for r in rows
-                ],
-            }
-        )
-    finally:
-        conn.close()
-
-
-@app.post("/api/admin/tickets/<int:ticket_id>/reply")
-@require_admin
-def admin_reply_ticket(admin, ticket_id):
-    data = request.get_json(silent=True) or {}
-    reply = (data.get("message") or data.get("reply") or "").strip()
-    if len(reply) < 2:
-        return json_error("Réponse trop courte.")
-    conn = db()
-    try:
-        with conn.cursor() as cur:
-            cur.execute("SELECT * FROM support_tickets WHERE id=%s", (ticket_id,))
-            ticket = cur.fetchone()
-            if not ticket:
-                return json_error("Ticket introuvable.", 404)
-            cur.execute(
-                """UPDATE support_tickets
-                   SET reply=%s, replied_at=NOW(), replied_by=%s, status='REPLIED'
-                   WHERE id=%s""",
-                (reply, admin["id"], ticket_id),
-            )
-            if ticket.get("user_id"):
-                create_notification(cur, ticket["user_id"], "Réponse du support", reply[:280], "SUPPORT")
-        conn.commit()
-        return jsonify({"ok": True})
-    finally:
-        conn.close()
-
-
-@app.post("/api/admin/tickets/<int:ticket_id>/close")
-@require_admin
-def admin_close_ticket(admin, ticket_id):
-    conn = db()
-    try:
-        with conn.cursor() as cur:
-            cur.execute("UPDATE support_tickets SET status='CLOSED' WHERE id=%s", (ticket_id,))
-        conn.commit()
-        return jsonify({"ok": True})
-    finally:
-        conn.close()
-
-
-@app.get("/api/admin/broadcasts")
-@require_admin
-def admin_list_broadcasts(admin):
-    conn = db()
-    try:
-        with conn.cursor() as cur:
-            cur.execute(
-                """SELECT id, title, message, created_at
-                   FROM broadcasts
-                   ORDER BY created_at DESC LIMIT 30"""
-            )
-            rows = cur.fetchall()
-        return jsonify(
-            {
-                "ok": True,
-                "broadcasts": [
-                    {
-                        "id": r["id"],
-                        "title": r.get("title"),
-                        "message": r.get("message"),
-                        "created_at": iso(r.get("created_at")),
-                        "active": bool(
-                            r.get("created_at")
-                            and (now_utc() - r["created_at"].astimezone(timezone.utc)).total_seconds()
-                            < 86400
-                        ),
-                    }
-                    for r in rows
-                ],
-            }
-        )
-    finally:
-        conn.close()
-
-
-@app.post("/api/admin/broadcasts")
-@require_admin
-def admin_create_broadcast(admin):
-    data = request.get_json(silent=True) or {}
-    title = (data.get("title") or "Message COD.IA").strip()[:80]
-    message = (data.get("message") or "").strip()
-    if len(message) < 3:
-        return json_error("Message trop court.")
-    conn = db()
-    try:
-        with conn.cursor() as cur:
-            cur.execute(
-                "INSERT INTO broadcasts(title,message,created_by) VALUES(%s,%s,%s)",
-                (title or "Message COD.IA", message, admin["id"]),
-            )
-        conn.commit()
-        return jsonify({"ok": True})
-    finally:
-        conn.close()
-
-
-try:
-    init_db()
-except Exception as e:
-    logging.error("DB INIT: %s", e)
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=int(os.getenv("PORT", "8080")), debug=False)
+    app.run(host="0.0.0.0", port=3000, debug=True)
