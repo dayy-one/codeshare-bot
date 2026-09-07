@@ -14,7 +14,6 @@ from werkzeug.security import generate_password_hash, check_password_hash
 BASE = os.path.dirname(os.path.abspath(__file__))
 DATA = os.path.join(BASE, "data")
 DB = os.path.join(DATA, "codia.db")
-
 os.makedirs(DATA, exist_ok=True)
 
 app = Flask(__name__)
@@ -107,40 +106,6 @@ def init_db():
 init_db()
 
 
-def ensure_admin():
-    con = db()
-    email = "contact@cod-ia.fr"
-    username = "admin"
-    existing = con.execute("SELECT id FROM users WHERE email=?", (email,)).fetchone()
-    if existing:
-        con.execute("UPDATE users SET paid=1, ref_locked=1 WHERE email=?", (email,))
-        con.commit()
-        con.close()
-        return
-    code = make_code()
-    while con.execute("SELECT id FROM users WHERE code=?", (code,)).fetchone():
-        code = make_code()
-    con.execute(
-        """INSERT INTO users
-           (name,username,email,password_hash,code,referred_by,level,points,claimed,paid,ref_locked,created_at)
-           VALUES (?,?,?,?,?,NULL,'ELITE',0,0,1,1,?)""",
-        (
-            "Admin COD-IA",
-            username,
-            email,
-            generate_password_hash("CodiaAdmin2026!"),
-            code,
-            now(),
-        ),
-    )
-    uid = con.execute("SELECT id FROM users WHERE email=?", (email,)).fetchone()["id"]
-    add_activity(con, uid, "info", "Compte admin créé", "Accès direct")
-    con.commit()
-    con.close()
-
-ensure_admin()
-
-
 def now():
     return datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
 
@@ -186,6 +151,37 @@ def add_activity(con, user_id, kind, title, description=""):
         "INSERT INTO activities (user_id, kind, title, description, created_at) VALUES (?, ?, ?, ?, ?)",
         (user_id, kind, title, description, now()),
     )
+
+
+def ensure_admin():
+    con = db()
+    email = "contact@cod-ia.fr"
+    existing = con.execute("SELECT id FROM users WHERE email=?", (email,)).fetchone()
+    if existing:
+        con.execute("UPDATE users SET paid=1, ref_locked=1 WHERE email=?", (email,))
+        con.commit()
+        con.close()
+        return
+    con.execute(
+        """INSERT INTO users
+           (name,username,email,password_hash,code,referred_by,level,points,claimed,paid,ref_locked,created_at)
+           VALUES (?,?,?,?,?,NULL,'ELITE',0,0,1,1,?)""",
+        (
+            "Admin COD-IA",
+            "admin",
+            email,
+            generate_password_hash("CodiaAdmin2026!"),
+            "COD-ADMIN1",
+            now(),
+        ),
+    )
+    uid = con.execute("SELECT id FROM users WHERE email=?", (email,)).fetchone()["id"]
+    add_activity(con, uid, "info", "Compte admin créé", "Accès direct")
+    con.commit()
+    con.close()
+
+
+ensure_admin()
 
 
 def public_user(con, user):
