@@ -1,1865 +1,2804 @@
 <!doctype html>
 <html lang="fr">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#f7f6ef">
+<meta charset="utf-8">
+<meta name="viewport"
+      content="width=device-width,initial-scale=1,viewport-fit=cover">
 
-  <title>COD.IA — Les bons plans. Ensemble.</title>
-  <meta name="description" content="COD.IA — La communauté des bonnes affaires. Découvrez, partagez et profitez des meilleurs bons plans ensemble.">
+<meta name="theme-color" content="#f7f5ee">
+<meta name="color-scheme" content="light">
 
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<title>COD.IA — Un monde tous ensemble</title>
 
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<meta name="description"
+      content="Découvrez, partagez et profitez des codes promo et parrainages d'une communauté qui avance ensemble.">
 
-  <style>
-    :root{
-      --bg:#f7f6ef;
-      --bg2:#efeee5;
-      --ink:#172016;
-      --muted:#697065;
-      --green:#4e702f;
-      --green-dark:#334d21;
-      --green-soft:#dce7d1;
-      --white:rgba(255,255,255,.72);
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
-      --ease:cubic-bezier(.16,1,.3,1);
-    }
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap"
+      rel="stylesheet">
 
-    *{
-      box-sizing:border-box;
-      margin:0;
-      padding:0;
-    }
+<style>
 
-    html{
-      scroll-behavior:smooth;
-      background:var(--bg);
-    }
+/* =========================================================
+   COD.IA — SPATIAL GLASS V4
+   ========================================================= */
 
-    body{
-      min-height:100vh;
-      overflow-x:hidden;
-      background:
-        radial-gradient(circle at 50% 35%, rgba(255,255,255,.9), transparent 34%),
-        radial-gradient(circle at 15% 80%, rgba(190,210,170,.22), transparent 30%),
-        radial-gradient(circle at 90% 15%, rgba(214,224,201,.3), transparent 28%),
-        var(--bg);
-      color:var(--ink);
-      font-family:"DM Sans",sans-serif;
-      -webkit-font-smoothing:antialiased;
-      text-rendering:optimizeLegibility;
-    }
+:root{
+    --cream:#f7f5ee;
+    --cream-2:#f2f0e8;
 
-    a{
-      color:inherit;
-      text-decoration:none;
-    }
+    --green:#294528;
+    --green-2:#3e6037;
+    --green-3:#6d8a5b;
 
-    button,
-    a{
-      -webkit-tap-highlight-color:transparent;
-    }
+    --text:#23331f;
+    --muted:#73806d;
 
-    /* =========================================================
-       PAGE
-    ========================================================= */
+    --glass:rgba(255,255,255,.58);
+    --glass-border:rgba(255,255,255,.72);
 
-    .landing{
-      position:relative;
-      min-height:100vh;
-      isolation:isolate;
-      overflow:hidden;
-    }
+    --shadow:
+        0 25px 70px rgba(39,57,33,.10),
+        0 8px 25px rgba(39,57,33,.06);
 
-    /* =========================================================
-       ATMOSPHERE
-    ========================================================= */
+    --ease:cubic-bezier(.22,.61,.36,1);
+}
 
-    .atmosphere{
-      position:absolute;
-      inset:0;
-      z-index:-20;
-      pointer-events:none;
-      overflow:hidden;
-    }
+*{
+    box-sizing:border-box;
+}
 
-    .atmosphere::before{
-      content:"";
-      position:absolute;
-      inset:-20%;
-      background:
+html{
+    width:100%;
+    min-height:100%;
+    background:var(--cream);
+    scroll-behavior:smooth;
+}
+
+body{
+    margin:0;
+    width:100%;
+    min-height:100vh;
+
+    overflow-x:hidden;
+
+    background:
         radial-gradient(
-          circle at var(--mx,50%) var(--my,40%),
-          rgba(255,255,255,.95) 0,
-          rgba(255,255,255,.55) 14%,
-          transparent 42%
+            circle at 50% 20%,
+            rgba(255,255,255,.9) 0%,
+            rgba(255,255,255,.35) 22%,
+            transparent 52%
+        ),
+        var(--cream);
+
+    color:var(--text);
+
+    font-family:"DM Sans",sans-serif;
+
+    -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
+}
+
+/* =========================================================
+   PAGE
+   ========================================================= */
+
+.page{
+    position:relative;
+    min-height:100svh;
+    width:100%;
+
+    isolation:isolate;
+
+    overflow:hidden;
+}
+
+/* =========================================================
+   HEADER
+   ========================================================= */
+
+.header{
+    position:absolute;
+
+    top:0;
+    left:0;
+
+    width:100%;
+
+    padding:
+        max(24px, env(safe-area-inset-top))
+        34px
+        0;
+
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+
+    z-index:50;
+}
+
+.logo{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+
+    color:var(--green);
+
+    text-decoration:none;
+
+    font-size:18px;
+    font-weight:700;
+    letter-spacing:-.06em;
+}
+
+.logo-name{
+    position:relative;
+}
+
+.logo-name::after{
+    content:"";
+
+    position:absolute;
+
+    left:0;
+    right:0;
+    bottom:-3px;
+
+    height:2px;
+
+    border-radius:999px;
+
+    background:#517ca5;
+
+    transform:scaleX(.8);
+    transform-origin:left;
+}
+
+.logo-dot{
+    width:8px;
+    height:8px;
+
+    border-radius:50%;
+
+    background:#517ca5;
+
+    box-shadow:
+        0 0 0 4px rgba(81,124,165,.08),
+        0 2px 7px rgba(81,124,165,.22);
+}
+
+.header-link{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+
+    min-height:42px;
+
+    padding:0 18px;
+
+    border-radius:999px;
+
+    background:rgba(255,255,255,.58);
+
+    border:1px solid rgba(255,255,255,.72);
+
+    box-shadow:
+        0 10px 28px rgba(39,57,33,.06);
+
+    color:var(--green);
+
+    text-decoration:none;
+
+    font-size:13px;
+    font-weight:600;
+
+    backdrop-filter:blur(18px);
+    -webkit-backdrop-filter:blur(18px);
+
+    transition:
+        transform .35s var(--ease),
+        background .35s ease,
+        box-shadow .35s ease;
+}
+
+.header-link:hover{
+    transform:translateY(-2px);
+
+    background:rgba(255,255,255,.82);
+
+    box-shadow:
+        0 15px 34px rgba(39,57,33,.10);
+}
+
+/* =========================================================
+   HERO
+   ========================================================= */
+
+.hero{
+    position:relative;
+
+    min-height:100svh;
+    width:100%;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    padding:
+        130px
+        24px
+        110px;
+
+    z-index:10;
+
+    pointer-events:none;
+}
+
+.hero-content{
+    position:relative;
+
+    width:min(720px,100%);
+
+    text-align:center;
+
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+
+    pointer-events:auto;
+
+    z-index:30;
+}
+
+/* =========================================================
+   EYEBROW
+   ========================================================= */
+
+.eyebrow{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+
+    margin-bottom:22px;
+
+    color:var(--green-2);
+
+    font-size:12px;
+    font-weight:700;
+
+    letter-spacing:.13em;
+    text-transform:uppercase;
+
+    opacity:0;
+
+    animation:
+        heroReveal .9s .08s var(--ease) forwards;
+}
+
+.eyebrow::before{
+    content:"";
+
+    width:6px;
+    height:6px;
+
+    border-radius:50%;
+
+    background:var(--green-3);
+
+    box-shadow:
+        0 0 0 5px rgba(109,138,91,.10);
+}
+
+/* =========================================================
+   TITLE
+   ========================================================= */
+
+.hero-title{
+    margin:0;
+
+    color:var(--green);
+
+    font-size:
+        clamp(
+            58px,
+            8.4vw,
+            104px
         );
-      transition:background .25s ease;
+
+    line-height:.88;
+
+    letter-spacing:-.065em;
+
+    font-weight:600;
+
+    max-width:800px;
+
+    opacity:0;
+
+    animation:
+        heroReveal 1s .16s var(--ease) forwards;
+}
+
+.hero-title span{
+    font-family:"Instrument Serif",serif;
+
+    font-weight:400;
+
+    letter-spacing:-.045em;
+
+    font-style:italic;
+}
+
+/* =========================================================
+   DESCRIPTION
+   ========================================================= */
+
+.hero-description{
+    max-width:570px;
+
+    margin:
+        28px
+        auto
+        0;
+
+    color:var(--muted);
+
+    font-size:16px;
+
+    line-height:1.65;
+
+    letter-spacing:-.015em;
+
+    opacity:0;
+
+    animation:
+        heroReveal .9s .25s var(--ease) forwards;
+}
+
+/* =========================================================
+   ACTIONS
+   ========================================================= */
+
+.hero-actions{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:10px;
+
+    margin-top:30px;
+
+    opacity:0;
+
+    animation:
+        heroReveal .9s .34s var(--ease) forwards;
+}
+
+.btn{
+    min-height:50px;
+
+    padding:0 22px;
+
+    border-radius:999px;
+
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+
+    gap:8px;
+
+    text-decoration:none;
+
+    font-size:14px;
+    font-weight:600;
+
+    transition:
+        transform .35s var(--ease),
+        box-shadow .35s var(--ease),
+        background .35s ease;
+}
+
+.btn-primary{
+    color:#fff;
+
+    background:
+        linear-gradient(
+            145deg,
+            #3e6037,
+            #294528
+        );
+
+    box-shadow:
+        0 15px 30px rgba(41,69,40,.20),
+        inset 0 1px 0 rgba(255,255,255,.15);
+}
+
+.btn-primary:hover{
+    transform:translateY(-3px);
+
+    box-shadow:
+        0 20px 40px rgba(41,69,40,.26),
+        inset 0 1px 0 rgba(255,255,255,.18);
+}
+
+.btn-secondary{
+    color:var(--green);
+
+    background:rgba(255,255,255,.46);
+
+    border:1px solid rgba(255,255,255,.75);
+
+    backdrop-filter:blur(15px);
+    -webkit-backdrop-filter:blur(15px);
+}
+
+.btn-secondary:hover{
+    transform:translateY(-3px);
+
+    background:rgba(255,255,255,.78);
+
+    box-shadow:
+        0 15px 35px rgba(39,57,33,.08);
+}
+
+/* =========================================================
+   BOTTOM LABEL
+   ========================================================= */
+
+.hero-bottom{
+    margin-top:68px;
+
+    color:#9aa297;
+
+    font-size:11px;
+
+    letter-spacing:.16em;
+    text-transform:uppercase;
+
+    opacity:0;
+
+    animation:
+        heroReveal .9s .44s var(--ease) forwards;
+}
+
+@keyframes heroReveal{
+
+    from{
+        opacity:0;
+        transform:translateY(18px);
     }
 
-    .atmosphere::after{
-      content:"";
-      position:absolute;
-      inset:0;
-      opacity:.18;
-      pointer-events:none;
-      background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.16'/%3E%3C/svg%3E");
-      mix-blend-mode:multiply;
+    to{
+        opacity:1;
+        transform:translateY(0);
     }
 
-    .light{
-      position:absolute;
-      border-radius:50%;
-      filter:blur(70px);
-      pointer-events:none;
-      opacity:.34;
-      will-change:transform;
+}
+
+/* =========================================================
+   SPATIAL WORLD
+   ========================================================= */
+
+.spatial-world{
+    position:absolute;
+
+    inset:-12%;
+
+    z-index:1;
+
+    pointer-events:none;
+
+    transform-style:preserve-3d;
+
+    perspective:1200px;
+
+    will-change:transform;
+
+    transform:
+        translate3d(0,0,0)
+        rotateX(0deg)
+        rotateY(0deg);
+}
+
+/* =========================================================
+   AMBIENT LIGHT
+   ========================================================= */
+
+.ambient{
+    position:absolute;
+
+    border-radius:50%;
+
+    pointer-events:none;
+
+    filter:blur(2px);
+
+    will-change:transform;
+}
+
+.ambient-1{
+    width:520px;
+    height:520px;
+
+    top:4%;
+    left:10%;
+
+    background:
+        radial-gradient(
+            circle,
+            rgba(125,159,103,.18),
+            transparent 68%
+        );
+
+    transform:translateZ(-180px);
+}
+
+.ambient-2{
+    width:620px;
+    height:620px;
+
+    right:3%;
+    bottom:-12%;
+
+    background:
+        radial-gradient(
+            circle,
+            rgba(169,184,151,.22),
+            transparent 68%
+        );
+
+    transform:translateZ(-280px);
+}
+
+.ambient-3{
+    width:430px;
+    height:430px;
+
+    left:40%;
+    top:34%;
+
+    background:
+        radial-gradient(
+            circle,
+            rgba(255,255,255,.75),
+            transparent 70%
+        );
+
+    filter:blur(35px);
+
+    transform:translateZ(-400px);
+}
+
+/* =========================================================
+   DEPTH GROUPS
+   ========================================================= */
+
+.depth{
+    position:absolute;
+
+    inset:0;
+
+    transform-style:preserve-3d;
+
+    will-change:transform;
+}
+
+.depth-back{
+    transform:translateZ(-120px);
+}
+
+.depth-mid{
+    transform:translateZ(0);
+}
+
+.depth-front{
+    transform:translateZ(110px);
+}
+
+/* =========================================================
+   GLASS CARDS
+   ========================================================= */
+
+.glass-card{
+    position:absolute;
+
+    width:170px;
+    min-height:74px;
+
+    padding:13px 15px;
+
+    display:flex;
+    align-items:center;
+    gap:11px;
+
+    border-radius:19px;
+
+    background:
+        linear-gradient(
+            135deg,
+            rgba(255,255,255,.72),
+            rgba(255,255,255,.38)
+        );
+
+    border:1px solid var(--glass-border);
+
+    box-shadow:
+        0 24px 60px rgba(40,59,35,.11),
+        0 5px 16px rgba(40,59,35,.06),
+        inset 0 1px 0 rgba(255,255,255,.85);
+
+    backdrop-filter:
+        blur(18px)
+        saturate(120%);
+
+    -webkit-backdrop-filter:
+        blur(18px)
+        saturate(120%);
+
+    transform-style:preserve-3d;
+
+    will-change:transform;
+
+    opacity:.90;
+}
+
+.glass-card::before{
+    content:"";
+
+    position:absolute;
+
+    inset:0;
+
+    border-radius:inherit;
+
+    background:
+        linear-gradient(
+            120deg,
+            rgba(255,255,255,.38),
+            transparent 45%
+        );
+
+    pointer-events:none;
+}
+
+.card-icon{
+    position:relative;
+
+    flex:0 0 auto;
+
+    width:36px;
+    height:36px;
+
+    display:grid;
+    place-items:center;
+
+    border-radius:12px;
+
+    background:
+        linear-gradient(
+            145deg,
+            #e8efe2,
+            #d9e4d1
+        );
+
+    color:var(--green);
+
+    font-size:15px;
+
+    box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.9);
+}
+
+.card-content{
+    min-width:0;
+}
+
+.card-title{
+    margin:0;
+
+    color:#30422d;
+
+    font-size:11px;
+    font-weight:700;
+
+    white-space:nowrap;
+}
+
+.card-text{
+    margin:3px 0 0;
+
+    color:#7d8978;
+
+    font-size:9px;
+
+    white-space:nowrap;
+}
+
+/* =========================================================
+   CARD POSITIONS
+   ========================================================= */
+
+.card-1{
+    top:15%;
+    left:7%;
+
+    transform:
+        translate3d(0,0,70px)
+        rotate(-6deg);
+}
+
+.card-2{
+    top:25%;
+    right:7%;
+
+    transform:
+        translate3d(0,0,20px)
+        rotate(7deg);
+}
+
+.card-3{
+    top:51%;
+    left:3%;
+
+    transform:
+        translate3d(0,0,-40px)
+        rotate(5deg);
+}
+
+.card-4{
+    top:65%;
+    right:5%;
+
+    transform:
+        translate3d(0,0,70px)
+        rotate(-5deg);
+}
+
+.card-5{
+    top:39%;
+    left:15%;
+
+    transform:
+        translate3d(0,0,-100px)
+        rotate(-4deg)
+        scale(.92);
+}
+
+.card-6{
+    top:73%;
+    left:17%;
+
+    transform:
+        translate3d(0,0,20px)
+        rotate(6deg);
+}
+
+.card-7{
+    top:11%;
+    right:24%;
+
+    transform:
+        translate3d(0,0,-90px)
+        rotate(-4deg)
+        scale(.9);
+}
+
+.card-8{
+    top:79%;
+    right:20%;
+
+    transform:
+        translate3d(0,0,-60px)
+        rotate(4deg)
+        scale(.92);
+}
+
+.card-9{
+    top:33%;
+    right:17%;
+
+    transform:
+        translate3d(0,0,90px)
+        rotate(5deg)
+        scale(.88);
+}
+
+.card-10{
+    top:58%;
+    left:27%;
+
+    transform:
+        translate3d(0,0,-120px)
+        rotate(-5deg)
+        scale(.86);
+}
+
+/* =========================================================
+   FLOATING DOTS
+   ========================================================= */
+
+.orb{
+    position:absolute;
+
+    width:11px;
+    height:11px;
+
+    border-radius:50%;
+
+    background:
+        radial-gradient(
+            circle at 30% 25%,
+            #fff,
+            #9db28e
+        );
+
+    box-shadow:
+        0 8px 18px rgba(57,79,50,.16);
+
+    opacity:.75;
+
+    will-change:transform;
+}
+
+.orb-1{
+    top:18%;
+    left:32%;
+}
+
+.orb-2{
+    top:67%;
+    right:32%;
+
+    width:8px;
+    height:8px;
+}
+
+.orb-3{
+    top:44%;
+    right:7%;
+
+    width:6px;
+    height:6px;
+}
+
+.orb-4{
+    bottom:12%;
+    left:42%;
+
+    width:7px;
+    height:7px;
+}
+
+/* =========================================================
+   GRAIN
+   ========================================================= */
+
+.grain{
+    position:absolute;
+
+    inset:0;
+
+    z-index:5;
+
+    pointer-events:none;
+
+    opacity:.035;
+
+    background-image:
+        url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.5'/%3E%3C/svg%3E");
+
+    mix-blend-mode:multiply;
+}
+
+/* =========================================================
+   VIGNETTE
+   ========================================================= */
+
+.vignette{
+    position:absolute;
+
+    inset:0;
+
+    z-index:6;
+
+    pointer-events:none;
+
+    background:
+        radial-gradient(
+            ellipse at center,
+            transparent 35%,
+            rgba(247,245,238,.35) 78%,
+            rgba(247,245,238,.82) 100%
+        );
+}
+
+/* =========================================================
+   SENSOR ACTIVATION
+   ========================================================= */
+
+.sensor-hint{
+    position:fixed;
+
+    left:50%;
+    bottom:
+        calc(
+            18px +
+            env(safe-area-inset-bottom)
+        );
+
+    transform:translateX(-50%);
+
+    z-index:100;
+
+    padding:10px 15px;
+
+    border-radius:999px;
+
+    background:rgba(255,255,255,.75);
+
+    border:1px solid rgba(255,255,255,.9);
+
+    box-shadow:
+        0 12px 35px rgba(40,59,35,.12);
+
+    backdrop-filter:blur(20px);
+    -webkit-backdrop-filter:blur(20px);
+
+    color:var(--green);
+
+    font-size:11px;
+    font-weight:600;
+
+    opacity:0;
+
+    pointer-events:none;
+
+    transition:
+        opacity .4s ease,
+        transform .4s var(--ease);
+}
+
+.sensor-hint.visible{
+    opacity:1;
+}
+
+.sensor-hint.hidden{
+    opacity:0;
+    transform:
+        translateX(-50%)
+        translateY(8px);
+}
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width:900px){
+
+    .header{
+        padding-left:22px;
+        padding-right:22px;
     }
 
-    .light.one{
-      width:420px;
-      height:420px;
-      left:-150px;
-      top:10%;
-      background:rgba(176,201,150,.32);
-      animation:lightOne 16s ease-in-out infinite alternate;
+    .hero{
+        padding-left:20px;
+        padding-right:20px;
     }
-
-    .light.two{
-      width:520px;
-      height:520px;
-      right:-220px;
-      top:22%;
-      background:rgba(202,218,184,.3);
-      animation:lightTwo 19s ease-in-out infinite alternate;
-    }
-
-    .light.three{
-      width:380px;
-      height:380px;
-      left:40%;
-      bottom:-220px;
-      background:rgba(157,183,129,.2);
-      animation:lightThree 21s ease-in-out infinite alternate;
-    }
-
-    @keyframes lightOne{
-      from{transform:translate3d(0,0,0) scale(1)}
-      to{transform:translate3d(120px,70px,0) scale(1.18)}
-    }
-
-    @keyframes lightTwo{
-      from{transform:translate3d(0,0,0) scale(1)}
-      to{transform:translate3d(-120px,-40px,0) scale(1.13)}
-    }
-
-    @keyframes lightThree{
-      from{transform:translate3d(0,0,0) scale(1)}
-      to{transform:translate3d(60px,-80px,0) scale(1.2)}
-    }
-
-    /* =========================================================
-       HEADER
-    ========================================================= */
-
-    header{
-      position:absolute;
-      top:0;
-      left:0;
-      right:0;
-      z-index:100;
-      display:flex;
-      justify-content:flex-end;
-      align-items:center;
-      padding:28px 34px;
-    }
-
-    .header-btn{
-      position:relative;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      min-height:46px;
-      padding:0 19px;
-      border:1px solid rgba(37,53,31,.11);
-      border-radius:999px;
-      background:rgba(255,255,255,.48);
-      backdrop-filter:blur(18px) saturate(140%);
-      -webkit-backdrop-filter:blur(18px) saturate(140%);
-      box-shadow:
-        0 8px 28px rgba(36,49,29,.06),
-        inset 0 1px 0 rgba(255,255,255,.8);
-      color:#253120;
-      font-size:13px;
-      font-weight:600;
-      letter-spacing:-.01em;
-      transition:
-        transform .45s var(--ease),
-        box-shadow .45s var(--ease),
-        background .45s var(--ease);
-    }
-
-    .header-btn::before{
-      content:"";
-      position:absolute;
-      inset:1px;
-      border-radius:inherit;
-      background:linear-gradient(
-        120deg,
-        transparent 20%,
-        rgba(255,255,255,.65) 48%,
-        transparent 72%
-      );
-      transform:translateX(-120%);
-      transition:transform .7s var(--ease);
-      pointer-events:none;
-    }
-
-    .header-btn:hover{
-      transform:translateY(-2px);
-      background:rgba(255,255,255,.72);
-      box-shadow:
-        0 14px 34px rgba(36,49,29,.1),
-        inset 0 1px 0 rgba(255,255,255,.95);
-    }
-
-    .header-btn:hover::before{
-      transform:translateX(120%);
-    }
-
-    /* =========================================================
-       3D WORLD
-    ========================================================= */
-
-    .spatial-stage{
-      position:absolute;
-      inset:0;
-      z-index:1;
-      perspective:1600px;
-      perspective-origin:50% 48%;
-      pointer-events:none;
-      overflow:hidden;
-    }
-
-    .world{
-      position:absolute;
-      inset:-10%;
-      transform-style:preserve-3d;
-      will-change:transform;
-    }
-
-    .plane{
-      position:absolute;
-      inset:0;
-      transform-style:preserve-3d;
-    }
-
-    .plane.back{
-      transform:translateZ(-220px) scale(1.08);
-    }
-
-    .plane.mid{
-      transform:translateZ(0);
-    }
-
-    .plane.front{
-      transform:translateZ(160px) scale(.94);
-    }
-
-    /* =========================================================
-       NOTIFICATION CARDS
-    ========================================================= */
 
     .glass-card{
-      position:absolute;
-      width:220px;
-      min-height:82px;
-      padding:14px 15px;
-      display:flex;
-      align-items:center;
-      gap:12px;
+        width:150px;
+        min-height:68px;
 
-      border:1px solid rgba(255,255,255,.78);
-      border-radius:21px;
+        padding:11px 12px;
 
-      background:
-        linear-gradient(
-          135deg,
-          rgba(255,255,255,.82),
-          rgba(255,255,255,.42)
-        );
-
-      backdrop-filter:
-        blur(24px)
-        saturate(145%);
-
-      -webkit-backdrop-filter:
-        blur(24px)
-        saturate(145%);
-
-      box-shadow:
-        0 30px 70px rgba(40,55,31,.13),
-        0 8px 20px rgba(40,55,31,.07),
-        inset 0 1px 0 rgba(255,255,255,.96),
-        inset 0 -1px 0 rgba(95,116,77,.05);
-
-      transform-style:preserve-3d;
-      will-change:transform,opacity;
-    }
-
-    .glass-card::before{
-      content:"";
-      position:absolute;
-      inset:0;
-      border-radius:inherit;
-      background:
-        linear-gradient(
-          120deg,
-          rgba(255,255,255,.65),
-          transparent 32%,
-          transparent 65%,
-          rgba(255,255,255,.28)
-        );
-      opacity:.7;
-      pointer-events:none;
-    }
-
-    .glass-card::after{
-      content:"";
-      position:absolute;
-      top:7px;
-      left:13%;
-      width:32%;
-      height:1px;
-      border-radius:99px;
-      background:rgba(255,255,255,.9);
-      filter:blur(.2px);
-      opacity:.8;
-      pointer-events:none;
+        border-radius:17px;
     }
 
     .card-icon{
-      position:relative;
-      z-index:1;
-      width:42px;
-      height:42px;
-      flex:0 0 42px;
-      display:grid;
-      place-items:center;
-      border-radius:14px;
-      background:linear-gradient(
-        145deg,
-        rgba(232,240,224,.95),
-        rgba(207,223,193,.68)
-      );
-      border:1px solid rgba(255,255,255,.8);
-      box-shadow:
-        0 8px 20px rgba(57,77,43,.1),
-        inset 0 1px 0 rgba(255,255,255,.9);
-      font-size:18px;
+        width:32px;
+        height:32px;
     }
 
-    .card-copy{
-      position:relative;
-      z-index:1;
-      min-width:0;
+    .card-1{
+        left:-4%;
     }
 
-    .card-top{
-      display:flex;
-      align-items:center;
-      gap:6px;
-      margin-bottom:3px;
+    .card-2{
+        right:-5%;
     }
 
-    .card-title{
-      color:#1e2a1a;
-      font-size:11px;
-      font-weight:700;
-      letter-spacing:-.02em;
-      white-space:nowrap;
+    .card-3{
+        left:-7%;
     }
 
-    .verified{
-      width:13px;
-      height:13px;
-      display:grid;
-      place-items:center;
-      border-radius:50%;
-      background:#5d7d43;
-      color:#fff;
-      font-size:8px;
-      font-weight:700;
+    .card-4{
+        right:-5%;
     }
 
-    .card-text{
-      color:#697267;
-      font-size:10px;
-      line-height:1.35;
-      white-space:nowrap;
+}
+
+@media (max-width:640px){
+
+    html,
+    body{
+        width:100%;
+        min-height:100%;
     }
 
-    .card-value{
-      margin-top:4px;
-      color:#4e702f;
-      font-size:10px;
-      font-weight:700;
+    body{
+        overflow-x:hidden;
     }
 
-    /* Back */
-    .n1{
-      left:4%;
-      top:16%;
-      transform:rotateX(13deg) rotateY(28deg) rotateZ(-8deg) translateZ(-30px);
-      animation:float1 10s ease-in-out infinite;
-      opacity:.44;
-      filter:blur(1.8px);
+    .page{
+        min-height:100svh;
+
+        height:100svh;
     }
 
-    .n2{
-      right:2%;
-      top:12%;
-      transform:rotateX(-8deg) rotateY(-31deg) rotateZ(9deg) translateZ(-80px);
-      animation:float2 13s ease-in-out infinite;
-      opacity:.38;
-      filter:blur(2.2px);
+    .header{
+        padding-top:
+            max(
+                18px,
+                env(safe-area-inset-top)
+            );
+
+        padding-left:18px;
+        padding-right:18px;
     }
 
-    .n3{
-      left:-2%;
-      top:55%;
-      transform:rotateX(12deg) rotateY(34deg) rotateZ(7deg) translateZ(-60px);
-      animation:float3 12s ease-in-out infinite;
-      opacity:.42;
-      filter:blur(2px);
+    .logo{
+        font-size:17px;
     }
 
-    .n4{
-      right:0;
-      bottom:9%;
-      transform:rotateX(-14deg) rotateY(-29deg) rotateZ(-8deg) translateZ(-100px);
-      animation:float4 15s ease-in-out infinite;
-      opacity:.36;
-      filter:blur(2.4px);
+    .header-link{
+        min-height:39px;
+
+        padding:0 14px;
+
+        font-size:11px;
     }
-
-    /* Mid */
-    .n5{
-      left:13%;
-      top:32%;
-      transform:rotateX(5deg) rotateY(19deg) rotateZ(-6deg);
-      animation:float5 11s ease-in-out infinite;
-      opacity:.78;
-    }
-
-    .n6{
-      right:11%;
-      top:35%;
-      transform:rotateX(-6deg) rotateY(-18deg) rotateZ(7deg);
-      animation:float6 12s ease-in-out infinite;
-      opacity:.74;
-    }
-
-    .n7{
-      left:8%;
-      bottom:15%;
-      transform:rotateX(7deg) rotateY(21deg) rotateZ(8deg);
-      animation:float7 14s ease-in-out infinite;
-      opacity:.72;
-    }
-
-    .n8{
-      right:8%;
-      bottom:22%;
-      transform:rotateX(-7deg) rotateY(-22deg) rotateZ(-7deg);
-      animation:float8 13s ease-in-out infinite;
-      opacity:.72;
-    }
-
-    /* Front */
-    .n9{
-      left:20%;
-      top:10%;
-      width:195px;
-      transform:rotateX(2deg) rotateY(13deg) rotateZ(-7deg) translateZ(80px);
-      animation:float9 12s ease-in-out infinite;
-      opacity:.9;
-    }
-
-    .n10{
-      right:19%;
-      top:18%;
-      width:205px;
-      transform:rotateX(-3deg) rotateY(-13deg) rotateZ(6deg) translateZ(110px);
-      animation:float10 14s ease-in-out infinite;
-      opacity:.9;
-    }
-
-    .n11{
-      left:22%;
-      bottom:10%;
-      width:205px;
-      transform:rotateX(3deg) rotateY(14deg) rotateZ(7deg) translateZ(110px);
-      animation:float11 13s ease-in-out infinite;
-      opacity:.86;
-    }
-
-    .n12{
-      right:20%;
-      bottom:12%;
-      width:195px;
-      transform:rotateX(-3deg) rotateY(-14deg) rotateZ(-6deg) translateZ(95px);
-      animation:float12 15s ease-in-out infinite;
-      opacity:.86;
-    }
-
-    @keyframes float1{
-      0%,100%{margin-top:0}
-      50%{margin-top:-22px}
-    }
-
-    @keyframes float2{
-      0%,100%{margin-top:0}
-      50%{margin-top:25px}
-    }
-
-    @keyframes float3{
-      0%,100%{margin-top:0}
-      50%{margin-top:-19px}
-    }
-
-    @keyframes float4{
-      0%,100%{margin-top:0}
-      50%{margin-top:23px}
-    }
-
-    @keyframes float5{
-      0%,100%{margin-top:0; margin-left:0}
-      50%{margin-top:-16px; margin-left:7px}
-    }
-
-    @keyframes float6{
-      0%,100%{margin-top:0}
-      50%{margin-top:19px}
-    }
-
-    @keyframes float7{
-      0%,100%{margin-top:0}
-      50%{margin-top:-17px; margin-left:-6px}
-    }
-
-    @keyframes float8{
-      0%,100%{margin-top:0}
-      50%{margin-top:17px; margin-left:5px}
-    }
-
-    @keyframes float9{
-      0%,100%{margin-top:0}
-      50%{margin-top:-14px}
-    }
-
-    @keyframes float10{
-      0%,100%{margin-top:0}
-      50%{margin-top:16px}
-    }
-
-    @keyframes float11{
-      0%,100%{margin-top:0}
-      50%{margin-top:-18px}
-    }
-
-    @keyframes float12{
-      0%,100%{margin-top:0}
-      50%{margin-top:17px}
-    }
-
-    /* =========================================================
-       MICRO PARTICLES
-    ========================================================= */
-
-    .particle{
-      position:absolute;
-      width:3px;
-      height:3px;
-      border-radius:50%;
-      background:rgba(67,91,49,.18);
-      box-shadow:0 0 16px rgba(91,119,69,.18);
-      animation:particleFloat linear infinite;
-    }
-
-    .p1{left:17%;top:24%;animation-duration:13s}
-    .p2{left:35%;top:15%;animation-duration:17s}
-    .p3{right:24%;top:30%;animation-duration:15s}
-    .p4{right:13%;top:55%;animation-duration:19s}
-    .p5{left:30%;bottom:18%;animation-duration:16s}
-    .p6{right:38%;bottom:13%;animation-duration:14s}
-    .p7{left:6%;bottom:34%;animation-duration:18s}
-    .p8{right:5%;bottom:42%;animation-duration:12s}
-
-    @keyframes particleFloat{
-      0%{
-        transform:translate3d(0,20px,0);
-        opacity:0;
-      }
-      20%{opacity:.5}
-      50%{transform:translate3d(18px,-25px,0)}
-      80%{opacity:.35}
-      100%{
-        transform:translate3d(-12px,-65px,0);
-        opacity:0;
-      }
-    }
-
-    /* =========================================================
-       HERO CONTENT
-    ========================================================= */
 
     .hero{
-      position:relative;
-      z-index:30;
-      min-height:100svh;
-      min-height:900px;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      padding:130px 24px 100px;
-      text-align:center;
-      pointer-events:none;
-    }
+        min-height:100svh;
 
-    .hero::before{
-      content:"";
-      position:absolute;
-      left:50%;
-      top:50%;
-      width:min(720px,75vw);
-      height:min(620px,70vh);
-      transform:translate(-50%,-50%);
-      border-radius:50%;
-      background:
-        radial-gradient(
-          ellipse,
-          rgba(247,246,239,.96) 0%,
-          rgba(247,246,239,.91) 28%,
-          rgba(247,246,239,.63) 51%,
-          rgba(247,246,239,0) 74%
-        );
-      filter:blur(2px);
-      z-index:-1;
-      pointer-events:none;
+        height:100svh;
+
+        padding:
+            95px
+            18px
+            calc(
+                80px +
+                env(safe-area-inset-bottom)
+            );
     }
 
     .hero-content{
-      position:relative;
-      width:min(820px,100%);
-      display:flex;
-      flex-direction:column;
-      align-items:center;
-      pointer-events:auto;
-      opacity:0;
-      transform:translateY(35px) scale(.985);
-      animation:heroIn 1.15s .25s var(--ease) forwards;
-    }
-
-    @keyframes heroIn{
-      to{
-        opacity:1;
-        transform:translateY(0) scale(1);
-      }
+        width:100%;
     }
 
     .eyebrow{
-      display:inline-flex;
-      align-items:center;
-      gap:9px;
-      margin-bottom:27px;
-      color:#5c6659;
-      font-size:11px;
-      font-weight:600;
-      letter-spacing:.09em;
-      text-transform:uppercase;
+        margin-bottom:17px;
+
+        font-size:9px;
+
+        letter-spacing:.13em;
     }
 
-    .eyebrow::before{
-      content:"";
-      width:6px;
-      height:6px;
-      border-radius:50%;
-      background:#55743a;
-      box-shadow:
-        0 0 0 5px rgba(85,116,58,.09),
-        0 0 18px rgba(85,116,58,.25);
-    }
+    .hero-title{
 
-    h1{
-      max-width:800px;
-      color:#192217;
-      font-size:clamp(64px,8.5vw,122px);
-      line-height:.88;
-      font-weight:600;
-      letter-spacing:-.075em;
-    }
+        /*
+         * Centre volontairement conservé.
+         */
 
-    h1 span{
-      display:block;
-    }
+        font-size:
+            clamp(
+                51px,
+                15.2vw,
+                70px
+            );
 
-    h1 em{
-      display:block;
-      margin-top:8px;
-      color:#4e702f;
-      font-family:"Instrument Serif",serif;
-      font-size:1.08em;
-      font-weight:400;
-      letter-spacing:-.055em;
+        line-height:.89;
+
+        letter-spacing:-.065em;
+
+        max-width:350px;
     }
 
     .hero-description{
-      width:min(500px,100%);
-      margin-top:31px;
-      color:#70776d;
-      font-size:15px;
-      line-height:1.65;
-      letter-spacing:-.018em;
-    }
 
-    .cta-row{
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      gap:12px;
-      margin-top:34px;
-    }
+        max-width:320px;
 
-    .primary{
-      position:relative;
-      min-height:54px;
-      padding:0 24px;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      gap:11px;
-      overflow:hidden;
-      border-radius:999px;
-      background:#30471f;
-      color:#fff;
-      font-size:13px;
-      font-weight:700;
-      letter-spacing:-.01em;
-      box-shadow:
-        0 18px 42px rgba(48,71,31,.22),
-        inset 0 1px 0 rgba(255,255,255,.16);
-      transition:
-        transform .5s var(--ease),
-        box-shadow .5s var(--ease);
-    }
-
-    .primary::before{
-      content:"";
-      position:absolute;
-      inset:-50%;
-      background:linear-gradient(
-        110deg,
-        transparent 35%,
-        rgba(255,255,255,.28) 50%,
-        transparent 65%
-      );
-      transform:translateX(-55%) rotate(12deg);
-      transition:transform .9s var(--ease);
-    }
-
-    .primary span{
-      position:relative;
-      z-index:1;
-    }
-
-    .primary:hover{
-      transform:translateY(-4px) scale(1.015);
-      box-shadow:
-        0 25px 55px rgba(48,71,31,.28),
-        inset 0 1px 0 rgba(255,255,255,.2);
-    }
-
-    .primary:hover::before{
-      transform:translateX(55%) rotate(12deg);
-    }
-
-    .arrow{
-      position:relative;
-      z-index:1;
-      display:inline-block;
-      transition:transform .5s var(--ease);
-    }
-
-    .primary:hover .arrow{
-      transform:translateX(5px);
-    }
-
-    .secondary{
-      min-height:54px;
-      padding:0 21px;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      border:1px solid rgba(48,71,31,.12);
-      border-radius:999px;
-      background:rgba(255,255,255,.35);
-      backdrop-filter:blur(15px);
-      -webkit-backdrop-filter:blur(15px);
-      color:#4d584a;
-      font-size:13px;
-      font-weight:600;
-      transition:
-        transform .45s var(--ease),
-        background .45s var(--ease);
-    }
-
-    .secondary:hover{
-      transform:translateY(-3px);
-      background:rgba(255,255,255,.65);
-    }
-
-    /* =========================================================
-       BOTTOM STATEMENT
-    ========================================================= */
-
-    .bottom-statement{
-      position:absolute;
-      left:50%;
-      bottom:29px;
-      transform:translateX(-50%);
-      z-index:50;
-      color:#879084;
-      font-size:10px;
-      font-weight:600;
-      letter-spacing:.11em;
-      text-transform:uppercase;
-      white-space:nowrap;
-    }
-
-    .bottom-statement::before{
-      content:"";
-      display:inline-block;
-      width:26px;
-      height:1px;
-      margin:0 9px 3px 0;
-      background:rgba(92,111,78,.35);
-    }
-
-    .bottom-statement::after{
-      content:"";
-      display:inline-block;
-      width:26px;
-      height:1px;
-      margin:0 0 3px 9px;
-      background:rgba(92,111,78,.35);
-    }
-
-    #decouvrir{
-      position:absolute;
-      bottom:0;
-      width:1px;
-      height:1px;
-    }
-
-    /* =========================================================
-       CURSOR LIGHT
-    ========================================================= */
-
-    .cursor-light{
-      position:fixed;
-      left:0;
-      top:0;
-      width:220px;
-      height:220px;
-      margin:-110px 0 0 -110px;
-      border-radius:50%;
-      pointer-events:none;
-      z-index:2;
-      background:radial-gradient(
-        circle,
-        rgba(255,255,255,.4) 0,
-        rgba(255,255,255,.12) 35%,
-        transparent 70%
-      );
-      filter:blur(5px);
-      opacity:0;
-      transition:opacity .4s ease;
-      mix-blend-mode:soft-light;
-    }
-
-    body.mouse-active .cursor-light{
-      opacity:.75;
-    }
-
-    /* =========================================================
-       RESPONSIVE
-    ========================================================= */
-
-    @media(max-width:900px){
-
-      header{
-        padding:20px 18px;
-      }
-
-      .header-btn{
-        min-height:43px;
-        padding:0 16px;
-        font-size:12px;
-      }
-
-      .hero{
-        min-height:100svh;
-        min-height:760px;
-        padding:120px 20px 80px;
-      }
-
-      .hero::before{
-        width:125vw;
-        height:600px;
-      }
-
-      h1{
-        font-size:clamp(58px,14vw,88px);
-        letter-spacing:-.08em;
-      }
-
-      .hero-description{
-        max-width:430px;
-        margin-top:25px;
-        font-size:14px;
-      }
-
-      .cta-row{
-        margin-top:28px;
-      }
-
-      .glass-card{
-        width:190px;
-        min-height:73px;
-        padding:11px;
-        gap:9px;
-        border-radius:17px;
-      }
-
-      .card-icon{
-        width:36px;
-        height:36px;
-        flex-basis:36px;
-        border-radius:11px;
-        font-size:15px;
-      }
-
-      .card-title{
-        font-size:9px;
-      }
-
-      .card-text,
-      .card-value{
-        font-size:8px;
-      }
-
-      .n1{
-        left:-9%;
-        top:17%;
-      }
-
-      .n2{
-        right:-12%;
-        top:14%;
-      }
-
-      .n3{
-        left:-13%;
-        top:58%;
-      }
-
-      .n4{
-        right:-11%;
-        bottom:10%;
-      }
-
-      .n5{
-        left:-9%;
-        top:35%;
-      }
-
-      .n6{
-        right:-8%;
-        top:37%;
-      }
-
-      .n7{
-        left:-8%;
-        bottom:17%;
-      }
-
-      .n8{
-        right:-8%;
-        bottom:25%;
-      }
-
-      .n9{
-        left:7%;
-        top:11%;
-        width:170px;
-      }
-
-      .n10{
-        right:5%;
-        top:19%;
-        width:175px;
-      }
-
-      .n11{
-        left:7%;
-        bottom:11%;
-        width:175px;
-      }
-
-      .n12{
-        right:6%;
-        bottom:13%;
-        width:170px;
-      }
-
-      .bottom-statement{
-        bottom:20px;
-        font-size:8px;
-      }
-    }
-
-    @media(max-width:600px){
-
-      .spatial-stage{
-        perspective:1000px;
-      }
-
-      .plane.back{
-        transform:translateZ(-180px) scale(1.08);
-      }
-
-      .plane.front{
-        transform:translateZ(90px) scale(.94);
-      }
-
-      .hero{
-        min-height:100svh;
-        min-height:720px;
-        padding:105px 18px 75px;
-      }
-
-      .eyebrow{
-        margin-bottom:22px;
-        font-size:9px;
-        letter-spacing:.08em;
-      }
-
-      h1{
-        font-size:clamp(54px,16vw,78px);
-        line-height:.9;
-      }
-
-      h1 em{
-        margin-top:5px;
-      }
-
-      .hero-description{
-        max-width:340px;
         margin-top:22px;
-        font-size:13px;
-        line-height:1.55;
-      }
 
-      .cta-row{
+        font-size:13px;
+
+        line-height:1.58;
+    }
+
+    .hero-actions{
+
         width:100%;
-        gap:8px;
+
         margin-top:25px;
-      }
 
-      .primary,
-      .secondary{
-        min-height:50px;
-        font-size:12px;
-      }
-
-      .primary{
-        padding:0 18px;
-      }
-
-      .secondary{
-        padding:0 17px;
-      }
-
-      .glass-card{
-        width:165px;
-        min-height:65px;
-        padding:9px;
         gap:8px;
-        border-radius:15px;
-      }
-
-      .card-icon{
-        width:32px;
-        height:32px;
-        flex-basis:32px;
-        border-radius:9px;
-        font-size:13px;
-      }
-
-      .card-title{
-        font-size:8px;
-      }
-
-      .card-text{
-        font-size:7px;
-      }
-
-      .card-value{
-        font-size:7px;
-      }
-
-      .n1{
-        left:-25%;
-        top:18%;
-      }
-
-      .n2{
-        right:-25%;
-        top:15%;
-      }
-
-      .n3{
-        left:-27%;
-        top:61%;
-      }
-
-      .n4{
-        right:-27%;
-        bottom:11%;
-      }
-
-      .n5{
-        left:-25%;
-        top:39%;
-      }
-
-      .n6{
-        right:-24%;
-        top:40%;
-      }
-
-      .n7{
-        left:-25%;
-        bottom:18%;
-      }
-
-      .n8{
-        right:-24%;
-        bottom:26%;
-      }
-
-      .n9{
-        left:-12%;
-        top:12%;
-        width:155px;
-      }
-
-      .n10{
-        right:-10%;
-        top:21%;
-        width:160px;
-      }
-
-      .n11{
-        left:-10%;
-        bottom:12%;
-        width:160px;
-      }
-
-      .n12{
-        right:-10%;
-        bottom:14%;
-        width:155px;
-      }
-
-      .particle{
-        opacity:.45;
-      }
     }
 
-    @media(max-width:420px){
+    .btn{
 
-      header{
-        padding:17px 14px;
-      }
+        min-height:46px;
 
-      .header-btn{
-        min-height:40px;
-        padding:0 14px;
-        font-size:11px;
-      }
+        padding:0 17px;
 
-      .hero{
-        padding-left:14px;
-        padding-right:14px;
-      }
-
-      h1{
-        font-size:clamp(50px,16vw,68px);
-      }
-
-      .hero-description{
-        max-width:300px;
         font-size:12px;
-      }
-
-      .cta-row{
-        transform:scale(.94);
-      }
-
-      .glass-card{
-        width:150px;
-      }
     }
 
-    /* =========================================================
-       ACCESSIBILITY / PERFORMANCE
-    ========================================================= */
+    .hero-bottom{
 
-    @media(prefers-reduced-motion:reduce){
+        margin-top:48px;
 
-      html{
+        font-size:9px;
+
+        letter-spacing:.14em;
+    }
+
+    /*
+     * On agrandit l'espace spatial
+     * pour que les cartes restent sur les côtés.
+     */
+
+    .spatial-world{
+        inset:-18%;
+    }
+
+    .glass-card{
+
+        width:132px;
+        min-height:59px;
+
+        padding:9px 10px;
+
+        gap:8px;
+
+        border-radius:15px;
+
+        opacity:.72;
+
+        backdrop-filter:
+            blur(14px)
+            saturate(115%);
+
+        -webkit-backdrop-filter:
+            blur(14px)
+            saturate(115%);
+    }
+
+    .card-icon{
+        width:28px;
+        height:28px;
+
+        border-radius:9px;
+
+        font-size:12px;
+    }
+
+    .card-title{
+        font-size:9px;
+    }
+
+    .card-text{
+        font-size:7.5px;
+
+        margin-top:2px;
+    }
+
+    /*
+     * Important :
+     * aucune carte ne doit traverser le texte central.
+     */
+
+    .card-1{
+        top:15%;
+        left:-12%;
+    }
+
+    .card-2{
+        top:23%;
+        right:-12%;
+    }
+
+    .card-3{
+        top:55%;
+        left:-13%;
+    }
+
+    .card-4{
+        top:65%;
+        right:-13%;
+    }
+
+    .card-5{
+        top:39%;
+        left:-15%;
+
+        opacity:.42;
+    }
+
+    .card-6{
+        top:76%;
+        left:4%;
+
+        opacity:.46;
+    }
+
+    .card-7{
+        top:11%;
+        right:8%;
+
+        opacity:.38;
+    }
+
+    .card-8{
+        top:81%;
+        right:3%;
+
+        opacity:.40;
+    }
+
+    .card-9{
+        top:35%;
+        right:-13%;
+
+        opacity:.42;
+    }
+
+    .card-10{
+        top:59%;
+        left:12%;
+
+        opacity:.32;
+    }
+
+    .ambient-1{
+        width:330px;
+        height:330px;
+
+        left:-30%;
+        top:8%;
+    }
+
+    .ambient-2{
+        width:360px;
+        height:360px;
+
+        right:-32%;
+        bottom:0;
+    }
+
+    .ambient-3{
+        width:280px;
+        height:280px;
+
+        left:30%;
+        top:40%;
+
+        filter:blur(28px);
+    }
+
+    .vignette{
+        background:
+            radial-gradient(
+                ellipse at center,
+                transparent 27%,
+                rgba(247,245,238,.30) 70%,
+                rgba(247,245,238,.90) 100%
+            );
+    }
+
+}
+
+@media (max-width:380px){
+
+    .hero{
+        padding-top:88px;
+    }
+
+    .hero-title{
+        font-size:49px;
+    }
+
+    .hero-description{
+        max-width:295px;
+        font-size:12px;
+    }
+
+    .hero-actions{
+        margin-top:21px;
+    }
+
+    .btn{
+        min-height:44px;
+        padding:0 14px;
+    }
+
+    .hero-bottom{
+        margin-top:39px;
+    }
+
+    .glass-card{
+        width:119px;
+    }
+
+}
+
+/* =========================================================
+   REDUCED MOTION
+   ========================================================= */
+
+@media (prefers-reduced-motion:reduce){
+
+    html{
         scroll-behavior:auto;
-      }
+    }
 
-      *,
-      *::before,
-      *::after{
+    *,
+    *::before,
+    *::after{
         animation-duration:.01ms !important;
         animation-iteration-count:1 !important;
         transition-duration:.01ms !important;
-      }
+    }
 
-      .world{
+    .spatial-world{
         transform:none !important;
-      }
     }
 
-    @media(pointer:coarse){
+}
 
-      .cursor-light{
-        display:none;
-      }
+/* =========================================================
+   TOUCH DEVICES
+   ========================================================= */
 
-      .primary:hover,
-      .secondary:hover,
-      .header-btn:hover{
+@media (hover:none) and (pointer:coarse){
+
+    .header-link:hover,
+    .btn:hover{
         transform:none;
-      }
     }
-  </style>
+
+}
+
+</style>
 </head>
 
 <body>
 
-  <main class="landing">
+<div class="page" id="page">
 
-    <!-- ATMOSPHERE -->
-    <div class="atmosphere" aria-hidden="true">
-      <div class="light one"></div>
-      <div class="light two"></div>
-      <div class="light three"></div>
-    </div>
+    <!-- =====================================================
+         HEADER
+         ===================================================== -->
 
-    <!-- HEADER -->
-    <header>
-      <a class="header-btn" href="/app">
-        Accéder à l'app
-      </a>
+    <header class="header">
+
+        <a href="/" class="logo" aria-label="COD.IA">
+            <span class="logo-name">COD.IA</span>
+            <span class="logo-dot"></span>
+        </a>
+
+        <a
+            href="/app"
+            class="header-link"
+            id="headerApp"
+        >
+            Accéder à l'app
+        </a>
+
     </header>
 
-    <!-- 3D WORLD -->
-    <section class="spatial-stage" aria-hidden="true">
 
-      <div class="world" id="world">
+    <!-- =====================================================
+         SPATIAL BACKGROUND
+         ===================================================== -->
 
-        <!-- BACK -->
-        <div class="plane back">
+    <div
+        class="spatial-world"
+        id="spatialWorld"
+        aria-hidden="true"
+    >
 
-          <article class="glass-card n1">
-            <div class="card-icon">✨</div>
-            <div class="card-copy">
-              <div class="card-top">
-                <span class="card-title">Nouveau membre</span>
-              </div>
-              <div class="card-text">@emma vient de rejoindre</div>
-              <div class="card-value">+1 point</div>
+        <!-- BACKGROUND -->
+
+        <div class="depth depth-back">
+
+            <div class="ambient ambient-1"></div>
+            <div class="ambient ambient-2"></div>
+            <div class="ambient ambient-3"></div>
+
+            <div class="glass-card card-5">
+                <div class="card-icon">✦</div>
+                <div class="card-content">
+                    <p class="card-title">Nouveau code</p>
+                    <p class="card-text">-20% aujourd'hui</p>
+                </div>
             </div>
-          </article>
 
-          <article class="glass-card n2">
-            <div class="card-icon">🛍️</div>
-            <div class="card-copy">
-              <div class="card-top">
-                <span class="card-title">Nouveau bon plan</span>
-              </div>
-              <div class="card-text">Mode · jusqu'à -40 %</div>
-              <div class="card-value">Voir l'offre →</div>
+            <div class="glass-card card-7">
+                <div class="card-icon">↗</div>
+                <div class="card-content">
+                    <p class="card-title">Partagé</p>
+                    <p class="card-text">par la communauté</p>
+                </div>
             </div>
-          </article>
 
-          <article class="glass-card n3">
-            <div class="card-icon">🎁</div>
-            <div class="card-copy">
-              <div class="card-top">
-                <span class="card-title">Récompense</span>
-              </div>
-              <div class="card-text">Palier atteint</div>
-              <div class="card-value">+120 €</div>
+            <div class="glass-card card-8">
+                <div class="card-icon">♡</div>
+                <div class="card-content">
+                    <p class="card-title">Bon plan aimé</p>
+                    <p class="card-text">+ 128 personnes</p>
+                </div>
             </div>
-          </article>
 
-          <article class="glass-card n4">
-            <div class="card-icon">🔥</div>
-            <div class="card-copy">
-              <div class="card-top">
-                <span class="card-title">Tendance</span>
-              </div>
-              <div class="card-text">Cette offre cartonne</div>
-              <div class="card-value">+248 utilisations</div>
+            <div class="glass-card card-10">
+                <div class="card-icon">★</div>
+                <div class="card-content">
+                    <p class="card-title">Top membre</p>
+                    <p class="card-text">communauté</p>
+                </div>
             </div>
-          </article>
 
         </div>
 
-        <!-- MID -->
-        <div class="plane mid">
 
-          <article class="glass-card n5">
-            <div class="card-icon">💚</div>
-            <div class="card-copy">
-              <div class="card-top">
-                <span class="card-title">Nouveau partage</span>
-                <span class="verified">✓</span>
-              </div>
-              <div class="card-text">@lina a partagé une offre</div>
-              <div class="card-value">+1 point</div>
-            </div>
-          </article>
+        <!-- MIDDLE -->
 
-          <article class="glass-card n6">
-            <div class="card-icon">🏆</div>
-            <div class="card-copy">
-              <div class="card-top">
-                <span class="card-title">Classement</span>
-              </div>
-              <div class="card-text">Tu passes devant Lucas</div>
-              <div class="card-value">#4 → #3</div>
-            </div>
-          </article>
+        <div class="depth depth-mid">
 
-          <article class="glass-card n7">
-            <div class="card-icon">⚡</div>
-            <div class="card-copy">
-              <div class="card-top">
-                <span class="card-title">Offre populaire</span>
-              </div>
-              <div class="card-text">SHEIN · -25 %</div>
-              <div class="card-value">+94 utilisations</div>
+            <div class="glass-card card-3">
+                <div class="card-icon">%</div>
+                <div class="card-content">
+                    <p class="card-title">-30% trouvé</p>
+                    <p class="card-text">sur ton prochain achat</p>
+                </div>
             </div>
-          </article>
 
-          <article class="glass-card n8">
-            <div class="card-icon">💶</div>
-            <div class="card-copy">
-              <div class="card-top">
-                <span class="card-title">Objectif atteint</span>
-              </div>
-              <div class="card-text">500 points débloqués</div>
-              <div class="card-value">500 €</div>
+            <div class="glass-card card-6">
+                <div class="card-icon">✓</div>
+                <div class="card-content">
+                    <p class="card-title">Code validé</p>
+                    <p class="card-text">fonctionne parfaitement</p>
+                </div>
             </div>
-          </article>
+
+            <div class="glass-card card-9">
+                <div class="card-icon">⚡</div>
+                <div class="card-content">
+                    <p class="card-title">Nouveau partage</p>
+                    <p class="card-text">à découvrir</p>
+                </div>
+            </div>
 
         </div>
 
-        <!-- FRONT -->
-        <div class="plane front">
 
-          <article class="glass-card n9">
-            <div class="card-icon">🟢</div>
-            <div class="card-copy">
-              <div class="card-top">
-                <span class="card-title">Activité</span>
-                <span class="verified">✓</span>
-              </div>
-              <div class="card-text">Une nouvelle personne</div>
-              <div class="card-value">vient de s'inscrire</div>
-            </div>
-          </article>
+        <!-- FOREGROUND -->
 
-          <article class="glass-card n10">
-            <div class="card-icon">💫</div>
-            <div class="card-copy">
-              <div class="card-top">
-                <span class="card-title">Bon plan validé</span>
-              </div>
-              <div class="card-text">Une offre vient d'être utilisée</div>
-              <div class="card-value">+1 point</div>
-            </div>
-          </article>
+        <div class="depth depth-front">
 
-          <article class="glass-card n11">
-            <div class="card-icon">🚀</div>
-            <div class="card-copy">
-              <div class="card-top">
-                <span class="card-title">Progression</span>
-              </div>
-              <div class="card-text">Encore 18 points</div>
-              <div class="card-value">avant la récompense</div>
+            <div class="glass-card card-1">
+                <div class="card-icon">%</div>
+                <div class="card-content">
+                    <p class="card-title">-40% disponible</p>
+                    <p class="card-text">code promo vérifié</p>
+                </div>
             </div>
-          </article>
 
-          <article class="glass-card n12">
-            <div class="card-icon">👑</div>
-            <div class="card-copy">
-              <div class="card-top">
-                <span class="card-title">Nouveau niveau</span>
-              </div>
-              <div class="card-text">Bienvenue chez PRO</div>
-              <div class="card-value">Niveau débloqué</div>
+            <div class="glass-card card-2">
+                <div class="card-icon">↗</div>
+                <div class="card-content">
+                    <p class="card-title">Nouveau partage</p>
+                    <p class="card-text">il y a quelques secondes</p>
+                </div>
             </div>
-          </article>
+
+            <div class="glass-card card-4">
+                <div class="card-icon">♥</div>
+                <div class="card-content">
+                    <p class="card-title">Bon plan sauvegardé</p>
+                    <p class="card-text">+ 86 membres</p>
+                </div>
+            </div>
 
         </div>
 
-        <!-- PARTICLES -->
-        <span class="particle p1"></span>
-        <span class="particle p2"></span>
-        <span class="particle p3"></span>
-        <span class="particle p4"></span>
-        <span class="particle p5"></span>
-        <span class="particle p6"></span>
-        <span class="particle p7"></span>
-        <span class="particle p8"></span>
 
-      </div>
-    </section>
+        <!-- ORBS -->
 
-    <!-- HERO -->
-    <section class="hero">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="orb orb-3"></div>
+        <div class="orb orb-4"></div>
 
-      <div class="hero-content">
-
-        <div class="eyebrow">
-          La communauté des bonnes affaires
-        </div>
-
-        <h1>
-          <span>Les bons plans.</span>
-          <em>Ensemble.</em>
-        </h1>
-
-        <p class="hero-description">
-          Découvrez, partagez et profitez des meilleures opportunités
-          avec une communauté qui avance ensemble.
-        </p>
-
-        <div class="cta-row">
-
-          <a class="primary" href="/app">
-            <span>Accéder à COD.IA</span>
-            <span class="arrow">→</span>
-          </a>
-
-          <a class="secondary" href="#decouvrir">
-            Découvrir
-          </a>
-
-        </div>
-
-      </div>
-
-    </section>
-
-    <!-- BOTTOM -->
-    <div class="bottom-statement">
-      Une nouvelle façon de partager
     </div>
 
-    <div id="decouvrir"></div>
 
-  </main>
+    <!-- =====================================================
+         VIGNETTE / GRAIN
+         ===================================================== -->
 
-  <div class="cursor-light" id="cursorLight"></div>
+    <div class="vignette"></div>
+    <div class="grain"></div>
 
-  <script>
-    /* =========================================================
-       COUNT API — CONSERVÉ
-    ========================================================= */
 
-    (function () {
+    <!-- =====================================================
+         HERO
+         ===================================================== -->
 
-      const API = "https://countapi.mileshilliard.com/api/v1";
+    <main class="hero">
 
-      const KEYS = {
-        visits: "codia-fr-visites-unique-xyz123",
-        connexion: "codia-fr-clics-connexion-xyz123",
-        inscription: "codia-fr-clics-inscription-xyz123"
-      };
+        <div class="hero-content">
 
-      const hit = (key) => {
-        fetch(`${API}/hit/${encodeURIComponent(key)}`)
-          .catch(() => {});
-      };
+            <div class="eyebrow">
+                La communauté des bonnes affaires
+            </div>
 
-      try {
+            <h1 class="hero-title">
+                Les bons plans.<br>
+                <span>Ensemble.</span>
+            </h1>
 
-        if (!sessionStorage.getItem("codia_visit_counted")) {
+            <p class="hero-description">
+                Découvrez, partagez et profitez des codes promo
+                et parrainages d'une communauté qui avance ensemble.
+            </p>
 
-          hit(KEYS.visits);
+            <div class="hero-actions">
 
-          sessionStorage.setItem(
-            "codia_visit_counted",
-            "1"
-          );
+                <a
+                    href="/app"
+                    class="btn btn-primary"
+                    id="mainApp"
+                >
+                    Accéder à COD.IA
+                    <span>→</span>
+                </a>
 
-        }
+                <a
+                    href="#discover"
+                    class="btn btn-secondary"
+                >
+                    Découvrir
+                </a>
 
-      } catch (e) {
+            </div>
 
-        hit(KEYS.visits);
+            <div class="hero-bottom">
+                Une nouvelle façon de partager
+            </div>
 
-      }
+        </div>
 
-      document.addEventListener("click", (e) => {
+    </main>
 
-        const el = e.target.closest("a, button");
 
-        if (!el) return;
+    <!-- =====================================================
+         SENSOR HINT
+         ===================================================== -->
 
-        const t = (
-          el.innerText || ""
-        ).toLowerCase();
+    <div
+        class="sensor-hint"
+        id="sensorHint"
+        aria-hidden="true"
+    >
+        Bouge légèrement ton téléphone
+    </div>
 
-        if (
-          t.includes("accéder") ||
-          t.includes("commencer") ||
-          t.includes("app")
-        ) {
+</div>
 
-          hit(KEYS.connexion);
 
-        }
+<script>
 
-      });
+/* =========================================================
+   COD.IA — SPATIAL ENGINE V4
+   ========================================================= */
 
-    })();
+(() => {
 
+    "use strict";
 
-    /* =========================================================
-       SPATIAL PARALLAX
-    ========================================================= */
 
-    (function () {
+    /* =====================================================
+       ELEMENTS
+       ===================================================== */
 
-      const world = document.getElementById("world");
-      const landing = document.querySelector(".landing");
-      const atmosphere = document.querySelector(".atmosphere");
-      const cursor = document.getElementById("cursorLight");
+    const world =
+        document.getElementById("spatialWorld");
 
-      if (!world || !landing) return;
+    const page =
+        document.getElementById("page");
 
-      const reduceMotion =
-        window.matchMedia &&
-        window.matchMedia(
-          "(prefers-reduced-motion: reduce)"
-        ).matches;
+    const sensorHint =
+        document.getElementById("sensorHint");
 
-      if (reduceMotion) return;
+    const cards =
+        [...document.querySelectorAll(".glass-card")];
 
-      let targetX = 0;
-      let targetY = 0;
+    const depths =
+        [...document.querySelectorAll(".depth")];
 
-      let currentX = 0;
-      let currentY = 0;
+    const orbs =
+        [...document.querySelectorAll(".orb")];
 
-      let cursorX = 0;
-      let cursorY = 0;
+    if (!world) return;
 
-      let currentCursorX = 0;
-      let currentCursorY = 0;
 
-      function setPointer(x, y) {
+    /* =====================================================
+       CONFIG
+       ===================================================== */
 
-        const width = window.innerWidth;
-        const height = window.innerHeight;
+    const CONFIG = {
 
-        targetX =
-          ((x / width) - 0.5) * 2;
+        /*
+         * Maximum global rotation.
+         */
 
-        targetY =
-          ((y / height) - 0.5) * 2;
+        maxX: 7.5,
+        maxY: 6.5,
 
-        if (cursor) {
+        /*
+         * Fluidité.
+         */
 
-          cursorX = x;
-          cursorY = y;
+        smoothing: 0.075,
 
-        }
+        /*
+         * Desktop mouse sensitivity.
+         */
 
-        if (atmosphere) {
+        mouseX: 7,
+        mouseY: 5.5,
 
-          atmosphere.style.setProperty(
-            "--mx",
-            `${(x / width) * 100}%`
-          );
+        /*
+         * Mobile sensor sensitivity.
+         */
 
-          atmosphere.style.setProperty(
-            "--my",
-            `${(y / height) * 100}%`
-          );
+        sensorX: 0.42,
+        sensorY: 0.34,
 
-        }
-      }
+        /*
+         * Limites physiques.
+         */
 
-      function animate() {
+        sensorClamp: 24,
 
-        currentX +=
-          (targetX - currentX) * .045;
+        /*
+         * Floating animation.
+         */
 
-        currentY +=
-          (targetY - currentY) * .045;
+        floatAmplitude: 2.5,
 
-        currentCursorX +=
-          (cursorX - currentCursorX) * .12;
+        /*
+         * Parallax depth.
+         */
 
-        currentCursorY +=
-          (cursorY - currentCursorY) * .12;
+        backFactor: .22,
+        midFactor: .52,
+        frontFactor: 1,
 
-        world.style.transform = `
-          rotateX(${currentY * -3.8}deg)
-          rotateY(${currentX * 5.5}deg)
-          translate3d(
-            ${currentX * -10}px,
-            ${currentY * -7}px,
-            0
-          )
-        `;
+        /*
+         * Maximum translation.
+         */
 
-        if (cursor) {
+        maxTranslation: 18
 
-          cursor.style.transform = `
-            translate3d(
-              ${currentCursorX}px,
-              ${currentCursorY}px,
-              0
-            )
-          `;
+    };
 
-        }
 
-        requestAnimationFrame(animate);
-      }
+    /* =====================================================
+       STATE
+       ===================================================== */
 
-      window.addEventListener(
-        "pointermove",
-        (event) => {
+    let targetX = 0;
+    let targetY = 0;
 
-          setPointer(
-            event.clientX,
-            event.clientY
-          );
+    let currentX = 0;
+    let currentY = 0;
 
-          document.body.classList.add(
-            "mouse-active"
-          );
+    let mouseActive = false;
 
-        },
-        { passive:true }
-      );
+    let sensorActive = false;
 
-      window.addEventListener(
-        "pointerleave",
-        () => {
+    let permissionRequested = false;
 
-          targetX = 0;
-          targetY = 0;
+    let baselineBeta = null;
+    let baselineGamma = null;
 
-          document.body.classList.remove(
-            "mouse-active"
-          );
+    let screenAngle = 0;
 
-        },
-        { passive:true }
-      );
+    let animationFrame = null;
 
-      /* Mobile touch parallax */
+    let lastTime = performance.now();
 
-      window.addEventListener(
-        "touchmove",
-        (event) => {
 
-          const touch = event.touches[0];
+    /* =====================================================
+       UTILS
+       ===================================================== */
 
-          if (!touch) return;
-
-          setPointer(
-            touch.clientX,
-            touch.clientY
-          );
-
-        },
-        { passive:true }
-      );
-
-      animate();
-
-    })();
-
-
-    /* =========================================================
-       MAGNETIC CTA
-    ========================================================= */
-
-    (function () {
-
-      const buttons =
-        document.querySelectorAll(
-          ".primary, .header-btn"
-        );
-
-      if (
-        window.matchMedia &&
-        window.matchMedia(
-          "(pointer: coarse)"
-        ).matches
-      ) return;
-
-      buttons.forEach((button) => {
-
-        button.addEventListener(
-          "pointermove",
-          (event) => {
-
-            const rect =
-              button.getBoundingClientRect();
-
-            const x =
-              event.clientX -
-              rect.left -
-              rect.width / 2;
-
-            const y =
-              event.clientY -
-              rect.top -
-              rect.height / 2;
-
-            button.style.transform =
-              `translate(${x * .08}px, ${y * .08}px)`;
-
-          },
-          { passive:true }
-        );
-
-        button.addEventListener(
-          "pointerleave",
-          () => {
-
-            button.style.transform = "";
-
-          },
-          { passive:true }
-        );
-
-      });
-
-    })();
-
-
-    /* =========================================================
-       SMART MOBILE ORIENTATION
-    ========================================================= */
-
-    (function () {
-
-      const cards =
-        document.querySelectorAll(
-          ".glass-card"
-        );
-
-      if (!cards.length) return;
-
-      if (
-        window.matchMedia &&
-        window.matchMedia(
-          "(pointer: coarse)"
-        ).matches
-      ) {
-
-        let timer;
-
-        window.addEventListener(
-          "touchstart",
-          () => {
-
-            cards.forEach(card => {
-
-              card.style.transition =
-                "filter .5s ease, opacity .5s ease";
-
-            });
-
-            clearTimeout(timer);
-
-            timer = setTimeout(() => {
-
-              cards.forEach(card => {
-
-                card.style.transition = "";
-
-              });
-
-            }, 800);
-
-          },
-          { passive:true }
-        );
-
-      }
-
-    })();
-
-
-    /* =========================================================
-       INTERSECTION / VISIBILITY OPTIMIZATION
-    ========================================================= */
-
-    document.addEventListener(
-      "visibilitychange",
-      () => {
-
-        const world =
-          document.getElementById("world");
-
-        if (!world) return;
-
-        if (document.hidden) {
-
-          world.style.willChange = "auto";
-
-        } else {
-
-          world.style.willChange = "transform";
-
-        }
-
-      }
+    const clamp = (
+        value,
+        min,
+        max
+    ) => Math.max(
+        min,
+        Math.min(max,value)
     );
 
-  </script>
+
+    const lerp = (
+        a,
+        b,
+        amount
+    ) => a + (b-a)*amount;
+
+
+    /* =====================================================
+       SCREEN ORIENTATION
+       ===================================================== */
+
+    function updateScreenAngle(){
+
+        if (
+            screen.orientation &&
+            typeof screen.orientation.angle === "number"
+        ){
+
+            screenAngle =
+                screen.orientation.angle;
+
+        }else{
+
+            screenAngle =
+                window.orientation || 0;
+
+        }
+
+    }
+
+    updateScreenAngle();
+
+
+    window.addEventListener(
+        "orientationchange",
+        () => {
+
+            updateScreenAngle();
+
+            /*
+             * Recalibration légère après rotation.
+             */
+
+            baselineBeta = null;
+            baselineGamma = null;
+
+        },
+        {
+            passive:true
+        }
+    );
+
+
+    if (screen.orientation){
+
+        screen.orientation.addEventListener(
+            "change",
+            () => {
+
+                updateScreenAngle();
+
+                baselineBeta = null;
+                baselineGamma = null;
+
+            }
+        );
+
+    }
+
+
+    /* =====================================================
+       DESKTOP MOUSE
+       ===================================================== */
+
+    function handleMouse(event){
+
+        if (
+            sensorActive ||
+            window.matchMedia(
+                "(hover:none) and (pointer:coarse)"
+            ).matches
+        ){
+
+            return;
+
+        }
+
+
+        mouseActive = true;
+
+
+        const rect =
+            page.getBoundingClientRect();
+
+
+        const x =
+            (
+                event.clientX -
+                rect.left
+            ) / rect.width;
+
+
+        const y =
+            (
+                event.clientY -
+                rect.top
+            ) / rect.height;
+
+
+        /*
+         * Centre = 0.
+         */
+
+        const normalizedX =
+            (x - .5) * 2;
+
+
+        const normalizedY =
+            (y - .5) * 2;
+
+
+        targetX =
+            normalizedX *
+            CONFIG.mouseX;
+
+
+        targetY =
+            normalizedY *
+            CONFIG.mouseY;
+
+    }
+
+
+    function resetMouse(){
+
+        mouseActive = false;
+
+        targetX = 0;
+        targetY = 0;
+
+    }
+
+
+    window.addEventListener(
+        "mousemove",
+        handleMouse,
+        {
+            passive:true
+        }
+    );
+
+
+    window.addEventListener(
+        "mouseleave",
+        resetMouse,
+        {
+            passive:true
+        }
+    );
+
+
+    /* =====================================================
+       SENSOR CALIBRATION
+       ===================================================== */
+
+    function calibrateSensor(
+        beta,
+        gamma
+    ){
+
+        baselineBeta = beta;
+        baselineGamma = gamma;
+
+    }
+
+
+    /* =====================================================
+       SENSOR → PARALLAX
+       ===================================================== */
+
+    function handleOrientation(event){
+
+        const beta =
+            Number(event.beta);
+
+        const gamma =
+            Number(event.gamma);
+
+
+        if (
+            !Number.isFinite(beta) ||
+            !Number.isFinite(gamma)
+        ){
+
+            return;
+
+        }
+
+
+        if (
+            baselineBeta === null ||
+            baselineGamma === null
+        ){
+
+            calibrateSensor(
+                beta,
+                gamma
+            );
+
+            return;
+
+        }
+
+
+        let deltaBeta =
+            beta - baselineBeta;
+
+
+        let deltaGamma =
+            gamma - baselineGamma;
+
+
+        /*
+         * Gestion portrait / paysage.
+         *
+         * Le but est de conserver :
+         *
+         * téléphone à droite
+         *      →
+         *
+         * téléphone à gauche
+         *      ←
+         *
+         * haut / bas cohérents.
+         */
+
+        switch(screenAngle){
+
+            case 90:
+
+                {
+
+                    const oldBeta =
+                        deltaBeta;
+
+                    deltaBeta =
+                        -deltaGamma;
+
+                    deltaGamma =
+                        oldBeta;
+
+                }
+
+                break;
+
+
+            case 270:
+
+                {
+
+                    const oldBeta =
+                        deltaBeta;
+
+                    deltaBeta =
+                        deltaGamma;
+
+                    deltaGamma =
+                        -oldBeta;
+
+                }
+
+                break;
+
+
+            case 180:
+
+                deltaBeta =
+                    -deltaBeta;
+
+                deltaGamma =
+                    -deltaGamma;
+
+                break;
+
+        }
+
+
+        /*
+         * Limitation.
+         */
+
+        deltaGamma =
+            clamp(
+                deltaGamma,
+                -CONFIG.sensorClamp,
+                CONFIG.sensorClamp
+            );
+
+
+        deltaBeta =
+            clamp(
+                deltaBeta,
+                -CONFIG.sensorClamp,
+                CONFIG.sensorClamp
+            );
+
+
+        /*
+         * Conversion vers la rotation.
+         */
+
+        targetX =
+            deltaGamma *
+            CONFIG.sensorX;
+
+
+        targetY =
+            deltaBeta *
+            CONFIG.sensorY;
+
+
+        targetX =
+            clamp(
+                targetX,
+                -CONFIG.maxX,
+                CONFIG.maxX
+            );
+
+
+        targetY =
+            clamp(
+                targetY,
+                -CONFIG.maxY,
+                CONFIG.maxY
+            );
+
+    }
+
+
+    /* =====================================================
+       SENSOR PERMISSION
+       ===================================================== */
+
+    async function enableSensor(){
+
+        if (sensorActive){
+            return true;
+        }
+
+
+        if (
+            typeof DeviceOrientationEvent ===
+            "undefined"
+        ){
+
+            return false;
+
+        }
+
+
+        /*
+         * iOS demande une permission explicite.
+         */
+
+        if (
+            typeof DeviceOrientationEvent.requestPermission ===
+            "function"
+        ){
+
+            if (permissionRequested){
+                return false;
+            }
+
+            permissionRequested = true;
+
+
+            try{
+
+                const permission =
+                    await DeviceOrientationEvent
+                        .requestPermission();
+
+
+                if (
+                    permission !== "granted"
+                ){
+
+                    return false;
+
+                }
+
+            }catch(error){
+
+                console.warn(
+                    "COD.IA sensor permission:",
+                    error
+                );
+
+                return false;
+
+            }
+
+        }
+
+
+        window.addEventListener(
+            "deviceorientation",
+            handleOrientation,
+            {
+                passive:true
+            }
+        );
+
+
+        sensorActive = true;
+
+
+        /*
+         * Désactive la souris.
+         */
+
+        mouseActive = false;
+
+
+        /*
+         * Petit feedback utilisateur.
+         */
+
+        showSensorHint();
+
+
+        setTimeout(
+            hideSensorHint,
+            1800
+        );
+
+
+        return true;
+
+    }
+
+
+    /* =====================================================
+       SENSOR ACTIVATION
+       ===================================================== */
+
+    function tryEnableSensor(){
+
+        enableSensor();
+
+    }
+
+
+    /*
+     * Sur iOS, l'appel doit venir
+     * d'une interaction utilisateur.
+     */
+
+    window.addEventListener(
+        "touchstart",
+        tryEnableSensor,
+        {
+            passive:true,
+            once:false
+        }
+    );
+
+
+    window.addEventListener(
+        "click",
+        tryEnableSensor,
+        {
+            passive:true,
+            once:false
+        }
+    );
+
+
+    /*
+     * Android / navigateurs qui autorisent
+     * automatiquement le capteur.
+     */
+
+    if (
+        typeof DeviceOrientationEvent !==
+        "undefined" &&
+        typeof DeviceOrientationEvent.requestPermission !==
+        "function"
+    ){
+
+        setTimeout(
+            () => {
+
+                enableSensor();
+
+            },
+            250
+        );
+
+    }
+
+
+    /* =====================================================
+       SENSOR HINT
+       ===================================================== */
+
+    function showSensorHint(){
+
+        if (!sensorHint){
+            return;
+        }
+
+        sensorHint.classList.remove(
+            "hidden"
+        );
+
+        sensorHint.classList.add(
+            "visible"
+        );
+
+    }
+
+
+    function hideSensorHint(){
+
+        if (!sensorHint){
+            return;
+        }
+
+        sensorHint.classList.remove(
+            "visible"
+        );
+
+        sensorHint.classList.add(
+            "hidden"
+        );
+
+    }
+
+
+    /* =====================================================
+       FLOATING MOTION
+       ===================================================== */
+
+    const floatingData =
+        cards.map(
+            (_, index) => ({
+
+                speed:
+                    .00045 +
+                    (
+                        index %
+                        5
+                    ) *
+                    .00008,
+
+                amplitude:
+                    1.2 +
+                    (
+                        index %
+                        4
+                    ) *
+                    .65,
+
+                phase:
+                    index *
+                    .93
+
+            })
+        );
+
+
+    /* =====================================================
+       RENDER
+       ===================================================== */
+
+    function render(time){
+
+        const delta =
+            Math.min(
+                32,
+                time-lastTime
+            );
+
+        lastTime = time;
+
+
+        /*
+         * Interpolation principale.
+         */
+
+        currentX =
+            lerp(
+                currentX,
+                targetX,
+                CONFIG.smoothing
+            );
+
+
+        currentY =
+            lerp(
+                currentY,
+                targetY,
+                CONFIG.smoothing
+            );
+
+
+        /*
+         * Rotation globale très légère.
+         */
+
+        world.style.transform =
+            `
+            translate3d(0,0,0)
+            rotateX(${currentY}deg)
+            rotateY(${currentX}deg)
+            `;
+
+
+        /* =================================================
+           DEPTH LAYERS
+           ================================================= */
+
+        depths.forEach(
+            (layer,index) => {
+
+                let factor =
+                    CONFIG.midFactor;
+
+
+                if (
+                    layer.classList.contains(
+                        "depth-back"
+                    )
+                ){
+
+                    factor =
+                        CONFIG.backFactor;
+
+                }
+
+                if (
+                    layer.classList.contains(
+                        "depth-front"
+                    )
+                ){
+
+                    factor =
+                        CONFIG.frontFactor;
+
+                }
+
+
+                const tx =
+                    currentX *
+                    factor *
+                    1.5;
+
+
+                const ty =
+                    currentY *
+                    factor *
+                    1.2;
+
+
+                layer.style.transform =
+                    `
+                    translate3d(
+                        ${tx}px,
+                        ${ty}px,
+                        ${index * 2}px
+                    )
+                    `;
+
+            }
+        );
+
+
+        /* =================================================
+           INDIVIDUAL FLOATING CARDS
+           ================================================= */
+
+        cards.forEach(
+            (card,index) => {
+
+                const data =
+                    floatingData[index];
+
+
+                const wave =
+                    Math.sin(
+                        time *
+                        data.speed +
+                        data.phase
+                    );
+
+
+                const wave2 =
+                    Math.cos(
+                        time *
+                        data.speed *
+                        .72 +
+                        data.phase
+                    );
+
+
+                const depth =
+                    card.closest(
+                        ".depth"
+                    );
+
+
+                let factor =
+                    CONFIG.midFactor;
+
+
+                if (
+                    depth &&
+                    depth.classList.contains(
+                        "depth-back"
+                    )
+                ){
+
+                    factor =
+                        CONFIG.backFactor;
+
+                }
+
+
+                if (
+                    depth &&
+                    depth.classList.contains(
+                        "depth-front"
+                    )
+                ){
+
+                    factor =
+                        CONFIG.frontFactor;
+
+                }
+
+
+                const translateX =
+                    currentX *
+                    factor *
+                    .65;
+
+
+                const translateY =
+                    currentY *
+                    factor *
+                    .55;
+
+
+                const floatingY =
+                    wave *
+                    data.amplitude;
+
+
+                const floatingX =
+                    wave2 *
+                    data.amplitude *
+                    .45;
+
+
+                const rotate =
+                    wave2 *
+                    .65;
+
+
+                /*
+                 * On ajoute seulement du transform.
+                 * Aucun layout reflow.
+                 */
+
+                card.style.transform =
+                    `
+                    translate3d(
+                        ${translateX + floatingX}px,
+                        ${translateY + floatingY}px,
+                        0
+                    )
+                    rotate(${rotate}deg)
+                    `;
+
+            }
+        );
+
+
+        /* =================================================
+           ORBS
+           ================================================= */
+
+        orbs.forEach(
+            (orb,index) => {
+
+                const amplitude =
+                    3 +
+                    index * .7;
+
+
+                const x =
+                    Math.sin(
+                        time *
+                        .00045 +
+                        index
+                    ) *
+                    amplitude;
+
+
+                const y =
+                    Math.cos(
+                        time *
+                        .00036 +
+                        index
+                    ) *
+                    amplitude;
+
+
+                const factor =
+                    .4 +
+                    index * .15;
+
+
+                orb.style.transform =
+                    `
+                    translate3d(
+                        ${x + currentX * factor}px,
+                        ${y + currentY * factor}px,
+                        0
+                    )
+                    `;
+
+            }
+        );
+
+
+        animationFrame =
+            requestAnimationFrame(
+                render
+            );
+
+    }
+
+
+    /* =====================================================
+       VISIBILITY OPTIMIZATION
+       ===================================================== */
+
+    document.addEventListener(
+        "visibilitychange",
+        () => {
+
+            if (
+                document.hidden
+            ){
+
+                if (animationFrame){
+
+                    cancelAnimationFrame(
+                        animationFrame
+                    );
+
+                    animationFrame =
+                        null;
+
+                }
+
+            }else{
+
+                if (!animationFrame){
+
+                    lastTime =
+                        performance.now();
+
+                    animationFrame =
+                        requestAnimationFrame(
+                            render
+                        );
+
+                }
+
+            }
+
+        }
+    );
+
+
+    /* =====================================================
+       REDUCED MOTION
+       ===================================================== */
+
+    const reducedMotion =
+        window.matchMedia(
+            "(prefers-reduced-motion: reduce)"
+        );
+
+
+    if (
+        !reducedMotion.matches
+    ){
+
+        animationFrame =
+            requestAnimationFrame(
+                render
+            );
+
+    }
+
+
+    /* =====================================================
+       RESIZE
+       ===================================================== */
+
+    let resizeTimer = null;
+
+
+    window.addEventListener(
+        "resize",
+        () => {
+
+            clearTimeout(
+                resizeTimer
+            );
+
+
+            resizeTimer =
+                setTimeout(
+                    () => {
+
+                        updateScreenAngle();
+
+                    },
+                    120
+                );
+
+        },
+        {
+            passive:true
+        }
+    );
+
+
+})();
+
+
+/* =========================================================
+   COD.IA — COUNTING
+   ========================================================= */
+
+/*
+ * Les appels CountAPI sont conservés,
+ * mais protégés afin qu'une erreur externe
+ * ne casse jamais la landing.
+ */
+
+(async () => {
+
+    "use strict";
+
+
+    const visitKey =
+        "codia-landing-visits";
+
+
+    const clickKey =
+        "codia-app-clicks";
+
+
+    const safeFetch =
+        async url => {
+
+            try{
+
+                return await fetch(
+                    url,
+                    {
+                        cache:"no-store",
+                        keepalive:true
+                    }
+                );
+
+            }catch(error){
+
+                console.warn(
+                    "COD.IA counter:",
+                    error
+                );
+
+                return null;
+
+            }
+
+        };
+
+
+    /*
+     * Visite unique par navigateur.
+     */
+
+    try{
+
+        if (
+            !localStorage.getItem(
+                visitKey
+            )
+        ){
+
+            localStorage.setItem(
+                visitKey,
+                "1"
+            );
+
+
+            await safeFetch(
+                "https://api.countapi.xyz/hit/cod-ia.fr/visits"
+            );
+
+        }
+
+    }catch(error){
+
+        console.warn(
+            "COD.IA localStorage:",
+            error
+        );
+
+    }
+
+
+    /*
+     * Clics vers l'application.
+     */
+
+    const appLinks =
+        document.querySelectorAll(
+            "#mainApp, #headerApp"
+        );
+
+
+    appLinks.forEach(
+        link => {
+
+            link.addEventListener(
+                "click",
+                () => {
+
+                    safeFetch(
+                        "https://api.countapi.xyz/hit/cod-ia.fr/app-clicks"
+                    );
+
+                },
+                {
+                    passive:true
+                }
+            );
+
+        }
+    );
+
+
+})();
+
+</script>
 
 </body>
 </html>
