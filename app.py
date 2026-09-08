@@ -959,7 +959,7 @@ def ranking(user):
     all_rows = merge_members(real)
     ranking_list = []
     my_pos = None
-    for i, item in enumerate(all_rows[:50], start=1):
+    for i, item in enumerate(all_rows[:10], start=1):
         item["position"] = i
         ranking_list.append(item)
         if item.get("id") == user["id"]:
