@@ -1,768 +1,1615 @@
-<!DOCTYPE html>
+```html
+<!doctype html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f7f5ee">
+
   <title>COD.IA — Un monde tous ensemble</title>
-  <meta name="description" content="COD.IA — Découvre des codes promo, partage tes bons plans et profite de récompenses.">
+
+  <meta
+    name="description"
+    content="COD.IA réunit une communauté autour des codes promo, du parrainage et des récompenses."
+  >
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap"
+    rel="stylesheet"
+  >
 
   <style>
-    :root{
-      --bg:#f8f8f4;
-      --card:#ffffff;
-      --ink:#171813;
-      --muted:#70736a;
-      --olive:#687d32;
-      --olive-dark:#4f6225;
-      --olive-soft:#e9eddb;
-      --line:#e5e6dd;
-      --gold:#c4b07a;
-      --shadow:0 24px 70px rgba(38,43,25,.13);
+
+    /* =========================================================
+       RESET
+    ========================================================= */
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
     }
 
-    *{box-sizing:border-box}
+    html {
+      scroll-behavior: smooth;
+    }
 
-    html{scroll-behavior:smooth}
-
-    body{
-      margin:0;
-      font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    body {
+      min-height: 100vh;
       background:
-        radial-gradient(circle at 80% 12%, rgba(196,176,122,.12), transparent 28%),
-        radial-gradient(circle at 12% 40%, rgba(104,125,50,.08), transparent 30%),
-        var(--bg);
-      color:var(--ink);
+        radial-gradient(
+          circle at 50% -10%,
+          rgba(119, 151, 90, .10),
+          transparent 34%
+        ),
+        #f7f5ee;
+
+      color: #172017;
+
+      font-family: "DM Sans", sans-serif;
+
+      overflow-x: hidden;
+
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
     }
 
-    a{text-decoration:none;color:inherit}
-
-    .page{
-      min-height:100vh;
-      overflow:hidden;
+    a {
+      color: inherit;
+      text-decoration: none;
     }
 
-    .container{
-      width:min(1180px,calc(100% - 40px));
-      margin:auto;
+    ::selection {
+      background: #294528;
+      color: white;
     }
 
-    header{
-      height:78px;
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      position:relative;
-      z-index:5;
+
+    /* =========================================================
+       VARIABLES
+    ========================================================= */
+
+    :root {
+      --bg: #f7f5ee;
+      --green: #294528;
+      --green-light: #45663b;
+      --text: #172017;
+      --muted: #777b72;
+      --line: rgba(31, 48, 29, .10);
     }
 
-    .brand{
-      display:flex;
-      align-items:center;
-      gap:10px;
-      font-weight:900;
-      letter-spacing:-1.2px;
-      font-size:25px;
+
+    /* =========================================================
+       CONTAINER
+    ========================================================= */
+
+    .container {
+      width: min(
+        1180px,
+        calc(100% - 48px)
+      );
+
+      margin-inline: auto;
     }
 
-    .brand-mark{
-      width:39px;
-      height:39px;
-      border:1.5px solid #8d8e82;
-      border-radius:50%;
-      position:relative;
-      display:grid;
-      place-items:center;
-      font-size:10px;
-      color:#77796f;
+
+    /* =========================================================
+       HEADER
+    ========================================================= */
+
+    header {
+      position: absolute;
+
+      z-index: 100;
+
+      top: 0;
+      left: 0;
+
+      width: 100%;
+      height: 88px;
+
+      display: flex;
+      align-items: center;
     }
 
-    .brand-mark:after{
-      content:"";
-      position:absolute;
-      width:9px;
-      height:9px;
-      border-top:2px solid var(--gold);
-      border-right:2px solid var(--gold);
-      transform:rotate(35deg);
-      top:-4px;
-      right:2px;
+    .nav {
+      display: flex;
+
+      align-items: center;
+      justify-content: flex-end;
     }
 
-    .brand span{
-      position:relative;
+    .header-btn {
+      display: inline-flex;
+
+      align-items: center;
+      justify-content: center;
+
+      height: 44px;
+
+      padding: 0 19px;
+
+      border-radius: 999px;
+
+      background:
+        rgba(255,255,255,.62);
+
+      border:
+        1px solid rgba(31,48,29,.10);
+
+      box-shadow:
+        0 8px 30px
+        rgba(30,45,28,.06);
+
+      font-size: 13px;
+      font-weight: 700;
+
+      transition:
+        transform .25s ease,
+        background .25s ease,
+        box-shadow .25s ease;
+
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
     }
 
-    .brand span:after{
-      content:"";
-      position:absolute;
-      left:0;
-      right:1px;
-      bottom:-5px;
-      height:2px;
-      background:#6686d7;
-      border-radius:10px;
+    .header-btn:hover {
+      transform: translateY(-2px);
+
+      background: white;
+
+      box-shadow:
+        0 12px 34px
+        rgba(30,45,28,.10);
     }
 
-    .header-btn{
-      padding:12px 18px;
-      border-radius:14px;
-      background:#fff;
-      border:1px solid var(--line);
-      font-size:13px;
-      font-weight:800;
-      transition:.2s;
+
+    /* =========================================================
+       HERO
+    ========================================================= */
+
+    .hero {
+      position: relative;
+
+      min-height: 860px;
+
+      display: flex;
+
+      align-items: center;
+
+      overflow: hidden;
+
+      isolation: isolate;
+
+      padding:
+        150px 0
+        110px;
     }
 
-    .header-btn:hover{
-      transform:translateY(-2px);
-      box-shadow:0 10px 25px rgba(0,0,0,.07);
+
+    /* Halo central */
+
+    .hero::before {
+      content: "";
+
+      position: absolute;
+
+      z-index: -4;
+
+      width: 700px;
+      height: 700px;
+
+      left: 50%;
+      top: 40%;
+
+      transform:
+        translate(-50%, -50%);
+
+      border-radius: 50%;
+
+      background:
+        radial-gradient(
+          circle,
+          rgba(104,137,83,.13),
+          rgba(104,137,83,.035) 42%,
+          transparent 70%
+        );
+
+      filter: blur(10px);
     }
 
-    .hero{
-      min-height:calc(100vh - 78px);
-      display:grid;
-      grid-template-columns:1fr .9fr;
-      align-items:center;
-      gap:50px;
-      padding:45px 0 80px;
-      position:relative;
+
+    /* Grain */
+
+    .hero::after {
+      content: "";
+
+      position: absolute;
+
+      inset: 0;
+
+      z-index: -3;
+
+      pointer-events: none;
+
+      opacity: .18;
+
+      background-image:
+        radial-gradient(
+          rgba(40,58,37,.16) .7px,
+          transparent .7px
+        );
+
+      background-size: 6px 6px;
+
+      mask-image:
+        linear-gradient(
+          to bottom,
+          transparent,
+          black 25%,
+          black 70%,
+          transparent
+        );
     }
 
-    .hero-copy{
-      position:relative;
-      z-index:2;
+
+    /* =========================================================
+       HERO CONTENT
+    ========================================================= */
+
+    .hero-content {
+      position: relative;
+
+      z-index: 20;
+
+      width:
+        min(850px, 100%);
+
+      margin: auto;
+
+      text-align: center;
     }
 
-    .eyebrow{
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      padding:8px 12px;
-      border-radius:999px;
-      background:var(--olive-soft);
-      color:var(--olive-dark);
-      font-size:12px;
-      font-weight:850;
-      margin-bottom:22px;
+
+    /* =========================================================
+       EYEBROW
+    ========================================================= */
+
+    .eyebrow {
+      width: fit-content;
+
+      margin:
+        0 auto 24px;
+
+      padding:
+        8px 12px;
+
+      display: inline-flex;
+
+      align-items: center;
+
+      gap: 8px;
+
+      border:
+        1px solid
+        rgba(41,69,40,.12);
+
+      background:
+        rgba(255,255,255,.52);
+
+      border-radius: 999px;
+
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+
+      box-shadow:
+        0 8px 30px
+        rgba(40,55,36,.04);
+
+      color: #52614c;
+
+      font-size: 11px;
+
+      font-weight: 700;
+
+      letter-spacing: .10em;
+
+      text-transform: uppercase;
     }
 
-    .eyebrow i{
-      width:7px;
-      height:7px;
-      border-radius:50%;
-      background:var(--olive);
-      box-shadow:0 0 0 5px rgba(104,125,50,.1);
+    .eyebrow-dot {
+      width: 7px;
+      height: 7px;
+
+      border-radius: 50%;
+
+      background: #6c8a59;
+
+      box-shadow:
+        0 0 0 5px
+        rgba(108,138,89,.10);
     }
 
-    h1{
-      font-size:clamp(48px,6.2vw,82px);
-      line-height:.96;
-      letter-spacing:-5px;
-      max-width:760px;
-      margin:0 0 24px;
-      font-weight:950;
+
+    /* =========================================================
+       TITLE
+    ========================================================= */
+
+    h1 {
+      font-size:
+        clamp(
+          58px,
+          8vw,
+          112px
+        );
+
+      line-height: .88;
+
+      letter-spacing: -.065em;
+
+      font-weight: 600;
+
+      color: #182018;
     }
 
-    h1 em{
-      font-style:normal;
-      color:var(--olive);
+    h1 em {
+      font-family:
+        "Instrument Serif",
+        serif;
+
+      font-weight: 400;
+
+      letter-spacing: -.035em;
+
+      color: var(--green);
     }
 
-    .subtitle{
-      max-width:540px;
-      color:var(--muted);
-      font-size:18px;
-      line-height:1.65;
-      margin:0 0 30px;
+
+    /* =========================================================
+       DESCRIPTION
+    ========================================================= */
+
+    .hero-description {
+      width:
+        min(590px, 100%);
+
+      margin:
+        30px auto 0;
+
+      color: #71766d;
+
+      font-size: 16px;
+
+      line-height: 1.75;
     }
 
-    .cta-row{
-      display:flex;
-      gap:12px;
-      align-items:center;
-      flex-wrap:wrap;
+
+    /* =========================================================
+       CTA
+    ========================================================= */
+
+    .cta-row {
+      margin-top: 34px;
+
+      display: flex;
+
+      justify-content: center;
+
+      align-items: center;
+
+      gap: 12px;
+
+      flex-wrap: wrap;
     }
 
-    .primary{
-      border:0;
-      background:linear-gradient(135deg,var(--olive),var(--olive-dark));
-      color:white;
-      padding:15px 23px;
-      border-radius:15px;
-      font-weight:850;
-      font-size:14px;
-      cursor:pointer;
-      box-shadow:0 15px 35px rgba(79,98,37,.22);
-      transition:.2s;
+    .primary,
+    .secondary {
+      min-height: 54px;
+
+      display: inline-flex;
+
+      align-items: center;
+
+      justify-content: center;
+
+      border-radius: 999px;
+
+      padding:
+        0 23px;
+
+      font-size: 14px;
+
+      font-weight: 700;
+
+      transition: .3s ease;
     }
 
-    .primary:hover{
-      transform:translateY(-3px);
-      box-shadow:0 20px 40px rgba(79,98,37,.28);
+    .primary {
+      color: white;
+
+      background:
+        var(--green);
+
+      box-shadow:
+        0 18px 38px
+        rgba(41,69,40,.20),
+
+        inset 0 1px 0
+        rgba(255,255,255,.14);
     }
 
-    .secondary{
-      padding:14px 20px;
-      border:1px solid var(--line);
-      background:#fff;
-      border-radius:15px;
-      font-size:14px;
-      font-weight:800;
+    .primary:hover {
+      transform:
+        translateY(-3px);
+
+      box-shadow:
+        0 24px 44px
+        rgba(41,69,40,.27),
+
+        inset 0 1px 0
+        rgba(255,255,255,.14);
     }
 
-    .mini-proof{
-      display:flex;
-      align-items:center;
-      gap:10px;
-      margin-top:25px;
-      color:#7a7c73;
-      font-size:12px;
+    .secondary {
+      color: #344032;
+
+      background:
+        rgba(255,255,255,.54);
+
+      border:
+        1px solid
+        rgba(41,69,40,.10);
+
+      backdrop-filter:
+        blur(14px);
+
+      -webkit-backdrop-filter:
+        blur(14px);
     }
 
-    .avatars{display:flex}
+    .secondary:hover {
+      transform:
+        translateY(-3px);
 
-    .avatar{
-      width:25px;
-      height:25px;
-      border-radius:50%;
-      background:#dfe4ca;
-      border:2px solid var(--bg);
-      margin-left:-6px;
-      display:grid;
-      place-items:center;
-      font-size:9px;
-      font-weight:900;
-      color:#52602f;
+      background:
+        rgba(255,255,255,.9);
     }
 
-    .avatar:first-child{margin-left:0}
 
-    .visual{
-      position:relative;
-      min-height:640px;
-      display:grid;
-      place-items:center;
+    /* =========================================================
+       NOTIFICATIONS FLOTTANTES
+    ========================================================= */
+
+    .notification-layer {
+      position: absolute;
+
+      z-index: 4;
+
+      inset: 0;
+
+      overflow: hidden;
+
+      pointer-events: none;
+
+      transition:
+        transform .25s ease-out;
     }
 
-    .glow{
-      position:absolute;
-      width:480px;
-      height:480px;
-      border-radius:50%;
-      background:radial-gradient(circle,rgba(104,125,50,.16),rgba(104,125,50,0) 68%);
+    .notification {
+      position: absolute;
+
+      left: var(--left);
+      top: var(--top);
+
+      width:
+        var(--width, 255px);
+
+      padding:
+        12px 13px;
+
+      display: flex;
+
+      align-items: center;
+
+      gap: 11px;
+
+      border:
+        1px solid
+        rgba(255,255,255,.72);
+
+      border-radius: 18px;
+
+      background:
+        linear-gradient(
+          135deg,
+          rgba(255,255,255,.78),
+          rgba(249,248,241,.56)
+        );
+
+      box-shadow:
+
+        0 24px 65px
+        rgba(41,57,38,.09),
+
+        0 5px 18px
+        rgba(41,57,38,.05),
+
+        inset 0 1px 0
+        rgba(255,255,255,.9);
+
+      backdrop-filter:
+        blur(18px);
+
+      -webkit-backdrop-filter:
+        blur(18px);
+
+      opacity: .72;
+
+      animation:
+        notificationFloat
+        var(--duration, 9s)
+        ease-in-out
+        var(--delay, 0s)
+        infinite alternate;
+
+      transform:
+        translate3d(0,0,0)
+        rotate(var(--rotate,0deg));
     }
 
-    .phone{
-      width:310px;
-      height:625px;
-      border-radius:44px;
-      background:#111;
-      padding:9px;
-      box-shadow:0 35px 80px rgba(0,0,0,.25);
-      transform:rotate(2.5deg);
-      position:relative;
-      z-index:2;
+    .notification.small {
+      opacity: .48;
+
+      transform:
+        scale(.86);
     }
 
-    .phone:before{
-      content:"";
-      position:absolute;
-      width:105px;
-      height:26px;
-      background:#111;
-      border-radius:0 0 18px 18px;
-      left:50%;
-      top:9px;
-      transform:translateX(-50%);
-      z-index:5;
+
+    /* =========================================================
+       NOTIFICATION ICON
+    ========================================================= */
+
+    .notification-icon {
+      flex:
+        0 0 37px;
+
+      width: 37px;
+      height: 37px;
+
+      display: grid;
+
+      place-items: center;
+
+      border-radius: 12px;
+
+      background:
+        #eef1e9;
+
+      font-size: 16px;
+
+      box-shadow:
+        inset 0 0 0 1px
+        rgba(41,69,40,.05);
     }
 
-    .screen{
-      width:100%;
-      height:100%;
-      background:#f8f8f4;
-      border-radius:36px;
-      overflow:hidden;
-      padding:25px 16px 15px;
+    .notification-icon.green {
+      background:
+        #e6eee0;
     }
 
-    .app-top{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      margin:8px 2px 17px;
+    .notification-icon.blue {
+      background:
+        #e8ecff;
     }
 
-    .app-logo{
-      font-weight:950;
-      font-size:17px;
-      letter-spacing:-.8px;
+    .notification-icon.gold {
+      background:
+        #f4ecda;
     }
 
-    .app-logo:after{
-      content:"";
-      display:block;
-      height:2px;
-      width:45px;
-      background:#6e8dd7;
-      border-radius:5px;
+
+    /* =========================================================
+       NOTIFICATION TEXT
+    ========================================================= */
+
+    .notification-copy {
+      min-width: 0;
+
+      text-align: left;
     }
 
-    .bell{
-      width:31px;
-      height:31px;
-      border-radius:50%;
-      background:#fff;
-      display:grid;
-      place-items:center;
-      font-size:14px;
+    .notification-title {
+      color: #273127;
+
+      font-size: 11px;
+
+      line-height: 1.2;
+
+      font-weight: 800;
     }
 
-    .welcome{margin-bottom:15px}
-    .welcome small{color:#85877f;font-size:10px}
-    .welcome h2{margin:3px 0 0;font-size:23px;letter-spacing:-1.2px}
+    .notification-text {
+      margin-top: 3px;
 
-    .search{
-      height:39px;
-      background:#fff;
-      border:1px solid #e7e8df;
-      border-radius:12px;
-      display:flex;
-      align-items:center;
-      gap:8px;
-      padding:0 12px;
-      color:#9b9c95;
-      font-size:11px;
-      margin-bottom:13px;
+      color: #8a8f86;
+
+      font-size: 10px;
+
+      line-height: 1.35;
+
+      white-space: nowrap;
+
+      overflow: hidden;
+
+      text-overflow: ellipsis;
     }
 
-    .chips{display:flex;gap:6px;overflow:hidden;margin-bottom:13px}
+    .notification-badge {
+      margin-left: auto;
 
-    .chip{
-      white-space:nowrap;
-      padding:7px 10px;
-      background:#fff;
-      border:1px solid #e5e6dd;
-      border-radius:999px;
-      font-size:9px;
-      font-weight:750;
+      flex:
+        0 0 auto;
+
+      padding:
+        5px 7px;
+
+      border-radius: 999px;
+
+      background:
+        #e5edde;
+
+      color:
+        #48613e;
+
+      font-size: 9px;
+
+      font-weight: 800;
+
+      white-space: nowrap;
     }
 
-    .chip.active{
-      background:#687d32;
-      color:#fff;
-      border-color:#687d32;
+
+    /* =========================================================
+       NOTIFICATION ANIMATION
+    ========================================================= */
+
+    @keyframes notificationFloat {
+
+      0% {
+        transform:
+          translate3d(
+            var(--move-x,0px),
+            var(--move-y,0px),
+            0
+          )
+          rotate(
+            var(--rotate,0deg)
+          );
+      }
+
+      100% {
+        transform:
+          translate3d(
+            calc(
+              var(--move-x,0px) * -1
+            ),
+            calc(
+              var(--move-y,0px) * -1
+            ),
+            0
+          )
+          rotate(
+            calc(
+              var(--rotate,0deg) * -1
+            )
+          );
+      }
+
     }
 
-    .offer{
-      background:#fff;
-      border:1px solid #e8e9e1;
-      border-radius:17px;
-      padding:12px;
-      margin-bottom:10px;
-      box-shadow:0 6px 20px rgba(34,38,25,.045);
+
+    /* =========================================================
+       BOTTOM MESSAGE
+    ========================================================= */
+
+    .hero-bottom {
+      position: absolute;
+
+      z-index: 25;
+
+      left: 0;
+      bottom: 40px;
+
+      width: 100%;
     }
 
-    .offer-top{display:flex;align-items:center;gap:9px}
+    .hero-bottom-inner {
+      display: flex;
 
-    .shop{
-      width:34px;
-      height:34px;
-      border-radius:10px;
-      background:#f0f1ea;
-      display:grid;
-      place-items:center;
-      font-size:13px;
-      font-weight:950;
+      align-items: center;
+
+      justify-content: center;
+
+      gap: 10px;
+
+      color: #7b8076;
+
+      font-size: 11px;
+
+      letter-spacing: .02em;
     }
 
-    .offer-top b{font-size:11px}
-    .offer-top span{display:block;color:#96978f;font-size:8px;margin-top:2px}
+    .hero-bottom-line {
+      width: 32px;
 
-    .discount{
-      margin-left:auto;
-      padding:5px 7px;
-      background:#edf2df;
-      color:#5d702c;
-      border-radius:7px;
-      font-size:9px;
-      font-weight:900;
+      height: 1px;
+
+      background:
+        rgba(41,69,40,.22);
     }
 
-    .code{
-      margin-top:9px;
-      height:35px;
-      border:1px dashed #cfd3c1;
-      background:#fafbf7;
-      border-radius:9px;
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      padding:0 9px;
-      font-size:10px;
-      font-weight:900;
+
+    /* =========================================================
+       REVEAL
+    ========================================================= */
+
+    .reveal {
+      opacity: 0;
+
+      transform:
+        translateY(22px);
+
+      animation:
+        reveal .9s
+        cubic-bezier(.22,.8,.25,1)
+        forwards;
     }
 
-    .copy{color:#687d32;font-size:8px}
-
-    .bottom-nav{
-      position:absolute;
-      bottom:11px;
-      left:17px;
-      right:17px;
-      height:55px;
-      border-radius:17px;
-      background:rgba(255,255,255,.94);
-      border:1px solid #e5e6dd;
-      display:flex;
-      justify-content:space-around;
-      align-items:center;
-      font-size:9px;
-      color:#85877f;
+    .delay-1 {
+      animation-delay: .10s;
     }
 
-    .bottom-nav b{color:#687d32}
-
-    .float-card{
-      position:absolute;
-      z-index:4;
-      background:rgba(255,255,255,.96);
-      border:1px solid rgba(228,230,220,.9);
-      box-shadow:var(--shadow);
-      border-radius:16px;
-      padding:12px 14px;
-      display:flex;
-      gap:9px;
-      align-items:center;
-      font-size:11px;
-      font-weight:850;
-      line-height:1.25;
+    .delay-2 {
+      animation-delay: .20s;
     }
 
-    .float-card strong{display:block;color:#687d32;font-size:9px;margin-top:2px}
-    .float-1{left:0;top:155px}
-    .float-2{right:-5px;bottom:160px}
-
-    .benefits{padding:0 0 70px}
-
-    .benefit-strip{
-      background:#fff;
-      border:1px solid var(--line);
-      border-radius:24px;
-      padding:20px;
-      display:grid;
-      grid-template-columns:repeat(3,1fr);
-      gap:10px;
-      box-shadow:0 12px 35px rgba(30,35,20,.05);
+    .delay-3 {
+      animation-delay: .30s;
     }
 
-    .benefit{
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      gap:10px;
-      padding:12px;
-      color:#51534c;
-      font-size:13px;
-      font-weight:800;
+    @keyframes reveal {
+
+      to {
+        opacity: 1;
+
+        transform:
+          translateY(0);
+      }
+
     }
 
-    .benefit-icon{
-      width:34px;
-      height:34px;
-      border-radius:11px;
-      background:var(--olive-soft);
-      display:grid;
-      place-items:center;
+
+    /* =========================================================
+       TABLET
+    ========================================================= */
+
+    @media (max-width: 900px) {
+
+      .hero {
+        min-height: 820px;
+      }
+
+      .notification:nth-child(n+8) {
+        display: none;
+      }
+
+      .notification {
+        opacity: .55;
+      }
+
+      .notification:nth-child(1) {
+        left: 3% !important;
+        top: 20% !important;
+      }
+
+      .notification:nth-child(2) {
+        left: auto !important;
+        right: -4% !important;
+        top: 28% !important;
+      }
+
+      .notification:nth-child(3) {
+        left: -6% !important;
+        top: 66% !important;
+      }
+
+      .notification:nth-child(4) {
+        left: auto !important;
+        right: -5% !important;
+        top: 70% !important;
+      }
+
+      .notification:nth-child(5) {
+        left: 4% !important;
+        top: 38% !important;
+      }
+
+      .notification:nth-child(6) {
+        left: auto !important;
+        right: 2% !important;
+        top: 43% !important;
+      }
+
     }
 
-    .final{padding:30px 0 75px}
 
-    .final-card{
-      background:linear-gradient(135deg,#53652a,#34421b);
-      color:#fff;
-      border-radius:30px;
-      padding:38px;
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:25px;
-      overflow:hidden;
-      position:relative;
+    /* =========================================================
+       MOBILE
+    ========================================================= */
+
+    @media (max-width: 640px) {
+
+      .container {
+        width:
+          calc(100% - 30px);
+      }
+
+      header {
+        height: 74px;
+      }
+
+      .header-btn {
+        height: 40px;
+
+        padding:
+          0 14px;
+
+        font-size: 11px;
+      }
+
+      .hero {
+        min-height: 760px;
+
+        padding:
+          125px 0
+          90px;
+      }
+
+      .hero::before {
+        width: 460px;
+        height: 460px;
+      }
+
+      h1 {
+        font-size:
+          clamp(
+            52px,
+            16vw,
+            76px
+          );
+      }
+
+      .hero-description {
+        font-size: 14px;
+
+        line-height: 1.7;
+
+        padding-inline: 10px;
+      }
+
+      .cta-row {
+        margin-top: 27px;
+
+        flex-direction: column;
+      }
+
+      .primary,
+      .secondary {
+        width: 100%;
+
+        max-width: 290px;
+      }
+
+      .notification {
+        width: 205px;
+
+        padding:
+          9px 10px;
+
+        border-radius: 15px;
+      }
+
+      .notification-icon {
+        width: 31px;
+        height: 31px;
+
+        flex-basis: 31px;
+
+        border-radius: 10px;
+
+        font-size: 13px;
+      }
+
+      .notification-title {
+        font-size: 9px;
+      }
+
+      .notification-text {
+        font-size: 8px;
+      }
+
+      .notification-badge {
+        display: none;
+      }
+
+      .notification:nth-child(5),
+      .notification:nth-child(6),
+      .notification:nth-child(7),
+      .notification:nth-child(8) {
+        display: none;
+      }
+
     }
 
-    .final-card:after{
-      content:"";
-      position:absolute;
-      width:300px;
-      height:300px;
-      border-radius:50%;
-      right:-120px;
-      top:-170px;
-      border:1px solid rgba(255,255,255,.12);
-      box-shadow:0 0 0 50px rgba(255,255,255,.025),0 0 0 100px rgba(255,255,255,.02);
+
+    /* =========================================================
+       REDUCED MOTION
+    ========================================================= */
+
+    @media (prefers-reduced-motion: reduce) {
+
+      html {
+        scroll-behavior: auto;
+      }
+
+      *,
+      *::before,
+      *::after {
+        animation-duration: .01ms !important;
+
+        animation-iteration-count: 1 !important;
+
+        transition-duration: .01ms !important;
+      }
+
+      .notification {
+        animation: none;
+      }
+
     }
 
-    .final-card h2{margin:0 0 7px;font-size:27px;letter-spacing:-1.5px}
-    .final-card p{margin:0;color:#dce3ca;font-size:13px}
-
-    .white-btn{
-      position:relative;
-      z-index:2;
-      border:0;
-      background:#fff;
-      color:#4e6025;
-      padding:14px 20px;
-      border-radius:14px;
-      font-weight:900;
-      cursor:pointer;
-      white-space:nowrap;
-    }
-
-    footer{
-      padding:0 0 35px;
-      text-align:center;
-      color:#999b92;
-      font-size:11px;
-    }
-
-    @media(max-width:850px){
-      .container{width:min(100% - 28px,600px)}
-      header{height:70px}
-      .header-btn{padding:10px 13px;font-size:11px}
-      .hero{grid-template-columns:1fr;padding:25px 0 45px;gap:15px}
-      .hero-copy{text-align:center}
-      .eyebrow{margin-bottom:17px}
-      h1{font-size:47px;letter-spacing:-3px;line-height:.98}
-      .subtitle{margin-left:auto;margin-right:auto;font-size:15px;max-width:430px}
-      .cta-row{justify-content:center}
-      .mini-proof{justify-content:center}
-      .visual{min-height:610px;margin-top:-10px}
-      .phone{width:285px;height:575px}
-      .float-1{left:calc(50% - 180px);top:110px}
-      .float-2{right:calc(50% - 180px);bottom:115px}
-      .benefit-strip{grid-template-columns:1fr;padding:12px}
-      .benefit{justify-content:flex-start}
-      .final-card{flex-direction:column;align-items:flex-start;padding:28px}
-      .white-btn{width:100%}
-    }
-
-    @media(max-width:420px){
-      .brand{font-size:21px}
-      .brand-mark{width:34px;height:34px}
-      h1{font-size:42px}
-      .visual{min-height:580px}
-      .phone{width:265px;height:545px}
-      .float-card{font-size:9px;padding:9px 11px}
-      .float-1{left:0}
-      .float-2{right:0}
-    }
   </style>
 </head>
 
+
 <body>
-<div class="page">
 
-  <div class="container">
-    <header>
-      <a class="brand" href="/">
-        <span class="brand-mark">COD</span>
-        <span>COD.IA</span>
+
+  <!-- =======================================================
+       HEADER
+  ======================================================== -->
+
+  <header>
+
+    <div class="container nav">
+
+      <!--
+        Logo supprimé volontairement.
+        Il ne reste que le bouton d'accès.
+      -->
+
+      <a
+        class="header-btn"
+        href="/app"
+      >
+        Accéder à l'app
       </a>
-      <a class="header-btn" href="/app">Accéder à l'app</a>
-    </header>
 
-    <main class="hero">
-      <section class="hero-copy">
-        <div class="eyebrow">
-          <i></i>
-          Codes promo & Parrainage
-        </div>
+    </div>
 
-        <h1>
-          Les bons plans<br>
-          se partagent,<br>
-          <em>Les récompenses aussi</em>
-        </h1>
+  </header>
 
-        <p class="subtitle">
-          Découvre des offres, partage tes bons plans et profite de récompenses.
-          Tout ce dont tu as besoin, au même endroit.
-        </p>
 
-        <div class="cta-row">
-          <a class="primary" href="/app">Accéder à COD.IA →</a>
-          <a class="secondary" href="#decouvrir">Découvrir</a>
-        </div>
 
-        <div class="mini-proof">
-          <div class="avatars">
-            <div class="avatar">A</div>
-            <div class="avatar">L</div>
-            <div class="avatar">M</div>
-            <div class="avatar">C</div>
+  <!-- =======================================================
+       HERO
+  ======================================================== -->
+
+  <main>
+
+    <section class="hero">
+
+
+      <!-- =====================================================
+           NOTIFICATIONS
+      ====================================================== -->
+
+      <div
+        class="notification-layer"
+        aria-hidden="true"
+      >
+
+
+        <!-- Notification 01 -->
+
+        <div
+          class="notification"
+          style="
+            --left:7%;
+            --top:24%;
+            --width:245px;
+            --delay:-1s;
+            --duration:8s;
+            --move-x:7px;
+            --move-y:11px;
+            --rotate:-2deg;
+          "
+        >
+
+          <div class="notification-icon green">
+            ✓
           </div>
-          <span>Une communauté qui partage ses bons plans.</span>
-        </div>
-      </section>
 
-      <section class="visual" aria-label="Aperçu de l'application COD.IA">
-        <div class="glow"></div>
+          <div class="notification-copy">
 
-        <div class="float-card float-1">
-          <span>🎁</span>
-          <div>
-            Plusieurs offres<br>chaque jour
-            <strong>Découvre • Copie • Économise</strong>
+            <div class="notification-title">
+              Parrainage validé
+            </div>
+
+            <div class="notification-text">
+              Une nouvelle personne vient de rejoindre.
+            </div>
+
           </div>
-        </div>
 
-        <div class="float-card float-2">
-          <span>🏆</span>
-          <div>
-            Récompenses<br>à gagner
-            <strong>Parrainage & challenges</strong>
+          <div class="notification-badge">
+            +1 point
           </div>
+
         </div>
 
-        <div class="phone">
-          <div class="screen">
-            <div class="app-top">
-              <div class="app-logo">COD.IA</div>
-              <div class="bell">♡</div>
-            </div>
 
-            <div class="welcome">
-              <small>UN MONDE TOUS ENSEMBLE</small>
-              <h2>Les bons plans du moment</h2>
-            </div>
 
-            <div class="search">⌕ &nbsp; Rechercher une marque ou une offre...</div>
+        <!-- Notification 02 -->
 
-            <div class="chips">
-              <div class="chip active">Pour toi</div>
-              <div class="chip">Promo</div>
-              <div class="chip">Parrainage</div>
-              <div class="chip">Top codes</div>
-            </div>
+        <div
+          class="notification"
+          style="
+            --left:76%;
+            --top:20%;
+            --width:245px;
+            --delay:-4s;
+            --duration:10s;
+            --move-x:-8px;
+            --move-y:8px;
+            --rotate:2deg;
+          "
+        >
 
-            <div class="offer">
-              <div class="offer-top">
-                <div class="shop">Z</div>
-                <div>
-                  <b>Zara</b>
-                  <span>Mode • Aujourd'hui</span>
-                </div>
-                <div class="discount">-20%</div>
-              </div>
-              <div class="code">
-                <span>ZARA20</span>
-                <span class="copy">COPIER</span>
-              </div>
-            </div>
-
-            <div class="offer">
-              <div class="offer-top">
-                <div class="shop">S</div>
-                <div>
-                  <b>SHEIN</b>
-                  <span>Mode • Offre du moment</span>
-                </div>
-                <div class="discount">-15%</div>
-              </div>
-              <div class="code">
-                <span>SHEIN15</span>
-                <span class="copy">COPIER</span>
-              </div>
-            </div>
-
-            <div class="offer">
-              <div class="offer-top">
-                <div class="shop">N</div>
-                <div>
-                  <b>Nike</b>
-                  <span>Sport • Bon plan</span>
-                </div>
-                <div class="discount">-10%</div>
-              </div>
-              <div class="code">
-                <span>RUN10</span>
-                <span class="copy">COPIER</span>
-              </div>
-            </div>
-
-            <div class="bottom-nav">
-              <b>⌂<br>Accueil</b>
-              <span>＋<br>Publier</span>
-              <span>♕<br>Challenge</span>
-              <span>♙<br>Profil</span>
-            </div>
+          <div class="notification-icon blue">
+            ✦
           </div>
-        </div>
-      </section>
-    </main>
 
-    <section id="decouvrir" class="benefits">
-      <div class="benefit-strip">
-        <div class="benefit">
-          <div class="benefit-icon">🏷️</div>
-          <span>Offres & codes promo</span>
+          <div class="notification-copy">
+
+            <div class="notification-title">
+              Nouveau code disponible
+            </div>
+
+            <div class="notification-text">
+              Une nouvelle offre vient d'être publiée.
+            </div>
+
+          </div>
+
+          <div class="notification-badge">
+            Nouveau
+          </div>
+
         </div>
-        <div class="benefit">
-          <div class="benefit-icon">🤝</div>
-          <span>Partage & parrainage</span>
+
+
+
+        <!-- Notification 03 -->
+
+        <div
+          class="notification small"
+          style="
+            --left:3%;
+            --top:56%;
+            --width:235px;
+            --delay:-3s;
+            --duration:11s;
+            --move-x:10px;
+            --move-y:-8px;
+            --rotate:1deg;
+          "
+        >
+
+          <div class="notification-icon gold">
+            ★
+          </div>
+
+          <div class="notification-copy">
+
+            <div class="notification-title">
+              Récompense débloquée
+            </div>
+
+            <div class="notification-text">
+              Un membre vient d'atteindre son objectif.
+            </div>
+
+          </div>
+
+          <div class="notification-badge">
+            120 €
+          </div>
+
         </div>
-        <div class="benefit">
-          <div class="benefit-icon">🏆</div>
-          <span>Récompenses à gagner</span>
+
+
+
+        <!-- Notification 04 -->
+
+        <div
+          class="notification"
+          style="
+            --left:79%;
+            --top:58%;
+            --width:250px;
+            --delay:-6s;
+            --duration:9s;
+            --move-x:-6px;
+            --move-y:-10px;
+            --rotate:-1deg;
+          "
+        >
+
+          <div class="notification-icon green">
+            ↗
+          </div>
+
+          <div class="notification-copy">
+
+            <div class="notification-title">
+              Ton classement évolue
+            </div>
+
+            <div class="notification-text">
+              Tu viens de gagner une place.
+            </div>
+
+          </div>
+
+          <div class="notification-badge">
+            #12
+          </div>
+
         </div>
+
+
+
+        <!-- Notification 05 -->
+
+        <div
+          class="notification small"
+          style="
+            --left:16%;
+            --top:39%;
+            --width:225px;
+            --delay:-7s;
+            --duration:12s;
+            --move-x:-7px;
+            --move-y:6px;
+            --rotate:2deg;
+          "
+        >
+
+          <div class="notification-icon">
+            ●
+          </div>
+
+          <div class="notification-copy">
+
+            <div class="notification-title">
+              Nouveau membre
+            </div>
+
+            <div class="notification-text">
+              Bienvenue dans la communauté COD.IA.
+            </div>
+
+          </div>
+
+        </div>
+
+
+
+        <!-- Notification 06 -->
+
+        <div
+          class="notification"
+          style="
+            --left:68%;
+            --top:42%;
+            --width:235px;
+            --delay:-2s;
+            --duration:10s;
+            --move-x:8px;
+            --move-y:7px;
+            --rotate:-2deg;
+          "
+        >
+
+          <div class="notification-icon blue">
+            %
+          </div>
+
+          <div class="notification-copy">
+
+            <div class="notification-title">
+              Offre activée
+            </div>
+
+            <div class="notification-text">
+              Une réduction vient d'être utilisée.
+            </div>
+
+          </div>
+
+          <div class="notification-badge">
+            -20%
+          </div>
+
+        </div>
+
+
+
+        <!-- Notification 07 -->
+
+        <div
+          class="notification small"
+          style="
+            --left:84%;
+            --top:77%;
+            --width:220px;
+            --delay:-5s;
+            --duration:11s;
+            --move-x:-8px;
+            --move-y:9px;
+            --rotate:2deg;
+          "
+        >
+
+          <div class="notification-icon gold">
+            €
+          </div>
+
+          <div class="notification-copy">
+
+            <div class="notification-title">
+              Objectif atteint
+            </div>
+
+            <div class="notification-text">
+              Une récompense est maintenant disponible.
+            </div>
+
+          </div>
+
+        </div>
+
+
+
+        <!-- Notification 08 -->
+
+        <div
+          class="notification small"
+          style="
+            --left:8%;
+            --top:78%;
+            --width:225px;
+            --delay:-8s;
+            --duration:13s;
+            --move-x:6px;
+            --move-y:-7px;
+            --rotate:-1deg;
+          "
+        >
+
+          <div class="notification-icon green">
+            ♢
+          </div>
+
+          <div class="notification-copy">
+
+            <div class="notification-title">
+              Nouvelle activité
+            </div>
+
+            <div class="notification-text">
+              La communauté vient de bouger.
+            </div>
+
+          </div>
+
+        </div>
+
+
       </div>
+
+
+
+      <!-- =====================================================
+           HERO CONTENT
+      ====================================================== -->
+
+      <div class="container">
+
+        <div class="hero-content">
+
+
+          <div class="eyebrow reveal">
+
+            <span class="eyebrow-dot"></span>
+
+            La communauté des bonnes affaires
+
+          </div>
+
+
+
+          <h1 class="reveal delay-1">
+
+            Les bons plans.<br>
+
+            <em>Ensemble.</em>
+
+          </h1>
+
+
+
+          <p class="hero-description reveal delay-2">
+
+            Découvrez, partagez et profitez des codes promo et
+            parrainages d'une communauté qui avance ensemble.
+
+          </p>
+
+
+
+          <div class="cta-row reveal delay-3">
+
+            <a
+              class="primary"
+              href="/app"
+            >
+              Accéder à COD.IA&nbsp; →
+            </a>
+
+
+            <a
+              class="secondary"
+              href="#decouvrir"
+            >
+              Découvrir
+            </a>
+
+          </div>
+
+
+        </div>
+
+      </div>
+
+
+
+      <!-- =====================================================
+           BOTTOM
+      ====================================================== -->
+
+      <div class="hero-bottom">
+
+        <div class="hero-bottom-inner">
+
+          <span class="hero-bottom-line"></span>
+
+          Une nouvelle façon de partager
+
+          <span class="hero-bottom-line"></span>
+
+        </div>
+
+      </div>
+
+
     </section>
 
-    <section class="final">
-      <div class="final-card">
-        <div>
-          <h2>Un monde tous ensemble.</h2>
-          <p>Découvre COD.IA et commence à partager tes meilleurs bons plans.</p>
-        </div>
-        <a class="white-btn" href="/app">Commencer →</a>
-      </div>
-    </section>
+  </main>
 
-    <footer>
-      © 2026 COD.IA · Codes promo, parrainage & communauté
-    </footer>
-  </div>
-</div>
 
-<script>
-(function () {
-  const API = "https://countapi.mileshilliard.com/api/v1";
-  const KEYS = {
-    visits: "codia-fr-visites-unique-xyz123",
-    connexion: "codia-fr-clics-connexion-xyz123",
-    inscription: "codia-fr-clics-inscription-xyz123"
-  };
-  const hit = (key) => {
-    fetch(`${API}/hit/${encodeURIComponent(key)}`).catch(() => {});
-  };
-  try {
-    if (!sessionStorage.getItem("codia_visit_counted")) {
-      hit(KEYS.visits);
-      sessionStorage.setItem("codia_visit_counted", "1");
-    }
-  } catch (e) {
-    hit(KEYS.visits);
-  }
-  document.addEventListener("click", (e) => {
-    const el = e.target.closest("a, button");
-    if (!el) return;
-    const t = (el.innerText || "").toLowerCase();
-    if (t.includes("accéder") || t.includes("commencer") || t.includes("app")) {
-      hit(KEYS.connexion);
-    }
-  });
-})();
-</script>
+
+  <!-- =======================================================
+       COMPTAGE ANCIEN LANDING
+  ======================================================== -->
+
+  <script>
+
+    (function () {
+
+      const API =
+        "https://countapi.mileshilliard.com/api/v1";
+
+
+      const KEYS = {
+
+        visits:
+          "codia-fr-visites-unique-xyz123",
+
+        connexion:
+          "codia-fr-clics-connexion-xyz123",
+
+        inscription:
+          "codia-fr-clics-inscription-xyz123"
+
+      };
+
+
+      const hit = (key) => {
+
+        fetch(
+          `${API}/hit/${encodeURIComponent(key)}`
+        ).catch(() => {});
+
+      };
+
+
+      /* Visite unique */
+
+      try {
+
+        if (
+          !sessionStorage.getItem(
+            "codia_visit_counted"
+          )
+        ) {
+
+          hit(KEYS.visits);
+
+          sessionStorage.setItem(
+            "codia_visit_counted",
+            "1"
+          );
+
+        }
+
+      } catch (e) {
+
+        hit(KEYS.visits);
+
+      }
+
+
+      /* Clic vers l'application */
+
+      document.addEventListener(
+        "click",
+        (e) => {
+
+          const el =
+            e.target.closest("a, button");
+
+          if (!el) return;
+
+
+          const t =
+            (el.innerText || "")
+            .toLowerCase();
+
+
+          if (
+            t.includes("accéder") ||
+            t.includes("commencer") ||
+            t.includes("app")
+          ) {
+
+            hit(KEYS.connexion);
+
+          }
+
+        }
+      );
+
+    })();
+
+  </script>
+
+
+
+  <!-- =======================================================
+       PARALLAXE LÉGER
+  ======================================================== -->
+
+  <script>
+
+    (function () {
+
+      const reduceMotion =
+        window.matchMedia(
+          "(prefers-reduced-motion: reduce)"
+        ).matches;
+
+
+      if (reduceMotion) return;
+
+
+      const layer =
+        document.querySelector(
+          ".notification-layer"
+        );
+
+
+      if (!layer) return;
+
+
+      let raf = null;
+
+
+      document.addEventListener(
+        "mousemove",
+        function (event) {
+
+          if (raf) return;
+
+
+          raf =
+            requestAnimationFrame(
+              function () {
+
+                const x =
+                  (
+                    event.clientX /
+                    window.innerWidth
+                  ) - .5;
+
+
+                const y =
+                  (
+                    event.clientY /
+                    window.innerHeight
+                  ) - .5;
+
+
+                layer.style.transform =
+                  `translate3d(
+                    ${x * -5}px,
+                    ${y * -4}px,
+                    0
+                  )`;
+
+
+                raf = null;
+
+              }
+            );
+
+        },
+        {
+          passive: true
+        }
+      );
+
+    })();
+
+  </script>
+
+
 </body>
 </html>
+```
