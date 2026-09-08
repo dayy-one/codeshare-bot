@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale:1">
 <title>COD-IA</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -23,7 +23,8 @@ button,input,textarea,select{font:inherit}button{border:0;cursor:pointer}h1,h2,p
 .desktop{display:none}.avatar{width:40px;height:40px;border-radius:13px;background:#d7ead0;color:var(--d);display:grid;place-items:center;font-weight:600;overflow:hidden}
 .avatar img,.pav img,.mav img,.photo-preview img{width:100%;height:100%;object-fit:cover}
 html,body{height:auto;overflow-x:hidden}
-main{padding-bottom:240px}.page{display:none}.page.active{display:block}.page-end{height:90px}
+main{padding-bottom:240px}.page{display:none}.page.active{display:block;animation:slideIn .28s ease}.page-end{height:90px}
+@keyframes slideIn{from{transform:translateX(28px);opacity:.35}to{transform:none;opacity:1}}
 .section{margin-top:22px}.ey{font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--g)}
 h1,h2,.points,.money,.walletmoney{font-family:var(--serif);font-weight:600}
 h1{font-size:clamp(32px,6.5vw,48px);line-height:.95;letter-spacing:-.04em;margin:6px 0 8px}
@@ -33,7 +34,7 @@ h2{font-size:22px;margin:0 0 4px}.sub{color:var(--m);line-height:1.5}
 .hero{padding:24px;border-radius:28px;color:#fff;background:linear-gradient(145deg,#1f3a1c,#45753a)}
 .pill{display:inline-flex;padding:6px 10px;border-radius:99px;background:#ffffff18;font-size:10px;font-weight:600;margin-bottom:12px;cursor:pointer}
 .herorow{display:flex;justify-content:space-between;align-items:end;gap:24px}
-.points{font-size:42px;line-height:1}
+.points{font-size:42px;line-height:1;cursor:pointer}
 .progress{height:8px;border-radius:99px;overflow:hidden;background:#ffffff22}
 .progress i{display:block;height:100%;width:0;background:#e5f4df}
 .meta{display:flex;justify-content:space-between;margin-top:7px;font-size:11px;color:#ffffffa6}
@@ -54,7 +55,8 @@ h2{font-size:22px;margin:0 0 4px}.sub{color:var(--m);line-height:1.5}
 .mi{flex:1}.mi strong,.mp strong{display:block}.mi small,.mp small{color:var(--m)}.mp{text-align:right}
 .rank{padding:13px 0;border-bottom:1px solid var(--l)}.rank.me{background:var(--s);margin:0 -8px;padding:13px 8px;border-radius:14px}
 .wallet{background:#1d331c;color:#fff}.walletmoney{font-size:42px;margin:10px 0}
-.activity,.post,.myc{padding:12px 0;border-bottom:1px solid var(--l)}
+.activity,.post,.myc{padding:12px 0;border-bottom:1px solid var(--l)}.activity{cursor:pointer}
+.locknote{margin-top:12px;padding:10px 12px;border-radius:14px;background:#fff3d6;color:#7a5b16;font-size:13px;font-weight:600}
 .profile{display:flex;align-items:center;gap:14px}
 .pav{width:70px;height:70px;border-radius:22px;background:var(--g);color:#fff;display:grid;place-items:center;font-weight:600;overflow:hidden}
 .level.current{border:2px solid var(--g)}.price{font-size:26px;font-family:var(--serif);font-weight:600;margin:10px 0}
@@ -147,10 +149,11 @@ h2{font-size:22px;margin:0 0 4px}.sub{color:var(--m);line-height:1.5}
   <div class="hero">
     <span class="pill" onclick="showHelp()">NIVEAU <span id="hlevel">START</span></span>
     <div class="herorow">
-      <div><div class="ey">Progression</div><div class="points"><span id="pts">0</span> pts</div></div>
+      <div><div class="ey">Progression</div><div class="points" onclick="showRules()"><span id="pts">0</span> pts</div></div>
       <div style="width:min(280px,100%)"><div class="progress"><i id="hp"></i></div><div class="meta"><span id="hmeta">0 / 10 pts</span><span id="hnext">20 €</span></div></div>
     </div>
   </div>
+  <div id="lockNote" class="locknote hidden">Palier atteint : retire ta récompense. Tant que tu ne retires pas, aucun point n’est compté.</div>
   <div class="grid g3 section">
     <div class="card stat"><div class="ico">✓</div><div><strong id="validated">0</strong><small>Parrainages validés</small></div></div>
     <div class="card stat"><div class="ico">♛</div><div><strong id="rank">#—</strong><small>Classement</small></div></div>
@@ -165,7 +168,7 @@ h2{font-size:22px;margin:0 0 4px}.sub{color:var(--m);line-height:1.5}
       <div class="meta" style="color:#6f7a6d"><span id="rmeta">0 / 10</span><span id="rmissing">10 restants</span></div>
     </div>
   </div>
-  <div class="section"><h2>Activité</h2><div class="card" id="homeActivity"></div></div>
+  <div class="section"><h2>Notifications</h2><div class="card" id="homeActivity"></div></div>
   <div class="page-end"></div>
 </section>
 <section class="page" id="page-explore"><div class="section"><div class="ey">Communauté</div><h1>Explorer</h1></div><div class="search"><input id="search" placeholder="Nom ou @pseudo" oninput="loadMembers()"></div><div class="grid g2" id="members"></div><div class="page-end"></div></section>
@@ -267,18 +270,18 @@ h2{font-size:22px;margin:0 0 4px}.sub{color:var(--m);line-height:1.5}
   <h1>Point parrainage comptabilisé</h1>
   <button class="btn white" style="margin-top:18px" onclick="closeGates()">Continuer</button>
 </div>
+<div class="gate" id="palierGate" style="justify-content:center;text-align:center">
+  <div class="ey">Palier atteint</div>
+  <h1 id="palierTitle">Vous avez franchi un palier</h1>
+  <p class="sub" style="color:#ffffffc8">Retrait obligatoire. Les points sont bloqués et remis à 0 après le retrait. Tant que tu ne retires pas, aucun nouveau point n’est compté.</p>
+  <button class="btn white" style="margin-top:18px" onclick="goWithdraw()">Retirer maintenant</button>
+  <button class="btn soft" style="margin-top:8px" onclick="closePalier()">Plus tard</button>
+</div>
 <div class="help" id="help" onclick="if(event.target===this)closeHelp()">
   <div class="helpbox">
-    <div class="ey">Comment ça marche</div>
-    <h2>Niveau START</h2>
-    <ol>
-      <li>Tu t’inscris, puis tu paies 9,99 € une fois pour ouvrir l’espace.</li>
-      <li>Tu reçois un code parrainage unique à partager.</li>
-      <li>Chaque filleul qui paie avec ton code te rapporte 1 point.</li>
-      <li>Les paliers : 10 pts = 20 €, 25 pts = 50 €, 50 pts = 120 €.</li>
-      <li>Les récompenses ne se cumulent pas.</li>
-      <li>Retrait par virement sous 48h après RIB dans Profil.</li>
-    </ol>
+    <div class="ey">COD-IA</div>
+    <h2>Règles du Parrainage</h2>
+    <ol id="rulesList"></ol>
     <button class="btn primary full" style="margin-top:16px" onclick="closeHelp()">Compris</button>
   </div>
 </div>
@@ -299,13 +302,36 @@ const $=id=>document.getElementById(id);
 const money=v=>new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR',maximumFractionDigits:0}).format(Number(v||0));
 const esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
 const S={auth:false,paid:false,d:null,levels:null,posts:[],afterAuth:null};
-let stripeCheckout=null,cropImg=null,pendingPhoto=null,cropScale=1,cropX=0,cropY=0,pinchStart=0,startScale=1,drag=null;
+const PAGES=['home','explore','ranking','space','profile'];
+const FALLBACK_LEVELS={
+  START:{price:0,rewards:[{points:10,reward:20},{points:25,reward:50},{points:50,reward:120}]},
+  PRO:{price:0,rewards:[{points:500,reward:1000},{points:1100,reward:2200},{points:1200,reward:2400},{points:1400,reward:2800}]},
+  ELITE:{price:0,rewards:[{points:10,reward:80},{points:25,reward:220},{points:50,reward:500}]}
+};
+let stripeCheckout=null,cropImg=null,pendingPhoto=null,cropScale=1,cropX=0,cropY=0,pinchStart=0,startScale=1,drag=null,touchX=0,touchY=0;
 function toast(t){$('toast').textContent=t;$('toast').classList.add('show');clearTimeout(window.tt);window.tt=setTimeout(()=>$('toast').classList.remove('show'),2200)}
 function av(u){return u&&u.photo?`<img src="${u.photo}">`:esc((u&&u.initials)||'C')}
 async function api(u,o={}){const r=await fetch(u,{credentials:'same-origin',headers:{'Content-Type':'application/json'},...o});const d=await r.json().catch(()=>({message:'Erreur'}));if(!r.ok) throw Object.assign(Error(d.message||d.error||'Erreur'),d);return d}
 function locked(){return !S.auth||!S.paid}
-function showHelp(){$('help').classList.add('show')}
+function showRules(){
+  const lv=S.levels||FALLBACK_LEVELS;
+  const start=(lv.START&&lv.START.rewards)||FALLBACK_LEVELS.START.rewards;
+  const pro=(lv.PRO&&lv.PRO.rewards)||FALLBACK_LEVELS.PRO.rewards;
+  $('rulesList').innerHTML=`
+    <li>Inscription puis paiement unique 9,99 € pour ouvrir l’espace. Aucun paiement pour changer de niveau.</li>
+    <li>Chaque filleul payé et validé = 1 point.</li>
+    <li>Les points ne se cumulent pas d’un palier à l’autre.</li>
+    <li>START : ${start.map(x=>x.points+' pts = '+money(x.reward)).join(' · ')}.</li>
+    <li>PRO : ${pro.map(x=>x.points+' pts = '+money(x.reward)).join(' · ')}.</li>
+    <li>Quand un palier est atteint : obligation de retirer. Les points sont bloqués.</li>
+    <li>Si tu ne retires pas : aucun nouveau point n’est compté.</li>
+    <li>Après le retrait : points remis à 0, palier suivant. Virement sous 48h.</li>`;
+  $('help').classList.add('show');
+}
+function showHelp(){showRules()}
 function closeHelp(){$('help').classList.remove('show')}
+function closePalier(){$('palierGate').classList.remove('show')}
+function goWithdraw(){closePalier();go('profile')}
 function showTab(tab){const loginActive=tab==='login';$('loginTab').classList.toggle('active',loginActive);$('registerTab').classList.toggle('active',!loginActive);$('loginPanel').classList.toggle('active',loginActive);$('registerPanel').classList.toggle('active',!loginActive);$('cardTitle').textContent=loginActive?'Se connecter':'Créer ton compte';$('cardSub').textContent=loginActive?'Accède à ton espace COD.IA':'Rejoins COD.IA en quelques secondes'}
 function togglePassword(id){const el=$(id);el.type=el.type==='password'?'text':'password'}
 function setMessage(id,text,ok){const el=$(id);if(!el)return;el.textContent=text||'';el.classList.toggle('ok',!!ok)}
@@ -314,7 +340,7 @@ function closeAuth(){$('authGate').classList.remove('show')}
 function go(p){if(['explore','ranking','space','profile','rewards','edit'].includes(p)&&!S.auth){openAuth('login',p);return}if(['explore','ranking','space','profile','rewards','edit','home'].includes(p)&&S.auth&&!S.paid){showPay();return}document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));$('page-'+p).classList.add('active');document.querySelectorAll('[data-n]').forEach(x=>x.classList.toggle('active',x.dataset.n===p||(p==='edit'&&x.dataset.n==='profile')));if(p==='explore')loadMembers();if(p==='ranking')loadRanking();if(p==='space')loadPosts();if(p==='profile'||p==='edit')renderProfile();if(p==='rewards')renderRewards()}
 function onTopAvatar(){if(!S.auth){openAuth('login','profile');return}if(!S.paid){showPay();return}if($('page-profile').classList.contains('active'))go('edit');else go('profile')}
 function closeSheet(){$('sheet').classList.remove('show')}
-function closeGates(){['payGate','refGate','refOk'].forEach(id=>$(id).classList.remove('show'));go('home')}
+function closeGates(){['payGate','refGate','refOk','palierGate'].forEach(id=>$(id).classList.remove('show'));go('home')}
 function setPreview(src,initials){$('editPreview').innerHTML=src?`<img src="${src}">`:esc(initials||'C')}
 function pickPhoto(){$('editFile').click()}
 function deletePhoto(){pendingPhoto='';setPreview('',S.d&&S.d.user.initials);toast('Photo supprimée')}
@@ -324,6 +350,23 @@ function drawCrop(){if(!cropImg)return;const c=$('cropCanvas'),ctx=c.getContext(
 function applyCrop(){drawCrop();pendingPhoto=$('cropCanvas').toDataURL('image/jpeg',0.86);setPreview(pendingPhoto,'');closeCrop()}
 function dist(a,b){const dx=a.clientX-b.clientX,dy=a.clientY-b.clientY;return Math.hypot(dx,dy)}
 function bindCropTouch(){const box=$('cropCanvas');box.ontouchstart=e=>{if(e.touches.length===2){pinchStart=dist(e.touches[0],e.touches[1]);startScale=cropScale}else if(e.touches.length===1){drag={x:e.touches[0].clientX,y:e.touches[0].clientY,cx:cropX,cy:cropY}}};box.ontouchmove=e=>{e.preventDefault();if(e.touches.length===2){cropScale=Math.min(2.8,Math.max(1,startScale*(dist(e.touches[0],e.touches[1])/pinchStart)));$('cropZoom').value=Math.round(cropScale*100);drawCrop()}else if(e.touches.length===1&&drag){cropX=drag.cx-(e.touches[0].clientX-drag.x)*2;cropY=drag.cy-(e.touches[0].clientY-drag.y)*2;drawCrop()}};box.ontouchend=()=>{drag=null}}
+function bindSwipe(){
+  const el=document.querySelector('main');
+  el.addEventListener('touchstart',e=>{
+    if(e.touches.length!==1)return;
+    touchX=e.touches[0].clientX;touchY=e.touches[0].clientY;
+  },{passive:true});
+  el.addEventListener('touchend',e=>{
+    const t=e.changedTouches[0];
+    const dx=t.clientX-touchX,dy=t.clientY-touchY;
+    if(Math.abs(dx)<56||Math.abs(dx)<Math.abs(dy)*1.15)return;
+    if(document.querySelector('.gate.show,.authgate.show,.help.show,.crop.show,.sheet.show'))return;
+    const cur=PAGES.findIndex(p=>$('page-'+p).classList.contains('active'));
+    if(cur<0)return;
+    if(dx<0&&cur<PAGES.length-1)go(PAGES[cur+1]);
+    if(dx>0&&cur>0)go(PAGES[cur-1]);
+  },{passive:true});
+}
 async function showPay(){$('payGate').classList.add('show');const box=$('stripeEmbed');box.innerHTML='';try{const cfg=await api('/api/pay/config');if(!cfg.pk) throw Error('Clé publique Stripe manquante');const stripe=Stripe(cfg.pk);if(stripeCheckout){try{stripeCheckout.destroy()}catch(e){}}stripeCheckout=await stripe.createEmbeddedCheckoutPage({fetchClientSecret:async()=>{const sess=await api('/api/pay/session',{method:'POST',body:'{}'});if(sess.paid){S.paid=true;$('payGate').classList.remove('show');renderAll();throw Error('already-paid')}if(!sess.clientSecret) throw Error('Pas de clientSecret');return sess.clientSecret}});stripeCheckout.mount('#stripeEmbed')}catch(e){if(e.message==='already-paid')return;box.innerHTML='<p style="color:#333;padding:16px">Impossible de charger Stripe : '+esc(e.message)+'</p>';toast(e.message)}}
 async function confirmPay(){const sid=new URLSearchParams(location.search).get('session_id')||'';try{const d=await api('/api/pay/confirm?session_id='+encodeURIComponent(sid));if(!d.paid){showPay();toast('Paiement non confirmé');return}S.d=d.dashboard;S.paid=true;$('payGate').classList.remove('show');if(S.d&&!S.d.user.refLocked)$('refGate').classList.add('show');else{renderAll();go(S.afterAuth||'home')}}catch(e){toast(e.message);showPay()}}
 async function afterLoginOk(d){S.auth=true;S.d=d.dashboard;S.paid=!!(d.dashboard&&d.dashboard.user&&d.dashboard.user.paid);closeAuth();if(!S.paid)showPay();else if(S.d&&!S.d.user.refLocked)$('refGate').classList.add('show');else{renderAll();go(S.afterAuth||'home')}}
@@ -331,20 +374,21 @@ async function login(){const btn=$('loginBtn');if(btn)btn.disabled=true;setMessa
 async function register(){const btn=$('registerBtn');if(btn)btn.disabled=true;setMessage('registerMessage','');try{const d=await api('/api/auth/register',{method:'POST',body:JSON.stringify({name:$('registerName').value.trim(),username:$('registerUsername').value.trim(),email:$('registerEmail').value.trim(),password:$('registerPassword').value})});await afterLoginOk(d)}catch(e){setMessage('registerMessage',e.message)}if(btn)btn.disabled=false}
 async function saveRef(skip){try{const d=await api('/api/referral/attach',{method:'POST',body:JSON.stringify({code:skip?'':$('refAttach').value})});S.d=d.dashboard;$('refGate').classList.remove('show');if(d.counted)$('refOk').classList.add('show');else closeGates();renderAll()}catch(e){toast(e.message)}}
 async function logout(){await api('/api/auth/logout',{method:'POST'});location.href='/'}
-function renderAll(){if(!S.d)return;const d=S.d,u=d.user,n=d.reward.next;$('topAvatar').innerHTML=av(u);$('hlevel').textContent=u.level;$('pts').textContent=u.points;$('validated').textContent=d.referrals.validated;$('rank').textContent=d.ranking.position?'#'+d.ranking.position:'#—';$('reward').textContent=money(d.reward.current);$('refCode').textContent=u.code;$('hp').style.width=d.progress+'%';$('rp').style.width=d.progress+'%';$('hmeta').textContent=n?`${u.points} / ${n.points} pts`:`${u.points} pts`;$('hnext').textContent=n?money(n.reward):'Max';$('nextMoney').textContent=n?money(n.reward):'Max';$('nextPts').textContent=n?n.points+' points':'Max';$('rmeta').textContent=n?`${u.points} / ${n.points}`:`${u.points}`;$('rmissing').textContent=n?(n.points-u.points)+' restants':'Max';renderProfile();renderRewards();loadActivity()}
-async function loadActivity(){if(locked())return;try{const d=await api('/api/activity');$('homeActivity').innerHTML=d.activities.length?d.activities.map(a=>`<div class="activity"><strong>${esc(a.title)}</strong><div class="sub">${esc(a.description||'')}</div></div>`).join(''):'<p class="sub">Aucune activité.</p>'}catch(e){}}
+function renderAll(){if(!S.d)return;const d=S.d,u=d.user,n=d.reward.next,rewLocked=!!(d.reward&&d.reward.locked);$('topAvatar').innerHTML=av(u);$('hlevel').textContent=u.level;$('pts').textContent=u.points;$('validated').textContent=d.referrals.validated;$('rank').textContent=d.ranking.position?'#'+d.ranking.position:'#—';$('reward').textContent=money(d.reward.current);$('refCode').textContent=u.code;$('hp').style.width=d.progress+'%';$('rp').style.width=d.progress+'%';$('hmeta').textContent=rewLocked?`${u.points} / ${d.reward.current_points} pts`:(n?`${u.points} / ${n.points} pts`:`${u.points} pts`);$('hnext').textContent=rewLocked?money(d.reward.current):(n?money(n.reward):'Max');$('nextMoney').textContent=rewLocked?money(d.reward.current):(n?money(n.reward):'Max');$('nextPts').textContent=rewLocked?'Retrait obligatoire':(n?n.points+' points':'Max');$('rmeta').textContent=rewLocked?`${u.points} / ${d.reward.current_points}`:(n?`${u.points} / ${n.points}`:`${u.points}`);$('rmissing').textContent=rewLocked?'Palier atteint':(n?(n.points-u.points)+' restants':'Max');if($('lockNote'))$('lockNote').classList.toggle('hidden',!rewLocked);if(rewLocked&&!window._palierShown){window._palierShown=true;$('palierTitle').textContent='Vous avez franchi un '+(d.reward.tierLabel||'nouveau')+' palier';$('palierGate').classList.add('show')}if(!rewLocked)window._palierShown=false;renderProfile();renderRewards();loadActivity()}
+async function loadActivity(){if(locked())return;try{const d=await api('/api/activity');const list=d.activities&&d.activities.length?d.activities:[{kind:'rules',title:'Règles du Parrainage',description:'Appuie pour lire les règles'}];$('homeActivity').innerHTML=list.map(a=>`<div class="activity" onclick="${a.kind==='rules'||a.kind==='palier'?'showRules()':''}"><strong>${esc(a.title)}</strong><div class="sub">${esc(a.description||'')}</div></div>`).join('')}catch(e){}}
 async function loadMembers(){if(locked())return;const d=await api('/api/members?q='+encodeURIComponent($('search')?.value||''));$('members').innerHTML=d.members.map(x=>`<div class="card"><div class="row"><div class="mav">${av(x)}</div><div class="mi"><strong>${esc(x.name)}</strong><small>@${esc(x.username)}</small></div><div class="mp"><strong>${x.points}</strong><small>pts</small></div></div></div>`).join('')||'<div class="card">Aucun membre.</div>'}
 async function loadRanking(){if(locked())return;const d=await api('/api/ranking');$('myRank').textContent=d.me.position?'#'+d.me.position:'#—';$('ranking').innerHTML=d.ranking.map(x=>`<div class="row rank ${S.d&&x.id===S.d.user.id?'me':''}"><div>${x.position}</div><div class="mav">${av(x)}</div><div class="mi"><strong>${esc(x.name)}</strong></div><div class="mp"><strong>${x.points}</strong></div></div>`).join('')}
-function renderRewards(){if(!S.d||!S.levels)return;const u=S.d.user,a=S.levels[u.level].rewards,r=S.d.reward;$('currentReward').textContent=money(r.current);$('rewardList').innerHTML=a.map(x=>`<div class="reward ${u.points>=x.points?'':'lock'}"><strong>${x.points} pts</strong><div><b>${money(x.reward)}</b></div></div>`).join('')}
-function renderProfile(){if(!S.d)return;const u=S.d.user;$('profileAvatar').innerHTML=av(u);$('profileName').textContent=u.name;$('profileUsername').textContent='@'+u.username;$('profileLevel').textContent=u.level;$('profileCode').textContent=u.code;$('profilePoints').textContent=u.points;$('profileReward').textContent=money(S.d.reward.current);$('walletAmount').textContent=money(S.d.wallet.available);$('withdrawBtn').disabled=S.d.wallet.available<=0;$('editUser').value=u.username;$('payFirst').value=u.firstName||'';$('payLast').value=u.lastName||'';$('payIban').value=u.iban||'';if(pendingPhoto===null)setPreview(u.photo||'',u.initials);const LEVELS=S.levels||{START:{price:9.99,rewards:[{points:10,reward:20},{points:25,reward:50},{points:50,reward:120}]},PRO:{price:29.99,rewards:[{points:10,reward:40},{points:25,reward:110},{points:50,reward:250}]},ELITE:{price:79.99,rewards:[{points:10,reward:80},{points:25,reward:220},{points:50,reward:500}]}};$('levels').innerHTML=['START','PRO','ELITE'].map(n=>{const l=LEVELS[n],cur=n===u.level;const tiers=(l.rewards||[]).map(x=>`<div class="tier"><span>${x.points} pts</span><b>${money(x.reward)}</b></div>`).join('');return `<div class="card level ${cur?'current':''}"><span class="badge ${cur?'gold':'lockb'}">${cur?'NIVEAU ACTUEL':'À DÉBLOQUER'}</span><h2>${n}</h2><div class="price">${money(l.price)}</div><div class="sub">Paliers & récompenses</div>${tiers}</div>`}).join('');const mine=S.posts.filter(p=>p.userId===u.id);$('myCodes').innerHTML=mine.length?mine.map(p=>`<div class="myc"><div><b>${esc(p.code)}</b><div class="sub">${esc(p.desc)}</div></div><button class="btn soft" onclick="deleteCode(${p.id})">Supprimer</button></div>`).join(''):'<p class="sub">Aucun code publié.</p>'}
+function renderRewards(){if(!S.d)return;const u=S.d.user,lv=(S.levels||FALLBACK_LEVELS)[u.level]||FALLBACK_LEVELS.START,a=lv.rewards||[],r=S.d.reward;$('currentReward').textContent=money(r.current);$('rewardList').innerHTML=a.map((x,i)=>`<div class="reward ${(!r.locked&&i===r.tierIndex)||(r.locked&&i===r.tierIndex)?'':'lock'}"><strong>${x.points} pts</strong><div><b>${money(x.reward)}</b></div></div>`).join('')}
+function renderProfile(){if(!S.d)return;const u=S.d.user,rewLocked=!!(S.d.reward&&S.d.reward.locked);$('profileAvatar').innerHTML=av(u);$('profileName').textContent=u.name;$('profileUsername').textContent='@'+u.username;$('profileLevel').textContent=u.level;$('profileCode').textContent=u.code;$('profilePoints').textContent=u.points;$('profileReward').textContent=money(S.d.reward.current);$('walletAmount').textContent=money(S.d.wallet.available);$('withdrawBtn').disabled=!rewLocked;$('withdrawBtn').textContent=rewLocked?'Retirer la récompense (obligatoire)':'Retirer la récompense';$('editUser').value=u.username;$('payFirst').value=u.firstName||'';$('payLast').value=u.lastName||'';$('payIban').value=u.iban||'';if(pendingPhoto===null)setPreview(u.photo||'',u.initials);const LEVELS=S.levels||FALLBACK_LEVELS;const order=['START','PRO','ELITE'];$('levels').innerHTML=order.map(n=>{const l=LEVELS[n]||FALLBACK_LEVELS[n],cur=n===u.level,lockedLvl=order.indexOf(n)>order.indexOf(u.level);const tiers=(l.rewards||[]).map(x=>`<div class="tier"><span>${x.points} pts</span><b>${money(x.reward)}</b></div>`).join('');return `<div class="card level ${cur?'current':''}"><span class="badge ${cur?'gold':(lockedLvl?'lockb':'')}">${cur?'NIVEAU ACTUEL':(lockedLvl?'À DÉBLOQUER':'DÉBLOQUÉ')}</span><h2>${n}</h2><div class="sub">Paliers & récompenses — sans paiement</div>${tiers}</div>`}).join('');const mine=S.posts.filter(p=>p.userId===u.id);$('myCodes').innerHTML=mine.length?mine.map(p=>`<div class="myc"><div><b>${esc(p.code)}</b><div class="sub">${esc(p.desc)}</div></div><button class="btn soft" onclick="deleteCode(${p.id})">Supprimer</button></div>`).join(''):'<p class="sub">Aucun code publié.</p>'}
 async function loadPosts(){if(locked())return;const d=await api('/api/posts');S.posts=d.posts||[];$('spaceFeed').innerHTML=S.posts.length?S.posts.map(p=>`<div class="post"><span class="badge">${p.type}</span><div class="code">${esc(p.code)}</div><div class="sub">${esc(p.desc)}</div></div>`).join(''):'<p class="sub">Soit le premier a publier un post.</p>';if(S.d)renderProfile()}
 async function publishCode(){try{await api('/api/posts',{method:'POST',body:JSON.stringify({type:$('postType').value,code:$('postCode').value,desc:$('postDesc').value})});$('postCode').value='';$('postDesc').value='';loadPosts();toast('Publié')}catch(e){toast(e.message)}}
 async function deleteCode(id){await api('/api/posts/'+id,{method:'DELETE'});loadPosts();toast('Supprimé')}
 function copyCode(){if(!S.d)return;navigator.clipboard.writeText(S.d.user.code).then(()=>toast('Code copié'))}
 async function saveProfile(){try{const photo=pendingPhoto!==null?pendingPhoto:(S.d.user.photo||'');const d=await api('/api/profile',{method:'POST',body:JSON.stringify({username:$('editUser').value,photo})});S.d=d.dashboard;pendingPhoto=null;renderAll();go('profile');toast('Profil enregistré')}catch(e){toast(e.message)}}
 async function saveRib(){try{const d=await api('/api/profile/bank',{method:'POST',body:JSON.stringify({firstName:$('payFirst').value,lastName:$('payLast').value,iban:$('payIban').value})});S.d=d.dashboard;renderAll();toast('RIB enregistré')}catch(e){toast(e.message)}}
-async function withdrawReward(){if(!(S.d.user.firstName&&S.d.user.iban)){go('edit');toast('Renseigne tes coordonnées');return}try{const d=await api('/api/payout',{method:'POST',body:'{}'});S.d=d.dashboard;renderAll();toast('Demande envoyée')}catch(e){toast(e.message)}}
-async function boot(){try{S.levels=(await api('/api/config')).levels}catch(e){}try{const d=await api('/api/auth/me');if(d.authenticated){S.auth=true;S.d=d.dashboard;S.paid=!!d.paid;renderAll();if(location.pathname==='/pay/success')await confirmPay();else if(!S.paid)showPay();else if(!S.d.user.refLocked)$('refGate').classList.add('show')}}catch(e){}}
+async function withdrawReward(){if(!(S.d.user.firstName&&S.d.user.iban)){go('edit');toast('Renseigne tes coordonnées');return}try{const d=await api('/api/payout',{method:'POST',body:'{}'});S.d=d.dashboard;renderAll();toast('Demande envoyée · points remis à 0')}catch(e){toast(e.message)}}
+async function boot(){try{S.levels=(await api('/api/config')).levels}catch(e){S.levels=FALLBACK_LEVELS}try{const d=await api('/api/auth/me');if(d.authenticated){S.auth=true;S.d=d.dashboard;S.paid=!!d.paid;renderAll();if(location.pathname==='/pay/success')await confirmPay();else if(!S.paid)showPay();else if(!S.d.user.refLocked)$('refGate').classList.add('show')}}catch(e){}}
+bindSwipe();
 boot();
 </script>
 </body>
