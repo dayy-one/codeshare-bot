@@ -148,83 +148,112 @@ def init_db():
             """
             CREATE TABLE IF NOT EXISTS users (
                 id SERIAL PRIMARY KEY,
-                name TEXT NOT NULL DEFAULT 'Membre',
+                name TEXT DEFAULT 'Membre',
                 username TEXT,
                 email TEXT,
                 password_hash TEXT,
                 code TEXT,
                 referred_by INTEGER,
-                level TEXT NOT NULL DEFAULT 'START',
-                points INTEGER NOT NULL DEFAULT 0,
-                claimed INTEGER NOT NULL DEFAULT 0,
-                paid INTEGER NOT NULL DEFAULT 0,
-                ref_locked INTEGER NOT NULL DEFAULT 0,
+                level TEXT DEFAULT 'START',
+                points INTEGER DEFAULT 0,
+                claimed INTEGER DEFAULT 0,
+                paid INTEGER DEFAULT 0,
+                ref_locked INTEGER DEFAULT 0,
                 first_name TEXT DEFAULT '',
                 last_name TEXT DEFAULT '',
                 iban TEXT DEFAULT '',
                 photo TEXT DEFAULT '',
                 created_at TEXT,
-                tier_index INTEGER NOT NULL DEFAULT 0,
-                points_locked INTEGER NOT NULL DEFAULT 0
+                tier_index INTEGER DEFAULT 0,
+                points_locked INTEGER DEFAULT 0
             );
             CREATE TABLE IF NOT EXISTS referrals (
                 id SERIAL PRIMARY KEY,
-                referrer_id INTEGER NOT NULL,
-                referred_id INTEGER NOT NULL,
-                status TEXT NOT NULL DEFAULT 'pending',
-                created_at TEXT NOT NULL
+                referrer_id INTEGER,
+                referred_id INTEGER,
+                status TEXT DEFAULT 'pending',
+                created_at TEXT
             );
             CREATE TABLE IF NOT EXISTS activities (
                 id SERIAL PRIMARY KEY,
-                user_id INTEGER NOT NULL,
-                kind TEXT NOT NULL,
-                title TEXT NOT NULL,
+                user_id INTEGER,
+                kind TEXT,
+                title TEXT,
                 description TEXT,
-                created_at TEXT NOT NULL
+                created_at TEXT
             );
             CREATE TABLE IF NOT EXISTS posts (
                 id SERIAL PRIMARY KEY,
-                user_id INTEGER NOT NULL,
-                type TEXT NOT NULL,
-                code TEXT NOT NULL,
-                description TEXT NOT NULL,
-                created_at TEXT NOT NULL
+                user_id INTEGER,
+                type TEXT,
+                code TEXT,
+                description TEXT,
+                created_at TEXT
             );
             CREATE TABLE IF NOT EXISTS payouts (
                 id SERIAL PRIMARY KEY,
-                user_id INTEGER NOT NULL,
-                amount INTEGER NOT NULL,
-                status TEXT NOT NULL DEFAULT 'pending',
-                created_at TEXT NOT NULL
+                user_id INTEGER,
+                amount INTEGER,
+                status TEXT DEFAULT 'pending',
+                created_at TEXT
             );
             """
         )
-        cols = {
-            "name": "TEXT DEFAULT 'Membre'",
-            "username": "TEXT",
-            "email": "TEXT",
-            "password_hash": "TEXT",
-            "code": "TEXT",
-            "referred_by": "INTEGER",
-            "level": "TEXT DEFAULT 'START'",
-            "points": "INTEGER DEFAULT 0",
-            "claimed": "INTEGER DEFAULT 0",
-            "paid": "INTEGER DEFAULT 0",
-            "ref_locked": "INTEGER DEFAULT 0",
-            "first_name": "TEXT DEFAULT ''",
-            "last_name": "TEXT DEFAULT ''",
-            "iban": "TEXT DEFAULT ''",
-            "photo": "TEXT DEFAULT ''",
-            "created_at": "TEXT",
-            "tier_index": "INTEGER DEFAULT 0",
-            "points_locked": "INTEGER DEFAULT 0",
+        to_add = {
+            "users": {
+                "name": "TEXT DEFAULT 'Membre'",
+                "username": "TEXT",
+                "email": "TEXT",
+                "password_hash": "TEXT",
+                "code": "TEXT",
+                "referred_by": "INTEGER",
+                "level": "TEXT DEFAULT 'START'",
+                "points": "INTEGER DEFAULT 0",
+                "claimed": "INTEGER DEFAULT 0",
+                "paid": "INTEGER DEFAULT 0",
+                "ref_locked": "INTEGER DEFAULT 0",
+                "first_name": "TEXT DEFAULT ''",
+                "last_name": "TEXT DEFAULT ''",
+                "iban": "TEXT DEFAULT ''",
+                "photo": "TEXT DEFAULT ''",
+                "created_at": "TEXT",
+                "tier_index": "INTEGER DEFAULT 0",
+                "points_locked": "INTEGER DEFAULT 0",
+            },
+            "referrals": {
+                "referrer_id": "INTEGER",
+                "referred_id": "INTEGER",
+                "status": "TEXT DEFAULT 'pending'",
+                "created_at": "TEXT",
+            },
+            "activities": {
+                "user_id": "INTEGER",
+                "kind": "TEXT",
+                "title": "TEXT",
+                "description": "TEXT",
+                "created_at": "TEXT",
+            },
+            "posts": {
+                "user_id": "INTEGER",
+                "type": "TEXT",
+                "code": "TEXT",
+                "description": "TEXT",
+                "created_at": "TEXT",
+            },
+            "payouts": {
+                "user_id": "INTEGER",
+                "amount": "INTEGER",
+                "status": "TEXT DEFAULT 'pending'",
+                "created_at": "TEXT",
+            },
         }
-        for col, spec in cols.items():
-            try:
-                pg_add_column(con, "users", col, spec)
-                con.commit()
-            except Exception:
-                con.rollback()
+        for table, cols in to_add.items():
+            for col, spec in cols.items():
+                try:
+                    pg_add_column(con, table, col, spec)
+                    con.commit()
+                except Exception:
+                    con.rollback()
         con.commit()
     else:
         con.executescript(
