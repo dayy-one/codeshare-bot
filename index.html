@@ -305,8 +305,8 @@ const S={auth:false,paid:false,d:null,levels:null,posts:[],afterAuth:null};
 const PAGES=['home','explore','ranking','space','profile'];
 const FALLBACK_LEVELS={
   START:{price:0,rewards:[{points:10,reward:20},{points:25,reward:50},{points:50,reward:120}]},
-  PRO:{price:0,rewards:[{points:500,reward:1000},{points:1100,reward:2200},{points:1200,reward:2400},{points:1400,reward:2800}]},
-  ELITE:{price:0,rewards:[{points:10,reward:80},{points:25,reward:220},{points:50,reward:500}]}
+  PRO:{price:0,rewards:[{points:100,reward:200},{points:250,reward:500},{points:500,reward:1000}]},
+  ELITE:{price:0,rewards:[{points:1100,reward:2200},{points:1335,reward:2670},{points:1700,reward:3400}]}
 };
 let stripeCheckout=null,cropImg=null,pendingPhoto=null,cropScale=1,cropX=0,cropY=0,pinchStart=0,startScale=1,drag=null,touchX=0,touchY=0;
 function toast(t){$('toast').textContent=t;$('toast').classList.add('show');clearTimeout(window.tt);window.tt=setTimeout(()=>$('toast').classList.remove('show'),2200)}
@@ -318,14 +318,12 @@ function showRules(){
   const start=(lv.START&&lv.START.rewards)||FALLBACK_LEVELS.START.rewards;
   const pro=(lv.PRO&&lv.PRO.rewards)||FALLBACK_LEVELS.PRO.rewards;
   $('rulesList').innerHTML=`
-    <li>Inscription puis paiement unique 9,99 € pour ouvrir l’espace. Aucun paiement pour changer de niveau.</li>
-    <li>Chaque filleul payé et validé = 1 point.</li>
-    <li>Les points ne se cumulent pas d’un palier à l’autre.</li>
+    <li>Chaque parrainage validé = 1 point.</li>
+    <li>Les points ne se remet a 0 une fois qu'un pallier est atteint.</li>
     <li>START : ${start.map(x=>x.points+' pts = '+money(x.reward)).join(' · ')}.</li>
-    <li>PRO : ${pro.map(x=>x.points+' pts = '+money(x.reward)).join(' · ')}.</li>
-    <li>Quand un palier est atteint : obligation de retirer. Les points sont bloqués.</li>
-    <li>Si tu ne retires pas : aucun nouveau point n’est compté.</li>
-    <li>Après le retrait : points remis à 0, palier suivant. Virement sous 48h.</li>`;
+    <li>Quand un palier est atteint vous avez comme obligation de retirer.</li>
+    <li>Si vous ne retires pas : aucun nouveau point ne serra compté.</li>
+    <li>Après le retrait : points remis à 0, palier suivant.</li>`;
   $('help').classList.add('show');
 }
 function showHelp(){showRules()}
