@@ -30,11 +30,37 @@ STRIPE_WEBHOOK_SECRET = os.environ.get("STRIPE_WEBHOOK_SECRET", "")
 STRIPE_PK = os.environ.get("STRIPE_PUBLISHABLE_KEY", "")
 APP_URL = os.environ.get("APP_URL", "http://127.0.0.1:3000").rstrip("/")
 
+LEVEL_ORDER = ["START", "PRO", "ELITE"]
+
 LEVELS = {
-    "START": {"price": 9.99, "rewards": [{"points": 10, "reward": 20}, {"points": 25, "reward": 50}, {"points": 50, "reward": 120}]},
-    "PRO": {"price": 29.99, "rewards": [{"points": 10, "reward": 40}, {"points": 25, "reward": 110}, {"points": 50, "reward": 250}]},
-    "ELITE": {"price": 79.99, "rewards": [{"points": 10, "reward": 80}, {"points": 25, "reward": 220}, {"points": 50, "reward": 500}]},
+    "START": {
+        "price": 0,
+        "rewards": [
+            {"points": 10, "reward": 20},
+            {"points": 25, "reward": 50},
+            {"points": 50, "reward": 120},
+        ],
+    },
+    "PRO": {
+        "price": 0,
+        "rewards": [
+            {"points": 500, "reward": 1000},
+            {"points": 1100, "reward": 2200},
+            {"points": 1200, "reward": 2400},
+            {"points": 1400, "reward": 2800},
+        ],
+    },
+    "ELITE": {
+        "price": 0,
+        "rewards": [
+            {"points": 10, "reward": 80},
+            {"points": 25, "reward": 220},
+            {"points": 50, "reward": 500},
+        ],
+    },
 }
+
+TIER_LABELS = ["premier", "deuxième", "troisième", "quatrième", "cinquième"]
 
 
 def db():
@@ -99,6 +125,11 @@ def init_db():
         );
         """
     )
+    cols = [r[1] for r in con.execute("PRAGMA table_info(users)").fetchall()]
+    if "tier_index" not in cols:
+        con.execute("ALTER TABLE users ADD COLUMN tier_index INTEGER NOT NULL DEFAULT 0")
+    if "points_locked" not in cols:
+        con.execute("ALTER TABLE users ADD COLUMN points_locked INTEGER NOT NULL DEFAULT 0")
     con.commit()
     con.close()
 
@@ -125,21 +156,58 @@ def is_iban(value):
     return bool(re.match(r"^[A-Z]{2}[0-9]{2}[A-Z0-9]{10,30}$", s))
 
 
-def best_reward(level, points):
-    rewards = LEVELS[level]["rewards"]
-    reached = next((x for x in reversed(rewards) if points >= x["points"]), None)
-    nxt = next((x for x in rewards if points < x["points"]), None)
-    return {"current": reached["reward"] if reached else 0, "current_points": reached["points"] if reached else 0, "next": nxt}
+def user_level(user):
+    return user["level"] if user["level"] in LEVELS else "START"
 
 
-def progress_of(level, points):
+def tier_index_of(user):
+    rewards = LEVELS[user_level(user)]["rewards"]
+    try:
+        idx = int(user["tier_index"] or 0)
+    except (KeyError, TypeError, ValueError):
+        idx = 0
+    return max(0, min(idx, len(rewards) - 1))
+
+
+def current_tier(user):
+    rewards = LEVELS[user_level(user)]["rewards"]
+    return rewards[tier_index_of(user)]
+
+
+def is_locked(user):
+    try:
+        locked = int(user["points_locked"] or 0)
+    except (KeyError, TypeError, ValueError):
+        locked = 0
+    tier = current_tier(user)
+    return bool(locked or user["points"] >= tier["points"])
+
+
+def reward_state(user):
+    level = user_level(user)
+    idx = tier_index_of(user)
     rewards = LEVELS[level]["rewards"]
-    nxt = next((x for x in rewards if points < x["points"]), None)
-    if not nxt:
+    tier = rewards[idx]
+    locked = is_locked(user)
+    nxt = None if locked else tier
+    return {
+        "current": tier["reward"] if locked else 0,
+        "current_points": tier["points"],
+        "next": nxt,
+        "locked": locked,
+        "mustWithdraw": locked,
+        "tierIndex": idx,
+        "tierNumber": idx + 1,
+        "tierLabel": TIER_LABELS[idx] if idx < len(TIER_LABELS) else str(idx + 1),
+        "level": level,
+    }
+
+
+def progress_of(user):
+    tier = current_tier(user)
+    if is_locked(user):
         return 100
-    prev = next((x for x in reversed(rewards) if points >= x["points"]), None)
-    start = prev["points"] if prev else 0
-    return min(100, round(((points - start) / (nxt["points"] - start)) * 100))
+    return min(100, round((user["points"] / tier["points"]) * 100)) if tier["points"] else 0
 
 
 def user_by_id(con, user_id):
@@ -191,7 +259,7 @@ def public_user(con, user):
     ).fetchone()["c"]
     return {
         "id": user["id"], "name": user["name"], "username": user["username"],
-        "initials": initials(user["name"]), "level": user["level"], "points": user["points"],
+        "initials": initials(user["name"]), "level": user_level(user), "points": user["points"],
         "photo": user["photo"] or "", "refs": refs,
     }
 
@@ -202,21 +270,22 @@ def dashboard(con, user):
         (user["id"],),
     ).fetchone()["c"]
     higher = con.execute("SELECT COUNT(*) c FROM users WHERE paid=1 AND points > ?", (user["points"],)).fetchone()["c"]
-    reward = best_reward(user["level"], user["points"])
+    reward = reward_state(user)
     return {
         "user": {
             "id": user["id"], "name": user["name"], "username": user["username"],
-            "initials": initials(user["name"]), "level": user["level"], "points": user["points"],
+            "initials": initials(user["name"]), "level": user_level(user), "points": user["points"],
             "code": user["code"], "photo": user["photo"] or "",
             "firstName": user["first_name"] or "", "lastName": user["last_name"] or "",
             "iban": user["iban"] or "", "claimed": user["claimed"] or 0,
             "paid": bool(user["paid"]), "refLocked": bool(user["ref_locked"]),
+            "pointsLocked": reward["locked"], "tierIndex": reward["tierIndex"],
         },
         "referrals": {"validated": validated},
         "ranking": {"position": higher + 1 if user["paid"] else None},
         "reward": reward,
-        "wallet": {"available": max(0, reward["current"] - (user["claimed"] or 0))},
-        "progress": progress_of(user["level"], user["points"]),
+        "wallet": {"available": reward["current"]},
+        "progress": progress_of(user),
     }
 
 
@@ -252,6 +321,39 @@ def require_paid(fn):
     return wrapper
 
 
+def grant_point(con, referrer_id, referred_name=""):
+    referrer = user_by_id(con, referrer_id)
+    if not referrer:
+        return False
+    if is_locked(referrer):
+        add_activity(
+            con,
+            referrer_id,
+            "info",
+            "Parrainage non comptabilisé",
+            "Palier atteint : retire ta récompense pour que les points comptent à nouveau.",
+        )
+        return False
+    tier = current_tier(referrer)
+    new_points = referrer["points"] + 1
+    locked = 1 if new_points >= tier["points"] else 0
+    con.execute(
+        "UPDATE users SET points=?, points_locked=? WHERE id=?",
+        (new_points, locked, referrer_id),
+    )
+    add_activity(con, referrer_id, "point", "Parrainage validé", referred_name)
+    if locked:
+        label = TIER_LABELS[tier_index_of(referrer)] if tier_index_of(referrer) < len(TIER_LABELS) else str(tier_index_of(referrer) + 1)
+        add_activity(
+            con,
+            referrer_id,
+            "palier",
+            f"Vous avez franchi un {label} palier",
+            "Retrait obligatoire. Les points sont bloqués tant que la récompense n’est pas retirée.",
+        )
+    return True
+
+
 def validate_referral(con, user):
     if not user["paid"] or not user["referred_by"]:
         return False
@@ -259,8 +361,7 @@ def validate_referral(con, user):
     if not ref or ref["status"] == "validated":
         return False
     con.execute("UPDATE referrals SET status='validated' WHERE id=?", (ref["id"],))
-    con.execute("UPDATE users SET points = points + 1 WHERE id=?", (ref["referrer_id"],))
-    add_activity(con, ref["referrer_id"], "point", "Parrainage validé", user["name"])
+    grant_point(con, ref["referrer_id"], user["name"])
     return True
 
 
@@ -296,7 +397,7 @@ def pay_success_page():
 
 @app.get("/api/config")
 def config():
-    return jsonify({"levels": LEVELS, "brand": "COD-IA", "payoutHours": 48})
+    return jsonify({"levels": LEVELS, "brand": "COD-IA", "payoutHours": 48, "accessPrice": 9.99})
 
 
 @app.post("/api/auth/register")
@@ -320,6 +421,7 @@ def register():
         )
         uid = cur.lastrowid
         add_activity(con, uid, "info", "Compte créé", "En attente de paiement")
+        add_activity(con, uid, "rules", "Règles du Parrainage", "Appuie pour lire les règles")
         con.commit()
         user = user_by_id(con, uid)
         session["uid"] = uid
@@ -484,9 +586,21 @@ def attach_referral(user):
 @require_paid
 def activity(user):
     con = db()
-    rows = con.execute("SELECT kind, title, description FROM activities WHERE user_id=? ORDER BY id DESC LIMIT 20", (user["id"],)).fetchall()
+    has_rules = con.execute(
+        "SELECT id FROM activities WHERE user_id=? AND kind='rules'",
+        (user["id"],),
+    ).fetchone()
+    if not has_rules:
+        add_activity(con, user["id"], "rules", "Règles du Parrainage", "Appuie pour lire les règles")
+        con.commit()
+    rows = con.execute(
+        "SELECT kind, title, description FROM activities WHERE user_id=? ORDER BY id DESC LIMIT 20",
+        (user["id"],),
+    ).fetchall()
     con.close()
-    return jsonify({"activities": [dict(r) for r in rows]})
+    items = [dict(r) for r in rows]
+    items.sort(key=lambda a: 0 if a.get("kind") == "rules" else 1)
+    return jsonify({"activities": items})
 
 
 @app.get("/api/members")
@@ -595,13 +709,13 @@ def update_bank(user):
 @app.post("/api/payout")
 @require_paid
 def payout(user):
-    reward = best_reward(user["level"], user["points"])
-    amount = max(0, reward["current"] - (user["claimed"] or 0))
+    state = reward_state(user)
+    amount = state["current"]
     first = (user["first_name"] or "").strip()
     last = (user["last_name"] or "").strip()
     iban = re.sub(r"\s+", "", user["iban"] or "").upper()
-    if amount <= 0:
-        return jsonify({"message": "Aucune récompense à retirer"}), 400
+    if amount <= 0 or not state["locked"]:
+        return jsonify({"message": "Aucune récompense à retirer. Un palier doit d’abord être atteint."}), 400
     if len(first) < 2 or len(last) < 2 or not is_iban(iban):
         return jsonify({"message": "Coordonnées bancaires manquantes"}), 400
     if not SMTP_USER or not SMTP_PASS:
@@ -610,7 +724,11 @@ def payout(user):
     msg["Subject"] = f"Demande de retrait COD-IA — {first} {last}"
     msg["From"] = SMTP_USER
     msg["To"] = PAYOUT_TO
-    msg.set_content(f"Prénom : {first}\nNom : {last}\nIBAN : {iban}\nRécompense : {amount} €\nPoints : {user['points']}\nNiveau : {user['level']}\nCode : {user['code']}\nDélai : 48h\n")
+    msg.set_content(
+        f"Prénom : {first}\nNom : {last}\nIBAN : {iban}\nRécompense : {amount} €\n"
+        f"Points du palier : {user['points']}\nNiveau : {user_level(user)}\n"
+        f"Palier : {state['tierNumber']}\nCode : {user['code']}\nDélai : 48h\n"
+    )
     try:
         with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as s:
             s.starttls()
@@ -618,10 +736,32 @@ def payout(user):
             s.send_message(msg)
     except Exception:
         return jsonify({"message": "Envoi mail impossible"}), 500
+
+    level = user_level(user)
+    idx = tier_index_of(user) + 1
+    rewards = LEVELS[level]["rewards"]
+    unlocked = None
+    if idx >= len(rewards):
+        li = LEVEL_ORDER.index(level)
+        if li < len(LEVEL_ORDER) - 1:
+            level = LEVEL_ORDER[li + 1]
+            idx = 0
+            unlocked = level
+        else:
+            idx = len(rewards) - 1
+
     con = db()
-    con.execute("UPDATE users SET claimed=? WHERE id=?", (user["claimed"] + amount, user["id"]))
-    con.execute("INSERT INTO payouts (user_id, amount, status, created_at) VALUES (?, ?, 'pending', ?)", (user["id"], amount, now()))
-    add_activity(con, user["id"], "money", "Retrait demandé", f"{amount} € · 48h")
+    con.execute(
+        "UPDATE users SET points=0, points_locked=0, claimed=?, tier_index=?, level=? WHERE id=?",
+        ((user["claimed"] or 0) + amount, idx, level, user["id"]),
+    )
+    con.execute(
+        "INSERT INTO payouts (user_id, amount, status, created_at) VALUES (?, ?, 'pending', ?)",
+        (user["id"], amount, now()),
+    )
+    add_activity(con, user["id"], "money", "Retrait demandé", f"{amount} € · points remis à 0 · 48h")
+    if unlocked:
+        add_activity(con, user["id"], "info", "Niveau débloqué", f"Tu passes au niveau {unlocked}")
     con.commit()
     payload = dashboard(con, user_by_id(con, user["id"]))
     con.close()
