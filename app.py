@@ -81,6 +81,39 @@ LEVELS = {
     },
 }
 
+DEMO_MEMBERS = [
+    {"id": -1, "name": "Lina Moreau", "username": "lina", "points": 8, "level": "START"},
+    {"id": -2, "name": "Noah Bernard", "username": "noah", "points": 14, "level": "START"},
+    {"id": -3, "name": "Emma Laurent", "username": "emma", "points": 22, "level": "START"},
+    {"id": -4, "name": "Lucas Petit", "username": "lucas", "points": 6, "level": "START"},
+    {"id": -5, "name": "Hugo Richard", "username": "hugo", "points": 11, "level": "START"},
+    {"id": -6, "name": "Léa Durand", "username": "lea", "points": 19, "level": "START"},
+    {"id": -7, "name": "Raphaël Dubois", "username": "raphael", "points": 4, "level": "START"},
+    {"id": -8, "name": "Louis Simon", "username": "louis", "points": 9, "level": "START"},
+    {"id": -9, "name": "Inès Michel", "username": "ines", "points": 16, "level": "START"},
+    {"id": -10, "name": "Adam Lefevre", "username": "adam", "points": 3, "level": "START"},
+    {"id": -11, "name": "Nathan Garcia", "username": "nathan", "points": 12, "level": "START"},
+    {"id": -12, "name": "Jade David", "username": "jade", "points": 7, "level": "START"},
+    {"id": -13, "name": "Théo Bertrand", "username": "theo", "points": 18, "level": "START"},
+    {"id": -14, "name": "Tom Vincent", "username": "tom", "points": 5, "level": "START"},
+    {"id": -15, "name": "Louise Fournier", "username": "louise", "points": 13, "level": "START"},
+    {"id": -16, "name": "Alice Girard", "username": "alice", "points": 10, "level": "START"},
+    {"id": -17, "name": "Evan Lambert", "username": "evan", "points": 2, "level": "START"},
+    {"id": -18, "name": "Nina Bonnet", "username": "nina", "points": 21, "level": "START"},
+    {"id": -19, "name": "Arthur Francois", "username": "arthur", "points": 15, "level": "START"},
+    {"id": -20, "name": "Jules Lefebvre", "username": "jules", "points": 1, "level": "START"},
+    {"id": -21, "name": "Maya Rousseau", "username": "maya", "points": 17, "level": "START"},
+    {"id": -22, "name": "Ethan Nicolas", "username": "ethan", "points": 9, "level": "START"},
+    {"id": -23, "name": "Louna Henry", "username": "louna", "points": 23, "level": "START"},
+    {"id": -24, "name": "Chloé Robert", "username": "chloe", "points": 118, "level": "PRO"},
+    {"id": -25, "name": "Manon Morel", "username": "manon", "points": 142, "level": "PRO"},
+    {"id": -26, "name": "Camille Roux", "username": "camille", "points": 187, "level": "PRO"},
+    {"id": -27, "name": "Sarah Roux", "username": "sarah", "points": 96, "level": "PRO"},
+    {"id": -28, "name": "Maxime Moreau", "username": "maxime", "points": 211, "level": "PRO"},
+    {"id": -29, "name": "Eva Martinez", "username": "eva", "points": 164, "level": "PRO"},
+    {"id": -30, "name": "Sacha Perrin", "username": "sacha", "points": 1260, "level": "ELITE"},
+]
+
 
 class DB:
     def __init__(self):
@@ -330,6 +363,29 @@ def initials(name):
     return ("".join(p[0] for p in parts)[:2].upper() or "C")
 
 
+def demo_public(item):
+    name = item["name"]
+    pts = item["points"]
+    return {
+        "id": item["id"],
+        "name": name,
+        "username": item["username"],
+        "initials": initials(name),
+        "level": item["level"],
+        "points": pts,
+        "photo": "",
+        "refs": max(1, pts // 4),
+    }
+
+
+def merge_members(real):
+    seen = {(x.get("username") or "") for x in real}
+    fake = [demo_public(x) for x in DEMO_MEMBERS if x["username"] not in seen]
+    out = list(real) + fake
+    out.sort(key=lambda x: (-int(x.get("points") or 0), x.get("name") or ""))
+    return out
+
+
 def make_code():
     a = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
     return "COD-" + "".join(secrets.choice(a) for _ in range(6))
@@ -462,6 +518,7 @@ def dashboard(con, user):
         (user["id"],),
     ).fetchone()["c"]
     higher = con.execute("SELECT COUNT(*) c FROM users WHERE paid=1 AND points > ?", (user["points"],)).fetchone()["c"]
+    demo_higher = len([x for x in DEMO_MEMBERS if x["points"] > (user["points"] or 0)])
     reward = reward_state(user)
     return {
         "user": {
@@ -483,7 +540,7 @@ def dashboard(con, user):
             "tierIndex": reward["tierIndex"],
         },
         "referrals": {"validated": validated},
-        "ranking": {"position": higher + 1 if user["paid"] else None},
+        "ranking": {"position": higher + demo_higher + 1 if user["paid"] else None},
         "reward": reward,
         "wallet": {"available": reward["current"]},
         "progress": progress_of(user),
@@ -876,15 +933,18 @@ def activity(user):
 @app.get("/api/members")
 @require_paid
 def members(user):
-    q = f"%{(request.args.get('q') or '').strip()}%"
+    q = (request.args.get("q") or "").strip().lower()
     con = db()
     rows = con.execute(
         "SELECT * FROM users WHERE paid=1 AND (name LIKE ? OR username LIKE ?) ORDER BY points DESC, id ASC LIMIT 50",
-        (q, q),
+        (f"%{q}%", f"%{q}%"),
     ).fetchall()
-    out = [public_user(con, r) for r in rows]
+    real = [public_user(con, r) for r in rows]
     con.close()
-    return jsonify({"members": out})
+    out = merge_members(real)
+    if q:
+        out = [x for x in out if q in (x.get("name") or "").lower() or q in (x.get("username") or "").lower()]
+    return jsonify({"members": out[:50]})
 
 
 @app.get("/api/ranking")
@@ -892,14 +952,17 @@ def members(user):
 def ranking(user):
     con = db()
     rows = con.execute("SELECT * FROM users WHERE paid=1 ORDER BY points DESC, id ASC LIMIT 50").fetchall()
+    real = [public_user(con, r) for r in rows]
+    con.close()
+    all_rows = merge_members(real)
     ranking_list = []
-    for i, r in enumerate(rows, start=1):
-        item = public_user(con, r)
+    my_pos = None
+    for i, item in enumerate(all_rows[:50], start=1):
         item["position"] = i
         ranking_list.append(item)
-    higher = con.execute("SELECT COUNT(*) c FROM users WHERE paid=1 AND points > ?", (user["points"],)).fetchone()["c"]
-    con.close()
-    return jsonify({"me": {"position": higher + 1, "points": user["points"]}, "ranking": ranking_list})
+        if item.get("id") == user["id"]:
+            my_pos = i
+    return jsonify({"me": {"position": my_pos or 1, "points": user["points"]}, "ranking": ranking_list})
 
 
 @app.get("/api/posts")
