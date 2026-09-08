@@ -64,11 +64,13 @@ h2{font-size:22px;margin:0 0 4px}.sub{color:var(--m);line-height:1.5}
 .tabs{display:flex;gap:5px;padding:5px;background:var(--s);border-radius:15px;margin:14px 0}
 .tabs button{flex:1;padding:10px;border-radius:11px;background:none;font-weight:600;color:var(--m)}
 .tabs button.active{background:#fff;color:var(--g)}
-.bottom{position:fixed;left:0;right:0;bottom:0;height:76px;background:#fff;border-top:1px solid var(--l);z-index:70}
+.bottom{position:fixed;left:0;right:0;bottom:0;height:76px;background:#fff;border-top:1px solid var(--l);z-index:80;pointer-events:auto}
 .nav{height:100%;width:min(620px,100%);margin:auto;display:grid;grid-template-columns:repeat(5,1fr);padding:6px}
 .nav button{background:none;color:#879186;font-size:10px;font-weight:600}
 .nav button span{display:block;font-size:18px}
 .nav button.active{background:var(--s);color:var(--g);border-radius:14px}
+.sheet,.help,.crop,.authgate,.gate{pointer-events:none}
+.sheet.show,.help.show,.crop.show,.authgate.show,.gate.show{pointer-events:auto}
 .sheet{display:none;position:fixed;inset:0;background:#121b1188;z-index:90;align-items:end;justify-content:center}
 .sheet.show{display:flex}.sheetbox{width:min(560px,100%);background:#fff;border-radius:26px 26px 0 0;padding:22px;max-height:92vh;overflow:auto}
 .gate{display:none;position:fixed;inset:0;z-index:120;background:#102010;color:#fff;padding:24px}
@@ -298,70 +300,31 @@ const money=v=>new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR',ma
 const esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
 const S={auth:false,paid:false,d:null,levels:null,posts:[],afterAuth:null};
 let stripeCheckout=null,cropImg=null,pendingPhoto=null,cropScale=1,cropX=0,cropY=0,pinchStart=0,startScale=1,drag=null;
-
+function toast(t){$('toast').textContent=t;$('toast').classList.add('show');clearTimeout(window.tt);window.tt=setTimeout(()=>$('toast').classList.remove('show'),2200)}
+function av(u){return u&&u.photo?`<img src="${u.photo}">`:esc((u&&u.initials)||'C')}
+async function api(u,o={}){const r=await fetch(u,{credentials:'same-origin',headers:{'Content-Type':'application/json'},...o});const d=await r.json().catch(()=>({message:'Erreur'}));if(!r.ok) throw Object.assign(Error(d.message||d.error||'Erreur'),d);return d}
+function locked(){return !S.auth||!S.paid}
+function showHelp(){$('help').classList.add('show')}
+function closeHelp(){$('help').classList.remove('show')}
+function showTab(tab){const loginActive=tab==='login';$('loginTab').classList.toggle('active',loginActive);$('registerTab').classList.toggle('active',!loginActive);$('loginPanel').classList.toggle('active',loginActive);$('registerPanel').classList.toggle('active',!loginActive);$('cardTitle').textContent=loginActive?'Se connecter':'Créer ton compte';$('cardSub').textContent=loginActive?'Accède à ton espace COD.IA':'Rejoins COD.IA en quelques secondes'}
+function togglePassword(id){const el=$(id);el.type=el.type==='password'?'text':'password'}
+function setMessage(id,text,ok){const el=$(id);if(!el)return;el.textContent=text||'';el.classList.toggle('ok',!!ok)}
+function openAuth(mode,nextPage){S.afterAuth=nextPage||null;showTab(mode==='register'?'register':'login');$('authGate').classList.add('show')}
+function closeAuth(){$('authGate').classList.remove('show')}
+function go(p){if(['explore','ranking','space','profile','rewards','edit'].includes(p)&&!S.auth){openAuth('login',p);return}if(['explore','ranking','space','profile','rewards','edit','home'].includes(p)&&S.auth&&!S.paid){showPay();return}document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));$('page-'+p).classList.add('active');document.querySelectorAll('[data-n]').forEach(x=>x.classList.toggle('active',x.dataset.n===p||(p==='edit'&&x.dataset.n==='profile')));if(p==='explore')loadMembers();if(p==='ranking')loadRanking();if(p==='space')loadPosts();if(p==='profile'||p==='edit')renderProfile();if(p==='rewards')renderRewards()}
+function onTopAvatar(){if(!S.auth){openAuth('login','profile');return}if(!S.paid){showPay();return}if($('page-profile').classList.contains('active'))go('edit');else go('profile')}
+function closeSheet(){$('sheet').classList.remove('show')}
+function closeGates(){['payGate','refGate','refOk'].forEach(id=>$(id).classList.remove('show'));go('home')}
 function setPreview(src,initials){$('editPreview').innerHTML=src?`<img src="${src}">`:esc(initials||'C')}
 function pickPhoto(){$('editFile').click()}
 function deletePhoto(){pendingPhoto='';setPreview('',S.d&&S.d.user.initials);toast('Photo supprimée')}
-function openCrop(e){
-  const f=e.target.files[0]; if(!f) return;
-  const r=new FileReader();
-  r.onload=()=>{
-    const img=new Image();
-    img.onload=()=>{
-      cropImg=img; cropScale=1; cropX=0; cropY=0;
-      $('cropZoom').value=100;
-      $('crop').classList.add('show');
-      bindCropTouch();
-      drawCrop();
-    };
-    img.src=r.result;
-  };
-  r.readAsDataURL(f);
-  e.target.value='';
-}
+function openCrop(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{const img=new Image();img.onload=()=>{cropImg=img;cropScale=1;cropX=0;cropY=0;$('cropZoom').value=100;$('crop').classList.add('show');bindCropTouch();drawCrop()};img.src=r.result};r.readAsDataURL(f);e.target.value=''}
 function closeCrop(){$('crop').classList.remove('show');cropImg=null}
-function drawCrop(){
-  if(!cropImg) return;
-  const c=$('cropCanvas'), ctx=c.getContext('2d');
-  const z=Math.max(1, cropScale);
-  const side=Math.min(cropImg.width, cropImg.height)/z;
-  const sx=(cropImg.width-side)/2 + cropX;
-  const sy=(cropImg.height-side)/2 + cropY;
-  ctx.fillStyle='#1d331c';
-  ctx.fillRect(0,0,c.width,c.height);
-  ctx.drawImage(cropImg,sx,sy,side,side,0,0,c.width,c.height);
-}
+function drawCrop(){if(!cropImg)return;const c=$('cropCanvas'),ctx=c.getContext('2d'),z=Math.max(1,cropScale),side=Math.min(cropImg.width,cropImg.height)/z,sx=(cropImg.width-side)/2+cropX,sy=(cropImg.height-side)/2+cropY;ctx.fillStyle='#1d331c';ctx.fillRect(0,0,c.width,c.height);ctx.drawImage(cropImg,sx,sy,side,side,0,0,c.width,c.height)}
 function applyCrop(){drawCrop();pendingPhoto=$('cropCanvas').toDataURL('image/jpeg',0.86);setPreview(pendingPhoto,'');closeCrop()}
 function dist(a,b){const dx=a.clientX-b.clientX,dy=a.clientY-b.clientY;return Math.hypot(dx,dy)}
-function bindCropTouch(){
-  const box=$('cropCanvas');
-  box.ontouchstart=e=>{
-    if(e.touches.length===2){pinchStart=dist(e.touches[0],e.touches[1]);startScale=cropScale}
-    else if(e.touches.length===1){drag={x:e.touches[0].clientX,y:e.touches[0].clientY,cx:cropX,cy:cropY}}
-  };
-  box.ontouchmove=e=>{
-    e.preventDefault();
-    if(e.touches.length===2){
-      cropScale=Math.min(2.8, Math.max(1, startScale*(dist(e.touches[0],e.touches[1])/pinchStart)));
-      $('cropZoom').value=Math.round(cropScale*100);
-      drawCrop();
-    }else if(e.touches.length===1 && drag){
-      cropX=drag.cx-(e.touches[0].clientX-drag.x)*2;
-      cropY=drag.cy-(e.touches[0].clientY-drag.y)*2;
-      drawCrop();
-    }
-  };
-  box.ontouchend=()=>{drag=null};
-}
-async function showPay(){
-  $('payGate').classList.add('show');const box=$('stripeEmbed');box.innerHTML='';
-  try{
-    const cfg=await api('/api/pay/config');if(!cfg.pk) throw Error('Clé publique Stripe manquante');
-    const stripe=Stripe(cfg.pk);if(stripeCheckout){try{stripeCheckout.destroy()}catch(e){}}
-    stripeCheckout=await stripe.createEmbeddedCheckoutPage({fetchClientSecret:async()=>{const sess=await api('/api/pay/session',{method:'POST',body:'{}'});if(sess.paid){S.paid=true;$('payGate').classList.remove('show');renderAll();throw Error('already-paid')}if(!sess.clientSecret) throw Error('Pas de clientSecret');return sess.clientSecret}});
-    stripeCheckout.mount('#stripeEmbed');
-  }catch(e){if(e.message==='already-paid')return;box.innerHTML='<p style="color:#333;padding:16px">Impossible de charger Stripe : '+esc(e.message)+'</p>';toast(e.message)}
-}
+function bindCropTouch(){const box=$('cropCanvas');box.ontouchstart=e=>{if(e.touches.length===2){pinchStart=dist(e.touches[0],e.touches[1]);startScale=cropScale}else if(e.touches.length===1){drag={x:e.touches[0].clientX,y:e.touches[0].clientY,cx:cropX,cy:cropY}}};box.ontouchmove=e=>{e.preventDefault();if(e.touches.length===2){cropScale=Math.min(2.8,Math.max(1,startScale*(dist(e.touches[0],e.touches[1])/pinchStart)));$('cropZoom').value=Math.round(cropScale*100);drawCrop()}else if(e.touches.length===1&&drag){cropX=drag.cx-(e.touches[0].clientX-drag.x)*2;cropY=drag.cy-(e.touches[0].clientY-drag.y)*2;drawCrop()}};box.ontouchend=()=>{drag=null}}
+async function showPay(){$('payGate').classList.add('show');const box=$('stripeEmbed');box.innerHTML='';try{const cfg=await api('/api/pay/config');if(!cfg.pk) throw Error('Clé publique Stripe manquante');const stripe=Stripe(cfg.pk);if(stripeCheckout){try{stripeCheckout.destroy()}catch(e){}}stripeCheckout=await stripe.createEmbeddedCheckoutPage({fetchClientSecret:async()=>{const sess=await api('/api/pay/session',{method:'POST',body:'{}'});if(sess.paid){S.paid=true;$('payGate').classList.remove('show');renderAll();throw Error('already-paid')}if(!sess.clientSecret) throw Error('Pas de clientSecret');return sess.clientSecret}});stripeCheckout.mount('#stripeEmbed')}catch(e){if(e.message==='already-paid')return;box.innerHTML='<p style="color:#333;padding:16px">Impossible de charger Stripe : '+esc(e.message)+'</p>';toast(e.message)}}
 async function confirmPay(){const sid=new URLSearchParams(location.search).get('session_id')||'';try{const d=await api('/api/pay/confirm?session_id='+encodeURIComponent(sid));if(!d.paid){showPay();toast('Paiement non confirmé');return}S.d=d.dashboard;S.paid=true;$('payGate').classList.remove('show');if(S.d&&!S.d.user.refLocked)$('refGate').classList.add('show');else{renderAll();go(S.afterAuth||'home')}}catch(e){toast(e.message);showPay()}}
 async function afterLoginOk(d){S.auth=true;S.d=d.dashboard;S.paid=!!(d.dashboard&&d.dashboard.user&&d.dashboard.user.paid);closeAuth();if(!S.paid)showPay();else if(S.d&&!S.d.user.refLocked)$('refGate').classList.add('show');else{renderAll();go(S.afterAuth||'home')}}
 async function login(){const btn=$('loginBtn');if(btn)btn.disabled=true;setMessage('loginMessage','');try{const d=await api('/api/auth/login',{method:'POST',body:JSON.stringify({identifier:$('identifier').value.trim(),password:$('password').value})});await afterLoginOk(d)}catch(e){setMessage('loginMessage',e.message)}if(btn)btn.disabled=false}
@@ -373,15 +336,7 @@ async function loadActivity(){if(locked())return;try{const d=await api('/api/act
 async function loadMembers(){if(locked())return;const d=await api('/api/members?q='+encodeURIComponent($('search')?.value||''));$('members').innerHTML=d.members.map(x=>`<div class="card"><div class="row"><div class="mav">${av(x)}</div><div class="mi"><strong>${esc(x.name)}</strong><small>@${esc(x.username)}</small></div><div class="mp"><strong>${x.points}</strong><small>pts</small></div></div></div>`).join('')||'<div class="card">Aucun membre.</div>'}
 async function loadRanking(){if(locked())return;const d=await api('/api/ranking');$('myRank').textContent=d.me.position?'#'+d.me.position:'#—';$('ranking').innerHTML=d.ranking.map(x=>`<div class="row rank ${S.d&&x.id===S.d.user.id?'me':''}"><div>${x.position}</div><div class="mav">${av(x)}</div><div class="mi"><strong>${esc(x.name)}</strong></div><div class="mp"><strong>${x.points}</strong></div></div>`).join('')}
 function renderRewards(){if(!S.d||!S.levels)return;const u=S.d.user,a=S.levels[u.level].rewards,r=S.d.reward;$('currentReward').textContent=money(r.current);$('rewardList').innerHTML=a.map(x=>`<div class="reward ${u.points>=x.points?'':'lock'}"><strong>${x.points} pts</strong><div><b>${money(x.reward)}</b></div></div>`).join('')}
-function renderProfile(){
-  if(!S.d)return;const u=S.d.user;
-  $('profileAvatar').innerHTML=av(u);$('profileName').textContent=u.name;$('profileUsername').textContent='@'+u.username;$('profileLevel').textContent=u.level;$('profileCode').textContent=u.code;$('profilePoints').textContent=u.points;$('profileReward').textContent=money(S.d.reward.current);$('walletAmount').textContent=money(S.d.wallet.available);$('withdrawBtn').disabled=S.d.wallet.available<=0;$('editUser').value=u.username;$('payFirst').value=u.firstName||'';$('payLast').value=u.lastName||'';$('payIban').value=u.iban||'';
-  if(pendingPhoto===null) setPreview(u.photo||'',u.initials);
-  const LEVELS=S.levels||{START:{price:9.99,rewards:[{points:10,reward:20},{points:25,reward:50},{points:50,reward:120}]},PRO:{price:29.99,rewards:[{points:10,reward:40},{points:25,reward:110},{points:50,reward:250}]},ELITE:{price:79.99,rewards:[{points:10,reward:80},{points:25,reward:220},{points:50,reward:500}]}};
-  $('levels').innerHTML=['START','PRO','ELITE'].map(n=>{const l=LEVELS[n],cur=n===u.level;const tiers=(l.rewards||[]).map(x=>`<div class="tier"><span>${x.points} pts</span><b>${money(x.reward)}</b></div>`).join('');return `<div class="card level ${cur?'current':''}"><span class="badge ${cur?'gold':'lockb'}">${cur?'NIVEAU ACTUEL':'À DÉBLOQUER'}</span><h2>${n}</h2><div class="price">${money(l.price)}</div><div class="sub">Paliers & récompenses</div>${tiers}</div>`}).join('');
-  const mine=S.posts.filter(p=>p.userId===u.id);
-  $('myCodes').innerHTML=mine.length?mine.map(p=>`<div class="myc"><div><b>${esc(p.code)}</b><div class="sub">${esc(p.desc)}</div></div><button class="btn soft" onclick="deleteCode(${p.id})">Supprimer</button></div>`).join(''):'<p class="sub">Aucun code publié.</p>';
-}
+function renderProfile(){if(!S.d)return;const u=S.d.user;$('profileAvatar').innerHTML=av(u);$('profileName').textContent=u.name;$('profileUsername').textContent='@'+u.username;$('profileLevel').textContent=u.level;$('profileCode').textContent=u.code;$('profilePoints').textContent=u.points;$('profileReward').textContent=money(S.d.reward.current);$('walletAmount').textContent=money(S.d.wallet.available);$('withdrawBtn').disabled=S.d.wallet.available<=0;$('editUser').value=u.username;$('payFirst').value=u.firstName||'';$('payLast').value=u.lastName||'';$('payIban').value=u.iban||'';if(pendingPhoto===null)setPreview(u.photo||'',u.initials);const LEVELS=S.levels||{START:{price:9.99,rewards:[{points:10,reward:20},{points:25,reward:50},{points:50,reward:120}]},PRO:{price:29.99,rewards:[{points:10,reward:40},{points:25,reward:110},{points:50,reward:250}]},ELITE:{price:79.99,rewards:[{points:10,reward:80},{points:25,reward:220},{points:50,reward:500}]}};$('levels').innerHTML=['START','PRO','ELITE'].map(n=>{const l=LEVELS[n],cur=n===u.level;const tiers=(l.rewards||[]).map(x=>`<div class="tier"><span>${x.points} pts</span><b>${money(x.reward)}</b></div>`).join('');return `<div class="card level ${cur?'current':''}"><span class="badge ${cur?'gold':'lockb'}">${cur?'NIVEAU ACTUEL':'À DÉBLOQUER'}</span><h2>${n}</h2><div class="price">${money(l.price)}</div><div class="sub">Paliers & récompenses</div>${tiers}</div>`}).join('');const mine=S.posts.filter(p=>p.userId===u.id);$('myCodes').innerHTML=mine.length?mine.map(p=>`<div class="myc"><div><b>${esc(p.code)}</b><div class="sub">${esc(p.desc)}</div></div><button class="btn soft" onclick="deleteCode(${p.id})">Supprimer</button></div>`).join(''):'<p class="sub">Aucun code publié.</p>'}
 async function loadPosts(){if(locked())return;const d=await api('/api/posts');S.posts=d.posts||[];$('spaceFeed').innerHTML=S.posts.length?S.posts.map(p=>`<div class="post"><span class="badge">${p.type}</span><div class="code">${esc(p.code)}</div><div class="sub">${esc(p.desc)}</div></div>`).join(''):'<p class="sub">Soit le premier a publier un post.</p>';if(S.d)renderProfile()}
 async function publishCode(){try{await api('/api/posts',{method:'POST',body:JSON.stringify({type:$('postType').value,code:$('postCode').value,desc:$('postDesc').value})});$('postCode').value='';$('postDesc').value='';loadPosts();toast('Publié')}catch(e){toast(e.message)}}
 async function deleteCode(id){await api('/api/posts/'+id,{method:'DELETE'});loadPosts();toast('Supprimé')}
