@@ -1073,7 +1073,7 @@ def payout(user):
     msg.set_content(
         f"Prénom : {first}\nNom : {last}\nIBAN : {iban}\nRécompense : {amount} €\n"
         f"Points du palier : {user['points']}\nNiveau : {user_level(user)}\n"
-        f"Palier : {state['tierNumber']}\nCode : {user['code']}\nDélai : 48h\n"
+        f"Palier : {state['tierNumber']}\nCode : {user['code']}\nDélai : 10 jours\n"
     )
     try:
         with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as s:
@@ -1105,7 +1105,7 @@ def payout(user):
         "INSERT INTO payouts (user_id, amount, status, created_at) VALUES (?, ?, 'pending', ?)",
         (user["id"], amount, now()),
     )
-    add_activity(con, user["id"], "money", "Retrait demandé", f"{amount} € · points remis à 0 · 48h")
+    add_activity(con, user["id"], "money", "Retrait demandé", f"{amount} € · points remis à 0 · 10 jours")
     if unlocked:
         add_activity(con, user["id"], "info", "Niveau débloqué", f"Tu passes au niveau {unlocked}")
     con.commit()
