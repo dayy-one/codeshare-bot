@@ -89,7 +89,7 @@ h2{font-size:22px;margin:0 0 4px}.sub{color:var(--m);line-height:1.5}
 .crop.show{display:flex}
 .cropbox{width:min(420px,100%);background:#fff;border-radius:24px;padding:18px}
 .cropview{width:100%;aspect-ratio:1;border-radius:18px;overflow:hidden;background:#1d331c}
-.cropview canvas{width:100%;height:100%;display:block}
+.cropview canvas{width:100%;height:100%;display:block;touch-action:none}
 .cropbox input[type=range]{width:100%;margin:14px 0}
 .paygate{background:radial-gradient(circle at 80% 0%,rgba(104,125,50,.16),transparent 34%),radial-gradient(circle at 10% 100%,rgba(196,176,122,.14),transparent 32%),#f3f5ef;color:#142013;padding:18px 16px 28px;overflow:auto}
 .paygate.show{display:flex;align-items:flex-start;justify-content:center}
@@ -285,7 +285,7 @@ h2{font-size:22px;margin:0 0 4px}.sub{color:var(--m);line-height:1.5}
     <div class="ey">Photo de profil</div>
     <h2>Recadre et zoome</h2>
     <div class="cropview"><canvas id="cropCanvas" width="400" height="400"></canvas></div>
-    <input id="cropZoom" type="range" min="100" max="280" value="100" oninput="drawCrop()">
+    <input id="cropZoom" type="range" min="100" max="280" value="100" oninput="cropScale=this.value/100;drawCrop()">
     <button class="btn primary full" type="button" onclick="applyCrop()">Valider</button>
     <button class="btn soft full" type="button" style="margin-top:8px" onclick="closeCrop()">Annuler</button>
   </div>
@@ -297,29 +297,62 @@ const $=id=>document.getElementById(id);
 const money=v=>new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR',maximumFractionDigits:0}).format(Number(v||0));
 const esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
 const S={auth:false,paid:false,d:null,levels:null,posts:[],afterAuth:null};
-let stripeCheckout=null,cropImg=null,pendingPhoto=null;
-function toast(t){$('toast').textContent=t;$('toast').classList.add('show');clearTimeout(window.tt);window.tt=setTimeout(()=>$('toast').classList.remove('show'),2200)}
-function av(u){return u&&u.photo?`<img src="${u.photo}">`:esc((u&&u.initials)||'C')}
-async function api(u,o={}){const r=await fetch(u,{credentials:'same-origin',headers:{'Content-Type':'application/json'},...o});const d=await r.json().catch(()=>({message:'Erreur'}));if(!r.ok) throw Object.assign(Error(d.message||d.error||'Erreur'),d);return d}
-function locked(){return !S.auth||!S.paid}
-function showHelp(){$('help').classList.add('show')}
-function closeHelp(){$('help').classList.remove('show')}
-function showTab(tab){const loginActive=tab==='login';$('loginTab').classList.toggle('active',loginActive);$('registerTab').classList.toggle('active',!loginActive);$('loginPanel').classList.toggle('active',loginActive);$('registerPanel').classList.toggle('active',!loginActive);$('cardTitle').textContent=loginActive?'Se connecter':'Créer ton compte';$('cardSub').textContent=loginActive?'Accède à ton espace COD.IA':'Rejoins COD.IA en quelques secondes'}
-function togglePassword(id){const el=$(id);el.type=el.type==='password'?'text':'password'}
-function setMessage(id,text,ok){const el=$(id);if(!el)return;el.textContent=text||'';el.classList.toggle('ok',!!ok)}
-function openAuth(mode,nextPage){S.afterAuth=nextPage||null;showTab(mode==='register'?'register':'login');$('authGate').classList.add('show')}
-function closeAuth(){$('authGate').classList.remove('show')}
-function go(p){if(['explore','ranking','space','profile','rewards','edit'].includes(p)&&!S.auth){openAuth('login',p);return}if(['explore','ranking','space','profile','rewards','edit','home'].includes(p)&&S.auth&&!S.paid){showPay();return}document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));$('page-'+p).classList.add('active');document.querySelectorAll('[data-n]').forEach(x=>x.classList.toggle('active',x.dataset.n===p||(p==='edit'&&x.dataset.n==='profile')));if(p==='explore')loadMembers();if(p==='ranking')loadRanking();if(p==='space')loadPosts();if(p==='profile'||p==='edit')renderProfile();if(p==='rewards')renderRewards()}
-function onTopAvatar(){if(!S.auth){openAuth('login','profile');return}if(!S.paid){showPay();return}if($('page-profile').classList.contains('active'))go('edit');else go('profile')}
-function closeSheet(){$('sheet').classList.remove('show')}
-function closeGates(){['payGate','refGate','refOk'].forEach(id=>$(id).classList.remove('show'));go('home')}
+let stripeCheckout=null,cropImg=null,pendingPhoto=null,cropScale=1,cropX=0,cropY=0,pinchStart=0,startScale=1,drag=null;
+
 function setPreview(src,initials){$('editPreview').innerHTML=src?`<img src="${src}">`:esc(initials||'C')}
 function pickPhoto(){$('editFile').click()}
 function deletePhoto(){pendingPhoto='';setPreview('',S.d&&S.d.user.initials);toast('Photo supprimée')}
-function openCrop(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{const img=new Image();img.onload=()=>{cropImg=img;$('cropZoom').value=100;$('crop').classList.add('show');drawCrop()};img.src=r.result};r.readAsDataURL(f);e.target.value=''}
+function openCrop(e){
+  const f=e.target.files[0]; if(!f) return;
+  const r=new FileReader();
+  r.onload=()=>{
+    const img=new Image();
+    img.onload=()=>{
+      cropImg=img; cropScale=1; cropX=0; cropY=0;
+      $('cropZoom').value=100;
+      $('crop').classList.add('show');
+      bindCropTouch();
+      drawCrop();
+    };
+    img.src=r.result;
+  };
+  r.readAsDataURL(f);
+  e.target.value='';
+}
 function closeCrop(){$('crop').classList.remove('show');cropImg=null}
-function drawCrop(){if(!cropImg)return;const c=$('cropCanvas'),ctx=c.getContext('2d'),z=Number($('cropZoom').value)/100,side=Math.min(cropImg.width,cropImg.height)/z,sx=(cropImg.width-side)/2,sy=(cropImg.height-side)/2;ctx.fillStyle='#1d331c';ctx.fillRect(0,0,c.width,c.height);ctx.drawImage(cropImg,sx,sy,side,side,0,0,c.width,c.height)}
+function drawCrop(){
+  if(!cropImg) return;
+  const c=$('cropCanvas'), ctx=c.getContext('2d');
+  const z=Math.max(1, cropScale);
+  const side=Math.min(cropImg.width, cropImg.height)/z;
+  const sx=(cropImg.width-side)/2 + cropX;
+  const sy=(cropImg.height-side)/2 + cropY;
+  ctx.fillStyle='#1d331c';
+  ctx.fillRect(0,0,c.width,c.height);
+  ctx.drawImage(cropImg,sx,sy,side,side,0,0,c.width,c.height);
+}
 function applyCrop(){drawCrop();pendingPhoto=$('cropCanvas').toDataURL('image/jpeg',0.86);setPreview(pendingPhoto,'');closeCrop()}
+function dist(a,b){const dx=a.clientX-b.clientX,dy=a.clientY-b.clientY;return Math.hypot(dx,dy)}
+function bindCropTouch(){
+  const box=$('cropCanvas');
+  box.ontouchstart=e=>{
+    if(e.touches.length===2){pinchStart=dist(e.touches[0],e.touches[1]);startScale=cropScale}
+    else if(e.touches.length===1){drag={x:e.touches[0].clientX,y:e.touches[0].clientY,cx:cropX,cy:cropY}}
+  };
+  box.ontouchmove=e=>{
+    e.preventDefault();
+    if(e.touches.length===2){
+      cropScale=Math.min(2.8, Math.max(1, startScale*(dist(e.touches[0],e.touches[1])/pinchStart)));
+      $('cropZoom').value=Math.round(cropScale*100);
+      drawCrop();
+    }else if(e.touches.length===1 && drag){
+      cropX=drag.cx-(e.touches[0].clientX-drag.x)*2;
+      cropY=drag.cy-(e.touches[0].clientY-drag.y)*2;
+      drawCrop();
+    }
+  };
+  box.ontouchend=()=>{drag=null};
+}
 async function showPay(){
   $('payGate').classList.add('show');const box=$('stripeEmbed');box.innerHTML='';
   try{
