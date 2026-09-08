@@ -30,7 +30,11 @@ STRIPE_WEBHOOK_SECRET = os.environ.get("STRIPE_WEBHOOK_SECRET", "")
 STRIPE_PK = os.environ.get("STRIPE_PUBLISHABLE_KEY", "")
 APP_URL = os.environ.get("APP_URL", "http://127.0.0.1:3000").rstrip("/")
 
+ADMIN_EMAIL = (os.environ.get("ADMIN_EMAIL") or "contact@cod-ia.fr").strip().lower()
+ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD") or ""
+
 LEVEL_ORDER = ["START", "PRO", "ELITE"]
+TIER_LABELS = ["premier", "deuxième", "troisième", "quatrième", "cinquième"]
 
 LEVELS = {
     "START": {
@@ -58,8 +62,6 @@ LEVELS = {
         ],
     },
 }
-
-TIER_LABELS = ["premier", "deuxième", "troisième", "quatrième", "cinquième"]
 
 
 def db():
@@ -222,10 +224,16 @@ def add_activity(con, user_id, kind, title, description=""):
 
 def ensure_admin():
     con = db()
-    email = "contact@cod-ia.fr"
+    email = ADMIN_EMAIL
     existing = con.execute("SELECT id FROM users WHERE email=?", (email,)).fetchone()
+    password = ADMIN_PASSWORD or secrets.token_hex(16)
     if existing:
         con.execute("UPDATE users SET paid=1, ref_locked=1 WHERE email=?", (email,))
+        if ADMIN_PASSWORD:
+            con.execute(
+                "UPDATE users SET password_hash=? WHERE email=?",
+                (generate_password_hash(ADMIN_PASSWORD), email),
+            )
         con.commit()
         con.close()
         return
@@ -237,7 +245,7 @@ def ensure_admin():
             "Admin COD-IA",
             "admin",
             email,
-            generate_password_hash("CodiaAdmin2026!"),
+            generate_password_hash(password),
             "COD-ADMIN1",
             now(),
         ),
@@ -257,9 +265,14 @@ def public_user(con, user):
         (user["id"],),
     ).fetchone()["c"]
     return {
-        "id": user["id"], "name": user["name"], "username": user["username"],
-        "initials": initials(user["name"]), "level": user_level(user), "points": user["points"],
-        "photo": user["photo"] or "", "refs": refs,
+        "id": user["id"],
+        "name": user["name"],
+        "username": user["username"],
+        "initials": initials(user["name"]),
+        "level": user_level(user),
+        "points": user["points"],
+        "photo": user["photo"] or "",
+        "refs": refs,
     }
 
 
@@ -272,13 +285,22 @@ def dashboard(con, user):
     reward = reward_state(user)
     return {
         "user": {
-            "id": user["id"], "name": user["name"], "username": user["username"],
-            "initials": initials(user["name"]), "level": user_level(user), "points": user["points"],
-            "code": user["code"], "photo": user["photo"] or "",
-            "firstName": user["first_name"] or "", "lastName": user["last_name"] or "",
-            "iban": user["iban"] or "", "claimed": user["claimed"] or 0,
-            "paid": bool(user["paid"]), "refLocked": bool(user["ref_locked"]),
-            "pointsLocked": reward["locked"], "tierIndex": reward["tierIndex"],
+            "id": user["id"],
+            "name": user["name"],
+            "username": user["username"],
+            "initials": initials(user["name"]),
+            "level": user_level(user),
+            "points": user["points"],
+            "code": user["code"],
+            "photo": user["photo"] or "",
+            "firstName": user["first_name"] or "",
+            "lastName": user["last_name"] or "",
+            "iban": user["iban"] or "",
+            "claimed": user["claimed"] or 0,
+            "paid": bool(user["paid"]),
+            "refLocked": bool(user["ref_locked"]),
+            "pointsLocked": reward["locked"],
+            "tierIndex": reward["tierIndex"],
         },
         "referrals": {"validated": validated},
         "ranking": {"position": higher + 1 if user["paid"] else None},
@@ -317,6 +339,15 @@ def require_paid(fn):
         if not user["paid"]:
             return jsonify({"message": "Paiement requis", "needPay": True}), 402
         return fn(user, *args, **kwargs)
+    return wrapper
+
+
+def require_admin(fn):
+    @wraps(fn)
+    def wrapper(*args, **kwargs):
+        if not session.get("admin"):
+            return jsonify({"message": "Admin requis"}), 401
+        return fn(*args, **kwargs)
     return wrapper
 
 
@@ -365,8 +396,10 @@ def validate_referral(con, user):
 
 
 def mark_paid_user(con, user):
-    if not user or user["paid"]:
+    if not user:
         return user
+    if user["paid"]:
+        return user_by_id(con, user["id"])
     con.execute("UPDATE users SET paid=1 WHERE id=?", (user["id"],))
     add_activity(con, user["id"], "info", "Entrée payée", "Stripe")
     con.commit()
@@ -374,6 +407,58 @@ def mark_paid_user(con, user):
     validate_referral(con, user)
     con.commit()
     return user_by_id(con, user["id"])
+
+
+def stripe_obj_to_dict(obj):
+    if obj is None:
+        return {}
+    if isinstance(obj, dict):
+        return obj
+    try:
+        return obj.to_dict()
+    except Exception:
+        try:
+            return dict(obj)
+        except Exception:
+            return {}
+
+
+def mark_paid_from_session(session_obj):
+    s = stripe_obj_to_dict(session_obj)
+    if not s:
+        return None
+    status = s.get("payment_status")
+    state = s.get("status")
+    if status not in ("paid", "no_payment_required") and state != "complete":
+        return None
+    con = db()
+    user = None
+    meta = s.get("metadata") or {}
+    if not isinstance(meta, dict):
+        try:
+            meta = dict(meta)
+        except Exception:
+            meta = {}
+    uid = s.get("client_reference_id") or meta.get("user_id")
+    if uid:
+        try:
+            user = user_by_id(con, int(uid))
+        except Exception:
+            user = None
+    if not user:
+        details = s.get("customer_details") or {}
+        if not isinstance(details, dict):
+            try:
+                details = dict(details)
+            except Exception:
+                details = {}
+        email = (details.get("email") or s.get("customer_email") or "").lower()
+        if email:
+            user = con.execute("SELECT * FROM users WHERE email=?", (email,)).fetchone()
+    if user:
+        user = mark_paid_user(con, user)
+    con.close()
+    return user
 
 
 @app.get("/")
@@ -481,6 +566,7 @@ def pay_session(user):
         mode="payment",
         customer_email=user["email"],
         client_reference_id=str(user["id"]),
+        metadata={"user_id": str(user["id"]), "email": user["email"]},
         line_items=[{
             "price_data": {
                 "currency": "eur",
@@ -495,21 +581,30 @@ def pay_session(user):
 
 
 @app.get("/api/pay/confirm")
-@require_auth
-def pay_confirm(user):
+def pay_confirm():
     session_id = request.args.get("session_id") or ""
-    con = db()
-    user = user_by_id(con, user["id"])
+    user = current_user()
+    paid_user = None
+
     if session_id and stripe.api_key:
         try:
             s = stripe.checkout.Session.retrieve(session_id)
-            email = ((s.get("customer_details") or {}).get("email") or s.get("customer_email") or "").lower()
-            same_user = str(s.get("client_reference_id") or "") == str(user["id"])
-            same_email = email == (user["email"] or "").lower()
-            if s.get("payment_status") == "paid" and (same_user or same_email):
-                user = mark_paid_user(con, user)
+            paid_user = mark_paid_from_session(s)
+            if paid_user:
+                session["uid"] = paid_user["id"]
+                user = paid_user
         except Exception:
-            pass
+            app.logger.exception("pay_confirm stripe retrieve failed")
+
+    if not user:
+        return jsonify({
+            "ok": False,
+            "paid": False,
+            "message": "Reconnecte-toi. Si Stripe a débité 9,99 €, ton accès sera validé après connexion.",
+        }), 401
+
+    con = db()
+    user = user_by_id(con, user["id"])
     payload = dashboard(con, user)
     paid = bool(user["paid"])
     con.close()
@@ -524,23 +619,10 @@ def stripe_webhook():
         event = stripe.Webhook.construct_event(payload, sig, STRIPE_WEBHOOK_SECRET)
     except Exception:
         return jsonify({"message": "Webhook invalide"}), 400
-    if event["type"] == "checkout.session.completed":
-        s = event["data"]["object"]
-        con = db()
-        user = None
-        uid = s.get("client_reference_id")
-        if uid:
-            try:
-                user = user_by_id(con, int(uid))
-            except Exception:
-                user = None
-        if not user:
-            email = ((s.get("customer_details") or {}).get("email") or s.get("customer_email") or "").lower()
-            if email:
-                user = con.execute("SELECT * FROM users WHERE email=?", (email,)).fetchone()
-        if user:
-            mark_paid_user(con, user)
-        con.close()
+    etype = event.get("type")
+    obj = event.get("data", {}).get("object")
+    if etype in ("checkout.session.completed", "checkout.session.async_payment_succeeded"):
+        mark_paid_from_session(obj)
     return jsonify({"ok": True})
 
 
@@ -651,7 +733,10 @@ def create_post(user):
     if ptype not in ("promo", "parrainage") or len(code) < 4 or len(desc) < 8:
         return jsonify({"message": "Publication invalide"}), 400
     con = db()
-    con.execute("INSERT INTO posts (user_id, type, code, description, created_at) VALUES (?, ?, ?, ?, ?)", (user["id"], ptype, code, desc, now()))
+    con.execute(
+        "INSERT INTO posts (user_id, type, code, description, created_at) VALUES (?, ?, ?, ?, ?)",
+        (user["id"], ptype, code, desc, now()),
+    )
     con.commit()
     con.close()
     return jsonify({"ok": True})
@@ -694,11 +779,16 @@ def update_profile(user):
 @require_paid
 def update_bank(user):
     data = request.get_json(silent=True) or {}
-    first, last, iban = (data.get("firstName") or "").strip(), (data.get("lastName") or "").strip(), re.sub(r"\s+", "", data.get("iban") or "").upper()
+    first = (data.get("firstName") or "").strip()
+    last = (data.get("lastName") or "").strip()
+    iban = re.sub(r"\s+", "", data.get("iban") or "").upper()
     if len(first) < 2 or len(last) < 2 or not is_iban(iban):
         return jsonify({"message": "Coordonnées invalides"}), 400
     con = db()
-    con.execute("UPDATE users SET first_name=?, last_name=?, iban=?, name=? WHERE id=?", (first, last, iban, f"{first} {last}", user["id"]))
+    con.execute(
+        "UPDATE users SET first_name=?, last_name=?, iban=?, name=? WHERE id=?",
+        (first, last, iban, f"{first} {last}", user["id"]),
+    )
     con.commit()
     payload = dashboard(con, user_by_id(con, user["id"]))
     con.close()
@@ -765,6 +855,103 @@ def payout(user):
     payload = dashboard(con, user_by_id(con, user["id"]))
     con.close()
     return jsonify({"ok": True, "dashboard": payload})
+
+
+@app.get("/admin")
+@app.get("/admin/payouts")
+def admin_page():
+    path = os.path.join(BASE, "admin.html")
+    if os.path.exists(path):
+        return send_from_directory(BASE, "admin.html")
+    return jsonify({"message": "admin.html manquant"}), 404
+
+
+@app.get("/api/admin/me")
+def admin_me():
+    if not session.get("admin"):
+        return jsonify({"ok": False}), 401
+    return jsonify({"ok": True, "email": session.get("admin_email")})
+
+
+@app.post("/api/admin/login")
+def admin_login():
+    if not ADMIN_PASSWORD:
+        return jsonify({"message": "ADMIN_PASSWORD manquant sur Railway"}), 500
+    data = request.get_json(silent=True) or {}
+    email = (data.get("email") or "").strip().lower()
+    password = data.get("password") or ""
+    if email != ADMIN_EMAIL or password != ADMIN_PASSWORD:
+        return jsonify({"message": "Identifiants admin incorrects"}), 400
+    session["admin"] = True
+    session["admin_email"] = email
+    return jsonify({"ok": True})
+
+
+@app.post("/api/admin/logout")
+def admin_logout():
+    session.pop("admin", None)
+    session.pop("admin_email", None)
+    return jsonify({"ok": True})
+
+
+@app.get("/api/admin/payouts")
+@require_admin
+def admin_payouts():
+    status = (request.args.get("status") or "pending").strip().lower()
+    con = db()
+    if status == "all":
+        rows = con.execute(
+            """SELECT p.id, p.amount, p.status, p.created_at,
+                      u.name, u.email, u.iban, u.first_name, u.last_name,
+                      u.level, u.code, u.points
+               FROM payouts p JOIN users u ON u.id=p.user_id
+               ORDER BY p.id DESC LIMIT 200"""
+        ).fetchall()
+    else:
+        rows = con.execute(
+            """SELECT p.id, p.amount, p.status, p.created_at,
+                      u.name, u.email, u.iban, u.first_name, u.last_name,
+                      u.level, u.code, u.points
+               FROM payouts p JOIN users u ON u.id=p.user_id
+               WHERE p.status=?
+               ORDER BY p.id DESC LIMIT 200""",
+            (status,),
+        ).fetchall()
+    con.close()
+    return jsonify({
+        "payouts": [{
+            "id": r["id"],
+            "amount": r["amount"],
+            "status": r["status"],
+            "createdAt": r["created_at"],
+            "name": r["name"],
+            "email": r["email"],
+            "iban": r["iban"],
+            "firstName": r["first_name"] or "",
+            "lastName": r["last_name"] or "",
+            "level": r["level"],
+            "code": r["code"],
+            "points": r["points"],
+        } for r in rows]
+    })
+
+
+@app.post("/api/admin/payouts/<int:payout_id>/paid")
+@require_admin
+def admin_mark_paid(payout_id):
+    con = db()
+    row = con.execute("SELECT * FROM payouts WHERE id=?", (payout_id,)).fetchone()
+    if not row:
+        con.close()
+        return jsonify({"message": "Demande introuvable"}), 404
+    if row["status"] == "paid":
+        con.close()
+        return jsonify({"ok": True, "already": True})
+    con.execute("UPDATE payouts SET status='paid' WHERE id=?", (payout_id,))
+    add_activity(con, row["user_id"], "money", "Virement envoyé", f"{row['amount']} €")
+    con.commit()
+    con.close()
+    return jsonify({"ok": True})
 
 
 if __name__ == "__main__":
