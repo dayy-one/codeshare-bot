@@ -35,6 +35,7 @@ app.secret_key = os.environ.get("CODIA_SECRET", secrets.token_hex(32))
 app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
 app.config["SESSION_COOKIE_SECURE"] = True
 app.config["SESSION_COOKIE_HTTPONLY"] = True
+app.config["PERMANENT_SESSION_LIFETIME"] = 60 * 60 * 24 * 30
 
 PAYOUT_TO = "contact@cod-ia.fr"
 SMTP_HOST = os.environ.get("SMTP_HOST", "smtp.gmail.com")
@@ -106,6 +107,12 @@ class DB:
     def commit(self):
         self.con.commit()
 
+    def rollback(self):
+        try:
+            self.con.rollback()
+        except Exception:
+            pass
+
     def close(self):
         self.con.close()
 
@@ -130,6 +137,10 @@ def is_unique_error(e):
     return "unique" in msg or "duplicate" in msg
 
 
+def pg_add_column(con, table, column, spec):
+    con.execute(f"ALTER TABLE {table} ADD COLUMN IF NOT EXISTS {column} {spec}")
+
+
 def init_db():
     con = db()
     if USE_PG:
@@ -137,11 +148,11 @@ def init_db():
             """
             CREATE TABLE IF NOT EXISTS users (
                 id SERIAL PRIMARY KEY,
-                name TEXT NOT NULL,
-                username TEXT NOT NULL UNIQUE,
-                email TEXT NOT NULL UNIQUE,
-                password_hash TEXT NOT NULL,
-                code TEXT NOT NULL UNIQUE,
+                name TEXT NOT NULL DEFAULT 'Membre',
+                username TEXT,
+                email TEXT,
+                password_hash TEXT,
+                code TEXT,
                 referred_by INTEGER,
                 level TEXT NOT NULL DEFAULT 'START',
                 points INTEGER NOT NULL DEFAULT 0,
@@ -152,14 +163,14 @@ def init_db():
                 last_name TEXT DEFAULT '',
                 iban TEXT DEFAULT '',
                 photo TEXT DEFAULT '',
-                created_at TEXT NOT NULL,
+                created_at TEXT,
                 tier_index INTEGER NOT NULL DEFAULT 0,
                 points_locked INTEGER NOT NULL DEFAULT 0
             );
             CREATE TABLE IF NOT EXISTS referrals (
                 id SERIAL PRIMARY KEY,
                 referrer_id INTEGER NOT NULL,
-                referred_id INTEGER NOT NULL UNIQUE,
+                referred_id INTEGER NOT NULL,
                 status TEXT NOT NULL DEFAULT 'pending',
                 created_at TEXT NOT NULL
             );
@@ -188,11 +199,33 @@ def init_db():
             );
             """
         )
-        try:
-            con.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS tier_index INTEGER NOT NULL DEFAULT 0")
-            con.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS points_locked INTEGER NOT NULL DEFAULT 0")
-        except Exception:
-            pass
+        cols = {
+            "name": "TEXT DEFAULT 'Membre'",
+            "username": "TEXT",
+            "email": "TEXT",
+            "password_hash": "TEXT",
+            "code": "TEXT",
+            "referred_by": "INTEGER",
+            "level": "TEXT DEFAULT 'START'",
+            "points": "INTEGER DEFAULT 0",
+            "claimed": "INTEGER DEFAULT 0",
+            "paid": "INTEGER DEFAULT 0",
+            "ref_locked": "INTEGER DEFAULT 0",
+            "first_name": "TEXT DEFAULT ''",
+            "last_name": "TEXT DEFAULT ''",
+            "iban": "TEXT DEFAULT ''",
+            "photo": "TEXT DEFAULT ''",
+            "created_at": "TEXT",
+            "tier_index": "INTEGER DEFAULT 0",
+            "points_locked": "INTEGER DEFAULT 0",
+        }
+        for col, spec in cols.items():
+            try:
+                pg_add_column(con, "users", col, spec)
+                con.commit()
+            except Exception:
+                con.rollback()
+        con.commit()
     else:
         con.executescript(
             """
@@ -252,7 +285,7 @@ def init_db():
             con.execute("ALTER TABLE users ADD COLUMN tier_index INTEGER NOT NULL DEFAULT 0")
         if "points_locked" not in cols:
             con.execute("ALTER TABLE users ADD COLUMN points_locked INTEGER NOT NULL DEFAULT 0")
-    con.commit()
+        con.commit()
     con.close()
 
 
@@ -345,29 +378,33 @@ def add_activity(con, user_id, kind, title, description=""):
 
 def ensure_admin():
     con = db()
-    email = ADMIN_EMAIL
-    existing = con.execute("SELECT id FROM users WHERE email=?", (email,)).fetchone()
-    password = ADMIN_PASSWORD or secrets.token_hex(16)
-    if existing:
-        con.execute("UPDATE users SET paid=1, ref_locked=1 WHERE email=?", (email,))
-        if ADMIN_PASSWORD:
-            con.execute(
-                "UPDATE users SET password_hash=? WHERE email=?",
-                (generate_password_hash(ADMIN_PASSWORD), email),
-            )
+    try:
+        email = ADMIN_EMAIL
+        existing = con.execute("SELECT id FROM users WHERE email=?", (email,)).fetchone()
+        password = ADMIN_PASSWORD or secrets.token_hex(16)
+        if existing:
+            con.execute("UPDATE users SET paid=1, ref_locked=1 WHERE email=?", (email,))
+            if ADMIN_PASSWORD:
+                con.execute(
+                    "UPDATE users SET password_hash=? WHERE email=?",
+                    (generate_password_hash(ADMIN_PASSWORD), email),
+                )
+            con.commit()
+            return
+        con.execute(
+            """INSERT INTO users
+               (name,username,email,password_hash,code,referred_by,level,points,claimed,paid,ref_locked,created_at)
+               VALUES (?,?,?,?,?,NULL,'ELITE',0,0,1,1,?)""",
+            ("Admin COD-IA", "admin", email, generate_password_hash(password), "COD-ADMIN1", now()),
+        )
+        uid = con.execute("SELECT id FROM users WHERE email=?", (email,)).fetchone()["id"]
+        add_activity(con, uid, "info", "Compte admin créé", "Accès direct")
         con.commit()
+    except Exception:
+        con.rollback()
+        app.logger.exception("ensure_admin failed")
+    finally:
         con.close()
-        return
-    con.execute(
-        """INSERT INTO users
-           (name,username,email,password_hash,code,referred_by,level,points,claimed,paid,ref_locked,created_at)
-           VALUES (?,?,?,?,?,NULL,'ELITE',0,0,1,1,?)""",
-        ("Admin COD-IA", "admin", email, generate_password_hash(password), "COD-ADMIN1", now()),
-    )
-    uid = con.execute("SELECT id FROM users WHERE email=?", (email,)).fetchone()["id"]
-    add_activity(con, uid, "info", "Compte admin créé", "Accès direct")
-    con.commit()
-    con.close()
 
 
 ensure_admin()
@@ -641,6 +678,7 @@ def register():
         session.permanent = True
         return jsonify({"dashboard": dashboard(con, user), "needPay": True})
     except Exception as e:
+        con.rollback()
         con.close()
         if is_unique_error(e):
             return jsonify({"message": "Email ou nom d’utilisateur déjà utilisé"}), 400
@@ -654,7 +692,7 @@ def login():
     password = data.get("password") or ""
     con = db()
     user = con.execute("SELECT * FROM users WHERE email=? OR username=?", (identifier, identifier)).fetchone()
-    if not user or not check_password_hash(user["password_hash"], password):
+    if not user or not user.get("password_hash") or not check_password_hash(user["password_hash"], password):
         con.close()
         return jsonify({"message": "Identifiants incorrects"}), 400
     session["uid"] = user["id"]
@@ -892,6 +930,7 @@ def update_profile(user):
         con.commit()
         return jsonify({"dashboard": dashboard(con, user_by_id(con, user["id"]))})
     except Exception as e:
+        con.rollback()
         if is_unique_error(e):
             return jsonify({"message": "Username déjà utilisé"}), 400
         raise
@@ -1062,4 +1101,3 @@ def admin_mark_paid(payout_id):
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 3000)), debug=True)
-    
