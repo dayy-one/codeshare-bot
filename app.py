@@ -509,6 +509,8 @@ def public_user(con, user):
         "points": user["points"],
         "photo": user["photo"] or "",
         "refs": refs,
+        "firstName": user["first_name"] or (user["name"] or "").split(" ")[0],
+        "lastName": user["last_name"] or "",
     }
 
 
