@@ -44,18 +44,17 @@ LEVELS = {
     "PRO": {
         "price": 0,
         "rewards": [
+            {"points": 100, "reward": 200},
+            {"points": 250, "reward": 500},
             {"points": 500, "reward": 1000},
-            {"points": 1100, "reward": 2200},
-            {"points": 1200, "reward": 2400},
-            {"points": 1400, "reward": 2800},
         ],
     },
     "ELITE": {
         "price": 0,
         "rewards": [
-            {"points": 10, "reward": 80},
-            {"points": 25, "reward": 220},
-            {"points": 50, "reward": 500},
+            {"points": 1100, "reward": 2200},
+            {"points": 1335, "reward": 2670},
+            {"points": 1700, "reward": 3400},
         ],
     },
 }
