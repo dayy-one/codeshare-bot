@@ -8,16 +8,33 @@ from functools import wraps
 from datetime import datetime
 
 import stripe
-from flask import Flask, request, jsonify, session, send_from_directory
+from flask import Flask, request, jsonify, session, send_from_directory, redirect
 from werkzeug.security import generate_password_hash, check_password_hash
 
+try:
+    import psycopg2
+    from psycopg2.extras import RealDictCursor
+except Exception:
+    psycopg2 = None
+    RealDictCursor = None
+
 BASE = os.path.dirname(os.path.abspath(__file__))
-DATA = os.path.join(BASE, "data")
-DB = os.path.join(DATA, "codia.db")
+
+DATABASE_URL = (os.environ.get("DATABASE_URL") or "").strip()
+if DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = "postgresql://" + DATABASE_URL[len("postgres://"):]
+
+VOLUME = (os.environ.get("RAILWAY_VOLUME_MOUNT_PATH") or os.environ.get("DATA_DIR") or "").rstrip("/")
+DATA = VOLUME or os.path.join(BASE, "data")
 os.makedirs(DATA, exist_ok=True)
+SQLITE_DB = os.path.join(DATA, "codia.db")
+USE_PG = bool(DATABASE_URL and psycopg2)
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("CODIA_SECRET", secrets.token_hex(32))
+app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
+app.config["SESSION_COOKIE_SECURE"] = True
+app.config["SESSION_COOKIE_HTTPONLY"] = True
 
 PAYOUT_TO = "contact@cod-ia.fr"
 SMTP_HOST = os.environ.get("SMTP_HOST", "smtp.gmail.com")
@@ -64,73 +81,177 @@ LEVELS = {
 }
 
 
+class DB:
+    def __init__(self):
+        if USE_PG:
+            self.con = psycopg2.connect(DATABASE_URL, cursor_factory=RealDictCursor)
+            self.con.autocommit = False
+            self.cur = self.con.cursor()
+        else:
+            self.con = sqlite3.connect(SQLITE_DB)
+            self.con.row_factory = sqlite3.Row
+            self.con.execute("PRAGMA foreign_keys = ON")
+            self.cur = None
+
+    def _sql(self, sql):
+        return sql.replace("?", "%s") if USE_PG else sql
+
+    def execute(self, sql, args=()):
+        q = self._sql(sql)
+        if USE_PG:
+            self.cur.execute(q, args)
+            return self.cur
+        return self.con.execute(q, args)
+
+    def commit(self):
+        self.con.commit()
+
+    def close(self):
+        self.con.close()
+
+    def executescript(self, script):
+        if not USE_PG:
+            self.con.executescript(script)
+            return
+        for part in script.split(";"):
+            part = part.strip()
+            if part:
+                self.cur.execute(part)
+
+
 def db():
-    con = sqlite3.connect(DB)
-    con.row_factory = sqlite3.Row
-    con.execute("PRAGMA foreign_keys = ON")
-    return con
+    return DB()
+
+
+def is_unique_error(e):
+    if isinstance(e, sqlite3.IntegrityError):
+        return True
+    msg = str(e).lower()
+    return "unique" in msg or "duplicate" in msg
 
 
 def init_db():
     con = db()
-    con.executescript(
-        """
-        CREATE TABLE IF NOT EXISTS users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT NOT NULL,
-            username TEXT NOT NULL UNIQUE,
-            email TEXT NOT NULL UNIQUE,
-            password_hash TEXT NOT NULL,
-            code TEXT NOT NULL UNIQUE,
-            referred_by INTEGER,
-            level TEXT NOT NULL DEFAULT 'START',
-            points INTEGER NOT NULL DEFAULT 0,
-            claimed INTEGER NOT NULL DEFAULT 0,
-            paid INTEGER NOT NULL DEFAULT 0,
-            ref_locked INTEGER NOT NULL DEFAULT 0,
-            first_name TEXT DEFAULT '',
-            last_name TEXT DEFAULT '',
-            iban TEXT DEFAULT '',
-            photo TEXT DEFAULT '',
-            created_at TEXT NOT NULL
-        );
-        CREATE TABLE IF NOT EXISTS referrals (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            referrer_id INTEGER NOT NULL,
-            referred_id INTEGER NOT NULL UNIQUE,
-            status TEXT NOT NULL DEFAULT 'pending',
-            created_at TEXT NOT NULL
-        );
-        CREATE TABLE IF NOT EXISTS activities (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id INTEGER NOT NULL,
-            kind TEXT NOT NULL,
-            title TEXT NOT NULL,
-            description TEXT,
-            created_at TEXT NOT NULL
-        );
-        CREATE TABLE IF NOT EXISTS posts (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id INTEGER NOT NULL,
-            type TEXT NOT NULL,
-            code TEXT NOT NULL,
-            description TEXT NOT NULL,
-            created_at TEXT NOT NULL
-        );
-        CREATE TABLE IF NOT EXISTS payouts (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id INTEGER NOT NULL,
-            amount INTEGER NOT NULL,
-            status TEXT NOT NULL DEFAULT 'pending',
-            created_at TEXT NOT NULL
-        );
-        """
-    )
-    cols = [r[1] for r in con.execute("PRAGMA table_info(users)").fetchall()]
-    if "tier_index" not in cols:
-        con.execute("ALTER TABLE users ADD COLUMN tier_index INTEGER NOT NULL DEFAULT 0")
-    if "points_locked" not in cols:
-        con.execute("ALTER TABLE users ADD COLUMN points_locked INTEGER NOT NULL DEFAULT 0")
+    if USE_PG:
+        con.executescript(
+            """
+            CREATE TABLE IF NOT EXISTS users (
+                id SERIAL PRIMARY KEY,
+                name TEXT NOT NULL,
+                username TEXT NOT NULL UNIQUE,
+                email TEXT NOT NULL UNIQUE,
+                password_hash TEXT NOT NULL,
+                code TEXT NOT NULL UNIQUE,
+                referred_by INTEGER,
+                level TEXT NOT NULL DEFAULT 'START',
+                points INTEGER NOT NULL DEFAULT 0,
+                claimed INTEGER NOT NULL DEFAULT 0,
+                paid INTEGER NOT NULL DEFAULT 0,
+                ref_locked INTEGER NOT NULL DEFAULT 0,
+                first_name TEXT DEFAULT '',
+                last_name TEXT DEFAULT '',
+                iban TEXT DEFAULT '',
+                photo TEXT DEFAULT '',
+                created_at TEXT NOT NULL,
+                tier_index INTEGER NOT NULL DEFAULT 0,
+                points_locked INTEGER NOT NULL DEFAULT 0
+            );
+            CREATE TABLE IF NOT EXISTS referrals (
+                id SERIAL PRIMARY KEY,
+                referrer_id INTEGER NOT NULL,
+                referred_id INTEGER NOT NULL UNIQUE,
+                status TEXT NOT NULL DEFAULT 'pending',
+                created_at TEXT NOT NULL
+            );
+            CREATE TABLE IF NOT EXISTS activities (
+                id SERIAL PRIMARY KEY,
+                user_id INTEGER NOT NULL,
+                kind TEXT NOT NULL,
+                title TEXT NOT NULL,
+                description TEXT,
+                created_at TEXT NOT NULL
+            );
+            CREATE TABLE IF NOT EXISTS posts (
+                id SERIAL PRIMARY KEY,
+                user_id INTEGER NOT NULL,
+                type TEXT NOT NULL,
+                code TEXT NOT NULL,
+                description TEXT NOT NULL,
+                created_at TEXT NOT NULL
+            );
+            CREATE TABLE IF NOT EXISTS payouts (
+                id SERIAL PRIMARY KEY,
+                user_id INTEGER NOT NULL,
+                amount INTEGER NOT NULL,
+                status TEXT NOT NULL DEFAULT 'pending',
+                created_at TEXT NOT NULL
+            );
+            """
+        )
+        try:
+            con.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS tier_index INTEGER NOT NULL DEFAULT 0")
+            con.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS points_locked INTEGER NOT NULL DEFAULT 0")
+        except Exception:
+            pass
+    else:
+        con.executescript(
+            """
+            CREATE TABLE IF NOT EXISTS users (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL,
+                username TEXT NOT NULL UNIQUE,
+                email TEXT NOT NULL UNIQUE,
+                password_hash TEXT NOT NULL,
+                code TEXT NOT NULL UNIQUE,
+                referred_by INTEGER,
+                level TEXT NOT NULL DEFAULT 'START',
+                points INTEGER NOT NULL DEFAULT 0,
+                claimed INTEGER NOT NULL DEFAULT 0,
+                paid INTEGER NOT NULL DEFAULT 0,
+                ref_locked INTEGER NOT NULL DEFAULT 0,
+                first_name TEXT DEFAULT '',
+                last_name TEXT DEFAULT '',
+                iban TEXT DEFAULT '',
+                photo TEXT DEFAULT '',
+                created_at TEXT NOT NULL
+            );
+            CREATE TABLE IF NOT EXISTS referrals (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                referrer_id INTEGER NOT NULL,
+                referred_id INTEGER NOT NULL UNIQUE,
+                status TEXT NOT NULL DEFAULT 'pending',
+                created_at TEXT NOT NULL
+            );
+            CREATE TABLE IF NOT EXISTS activities (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                kind TEXT NOT NULL,
+                title TEXT NOT NULL,
+                description TEXT,
+                created_at TEXT NOT NULL
+            );
+            CREATE TABLE IF NOT EXISTS posts (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                type TEXT NOT NULL,
+                code TEXT NOT NULL,
+                description TEXT NOT NULL,
+                created_at TEXT NOT NULL
+            );
+            CREATE TABLE IF NOT EXISTS payouts (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                amount INTEGER NOT NULL,
+                status TEXT NOT NULL DEFAULT 'pending',
+                created_at TEXT NOT NULL
+            );
+            """
+        )
+        cols = [r[1] for r in con.execute("PRAGMA table_info(users)").fetchall()]
+        if "tier_index" not in cols:
+            con.execute("ALTER TABLE users ADD COLUMN tier_index INTEGER NOT NULL DEFAULT 0")
+        if "points_locked" not in cols:
+            con.execute("ALTER TABLE users ADD COLUMN points_locked INTEGER NOT NULL DEFAULT 0")
     con.commit()
     con.close()
 
@@ -241,14 +362,7 @@ def ensure_admin():
         """INSERT INTO users
            (name,username,email,password_hash,code,referred_by,level,points,claimed,paid,ref_locked,created_at)
            VALUES (?,?,?,?,?,NULL,'ELITE',0,0,1,1,?)""",
-        (
-            "Admin COD-IA",
-            "admin",
-            email,
-            generate_password_hash(password),
-            "COD-ADMIN1",
-            now(),
-        ),
+        ("Admin COD-IA", "admin", email, generate_password_hash(password), "COD-ADMIN1", now()),
     )
     uid = con.execute("SELECT id FROM users WHERE email=?", (email,)).fetchone()["id"]
     add_activity(con, uid, "info", "Compte admin créé", "Accès direct")
@@ -367,10 +481,7 @@ def grant_point(con, referrer_id, referred_name=""):
     tier = current_tier(referrer)
     new_points = referrer["points"] + 1
     locked = 1 if new_points >= tier["points"] else 0
-    con.execute(
-        "UPDATE users SET points=?, points_locked=? WHERE id=?",
-        (new_points, locked, referrer_id),
-    )
+    con.execute("UPDATE users SET points=?, points_locked=? WHERE id=?", (new_points, locked, referrer_id))
     add_activity(con, referrer_id, "point", "Parrainage validé", referred_name)
     if locked:
         label = TIER_LABELS[tier_index_of(referrer)] if tier_index_of(referrer) < len(TIER_LABELS) else str(tier_index_of(referrer) + 1)
@@ -476,7 +587,17 @@ def spa():
 
 @app.get("/pay/success")
 def pay_success_page():
-    return send_from_directory(BASE, "index.html")
+    session_id = request.args.get("session_id") or ""
+    if session_id and stripe.api_key:
+        try:
+            s = stripe.checkout.Session.retrieve(session_id)
+            user = mark_paid_from_session(s)
+            if user:
+                session["uid"] = user["id"]
+                session.permanent = True
+        except Exception:
+            app.logger.exception("pay_success retrieve failed")
+    return redirect("/app")
 
 
 @app.get("/api/config")
@@ -498,22 +619,32 @@ def register():
         code = make_code()
         while con.execute("SELECT id FROM users WHERE code=?", (code,)).fetchone():
             code = make_code()
-        cur = con.execute(
-            """INSERT INTO users (name,username,email,password_hash,code,referred_by,level,points,claimed,paid,ref_locked,created_at)
-               VALUES (?,?,?,?,?,NULL,'START',0,0,0,0,?)""",
-            (name, username, email, generate_password_hash(password), code, now()),
-        )
-        uid = cur.lastrowid
+        if USE_PG:
+            row = con.execute(
+                """INSERT INTO users (name,username,email,password_hash,code,referred_by,level,points,claimed,paid,ref_locked,created_at)
+                   VALUES (?,?,?,?,?,NULL,'START',0,0,0,0,?) RETURNING id""",
+                (name, username, email, generate_password_hash(password), code, now()),
+            ).fetchone()
+            uid = row["id"]
+        else:
+            cur = con.execute(
+                """INSERT INTO users (name,username,email,password_hash,code,referred_by,level,points,claimed,paid,ref_locked,created_at)
+                   VALUES (?,?,?,?,?,NULL,'START',0,0,0,0,?)""",
+                (name, username, email, generate_password_hash(password), code, now()),
+            )
+            uid = cur.lastrowid
         add_activity(con, uid, "info", "Compte créé", "En attente de paiement")
         add_activity(con, uid, "rules", "Règles du Parrainage", "Appuie pour lire les règles")
         con.commit()
         user = user_by_id(con, uid)
         session["uid"] = uid
+        session.permanent = True
         return jsonify({"dashboard": dashboard(con, user), "needPay": True})
-    except sqlite3.IntegrityError:
-        return jsonify({"message": "Email ou nom d’utilisateur déjà utilisé"}), 400
-    finally:
+    except Exception as e:
         con.close()
+        if is_unique_error(e):
+            return jsonify({"message": "Email ou nom d’utilisateur déjà utilisé"}), 400
+        raise
 
 
 @app.post("/api/auth/login")
@@ -527,6 +658,7 @@ def login():
         con.close()
         return jsonify({"message": "Identifiants incorrects"}), 400
     session["uid"] = user["id"]
+    session.permanent = True
     payload = dashboard(con, user)
     con.close()
     return jsonify({"dashboard": payload, "needPay": not bool(user["paid"])})
@@ -584,25 +716,18 @@ def pay_session(user):
 def pay_confirm():
     session_id = request.args.get("session_id") or ""
     user = current_user()
-    paid_user = None
-
     if session_id and stripe.api_key:
         try:
             s = stripe.checkout.Session.retrieve(session_id)
             paid_user = mark_paid_from_session(s)
             if paid_user:
                 session["uid"] = paid_user["id"]
+                session.permanent = True
                 user = paid_user
         except Exception:
             app.logger.exception("pay_confirm stripe retrieve failed")
-
     if not user:
-        return jsonify({
-            "ok": False,
-            "paid": False,
-            "message": "Reconnecte-toi. Si Stripe a débité 9,99 €, ton accès sera validé après connexion.",
-        }), 401
-
+        return jsonify({"ok": False, "paid": False, "message": "Session expirée. Reconnecte-toi, sans repayer."}), 401
     con = db()
     user = user_by_id(con, user["id"])
     payload = dashboard(con, user)
@@ -667,10 +792,7 @@ def attach_referral(user):
 @require_paid
 def activity(user):
     con = db()
-    has_rules = con.execute(
-        "SELECT id FROM activities WHERE user_id=? AND kind='rules'",
-        (user["id"],),
-    ).fetchone()
+    has_rules = con.execute("SELECT id FROM activities WHERE user_id=? AND kind='rules'", (user["id"],)).fetchone()
     if not has_rules:
         add_activity(con, user["id"], "rules", "Règles du Parrainage", "Appuie pour lire les règles")
         con.commit()
@@ -769,8 +891,10 @@ def update_profile(user):
         con.execute("UPDATE users SET username=?, photo=? WHERE id=?", (username, photo or "", user["id"]))
         con.commit()
         return jsonify({"dashboard": dashboard(con, user_by_id(con, user["id"]))})
-    except sqlite3.IntegrityError:
-        return jsonify({"message": "Username déjà utilisé"}), 400
+    except Exception as e:
+        if is_unique_error(e):
+            return jsonify({"message": "Username déjà utilisé"}), 400
+        raise
     finally:
         con.close()
 
@@ -899,39 +1023,21 @@ def admin_logout():
 def admin_payouts():
     status = (request.args.get("status") or "pending").strip().lower()
     con = db()
+    sql = """SELECT p.id, p.amount, p.status, p.created_at,
+                    u.name, u.email, u.iban, u.first_name, u.last_name,
+                    u.level, u.code, u.points
+             FROM payouts p JOIN users u ON u.id=p.user_id"""
     if status == "all":
-        rows = con.execute(
-            """SELECT p.id, p.amount, p.status, p.created_at,
-                      u.name, u.email, u.iban, u.first_name, u.last_name,
-                      u.level, u.code, u.points
-               FROM payouts p JOIN users u ON u.id=p.user_id
-               ORDER BY p.id DESC LIMIT 200"""
-        ).fetchall()
+        rows = con.execute(sql + " ORDER BY p.id DESC LIMIT 200").fetchall()
     else:
-        rows = con.execute(
-            """SELECT p.id, p.amount, p.status, p.created_at,
-                      u.name, u.email, u.iban, u.first_name, u.last_name,
-                      u.level, u.code, u.points
-               FROM payouts p JOIN users u ON u.id=p.user_id
-               WHERE p.status=?
-               ORDER BY p.id DESC LIMIT 200""",
-            (status,),
-        ).fetchall()
+        rows = con.execute(sql + " WHERE p.status=? ORDER BY p.id DESC LIMIT 200", (status,)).fetchall()
     con.close()
     return jsonify({
         "payouts": [{
-            "id": r["id"],
-            "amount": r["amount"],
-            "status": r["status"],
-            "createdAt": r["created_at"],
-            "name": r["name"],
-            "email": r["email"],
-            "iban": r["iban"],
-            "firstName": r["first_name"] or "",
-            "lastName": r["last_name"] or "",
-            "level": r["level"],
-            "code": r["code"],
-            "points": r["points"],
+            "id": r["id"], "amount": r["amount"], "status": r["status"], "createdAt": r["created_at"],
+            "name": r["name"], "email": r["email"], "iban": r["iban"],
+            "firstName": r["first_name"] or "", "lastName": r["last_name"] or "",
+            "level": r["level"], "code": r["code"], "points": r["points"],
         } for r in rows]
     })
 
@@ -956,3 +1062,4 @@ def admin_mark_paid(payout_id):
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 3000)), debug=True)
+    
