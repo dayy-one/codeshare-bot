@@ -1,2799 +1,2908 @@
+```html
 <!doctype html>
 <html lang="fr">
 <head>
 <meta charset="utf-8">
-<meta name="viewport"
-      content="width=device-width,initial-scale=1,viewport-fit=cover">
-
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#f7f5ee">
-<meta name="color-scheme" content="light">
 
 <title>COD.IA — Un monde tous ensemble</title>
 
-<meta name="description"
-      content="Découvrez, partagez et profitez des codes promo et parrainages d'une communauté qui avance ensemble.">
+<meta
+  name="description"
+  content="COD.IA réunit une communauté autour des codes promo, du parrainage et des récompenses."
+>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap"
-      rel="stylesheet">
+<link
+  href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&display=swap"
+  rel="stylesheet"
+>
 
 <style>
 
 /* =========================================================
-   COD.IA — SPATIAL GLASS V4
-   ========================================================= */
+   RESET
+========================================================= */
 
-:root{
-    --cream:#f7f5ee;
-    --cream-2:#f2f0e8;
-
-    --green:#294528;
-    --green-2:#3e6037;
-    --green-3:#6d8a5b;
-
-    --text:#23331f;
-    --muted:#73806d;
-
-    --glass:rgba(255,255,255,.58);
-    --glass-border:rgba(255,255,255,.72);
-
-    --shadow:
-        0 25px 70px rgba(39,57,33,.10),
-        0 8px 25px rgba(39,57,33,.06);
-
-    --ease:cubic-bezier(.22,.61,.36,1);
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
-*{
-    box-sizing:border-box;
+html {
+  scroll-behavior: smooth;
 }
 
-html{
-    width:100%;
-    min-height:100%;
-    background:var(--cream);
-    scroll-behavior:smooth;
+body {
+  min-height: 100vh;
+
+  background:
+    radial-gradient(
+      circle at 50% -15%,
+      rgba(126, 158, 101, .16),
+      transparent 34%
+    ),
+    radial-gradient(
+      circle at 8% 52%,
+      rgba(170, 190, 150, .10),
+      transparent 26%
+    ),
+    radial-gradient(
+      circle at 92% 65%,
+      rgba(125, 157, 99, .08),
+      transparent 28%
+    ),
+    #f7f5ee;
+
+  color: #172017;
+
+  font-family: "DM Sans", sans-serif;
+
+  overflow-x: hidden;
+
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
-body{
-    margin:0;
-    width:100%;
-    min-height:100vh;
-
-    overflow-x:hidden;
-
-    background:
-        radial-gradient(
-            circle at 50% 20%,
-            rgba(255,255,255,.9) 0%,
-            rgba(255,255,255,.35) 22%,
-            transparent 52%
-        ),
-        var(--cream);
-
-    color:var(--text);
-
-    font-family:"DM Sans",sans-serif;
-
-    -webkit-font-smoothing:antialiased;
-    text-rendering:optimizeLegibility;
+a {
+  color: inherit;
+  text-decoration: none;
 }
+
+::selection {
+  background: #294528;
+  color: #fff;
+}
+
 
 /* =========================================================
-   PAGE
-   ========================================================= */
+   VARIABLES
+========================================================= */
 
-.page{
-    position:relative;
-    min-height:100svh;
-    width:100%;
+:root {
 
-    isolation:isolate;
+  --bg: #f7f5ee;
 
-    overflow:hidden;
+  --green: #294528;
+  --green-2: #3e6037;
+  --green-3: #6d8a5b;
+
+  --text: #172017;
+  --muted: #747a70;
+
+  --glass:
+    linear-gradient(
+      135deg,
+      rgba(255,255,255,.82),
+      rgba(248,248,241,.48)
+    );
+
+  --border:
+    rgba(255,255,255,.82);
+
 }
+
+
+/* =========================================================
+   CONTAINER
+========================================================= */
+
+.container {
+
+  width:
+    min(
+      1180px,
+      calc(100% - 48px)
+    );
+
+  margin-inline: auto;
+
+}
+
 
 /* =========================================================
    HEADER
-   ========================================================= */
+========================================================= */
 
-.header{
-    position:absolute;
+header {
 
-    top:0;
-    left:0;
+  position: absolute;
 
-    width:100%;
+  z-index: 200;
 
-    padding:
-        max(24px, env(safe-area-inset-top))
-        34px
-        0;
+  top: 0;
+  left: 0;
 
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
+  width: 100%;
 
-    z-index:50;
+  height: 88px;
+
+  display: flex;
+  align-items: center;
+
 }
 
-.logo{
-    display:inline-flex;
-    align-items:center;
-    gap:8px;
+.nav {
 
-    color:var(--green);
+  display: flex;
 
-    text-decoration:none;
+  justify-content: flex-end;
 
-    font-size:18px;
-    font-weight:700;
-    letter-spacing:-.06em;
+  align-items: center;
+
 }
 
-.logo-name{
-    position:relative;
+.header-btn {
+
+  height: 46px;
+
+  padding:
+    0 20px;
+
+  display: inline-flex;
+
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 999px;
+
+  background:
+    rgba(255,255,255,.64);
+
+  border:
+    1px solid
+    rgba(41,69,40,.10);
+
+  box-shadow:
+
+    0 10px 35px
+    rgba(34,50,32,.07),
+
+    inset 0 1px 0
+    rgba(255,255,255,.95);
+
+  backdrop-filter:
+    blur(20px);
+
+  -webkit-backdrop-filter:
+    blur(20px);
+
+  color: #263526;
+
+  font-size: 13px;
+
+  font-weight: 800;
+
+  transition:
+    transform .35s cubic-bezier(.2,.8,.2,1),
+    box-shadow .35s ease,
+    background .35s ease;
+
 }
 
-.logo-name::after{
-    content:"";
+.header-btn:hover {
 
-    position:absolute;
+  transform:
+    translateY(-3px)
+    scale(1.015);
 
-    left:0;
-    right:0;
-    bottom:-3px;
+  background:
+    rgba(255,255,255,.90);
 
-    height:2px;
+  box-shadow:
 
-    border-radius:999px;
+    0 18px 42px
+    rgba(34,50,32,.12),
 
-    background:#517ca5;
+    inset 0 1px 0
+    rgba(255,255,255,1);
 
-    transform:scaleX(.8);
-    transform-origin:left;
 }
 
-.logo-dot{
-    width:8px;
-    height:8px;
-
-    border-radius:50%;
-
-    background:#517ca5;
-
-    box-shadow:
-        0 0 0 4px rgba(81,124,165,.08),
-        0 2px 7px rgba(81,124,165,.22);
-}
-
-.header-link{
-    display:inline-flex;
-    align-items:center;
-    justify-content:center;
-
-    min-height:42px;
-
-    padding:0 18px;
-
-    border-radius:999px;
-
-    background:rgba(255,255,255,.58);
-
-    border:1px solid rgba(255,255,255,.72);
-
-    box-shadow:
-        0 10px 28px rgba(39,57,33,.06);
-
-    color:var(--green);
-
-    text-decoration:none;
-
-    font-size:13px;
-    font-weight:600;
-
-    backdrop-filter:blur(18px);
-    -webkit-backdrop-filter:blur(18px);
-
-    transition:
-        transform .35s var(--ease),
-        background .35s ease,
-        box-shadow .35s ease;
-}
-
-.header-link:hover{
-    transform:translateY(-2px);
-
-    background:rgba(255,255,255,.82);
-
-    box-shadow:
-        0 15px 34px rgba(39,57,33,.10);
-}
 
 /* =========================================================
    HERO
-   ========================================================= */
+========================================================= */
 
-.hero{
-    position:relative;
+.hero {
 
-    min-height:100svh;
-    width:100%;
+  position: relative;
 
-    display:flex;
-    align-items:center;
-    justify-content:center;
+  min-height: 900px;
 
-    padding:
-        130px
-        24px
-        110px;
+  display: flex;
 
-    z-index:10;
+  align-items: center;
 
-    pointer-events:none;
+  overflow: hidden;
+
+  isolation: isolate;
+
+  padding:
+    150px 0
+    110px;
+
 }
 
-.hero-content{
-    position:relative;
-
-    width:min(720px,100%);
-
-    text-align:center;
-
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-
-    pointer-events:auto;
-
-    z-index:30;
-}
 
 /* =========================================================
-   EYEBROW
-   ========================================================= */
+   ATMOSPHERIC LIGHT
+========================================================= */
 
-.eyebrow{
-    display:inline-flex;
-    align-items:center;
-    gap:8px;
+.hero::before {
 
-    margin-bottom:22px;
+  content: "";
 
-    color:var(--green-2);
+  position: absolute;
 
-    font-size:12px;
-    font-weight:700;
+  z-index: -20;
 
-    letter-spacing:.13em;
-    text-transform:uppercase;
+  width: 850px;
+  height: 850px;
 
-    opacity:0;
+  left: 50%;
+  top: 46%;
 
-    animation:
-        heroReveal .9s .08s var(--ease) forwards;
+  transform:
+    translate(-50%, -50%);
+
+  border-radius: 50%;
+
+  background:
+
+    radial-gradient(
+      circle,
+      rgba(105,137,84,.16) 0%,
+      rgba(105,137,84,.07) 28%,
+      rgba(105,137,84,.025) 48%,
+      transparent 70%
+    );
+
+  filter:
+    blur(14px);
+
+  pointer-events: none;
+
 }
 
-.eyebrow::before{
-    content:"";
-
-    width:6px;
-    height:6px;
-
-    border-radius:50%;
-
-    background:var(--green-3);
-
-    box-shadow:
-        0 0 0 5px rgba(109,138,91,.10);
-}
 
 /* =========================================================
-   TITLE
-   ========================================================= */
+   SECONDARY LIGHTS
+========================================================= */
 
-.hero-title{
-    margin:0;
+.hero::after {
 
-    color:var(--green);
+  content: "";
 
-    font-size:
-        clamp(
-            58px,
-            8.4vw,
-            104px
-        );
+  position: absolute;
 
-    line-height:.88;
+  z-index: -19;
 
-    letter-spacing:-.065em;
+  inset: -20%;
 
-    font-weight:600;
+  pointer-events: none;
 
-    max-width:800px;
+  background:
 
-    opacity:0;
+    radial-gradient(
+      ellipse at 20% 35%,
+      rgba(139,165,119,.12),
+      transparent 24%
+    ),
 
-    animation:
-        heroReveal 1s .16s var(--ease) forwards;
-}
+    radial-gradient(
+      ellipse at 80% 40%,
+      rgba(132,160,109,.10),
+      transparent 24%
+    ),
 
-.hero-title span{
-    font-family:"Instrument Serif",serif;
+    radial-gradient(
+      ellipse at 50% 100%,
+      rgba(100,130,79,.08),
+      transparent 28%
+    );
 
-    font-weight:400;
-
-    letter-spacing:-.045em;
-
-    font-style:italic;
-}
-
-/* =========================================================
-   DESCRIPTION
-   ========================================================= */
-
-.hero-description{
-    max-width:570px;
-
-    margin:
-        28px
-        auto
-        0;
-
-    color:var(--muted);
-
-    font-size:16px;
-
-    line-height:1.65;
-
-    letter-spacing:-.015em;
-
-    opacity:0;
-
-    animation:
-        heroReveal .9s .25s var(--ease) forwards;
-}
-
-/* =========================================================
-   ACTIONS
-   ========================================================= */
-
-.hero-actions{
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    gap:10px;
-
-    margin-top:30px;
-
-    opacity:0;
-
-    animation:
-        heroReveal .9s .34s var(--ease) forwards;
-}
-
-.btn{
-    min-height:50px;
-
-    padding:0 22px;
-
-    border-radius:999px;
-
-    display:inline-flex;
-    align-items:center;
-    justify-content:center;
-
-    gap:8px;
-
-    text-decoration:none;
-
-    font-size:14px;
-    font-weight:600;
-
-    transition:
-        transform .35s var(--ease),
-        box-shadow .35s var(--ease),
-        background .35s ease;
-}
-
-.btn-primary{
-    color:#fff;
-
-    background:
-        linear-gradient(
-            145deg,
-            #3e6037,
-            #294528
-        );
-
-    box-shadow:
-        0 15px 30px rgba(41,69,40,.20),
-        inset 0 1px 0 rgba(255,255,255,.15);
-}
-
-.btn-primary:hover{
-    transform:translateY(-3px);
-
-    box-shadow:
-        0 20px 40px rgba(41,69,40,.26),
-        inset 0 1px 0 rgba(255,255,255,.18);
-}
-
-.btn-secondary{
-    color:var(--green);
-
-    background:rgba(255,255,255,.46);
-
-    border:1px solid rgba(255,255,255,.75);
-
-    backdrop-filter:blur(15px);
-    -webkit-backdrop-filter:blur(15px);
-}
-
-.btn-secondary:hover{
-    transform:translateY(-3px);
-
-    background:rgba(255,255,255,.78);
-
-    box-shadow:
-        0 15px 35px rgba(39,57,33,.08);
-}
-
-/* =========================================================
-   BOTTOM LABEL
-   ========================================================= */
-
-.hero-bottom{
-    margin-top:68px;
-
-    color:#9aa297;
-
-    font-size:11px;
-
-    letter-spacing:.16em;
-    text-transform:uppercase;
-
-    opacity:0;
-
-    animation:
-        heroReveal .9s .44s var(--ease) forwards;
-}
-
-@keyframes heroReveal{
-
-    from{
-        opacity:0;
-        transform:translateY(18px);
-    }
-
-    to{
-        opacity:1;
-        transform:translateY(0);
-    }
+  filter:
+    blur(40px);
 
 }
 
-/* =========================================================
-   SPATIAL WORLD
-   ========================================================= */
-
-.spatial-world{
-    position:absolute;
-
-    inset:-12%;
-
-    z-index:1;
-
-    pointer-events:none;
-
-    transform-style:preserve-3d;
-
-    perspective:1200px;
-
-    will-change:transform;
-
-    transform:
-        translate3d(0,0,0)
-        rotateX(0deg)
-        rotateY(0deg);
-}
-
-/* =========================================================
-   AMBIENT LIGHT
-   ========================================================= */
-
-.ambient{
-    position:absolute;
-
-    border-radius:50%;
-
-    pointer-events:none;
-
-    filter:blur(2px);
-
-    will-change:transform;
-}
-
-.ambient-1{
-    width:520px;
-    height:520px;
-
-    top:4%;
-    left:10%;
-
-    background:
-        radial-gradient(
-            circle,
-            rgba(125,159,103,.18),
-            transparent 68%
-        );
-
-    transform:translateZ(-180px);
-}
-
-.ambient-2{
-    width:620px;
-    height:620px;
-
-    right:3%;
-    bottom:-12%;
-
-    background:
-        radial-gradient(
-            circle,
-            rgba(169,184,151,.22),
-            transparent 68%
-        );
-
-    transform:translateZ(-280px);
-}
-
-.ambient-3{
-    width:430px;
-    height:430px;
-
-    left:40%;
-    top:34%;
-
-    background:
-        radial-gradient(
-            circle,
-            rgba(255,255,255,.75),
-            transparent 70%
-        );
-
-    filter:blur(35px);
-
-    transform:translateZ(-400px);
-}
-
-/* =========================================================
-   DEPTH GROUPS
-   ========================================================= */
-
-.depth{
-    position:absolute;
-
-    inset:0;
-
-    transform-style:preserve-3d;
-
-    will-change:transform;
-}
-
-.depth-back{
-    transform:translateZ(-120px);
-}
-
-.depth-mid{
-    transform:translateZ(0);
-}
-
-.depth-front{
-    transform:translateZ(110px);
-}
-
-/* =========================================================
-   GLASS CARDS
-   ========================================================= */
-
-.glass-card{
-    position:absolute;
-
-    width:170px;
-    min-height:74px;
-
-    padding:13px 15px;
-
-    display:flex;
-    align-items:center;
-    gap:11px;
-
-    border-radius:19px;
-
-    background:
-        linear-gradient(
-            135deg,
-            rgba(255,255,255,.72),
-            rgba(255,255,255,.38)
-        );
-
-    border:1px solid var(--glass-border);
-
-    box-shadow:
-        0 24px 60px rgba(40,59,35,.11),
-        0 5px 16px rgba(40,59,35,.06),
-        inset 0 1px 0 rgba(255,255,255,.85);
-
-    backdrop-filter:
-        blur(18px)
-        saturate(120%);
-
-    -webkit-backdrop-filter:
-        blur(18px)
-        saturate(120%);
-
-    transform-style:preserve-3d;
-
-    will-change:transform;
-
-    opacity:.90;
-}
-
-.glass-card::before{
-    content:"";
-
-    position:absolute;
-
-    inset:0;
-
-    border-radius:inherit;
-
-    background:
-        linear-gradient(
-            120deg,
-            rgba(255,255,255,.38),
-            transparent 45%
-        );
-
-    pointer-events:none;
-}
-
-.card-icon{
-    position:relative;
-
-    flex:0 0 auto;
-
-    width:36px;
-    height:36px;
-
-    display:grid;
-    place-items:center;
-
-    border-radius:12px;
-
-    background:
-        linear-gradient(
-            145deg,
-            #e8efe2,
-            #d9e4d1
-        );
-
-    color:var(--green);
-
-    font-size:15px;
-
-    box-shadow:
-        inset 0 1px 0 rgba(255,255,255,.9);
-}
-
-.card-content{
-    min-width:0;
-}
-
-.card-title{
-    margin:0;
-
-    color:#30422d;
-
-    font-size:11px;
-    font-weight:700;
-
-    white-space:nowrap;
-}
-
-.card-text{
-    margin:3px 0 0;
-
-    color:#7d8978;
-
-    font-size:9px;
-
-    white-space:nowrap;
-}
-
-/* =========================================================
-   CARD POSITIONS
-   ========================================================= */
-
-.card-1{
-    top:15%;
-    left:7%;
-
-    transform:
-        translate3d(0,0,70px)
-        rotate(-6deg);
-}
-
-.card-2{
-    top:25%;
-    right:7%;
-
-    transform:
-        translate3d(0,0,20px)
-        rotate(7deg);
-}
-
-.card-3{
-    top:51%;
-    left:3%;
-
-    transform:
-        translate3d(0,0,-40px)
-        rotate(5deg);
-}
-
-.card-4{
-    top:65%;
-    right:5%;
-
-    transform:
-        translate3d(0,0,70px)
-        rotate(-5deg);
-}
-
-.card-5{
-    top:39%;
-    left:15%;
-
-    transform:
-        translate3d(0,0,-100px)
-        rotate(-4deg)
-        scale(.92);
-}
-
-.card-6{
-    top:73%;
-    left:17%;
-
-    transform:
-        translate3d(0,0,20px)
-        rotate(6deg);
-}
-
-.card-7{
-    top:11%;
-    right:24%;
-
-    transform:
-        translate3d(0,0,-90px)
-        rotate(-4deg)
-        scale(.9);
-}
-
-.card-8{
-    top:79%;
-    right:20%;
-
-    transform:
-        translate3d(0,0,-60px)
-        rotate(4deg)
-        scale(.92);
-}
-
-.card-9{
-    top:33%;
-    right:17%;
-
-    transform:
-        translate3d(0,0,90px)
-        rotate(5deg)
-        scale(.88);
-}
-
-.card-10{
-    top:58%;
-    left:27%;
-
-    transform:
-        translate3d(0,0,-120px)
-        rotate(-5deg)
-        scale(.86);
-}
-
-/* =========================================================
-   FLOATING DOTS
-   ========================================================= */
-
-.orb{
-    position:absolute;
-
-    width:11px;
-    height:11px;
-
-    border-radius:50%;
-
-    background:
-        radial-gradient(
-            circle at 30% 25%,
-            #fff,
-            #9db28e
-        );
-
-    box-shadow:
-        0 8px 18px rgba(57,79,50,.16);
-
-    opacity:.75;
-
-    will-change:transform;
-}
-
-.orb-1{
-    top:18%;
-    left:32%;
-}
-
-.orb-2{
-    top:67%;
-    right:32%;
-
-    width:8px;
-    height:8px;
-}
-
-.orb-3{
-    top:44%;
-    right:7%;
-
-    width:6px;
-    height:6px;
-}
-
-.orb-4{
-    bottom:12%;
-    left:42%;
-
-    width:7px;
-    height:7px;
-}
 
 /* =========================================================
    GRAIN
-   ========================================================= */
+========================================================= */
 
-.grain{
-    position:absolute;
+.grain {
 
-    inset:0;
+  position: absolute;
 
-    z-index:5;
+  z-index: 150;
 
-    pointer-events:none;
+  inset: 0;
 
-    opacity:.035;
+  pointer-events: none;
 
-    background-image:
-        url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.5'/%3E%3C/svg%3E");
+  opacity: .13;
 
-    mix-blend-mode:multiply;
+  background-image:
+    radial-gradient(
+      rgba(35,51,32,.20) .7px,
+      transparent .7px
+    );
+
+  background-size:
+    6px 6px;
+
+  mask-image:
+    linear-gradient(
+      to bottom,
+      transparent,
+      black 18%,
+      black 80%,
+      transparent
+    );
+
 }
 
+
 /* =========================================================
-   VIGNETTE
-   ========================================================= */
+   3D WORLD
+========================================================= */
 
-.vignette{
-    position:absolute;
+.spatial-world {
 
-    inset:0;
+  position: absolute;
 
-    z-index:6;
+  z-index: 2;
 
-    pointer-events:none;
+  inset: -12%;
+
+  pointer-events: none;
+
+  perspective:
+    1400px;
+
+  transform-style:
+    preserve-3d;
+
+  transition:
+    transform 1s cubic-bezier(.2,.8,.2,1);
+
+}
+
+
+/* =========================================================
+   DEPTH PLANES
+========================================================= */
+
+.depth-plane {
+
+  position: absolute;
+
+  inset: 0;
+
+  transform-style:
+    preserve-3d;
+
+}
+
+.depth-back {
+
+  transform:
+    translateZ(-280px)
+    scale(1.22);
+
+}
+
+.depth-mid {
+
+  transform:
+    translateZ(-100px)
+    scale(1.08);
+
+}
+
+.depth-front {
+
+  transform:
+    translateZ(70px);
+
+}
+
+
+/* =========================================================
+   AMBIENT ORBS
+========================================================= */
+
+.orb {
+
+  position: absolute;
+
+  border-radius: 50%;
+
+  filter:
+    blur(20px);
+
+  opacity: .34;
+
+  background:
+    radial-gradient(
+      circle,
+      rgba(108,140,88,.20),
+      transparent 70%
+    );
+
+  animation:
+    orbFloat
+    var(--orb-duration)
+    ease-in-out
+    infinite alternate;
+
+}
+
+.orb-1 {
+
+  width: 260px;
+  height: 260px;
+
+  left: -3%;
+  top: 18%;
+
+  --orb-duration: 11s;
+
+}
+
+.orb-2 {
+
+  width: 340px;
+  height: 340px;
+
+  right: -5%;
+  top: 30%;
+
+  --orb-duration: 14s;
+
+}
+
+.orb-3 {
+
+  width: 220px;
+  height: 220px;
+
+  left: 30%;
+  bottom: -8%;
+
+  --orb-duration: 12s;
+
+}
+
+@keyframes orbFloat {
+
+  from {
+    transform:
+      translate3d(
+        -12px,
+        8px,
+        0
+      );
+  }
+
+  to {
+    transform:
+      translate3d(
+        14px,
+        -12px,
+        0
+      );
+  }
+
+}
+
+
+/* =========================================================
+   NOTIFICATION
+========================================================= */
+
+.notification {
+
+  position: absolute;
+
+  left: var(--left);
+  top: var(--top);
+
+  width: var(--width, 250px);
+
+  min-height: 72px;
+
+  padding:
+    11px 12px;
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 11px;
+
+  border-radius: 19px;
+
+  border:
+    1px solid
+    var(--border);
+
+  background:
+    var(--glass);
+
+  box-shadow:
+
+    0 35px 90px
+    rgba(38,55,35,.11),
+
+    0 10px 30px
+    rgba(38,55,35,.07),
+
+    inset 0 1px 0
+    rgba(255,255,255,.95),
+
+    inset 0 -1px 0
+    rgba(40,60,37,.035);
+
+  backdrop-filter:
+    blur(22px)
+    saturate(120%);
+
+  -webkit-backdrop-filter:
+    blur(22px)
+    saturate(120%);
+
+  opacity:
+    var(--opacity, .72);
+
+  transform-style:
+    preserve-3d;
+
+  transform:
+    translate3d(
+      var(--tx, 0px),
+      var(--ty, 0px),
+      var(--tz, 0px)
+    )
+    rotateX(var(--rx, 0deg))
+    rotateY(var(--ry, 0deg))
+    rotateZ(var(--rz, 0deg))
+    scale(var(--scale, 1));
+
+  animation:
+    spatialFloat
+    var(--duration, 11s)
+    cubic-bezier(.37,.01,.22,1)
+    var(--delay, 0s)
+    infinite alternate;
+
+}
+
+
+/* =========================================================
+   NOTIFICATION DEPTH EDGE
+========================================================= */
+
+.notification::before {
+
+  content: "";
+
+  position: absolute;
+
+  inset: 5px;
+
+  border-radius: 15px;
+
+  border:
+    1px solid
+    rgba(255,255,255,.35);
+
+  pointer-events: none;
+
+  opacity: .8;
+
+}
+
+
+/* =========================================================
+   NOTIFICATION LIGHT
+========================================================= */
+
+.notification::after {
+
+  content: "";
+
+  position: absolute;
+
+  width: 90px;
+  height: 1px;
+
+  top: 0;
+  left: 25px;
+
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      rgba(255,255,255,.95),
+      transparent
+    );
+
+  filter:
+    blur(.5px);
+
+  opacity: .75;
+
+}
+
+
+/* =========================================================
+   3D FLOAT
+========================================================= */
+
+@keyframes spatialFloat {
+
+  0% {
+
+    transform:
+      translate3d(
+        calc(var(--tx,0px) - 7px),
+        calc(var(--ty,0px) + 8px),
+        var(--tz,0px)
+      )
+      rotateX(
+        calc(var(--rx,0deg) + 1deg)
+      )
+      rotateY(
+        calc(var(--ry,0deg) - 1deg)
+      )
+      rotateZ(
+        calc(var(--rz,0deg) - .8deg)
+      )
+      scale(var(--scale,1));
+
+  }
+
+  100% {
+
+    transform:
+      translate3d(
+        calc(var(--tx,0px) + 8px),
+        calc(var(--ty,0px) - 9px),
+        var(--tz,0px)
+      )
+      rotateX(
+        calc(var(--rx,0deg) - 1deg)
+      )
+      rotateY(
+        calc(var(--ry,0deg) + 1deg)
+      )
+      rotateZ(
+        calc(var(--rz,0deg) + .8deg)
+      )
+      scale(var(--scale,1));
+
+  }
+
+}
+
+
+/* =========================================================
+   ICON
+========================================================= */
+
+.notification-icon {
+
+  position: relative;
+
+  flex:
+    0 0 39px;
+
+  width: 39px;
+  height: 39px;
+
+  display: grid;
+
+  place-items: center;
+
+  border-radius: 13px;
+
+  color: #35522f;
+
+  font-size: 15px;
+
+  font-weight: 800;
+
+  box-shadow:
+    inset 0 0 0 1px
+    rgba(42,66,39,.05);
+
+  transform:
+    translateZ(18px);
+
+}
+
+.notification-icon.green {
+
+  background:
+    linear-gradient(
+      145deg,
+      #edf3e8,
+      #dfead8
+    );
+
+}
+
+.notification-icon.blue {
+
+  background:
+    linear-gradient(
+      145deg,
+      #eef0ff,
+      #e1e5ff
+    );
+
+  color: #5863a0;
+
+}
+
+.notification-icon.gold {
+
+  background:
+    linear-gradient(
+      145deg,
+      #f8f0df,
+      #eee2c5
+    );
+
+  color: #92783d;
+
+}
+
+
+/* =========================================================
+   COPY
+========================================================= */
+
+.notification-copy {
+
+  min-width: 0;
+
+  flex: 1;
+
+  text-align: left;
+
+  transform:
+    translateZ(12px);
+
+}
+
+.notification-title {
+
+  color: #273127;
+
+  font-size: 11px;
+
+  line-height: 1.2;
+
+  font-weight: 800;
+
+  letter-spacing:
+    -.01em;
+
+}
+
+.notification-text {
+
+  margin-top: 4px;
+
+  color: #858b81;
+
+  font-size: 9.5px;
+
+  line-height: 1.35;
+
+  white-space: nowrap;
+
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+
+}
+
+.notification-badge {
+
+  flex:
+    0 0 auto;
+
+  padding:
+    5px 7px;
+
+  border-radius:
+    999px;
+
+  background:
+    rgba(226,235,220,.88);
+
+  color:
+    #4d6944;
+
+  font-size: 8px;
+
+  font-weight: 800;
+
+  white-space: nowrap;
+
+  transform:
+    translateZ(15px);
+
+}
+
+
+/* =========================================================
+   HERO CONTENT
+========================================================= */
+
+.hero-content {
+
+  position: relative;
+
+  z-index: 80;
+
+  width:
+    min(850px, 100%);
+
+  margin:
+    auto;
+
+  text-align:
+    center;
+
+}
+
+
+/* =========================================================
+   CENTRAL PROTECTION
+========================================================= */
+
+.hero-content::before {
+
+  content: "";
+
+  position: absolute;
+
+  z-index: -1;
+
+  left: 50%;
+  top: 50%;
+
+  width: 760px;
+  height: 620px;
+
+  transform:
+    translate(-50%, -50%);
+
+  border-radius: 50%;
+
+  background:
+    radial-gradient(
+      ellipse,
+      rgba(247,245,238,.94) 0%,
+      rgba(247,245,238,.82) 38%,
+      rgba(247,245,238,.34) 64%,
+      transparent 78%
+    );
+
+  filter:
+    blur(16px);
+
+}
+
+
+/* =========================================================
+   EYEBROW
+========================================================= */
+
+.eyebrow {
+
+  width:
+    fit-content;
+
+  margin:
+    0 auto 25px;
+
+  padding:
+    9px 13px;
+
+  display:
+    inline-flex;
+
+  align-items:
+    center;
+
+  gap:
+    9px;
+
+  border:
+    1px solid
+    rgba(41,69,40,.11);
+
+  background:
+    rgba(255,255,255,.60);
+
+  border-radius:
+    999px;
+
+  box-shadow:
+
+    0 10px 32px
+    rgba(41,58,38,.05),
+
+    inset 0 1px 0
+    rgba(255,255,255,.95);
+
+  backdrop-filter:
+    blur(18px);
+
+  -webkit-backdrop-filter:
+    blur(18px);
+
+  color:
+    #52614c;
+
+  font-size:
+    10px;
+
+  font-weight:
+    800;
+
+  letter-spacing:
+    .12em;
+
+  text-transform:
+    uppercase;
+
+}
+
+.eyebrow-dot {
+
+  width: 7px;
+  height: 7px;
+
+  border-radius:
+    50%;
+
+  background:
+    #6f8e5c;
+
+  box-shadow:
+
+    0 0 0 5px
+    rgba(111,142,92,.10),
+
+    0 0 18px
+    rgba(111,142,92,.25);
+
+}
+
+
+/* =========================================================
+   TITLE
+========================================================= */
+
+h1 {
+
+  font-size:
+    clamp(
+      62px,
+      8.7vw,
+      116px
+    );
+
+  line-height:
+    .84;
+
+  letter-spacing:
+    -.075em;
+
+  font-weight:
+    600;
+
+  color:
+    #172017;
+
+}
+
+h1 em {
+
+  font-family:
+    "Instrument Serif",
+    serif;
+
+  font-weight:
+    400;
+
+  letter-spacing:
+    -.045em;
+
+  color:
+    var(--green);
+
+}
+
+
+/* =========================================================
+   DESCRIPTION
+========================================================= */
+
+.hero-description {
+
+  width:
+    min(580px, 100%);
+
+  margin:
+    31px auto 0;
+
+  color:
+    #747a70;
+
+  font-size:
+    15.5px;
+
+  line-height:
+    1.75;
+
+}
+
+
+/* =========================================================
+   CTA
+========================================================= */
+
+.cta-row {
+
+  margin-top:
+    35px;
+
+  display:
+    flex;
+
+  align-items:
+    center;
+
+  justify-content:
+    center;
+
+  gap:
+    12px;
+
+  flex-wrap:
+    wrap;
+
+}
+
+.primary,
+.secondary {
+
+  min-height:
+    55px;
+
+  display:
+    inline-flex;
+
+  align-items:
+    center;
+
+  justify-content:
+    center;
+
+  border-radius:
+    999px;
+
+  padding:
+    0 24px;
+
+  font-size:
+    13px;
+
+  font-weight:
+    800;
+
+  transition:
+    transform .35s cubic-bezier(.2,.8,.2,1),
+    box-shadow .35s ease,
+    background .35s ease;
+
+}
+
+.primary {
+
+  position: relative;
+
+  overflow: hidden;
+
+  color:
+    white;
+
+  background:
+    linear-gradient(
+      135deg,
+      #355a31,
+      #294528
+    );
+
+  box-shadow:
+
+    0 22px 50px
+    rgba(41,69,40,.23),
+
+    0 5px 15px
+    rgba(41,69,40,.10),
+
+    inset 0 1px 0
+    rgba(255,255,255,.18);
+
+}
+
+.primary::before {
+
+  content: "";
+
+  position: absolute;
+
+  width: 70px;
+  height: 140px;
+
+  top: -40px;
+  left: -100px;
+
+  transform:
+    rotate(25deg);
+
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      rgba(255,255,255,.22),
+      transparent
+    );
+
+  transition:
+    left .7s ease;
+
+}
+
+.primary:hover::before {
+  left: 120%;
+}
+
+.primary:hover {
+
+  transform:
+    translateY(-4px)
+    scale(1.015);
+
+  box-shadow:
+
+    0 28px 60px
+    rgba(41,69,40,.28),
+
+    0 7px 18px
+    rgba(41,69,40,.12),
+
+    inset 0 1px 0
+    rgba(255,255,255,.18);
+
+}
+
+.secondary {
+
+  color:
+    #354234;
+
+  background:
+    rgba(255,255,255,.55);
+
+  border:
+    1px solid
+    rgba(41,69,40,.10);
+
+  backdrop-filter:
+    blur(18px);
+
+  -webkit-backdrop-filter:
+    blur(18px);
+
+  box-shadow:
+    0 10px 30px
+    rgba(41,57,38,.05);
+
+}
+
+.secondary:hover {
+
+  transform:
+    translateY(-4px);
+
+  background:
+    rgba(255,255,255,.90);
+
+  box-shadow:
+    0 17px 38px
+    rgba(41,57,38,.09);
+
+}
+
+
+/* =========================================================
+   BOTTOM
+========================================================= */
+
+.hero-bottom {
+
+  position:
+    absolute;
+
+  z-index:
+    100;
+
+  left:
+    0;
+
+  bottom:
+    38px;
+
+  width:
+    100%;
+
+}
+
+.hero-bottom-inner {
+
+  display:
+    flex;
+
+  align-items:
+    center;
+
+  justify-content:
+    center;
+
+  gap:
+    11px;
+
+  color:
+    #7b8177;
+
+  font-size:
+    10px;
+
+  font-weight:
+    500;
+
+  letter-spacing:
+    .04em;
+
+}
+
+.hero-bottom-line {
+
+  width:
+    34px;
+
+  height:
+    1px;
+
+  background:
+    rgba(41,69,40,.20);
+
+}
+
+
+/* =========================================================
+   REVEAL
+========================================================= */
+
+.reveal {
+
+  opacity:
+    0;
+
+  transform:
+    translateY(25px);
+
+  animation:
+    reveal
+    1s
+    cubic-bezier(.22,.8,.25,1)
+    forwards;
+
+}
+
+.delay-1 {
+  animation-delay: .10s;
+}
+
+.delay-2 {
+  animation-delay: .20s;
+}
+
+.delay-3 {
+  animation-delay: .30s;
+}
+
+@keyframes reveal {
+
+  to {
+
+    opacity:
+      1;
+
+    transform:
+      translateY(0);
+
+  }
+
+}
+
+
+/* =========================================================
+   DESKTOP NOTIFICATION POSITIONS
+========================================================= */
+
+/* BACK */
+
+.n1 {
+  --left: 3%;
+  --top: 12%;
+  --width: 235px;
+  --tz: -260px;
+  --scale: .76;
+  --opacity: .30;
+  --rx: 7deg;
+  --ry: -12deg;
+  --rz: -8deg;
+  --duration: 14s;
+  --delay: -4s;
+}
+
+.n2 {
+  --left: 77%;
+  --top: 9%;
+  --width: 240px;
+  --tz: -250px;
+  --scale: .72;
+  --opacity: .28;
+  --rx: -6deg;
+  --ry: 13deg;
+  --rz: 7deg;
+  --duration: 16s;
+  --delay: -7s;
+}
+
+.n3 {
+  --left: 89%;
+  --top: 40%;
+  --width: 220px;
+  --tz: -220px;
+  --scale: .70;
+  --opacity: .25;
+  --rx: 8deg;
+  --ry: 15deg;
+  --rz: 9deg;
+  --duration: 15s;
+  --delay: -2s;
+}
+
+.n4 {
+  --left: -2%;
+  --top: 67%;
+  --width: 225px;
+  --tz: -240px;
+  --scale: .74;
+  --opacity: .27;
+  --rx: -8deg;
+  --ry: -15deg;
+  --rz: -7deg;
+  --duration: 17s;
+  --delay: -9s;
+}
+
+
+/* MID */
+
+.n5 {
+  --left: 9%;
+  --top: 29%;
+  --width: 245px;
+  --tz: -110px;
+  --scale: .90;
+  --opacity: .48;
+  --rx: 4deg;
+  --ry: -8deg;
+  --rz: -4deg;
+  --duration: 11s;
+  --delay: -3s;
+}
+
+.n6 {
+  --left: 76%;
+  --top: 27%;
+  --width: 255px;
+  --tz: -95px;
+  --scale: .92;
+  --opacity: .50;
+  --rx: -4deg;
+  --ry: 8deg;
+  --rz: 4deg;
+  --duration: 12s;
+  --delay: -6s;
+}
+
+.n7 {
+  --left: 5%;
+  --top: 52%;
+  --width: 245px;
+  --tz: -90px;
+  --scale: .88;
+  --opacity: .45;
+  --rx: 5deg;
+  --ry: -9deg;
+  --rz: 5deg;
+  --duration: 13s;
+  --delay: -8s;
+}
+
+.n8 {
+  --left: 82%;
+  --top: 57%;
+  --width: 245px;
+  --tz: -105px;
+  --scale: .89;
+  --opacity: .46;
+  --rx: -5deg;
+  --ry: 9deg;
+  --rz: -5deg;
+  --duration: 10s;
+  --delay: -1s;
+}
+
+
+/* FRONT */
+
+.n9 {
+  --left: 14%;
+  --top: 73%;
+  --width: 245px;
+  --tz: 50px;
+  --scale: .94;
+  --opacity: .60;
+  --rx: 2deg;
+  --ry: -5deg;
+  --rz: -3deg;
+  --duration: 12s;
+  --delay: -5s;
+}
+
+.n10 {
+  --left: 71%;
+  --top: 72%;
+  --width: 250px;
+  --tz: 60px;
+  --scale: .96;
+  --opacity: .61;
+  --rx: -2deg;
+  --ry: 5deg;
+  --rz: 3deg;
+  --duration: 13s;
+  --delay: -10s;
+}
+
+.n11 {
+  --left: 1%;
+  --top: 43%;
+  --width: 220px;
+  --tz: 35px;
+  --scale: .92;
+  --opacity: .55;
+  --rx: 3deg;
+  --ry: -7deg;
+  --rz: -4deg;
+  --duration: 14s;
+  --delay: -7s;
+}
+
+.n12 {
+  --left: 84%;
+  --top: 45%;
+  --width: 225px;
+  --tz: 40px;
+  --scale: .92;
+  --opacity: .56;
+  --rx: -3deg;
+  --ry: 7deg;
+  --rz: 4deg;
+  --duration: 11s;
+  --delay: -4s;
+}
+
+
+/* =========================================================
+   TABLET
+========================================================= */
+
+@media (max-width: 1000px) {
+
+  .hero {
+    min-height: 850px;
+  }
+
+  .n1,
+  .n2,
+  .n3,
+  .n4 {
+    opacity: .20;
+  }
+
+  .n5,
+  .n6,
+  .n7,
+  .n8 {
+    opacity: .35;
+  }
+
+  .n9,
+  .n10,
+  .n11,
+  .n12 {
+    opacity: .42;
+  }
+
+  .n1 {
+    left: -5%;
+  }
+
+  .n2 {
+    left: 74%;
+  }
+
+  .n3 {
+    left: 88%;
+  }
+
+  .n4 {
+    left: -8%;
+  }
+
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 640px) {
+
+  .container {
+    width:
+      calc(100% - 30px);
+  }
+
+  header {
+    height:
+      74px;
+  }
+
+  .header-btn {
+
+    height:
+      41px;
+
+    padding:
+      0 15px;
+
+    font-size:
+      11px;
+
+  }
+
+  .hero {
+
+    min-height:
+      760px;
+
+    padding:
+      125px 0
+      90px;
+
+  }
+
+  .hero::before {
+
+    width:
+      480px;
+
+    height:
+      480px;
+
+  }
+
+  .hero-content::before {
+
+    width:
+      390px;
+
+    height:
+      500px;
 
     background:
-        radial-gradient(
-            ellipse at center,
-            transparent 35%,
-            rgba(247,245,238,.35) 78%,
-            rgba(247,245,238,.82) 100%
-        );
-}
+      radial-gradient(
+        ellipse,
+        rgba(247,245,238,.97),
+        rgba(247,245,238,.86) 45%,
+        transparent 76%
+      );
 
-/* =========================================================
-   SENSOR ACTIVATION
-   ========================================================= */
+  }
 
-.sensor-hint{
-    position:fixed;
+  .spatial-world {
 
-    left:50%;
+    inset:
+      -10% -20%;
+
+    perspective:
+      1000px;
+
+  }
+
+  h1 {
+
+    font-size:
+      clamp(
+        53px,
+        16vw,
+        78px
+      );
+
+    line-height:
+      .86;
+
+  }
+
+  .eyebrow {
+
+    margin-bottom:
+      21px;
+
+    font-size:
+      8.5px;
+
+    padding:
+      8px 11px;
+
+  }
+
+  .hero-description {
+
+    margin-top:
+      25px;
+
+    padding-inline:
+      12px;
+
+    font-size:
+      13px;
+
+    line-height:
+      1.7;
+
+  }
+
+  .cta-row {
+
+    margin-top:
+      27px;
+
+    flex-direction:
+      column;
+
+    gap:
+      9px;
+
+  }
+
+  .primary,
+  .secondary {
+
+    width:
+      100%;
+
+    max-width:
+      285px;
+
+    min-height:
+      52px;
+
+  }
+
+  /* mobile world */
+
+  .notification {
+
+    width:
+      190px;
+
+    min-height:
+      58px;
+
+    padding:
+      8px 9px;
+
+    border-radius:
+      15px;
+
+    gap:
+      8px;
+
+    backdrop-filter:
+      blur(15px);
+
+    -webkit-backdrop-filter:
+      blur(15px);
+
+  }
+
+  .notification-icon {
+
+    width:
+      30px;
+
+    height:
+      30px;
+
+    flex-basis:
+      30px;
+
+    border-radius:
+      9px;
+
+    font-size:
+      11px;
+
+  }
+
+  .notification-title {
+    font-size:
+      8.5px;
+  }
+
+  .notification-text {
+    font-size:
+      7.5px;
+
+    margin-top:
+      2px;
+  }
+
+  .notification-badge {
+    display:
+      none;
+  }
+
+
+  /* mobile placement */
+
+  .n1 {
+    left: -5%;
+    top: 10%;
+    transform: scale(.65);
+  }
+
+  .n2 {
+    left: 67%;
+    top: 8%;
+    transform: scale(.62);
+  }
+
+  .n3 {
+    left: 80%;
+    top: 37%;
+    transform: scale(.60);
+  }
+
+  .n4 {
+    left: -7%;
+    top: 66%;
+    transform: scale(.64);
+  }
+
+  .n5 {
+    left: -3%;
+    top: 27%;
+    transform: scale(.76);
+  }
+
+  .n6 {
+    left: 69%;
+    top: 25%;
+    transform: scale(.76);
+  }
+
+  .n7 {
+    left: -6%;
+    top: 51%;
+    transform: scale(.72);
+  }
+
+  .n8 {
+    left: 73%;
+    top: 56%;
+    transform: scale(.72);
+  }
+
+  .n9 {
+    left: 1%;
+    top: 76%;
+    transform: scale(.75);
+  }
+
+  .n10 {
+    left: 69%;
+    top: 76%;
+    transform: scale(.75);
+  }
+
+  .n11,
+  .n12 {
+    display:
+      none;
+  }
+
+  .hero-bottom {
     bottom:
-        calc(
-            18px +
-            env(safe-area-inset-bottom)
-        );
+      25px;
+  }
 
-    transform:translateX(-50%);
+  .hero-bottom-inner {
+    font-size:
+      9px;
+  }
 
-    z-index:100;
-
-    padding:10px 15px;
-
-    border-radius:999px;
-
-    background:rgba(255,255,255,.75);
-
-    border:1px solid rgba(255,255,255,.9);
-
-    box-shadow:
-        0 12px 35px rgba(40,59,35,.12);
-
-    backdrop-filter:blur(20px);
-    -webkit-backdrop-filter:blur(20px);
-
-    color:var(--green);
-
-    font-size:11px;
-    font-weight:600;
-
-    opacity:0;
-
-    pointer-events:none;
-
-    transition:
-        opacity .4s ease,
-        transform .4s var(--ease);
 }
 
-.sensor-hint.visible{
-    opacity:1;
-}
-
-.sensor-hint.hidden{
-    opacity:0;
-    transform:
-        translateX(-50%)
-        translateY(8px);
-}
 
 /* =========================================================
-   RESPONSIVE
-   ========================================================= */
+   VERY SMALL MOBILE
+========================================================= */
 
-@media (max-width:900px){
+@media (max-width: 390px) {
 
-    .header{
-        padding-left:22px;
-        padding-right:22px;
-    }
+  .hero {
+    min-height:
+      720px;
+  }
 
-    .hero{
-        padding-left:20px;
-        padding-right:20px;
-    }
+  h1 {
+    font-size:
+      52px;
+  }
 
-    .glass-card{
-        width:150px;
-        min-height:68px;
+  .notification {
+    width:
+      175px;
+  }
 
-        padding:11px 12px;
+  .n2 {
+    left:
+      62%;
+  }
 
-        border-radius:17px;
-    }
+  .n6 {
+    left:
+      66%;
+  }
 
-    .card-icon{
-        width:32px;
-        height:32px;
-    }
+  .n8 {
+    left:
+      68%;
+  }
 
-    .card-1{
-        left:-4%;
-    }
-
-    .card-2{
-        right:-5%;
-    }
-
-    .card-3{
-        left:-7%;
-    }
-
-    .card-4{
-        right:-5%;
-    }
+  .n10 {
+    left:
+      65%;
+  }
 
 }
 
-@media (max-width:640px){
-
-    html,
-    body{
-        width:100%;
-        min-height:100%;
-    }
-
-    body{
-        overflow-x:hidden;
-    }
-
-    .page{
-        min-height:100svh;
-
-        height:100svh;
-    }
-
-    .header{
-        padding-top:
-            max(
-                18px,
-                env(safe-area-inset-top)
-            );
-
-        padding-left:18px;
-        padding-right:18px;
-    }
-
-    .logo{
-        font-size:17px;
-    }
-
-    .header-link{
-        min-height:39px;
-
-        padding:0 14px;
-
-        font-size:11px;
-    }
-
-    .hero{
-        min-height:100svh;
-
-        height:100svh;
-
-        padding:
-            95px
-            18px
-            calc(
-                80px +
-                env(safe-area-inset-bottom)
-            );
-    }
-
-    .hero-content{
-        width:100%;
-    }
-
-    .eyebrow{
-        margin-bottom:17px;
-
-        font-size:9px;
-
-        letter-spacing:.13em;
-    }
-
-    .hero-title{
-
-        /*
-         * Centre volontairement conservé.
-         */
-
-        font-size:
-            clamp(
-                51px,
-                15.2vw,
-                70px
-            );
-
-        line-height:.89;
-
-        letter-spacing:-.065em;
-
-        max-width:350px;
-    }
-
-    .hero-description{
-
-        max-width:320px;
-
-        margin-top:22px;
-
-        font-size:13px;
-
-        line-height:1.58;
-    }
-
-    .hero-actions{
-
-        width:100%;
-
-        margin-top:25px;
-
-        gap:8px;
-    }
-
-    .btn{
-
-        min-height:46px;
-
-        padding:0 17px;
-
-        font-size:12px;
-    }
-
-    .hero-bottom{
-
-        margin-top:48px;
-
-        font-size:9px;
-
-        letter-spacing:.14em;
-    }
-
-    /*
-     * On agrandit l'espace spatial
-     * pour que les cartes restent sur les côtés.
-     */
-
-    .spatial-world{
-        inset:-18%;
-    }
-
-    .glass-card{
-
-        width:132px;
-        min-height:59px;
-
-        padding:9px 10px;
-
-        gap:8px;
-
-        border-radius:15px;
-
-        opacity:.72;
-
-        backdrop-filter:
-            blur(14px)
-            saturate(115%);
-
-        -webkit-backdrop-filter:
-            blur(14px)
-            saturate(115%);
-    }
-
-    .card-icon{
-        width:28px;
-        height:28px;
-
-        border-radius:9px;
-
-        font-size:12px;
-    }
-
-    .card-title{
-        font-size:9px;
-    }
-
-    .card-text{
-        font-size:7.5px;
-
-        margin-top:2px;
-    }
-
-    /*
-     * Important :
-     * aucune carte ne doit traverser le texte central.
-     */
-
-    .card-1{
-        top:15%;
-        left:-12%;
-    }
-
-    .card-2{
-        top:23%;
-        right:-12%;
-    }
-
-    .card-3{
-        top:55%;
-        left:-13%;
-    }
-
-    .card-4{
-        top:65%;
-        right:-13%;
-    }
-
-    .card-5{
-        top:39%;
-        left:-15%;
-
-        opacity:.42;
-    }
-
-    .card-6{
-        top:76%;
-        left:4%;
-
-        opacity:.46;
-    }
-
-    .card-7{
-        top:11%;
-        right:8%;
-
-        opacity:.38;
-    }
-
-    .card-8{
-        top:81%;
-        right:3%;
-
-        opacity:.40;
-    }
-
-    .card-9{
-        top:35%;
-        right:-13%;
-
-        opacity:.42;
-    }
-
-    .card-10{
-        top:59%;
-        left:12%;
-
-        opacity:.32;
-    }
-
-    .ambient-1{
-        width:330px;
-        height:330px;
-
-        left:-30%;
-        top:8%;
-    }
-
-    .ambient-2{
-        width:360px;
-        height:360px;
-
-        right:-32%;
-        bottom:0;
-    }
-
-    .ambient-3{
-        width:280px;
-        height:280px;
-
-        left:30%;
-        top:40%;
-
-        filter:blur(28px);
-    }
-
-    .vignette{
-        background:
-            radial-gradient(
-                ellipse at center,
-                transparent 27%,
-                rgba(247,245,238,.30) 70%,
-                rgba(247,245,238,.90) 100%
-            );
-    }
-
-}
-
-@media (max-width:380px){
-
-    .hero{
-        padding-top:88px;
-    }
-
-    .hero-title{
-        font-size:49px;
-    }
-
-    .hero-description{
-        max-width:295px;
-        font-size:12px;
-    }
-
-    .hero-actions{
-        margin-top:21px;
-    }
-
-    .btn{
-        min-height:44px;
-        padding:0 14px;
-    }
-
-    .hero-bottom{
-        margin-top:39px;
-    }
-
-    .glass-card{
-        width:119px;
-    }
-
-}
 
 /* =========================================================
    REDUCED MOTION
-   ========================================================= */
+========================================================= */
 
-@media (prefers-reduced-motion:reduce){
+@media (prefers-reduced-motion: reduce) {
 
-    html{
-        scroll-behavior:auto;
-    }
+  html {
+    scroll-behavior:
+      auto;
+  }
 
-    *,
-    *::before,
-    *::after{
-        animation-duration:.01ms !important;
-        animation-iteration-count:1 !important;
-        transition-duration:.01ms !important;
-    }
+  *,
+  *::before,
+  *::after {
 
-    .spatial-world{
-        transform:none !important;
-    }
+    animation-duration:
+      .01ms !important;
 
-}
+    animation-iteration-count:
+      1 !important;
 
-/* =========================================================
-   TOUCH DEVICES
-   ========================================================= */
+    transition-duration:
+      .01ms !important;
 
-@media (hover:none) and (pointer:coarse){
+  }
 
-    .header-link:hover,
-    .btn:hover{
-        transform:none;
-    }
+  .notification {
+    animation:
+      none !important;
+  }
+
+  .orb {
+    animation:
+      none !important;
+  }
 
 }
 
 </style>
 </head>
 
+
 <body>
 
-<div class="page" id="page">
+<header>
 
-    <!-- =====================================================
-         HEADER
-         ===================================================== -->
+  <div class="container nav">
 
-    <header class="header">
+    <a
+      class="header-btn"
+      href="/app"
+    >
+      Accéder à l'app
+    </a>
 
-        <a href="/" class="logo" aria-label="COD.IA">
-            <span class="logo-name">COD.IA</span>
-            <span class="logo-dot"></span>
+  </div>
+
+</header>
+
+
+<main>
+
+<section class="hero">
+
+  <div class="grain"></div>
+
+
+  <!-- =====================================================
+       UNIVERS 3D
+  ====================================================== -->
+
+  <div
+    class="spatial-world"
+    id="spatialWorld"
+    aria-hidden="true"
+  >
+
+    <!-- Ambient -->
+
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+
+
+    <!-- ===================================================
+         BACK PLANE
+    ==================================================== -->
+
+    <div class="depth-plane depth-back">
+
+      <!-- 01 -->
+
+      <div class="notification n1">
+
+        <div class="notification-icon blue">
+          ✦
+        </div>
+
+        <div class="notification-copy">
+
+          <div class="notification-title">
+            Nouvelle offre
+          </div>
+
+          <div class="notification-text">
+            Une nouvelle opportunité vient d'arriver.
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <!-- 02 -->
+
+      <div class="notification n2">
+
+        <div class="notification-icon green">
+          ✓
+        </div>
+
+        <div class="notification-copy">
+
+          <div class="notification-title">
+            Parrainage validé
+          </div>
+
+          <div class="notification-text">
+            Une personne vient de rejoindre la communauté.
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <!-- 03 -->
+
+      <div class="notification n3">
+
+        <div class="notification-icon gold">
+          ★
+        </div>
+
+        <div class="notification-copy">
+
+          <div class="notification-title">
+            Récompense
+          </div>
+
+          <div class="notification-text">
+            Un objectif vient d'être atteint.
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <!-- 04 -->
+
+      <div class="notification n4">
+
+        <div class="notification-icon green">
+          ↗
+        </div>
+
+        <div class="notification-copy">
+
+          <div class="notification-title">
+            Activité
+          </div>
+
+          <div class="notification-text">
+            La communauté vient de bouger.
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- ===================================================
+         MID PLANE
+    ==================================================== -->
+
+    <div class="depth-plane depth-mid">
+
+      <!-- 05 -->
+
+      <div class="notification n5">
+
+        <div class="notification-icon green">
+          ✓
+        </div>
+
+        <div class="notification-copy">
+
+          <div class="notification-title">
+            Parrainage validé
+          </div>
+
+          <div class="notification-text">
+            Une nouvelle personne vient de rejoindre.
+          </div>
+
+        </div>
+
+        <div class="notification-badge">
+          +1 point
+        </div>
+
+      </div>
+
+
+      <!-- 06 -->
+
+      <div class="notification n6">
+
+        <div class="notification-icon blue">
+          %
+        </div>
+
+        <div class="notification-copy">
+
+          <div class="notification-title">
+            Offre activée
+          </div>
+
+          <div class="notification-text">
+            Une réduction vient d'être utilisée.
+          </div>
+
+        </div>
+
+        <div class="notification-badge">
+          -20%
+        </div>
+
+      </div>
+
+
+      <!-- 07 -->
+
+      <div class="notification n7">
+
+        <div class="notification-icon gold">
+          €
+        </div>
+
+        <div class="notification-copy">
+
+          <div class="notification-title">
+            Récompense débloquée
+          </div>
+
+          <div class="notification-text">
+            Un membre vient d'atteindre son objectif.
+          </div>
+
+        </div>
+
+        <div class="notification-badge">
+          120 €
+        </div>
+
+      </div>
+
+
+      <!-- 08 -->
+
+      <div class="notification n8">
+
+        <div class="notification-icon green">
+          ↗
+        </div>
+
+        <div class="notification-copy">
+
+          <div class="notification-title">
+            Ton classement évolue
+          </div>
+
+          <div class="notification-text">
+            Tu viens de gagner une place.
+          </div>
+
+        </div>
+
+        <div class="notification-badge">
+          #12
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- ===================================================
+         FRONT PLANE
+    ==================================================== -->
+
+    <div class="depth-plane depth-front">
+
+      <!-- 09 -->
+
+      <div class="notification n9">
+
+        <div class="notification-icon">
+          ●
+        </div>
+
+        <div class="notification-copy">
+
+          <div class="notification-title">
+            Nouveau membre
+          </div>
+
+          <div class="notification-text">
+            Bienvenue dans la communauté COD.IA.
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <!-- 10 -->
+
+      <div class="notification n10">
+
+        <div class="notification-icon gold">
+          €
+        </div>
+
+        <div class="notification-copy">
+
+          <div class="notification-title">
+            Objectif atteint
+          </div>
+
+          <div class="notification-text">
+            Une récompense est maintenant disponible.
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <!-- 11 -->
+
+      <div class="notification n11">
+
+        <div class="notification-icon blue">
+          ✦
+        </div>
+
+        <div class="notification-copy">
+
+          <div class="notification-title">
+            Nouveau code disponible
+          </div>
+
+          <div class="notification-text">
+            Une nouvelle offre vient d'être publiée.
+          </div>
+
+        </div>
+
+        <div class="notification-badge">
+          Nouveau
+        </div>
+
+      </div>
+
+
+      <!-- 12 -->
+
+      <div class="notification n12">
+
+        <div class="notification-icon green">
+          ✓
+        </div>
+
+        <div class="notification-copy">
+
+          <div class="notification-title">
+            Nouvelle activité
+          </div>
+
+          <div class="notification-text">
+            La communauté vient de partager une offre.
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- =====================================================
+       CENTRAL CONTENT
+  ====================================================== -->
+
+  <div class="container">
+
+    <div class="hero-content">
+
+      <div class="eyebrow reveal">
+
+        <span class="eyebrow-dot"></span>
+
+        La communauté des bonnes affaires
+
+      </div>
+
+
+      <h1 class="reveal delay-1">
+
+        Les bons plans.<br>
+
+        <em>Ensemble.</em>
+
+      </h1>
+
+
+      <p class="hero-description reveal delay-2">
+
+        Découvrez, partagez et profitez des codes promo
+        et parrainages d'une communauté qui avance ensemble.
+
+      </p>
+
+
+      <div class="cta-row reveal delay-3">
+
+        <a
+          class="primary"
+          href="/app"
+        >
+          Accéder à COD.IA&nbsp; →
         </a>
 
         <a
-            href="/app"
-            class="header-link"
-            id="headerApp"
+          class="secondary"
+          href="#decouvrir"
         >
-            Accéder à l'app
+          Découvrir
         </a>
 
-    </header>
-
-
-    <!-- =====================================================
-         SPATIAL BACKGROUND
-         ===================================================== -->
-
-    <div
-        class="spatial-world"
-        id="spatialWorld"
-        aria-hidden="true"
-    >
-
-        <!-- BACKGROUND -->
-
-        <div class="depth depth-back">
-
-            <div class="ambient ambient-1"></div>
-            <div class="ambient ambient-2"></div>
-            <div class="ambient ambient-3"></div>
-
-            <div class="glass-card card-5">
-                <div class="card-icon">✦</div>
-                <div class="card-content">
-                    <p class="card-title">Nouveau code</p>
-                    <p class="card-text">-20% aujourd'hui</p>
-                </div>
-            </div>
-
-            <div class="glass-card card-7">
-                <div class="card-icon">↗</div>
-                <div class="card-content">
-                    <p class="card-title">Partagé</p>
-                    <p class="card-text">par la communauté</p>
-                </div>
-            </div>
-
-            <div class="glass-card card-8">
-                <div class="card-icon">♡</div>
-                <div class="card-content">
-                    <p class="card-title">Bon plan aimé</p>
-                    <p class="card-text">+ 128 personnes</p>
-                </div>
-            </div>
-
-            <div class="glass-card card-10">
-                <div class="card-icon">★</div>
-                <div class="card-content">
-                    <p class="card-title">Top membre</p>
-                    <p class="card-text">communauté</p>
-                </div>
-            </div>
-
-        </div>
-
-
-        <!-- MIDDLE -->
-
-        <div class="depth depth-mid">
-
-            <div class="glass-card card-3">
-                <div class="card-icon">%</div>
-                <div class="card-content">
-                    <p class="card-title">-30% trouvé</p>
-                    <p class="card-text">sur ton prochain achat</p>
-                </div>
-            </div>
-
-            <div class="glass-card card-6">
-                <div class="card-icon">✓</div>
-                <div class="card-content">
-                    <p class="card-title">Code validé</p>
-                    <p class="card-text">fonctionne parfaitement</p>
-                </div>
-            </div>
-
-            <div class="glass-card card-9">
-                <div class="card-icon">⚡</div>
-                <div class="card-content">
-                    <p class="card-title">Nouveau partage</p>
-                    <p class="card-text">à découvrir</p>
-                </div>
-            </div>
-
-        </div>
-
-
-        <!-- FOREGROUND -->
-
-        <div class="depth depth-front">
-
-            <div class="glass-card card-1">
-                <div class="card-icon">%</div>
-                <div class="card-content">
-                    <p class="card-title">-40% disponible</p>
-                    <p class="card-text">code promo vérifié</p>
-                </div>
-            </div>
-
-            <div class="glass-card card-2">
-                <div class="card-icon">↗</div>
-                <div class="card-content">
-                    <p class="card-title">Nouveau partage</p>
-                    <p class="card-text">il y a quelques secondes</p>
-                </div>
-            </div>
-
-            <div class="glass-card card-4">
-                <div class="card-icon">♥</div>
-                <div class="card-content">
-                    <p class="card-title">Bon plan sauvegardé</p>
-                    <p class="card-text">+ 86 membres</p>
-                </div>
-            </div>
-
-        </div>
-
-
-        <!-- ORBS -->
-
-        <div class="orb orb-1"></div>
-        <div class="orb orb-2"></div>
-        <div class="orb orb-3"></div>
-        <div class="orb orb-4"></div>
+      </div>
 
     </div>
 
-
-    <!-- =====================================================
-         VIGNETTE / GRAIN
-         ===================================================== -->
-
-    <div class="vignette"></div>
-    <div class="grain"></div>
+  </div>
 
 
-    <!-- =====================================================
-         HERO
-         ===================================================== -->
+  <!-- =====================================================
+       BOTTOM
+  ====================================================== -->
 
-    <main class="hero">
+  <div class="hero-bottom">
 
-        <div class="hero-content">
+    <div class="hero-bottom-inner">
 
-            <div class="eyebrow">
-                La communauté des bonnes affaires
-            </div>
+      <span class="hero-bottom-line"></span>
 
-            <h1 class="hero-title">
-                Les bons plans.<br>
-                <span>Ensemble.</span>
-            </h1>
+      Une nouvelle façon de partager
 
-            <p class="hero-description">
-                Découvrez, partagez et profitez des codes promo
-                et parrainages d'une communauté qui avance ensemble.
-            </p>
+      <span class="hero-bottom-line"></span>
 
-            <div class="hero-actions">
-
-                <a
-                    href="/app"
-                    class="btn btn-primary"
-                    id="mainApp"
-                >
-                    Accéder à COD.IA
-                    <span>→</span>
-                </a>
-
-                <a
-                    href="#discover"
-                    class="btn btn-secondary"
-                >
-                    Découvrir
-                </a>
-
-            </div>
-
-            <div class="hero-bottom">
-                Une nouvelle façon de partager
-            </div>
-
-        </div>
-
-    </main>
-
-
-    <!-- =====================================================
-         SENSOR HINT
-         ===================================================== -->
-
-    <div
-        class="sensor-hint"
-        id="sensorHint"
-        aria-hidden="true"
-    >
-        Bouge légèrement ton téléphone
     </div>
 
-</div>
+  </div>
 
+</section>
+
+
+<!-- Anchor conservée pour le bouton Découvrir -->
+<div id="decouvrir"></div>
+
+</main>
+
+
+<!-- =======================================================
+     COUNT API — COMPORTEMENT CONSERVÉ
+======================================================== -->
 
 <script>
 
-/* =========================================================
-   COD.IA — SPATIAL ENGINE V4
-   ========================================================= */
+(function () {
 
-(() => {
+  const API =
+    "https://countapi.mileshilliard.com/api/v1";
 
-    "use strict";
 
+  const KEYS = {
 
-    /* =====================================================
-       ELEMENTS
-       ===================================================== */
+    visits:
+      "codia-fr-visites-unique-xyz123",
 
-    const world =
-        document.getElementById("spatialWorld");
+    connexion:
+      "codia-fr-clics-connexion-xyz123",
 
-    const page =
-        document.getElementById("page");
+    inscription:
+      "codia-fr-clics-inscription-xyz123"
 
-    const sensorHint =
-        document.getElementById("sensorHint");
+  };
 
-    const cards =
-        [...document.querySelectorAll(".glass-card")];
 
-    const depths =
-        [...document.querySelectorAll(".depth")];
+  const hit = (key) => {
 
-    const orbs =
-        [...document.querySelectorAll(".orb")];
+    fetch(
+      `${API}/hit/${encodeURIComponent(key)}`
+    ).catch(() => {});
 
-    if (!world) return;
+  };
 
 
-    /* =====================================================
-       CONFIG
-       ===================================================== */
+  /* Visite unique */
 
-    const CONFIG = {
-
-        /*
-         * Maximum global rotation.
-         */
-
-        maxX: 7.5,
-        maxY: 6.5,
-
-        /*
-         * Fluidité.
-         */
-
-        smoothing: 0.075,
-
-        /*
-         * Desktop mouse sensitivity.
-         */
-
-        mouseX: 7,
-        mouseY: 5.5,
-
-        /*
-         * Mobile sensor sensitivity.
-         */
-
-        sensorX: 0.42,
-        sensorY: 0.34,
-
-        /*
-         * Limites physiques.
-         */
-
-        sensorClamp: 24,
-
-        /*
-         * Floating animation.
-         */
-
-        floatAmplitude: 2.5,
-
-        /*
-         * Parallax depth.
-         */
-
-        backFactor: .22,
-        midFactor: .52,
-        frontFactor: 1,
-
-        /*
-         * Maximum translation.
-         */
-
-        maxTranslation: 18
-
-    };
-
-
-    /* =====================================================
-       STATE
-       ===================================================== */
-
-    let targetX = 0;
-    let targetY = 0;
-
-    let currentX = 0;
-    let currentY = 0;
-
-    let mouseActive = false;
-
-    let sensorActive = false;
-
-    let permissionRequested = false;
-
-    let baselineBeta = null;
-    let baselineGamma = null;
-
-    let screenAngle = 0;
-
-    let animationFrame = null;
-
-    let lastTime = performance.now();
-
-
-    /* =====================================================
-       UTILS
-       ===================================================== */
-
-    const clamp = (
-        value,
-        min,
-        max
-    ) => Math.max(
-        min,
-        Math.min(max,value)
-    );
-
-
-    const lerp = (
-        a,
-        b,
-        amount
-    ) => a + (b-a)*amount;
-
-
-    /* =====================================================
-       SCREEN ORIENTATION
-       ===================================================== */
-
-    function updateScreenAngle(){
-
-        if (
-            screen.orientation &&
-            typeof screen.orientation.angle === "number"
-        ){
-
-            screenAngle =
-                screen.orientation.angle;
-
-        }else{
-
-            screenAngle =
-                window.orientation || 0;
-
-        }
-
-    }
-
-    updateScreenAngle();
-
-
-    window.addEventListener(
-        "orientationchange",
-        () => {
-
-            updateScreenAngle();
-
-            /*
-             * Recalibration légère après rotation.
-             */
-
-            baselineBeta = null;
-            baselineGamma = null;
-
-        },
-        {
-            passive:true
-        }
-    );
-
-
-    if (screen.orientation){
-
-        screen.orientation.addEventListener(
-            "change",
-            () => {
-
-                updateScreenAngle();
-
-                baselineBeta = null;
-                baselineGamma = null;
-
-            }
-        );
-
-    }
-
-
-    /* =====================================================
-       DESKTOP MOUSE
-       ===================================================== */
-
-    function handleMouse(event){
-
-        if (
-            sensorActive ||
-            window.matchMedia(
-                "(hover:none) and (pointer:coarse)"
-            ).matches
-        ){
-
-            return;
-
-        }
-
-
-        mouseActive = true;
-
-
-        const rect =
-            page.getBoundingClientRect();
-
-
-        const x =
-            (
-                event.clientX -
-                rect.left
-            ) / rect.width;
-
-
-        const y =
-            (
-                event.clientY -
-                rect.top
-            ) / rect.height;
-
-
-        /*
-         * Centre = 0.
-         */
-
-        const normalizedX =
-            (x - .5) * 2;
-
-
-        const normalizedY =
-            (y - .5) * 2;
-
-
-        targetX =
-            normalizedX *
-            CONFIG.mouseX;
-
-
-        targetY =
-            normalizedY *
-            CONFIG.mouseY;
-
-    }
-
-
-    function resetMouse(){
-
-        mouseActive = false;
-
-        targetX = 0;
-        targetY = 0;
-
-    }
-
-
-    window.addEventListener(
-        "mousemove",
-        handleMouse,
-        {
-            passive:true
-        }
-    );
-
-
-    window.addEventListener(
-        "mouseleave",
-        resetMouse,
-        {
-            passive:true
-        }
-    );
-
-
-    /* =====================================================
-       SENSOR CALIBRATION
-       ===================================================== */
-
-    function calibrateSensor(
-        beta,
-        gamma
-    ){
-
-        baselineBeta = beta;
-        baselineGamma = gamma;
-
-    }
-
-
-    /* =====================================================
-       SENSOR → PARALLAX
-       ===================================================== */
-
-    function handleOrientation(event){
-
-        const beta =
-            Number(event.beta);
-
-        const gamma =
-            Number(event.gamma);
-
-
-        if (
-            !Number.isFinite(beta) ||
-            !Number.isFinite(gamma)
-        ){
-
-            return;
-
-        }
-
-
-        if (
-            baselineBeta === null ||
-            baselineGamma === null
-        ){
-
-            calibrateSensor(
-                beta,
-                gamma
-            );
-
-            return;
-
-        }
-
-
-        let deltaBeta =
-            beta - baselineBeta;
-
-
-        let deltaGamma =
-            gamma - baselineGamma;
-
-
-        /*
-         * Gestion portrait / paysage.
-         *
-         * Le but est de conserver :
-         *
-         * téléphone à droite
-         *      →
-         *
-         * téléphone à gauche
-         *      ←
-         *
-         * haut / bas cohérents.
-         */
-
-        switch(screenAngle){
-
-            case 90:
-
-                {
-
-                    const oldBeta =
-                        deltaBeta;
-
-                    deltaBeta =
-                        -deltaGamma;
-
-                    deltaGamma =
-                        oldBeta;
-
-                }
-
-                break;
-
-
-            case 270:
-
-                {
-
-                    const oldBeta =
-                        deltaBeta;
-
-                    deltaBeta =
-                        deltaGamma;
-
-                    deltaGamma =
-                        -oldBeta;
-
-                }
-
-                break;
-
-
-            case 180:
-
-                deltaBeta =
-                    -deltaBeta;
-
-                deltaGamma =
-                    -deltaGamma;
-
-                break;
-
-        }
-
-
-        /*
-         * Limitation.
-         */
-
-        deltaGamma =
-            clamp(
-                deltaGamma,
-                -CONFIG.sensorClamp,
-                CONFIG.sensorClamp
-            );
-
-
-        deltaBeta =
-            clamp(
-                deltaBeta,
-                -CONFIG.sensorClamp,
-                CONFIG.sensorClamp
-            );
-
-
-        /*
-         * Conversion vers la rotation.
-         */
-
-        targetX =
-            deltaGamma *
-            CONFIG.sensorX;
-
-
-        targetY =
-            deltaBeta *
-            CONFIG.sensorY;
-
-
-        targetX =
-            clamp(
-                targetX,
-                -CONFIG.maxX,
-                CONFIG.maxX
-            );
-
-
-        targetY =
-            clamp(
-                targetY,
-                -CONFIG.maxY,
-                CONFIG.maxY
-            );
-
-    }
-
-
-    /* =====================================================
-       SENSOR PERMISSION
-       ===================================================== */
-
-    async function enableSensor(){
-
-        if (sensorActive){
-            return true;
-        }
-
-
-        if (
-            typeof DeviceOrientationEvent ===
-            "undefined"
-        ){
-
-            return false;
-
-        }
-
-
-        /*
-         * iOS demande une permission explicite.
-         */
-
-        if (
-            typeof DeviceOrientationEvent.requestPermission ===
-            "function"
-        ){
-
-            if (permissionRequested){
-                return false;
-            }
-
-            permissionRequested = true;
-
-
-            try{
-
-                const permission =
-                    await DeviceOrientationEvent
-                        .requestPermission();
-
-
-                if (
-                    permission !== "granted"
-                ){
-
-                    return false;
-
-                }
-
-            }catch(error){
-
-                console.warn(
-                    "COD.IA sensor permission:",
-                    error
-                );
-
-                return false;
-
-            }
-
-        }
-
-
-        window.addEventListener(
-            "deviceorientation",
-            handleOrientation,
-            {
-                passive:true
-            }
-        );
-
-
-        sensorActive = true;
-
-
-        /*
-         * Désactive la souris.
-         */
-
-        mouseActive = false;
-
-
-        /*
-         * Petit feedback utilisateur.
-         */
-
-        showSensorHint();
-
-
-        setTimeout(
-            hideSensorHint,
-            1800
-        );
-
-
-        return true;
-
-    }
-
-
-    /* =====================================================
-       SENSOR ACTIVATION
-       ===================================================== */
-
-    function tryEnableSensor(){
-
-        enableSensor();
-
-    }
-
-
-    /*
-     * Sur iOS, l'appel doit venir
-     * d'une interaction utilisateur.
-     */
-
-    window.addEventListener(
-        "touchstart",
-        tryEnableSensor,
-        {
-            passive:true,
-            once:false
-        }
-    );
-
-
-    window.addEventListener(
-        "click",
-        tryEnableSensor,
-        {
-            passive:true,
-            once:false
-        }
-    );
-
-
-    /*
-     * Android / navigateurs qui autorisent
-     * automatiquement le capteur.
-     */
+  try {
 
     if (
-        typeof DeviceOrientationEvent !==
-        "undefined" &&
-        typeof DeviceOrientationEvent.requestPermission !==
-        "function"
-    ){
+      !sessionStorage.getItem(
+        "codia_visit_counted"
+      )
+    ) {
 
-        setTimeout(
-            () => {
+      hit(KEYS.visits);
 
-                enableSensor();
-
-            },
-            250
-        );
+      sessionStorage.setItem(
+        "codia_visit_counted",
+        "1"
+      );
 
     }
 
+  } catch (e) {
 
-    /* =====================================================
-       SENSOR HINT
-       ===================================================== */
+    hit(KEYS.visits);
 
-    function showSensorHint(){
-
-        if (!sensorHint){
-            return;
-        }
-
-        sensorHint.classList.remove(
-            "hidden"
-        );
-
-        sensorHint.classList.add(
-            "visible"
-        );
-
-    }
+  }
 
 
-    function hideSensorHint(){
+  /* Clic vers l'application */
 
-        if (!sensorHint){
-            return;
-        }
+  document.addEventListener(
+    "click",
+    (e) => {
 
-        sensorHint.classList.remove(
-            "visible"
-        );
+      const el =
+        e.target.closest("a, button");
 
-        sensorHint.classList.add(
-            "hidden"
-        );
+      if (!el) return;
+
+
+      const t =
+        (el.innerText || "")
+        .toLowerCase();
+
+
+      if (
+        t.includes("accéder") ||
+        t.includes("commencer") ||
+        t.includes("app")
+      ) {
+
+        hit(KEYS.connexion);
+
+      }
 
     }
+  );
 
+})();
 
-    /* =====================================================
-       FLOATING MOTION
-       ===================================================== */
+</script>
 
-    const floatingData =
-        cards.map(
-            (_, index) => ({
 
-                speed:
-                    .00045 +
-                    (
-                        index %
-                        5
-                    ) *
-                    .00008,
+<!-- =======================================================
+     PARALLAXE 3D
+======================================================== -->
 
-                amplitude:
-                    1.2 +
-                    (
-                        index %
-                        4
-                    ) *
-                    .65,
+<script>
 
-                phase:
-                    index *
-                    .93
+(function () {
 
-            })
-        );
+  const reduceMotion =
+    window.matchMedia(
+      "(prefers-reduced-motion: reduce)"
+    ).matches;
 
 
-    /* =====================================================
-       RENDER
-       ===================================================== */
+  if (reduceMotion) return;
 
-    function render(time){
 
-        const delta =
-            Math.min(
-                32,
-                time-lastTime
-            );
-
-        lastTime = time;
-
-
-        /*
-         * Interpolation principale.
-         */
-
-        currentX =
-            lerp(
-                currentX,
-                targetX,
-                CONFIG.smoothing
-            );
-
-
-        currentY =
-            lerp(
-                currentY,
-                targetY,
-                CONFIG.smoothing
-            );
-
-
-        /*
-         * Rotation globale très légère.
-         */
-
-        world.style.transform =
-            `
-            translate3d(0,0,0)
-            rotateX(${currentY}deg)
-            rotateY(${currentX}deg)
-            `;
-
-
-        /* =================================================
-           DEPTH LAYERS
-           ================================================= */
-
-        depths.forEach(
-            (layer,index) => {
-
-                let factor =
-                    CONFIG.midFactor;
-
-
-                if (
-                    layer.classList.contains(
-                        "depth-back"
-                    )
-                ){
-
-                    factor =
-                        CONFIG.backFactor;
-
-                }
-
-                if (
-                    layer.classList.contains(
-                        "depth-front"
-                    )
-                ){
-
-                    factor =
-                        CONFIG.frontFactor;
-
-                }
-
-
-                const tx =
-                    currentX *
-                    factor *
-                    1.5;
-
-
-                const ty =
-                    currentY *
-                    factor *
-                    1.2;
-
-
-                layer.style.transform =
-                    `
-                    translate3d(
-                        ${tx}px,
-                        ${ty}px,
-                        ${index * 2}px
-                    )
-                    `;
-
-            }
-        );
-
-
-        /* =================================================
-           INDIVIDUAL FLOATING CARDS
-           ================================================= */
-
-        cards.forEach(
-            (card,index) => {
-
-                const data =
-                    floatingData[index];
-
-
-                const wave =
-                    Math.sin(
-                        time *
-                        data.speed +
-                        data.phase
-                    );
-
-
-                const wave2 =
-                    Math.cos(
-                        time *
-                        data.speed *
-                        .72 +
-                        data.phase
-                    );
-
-
-                const depth =
-                    card.closest(
-                        ".depth"
-                    );
-
-
-                let factor =
-                    CONFIG.midFactor;
-
-
-                if (
-                    depth &&
-                    depth.classList.contains(
-                        "depth-back"
-                    )
-                ){
-
-                    factor =
-                        CONFIG.backFactor;
-
-                }
-
-
-                if (
-                    depth &&
-                    depth.classList.contains(
-                        "depth-front"
-                    )
-                ){
-
-                    factor =
-                        CONFIG.frontFactor;
-
-                }
-
-
-                const translateX =
-                    currentX *
-                    factor *
-                    .65;
-
-
-                const translateY =
-                    currentY *
-                    factor *
-                    .55;
-
-
-                const floatingY =
-                    wave *
-                    data.amplitude;
-
-
-                const floatingX =
-                    wave2 *
-                    data.amplitude *
-                    .45;
-
-
-                const rotate =
-                    wave2 *
-                    .65;
-
-
-                /*
-                 * On ajoute seulement du transform.
-                 * Aucun layout reflow.
-                 */
-
-                card.style.transform =
-                    `
-                    translate3d(
-                        ${translateX + floatingX}px,
-                        ${translateY + floatingY}px,
-                        0
-                    )
-                    rotate(${rotate}deg)
-                    `;
-
-            }
-        );
-
-
-        /* =================================================
-           ORBS
-           ================================================= */
-
-        orbs.forEach(
-            (orb,index) => {
-
-                const amplitude =
-                    3 +
-                    index * .7;
-
-
-                const x =
-                    Math.sin(
-                        time *
-                        .00045 +
-                        index
-                    ) *
-                    amplitude;
-
-
-                const y =
-                    Math.cos(
-                        time *
-                        .00036 +
-                        index
-                    ) *
-                    amplitude;
-
-
-                const factor =
-                    .4 +
-                    index * .15;
-
-
-                orb.style.transform =
-                    `
-                    translate3d(
-                        ${x + currentX * factor}px,
-                        ${y + currentY * factor}px,
-                        0
-                    )
-                    `;
-
-            }
-        );
-
-
-        animationFrame =
-            requestAnimationFrame(
-                render
-            );
-
-    }
-
-
-    /* =====================================================
-       VISIBILITY OPTIMIZATION
-       ===================================================== */
-
-    document.addEventListener(
-        "visibilitychange",
-        () => {
-
-            if (
-                document.hidden
-            ){
-
-                if (animationFrame){
-
-                    cancelAnimationFrame(
-                        animationFrame
-                    );
-
-                    animationFrame =
-                        null;
-
-                }
-
-            }else{
-
-                if (!animationFrame){
-
-                    lastTime =
-                        performance.now();
-
-                    animationFrame =
-                        requestAnimationFrame(
-                            render
-                        );
-
-                }
-
-            }
-
-        }
+  const world =
+    document.getElementById(
+      "spatialWorld"
     );
 
 
-    /* =====================================================
-       REDUCED MOTION
-       ===================================================== */
-
-    const reducedMotion =
-        window.matchMedia(
-            "(prefers-reduced-motion: reduce)"
-        );
+  if (!world) return;
 
 
-    if (
-        !reducedMotion.matches
-    ){
+  let raf = null;
 
-        animationFrame =
-            requestAnimationFrame(
-                render
-            );
+
+  let targetX = 0;
+  let targetY = 0;
+
+  let currentX = 0;
+  let currentY = 0;
+
+
+  function animate() {
+
+    currentX +=
+      (targetX - currentX) * .075;
+
+    currentY +=
+      (targetY - currentY) * .075;
+
+
+    world.style.transform =
+      `
+      rotateX(${currentY}deg)
+      rotateY(${currentX}deg)
+      `;
+
+
+    raf =
+      requestAnimationFrame(
+        animate
+      );
+
+  }
+
+
+  animate();
+
+
+  window.addEventListener(
+    "mousemove",
+    function (event) {
+
+      const x =
+        event.clientX /
+        window.innerWidth -
+        .5;
+
+
+      const y =
+        event.clientY /
+        window.innerHeight -
+        .5;
+
+
+      targetX =
+        x * 5;
+
+      targetY =
+        y * -4;
+
+    },
+    {
+      passive: true
+    }
+  );
+
+
+  window.addEventListener(
+    "mouseleave",
+    function () {
+
+      targetX = 0;
+      targetY = 0;
 
     }
-
-
-    /* =====================================================
-       RESIZE
-       ===================================================== */
-
-    let resizeTimer = null;
-
-
-    window.addEventListener(
-        "resize",
-        () => {
-
-            clearTimeout(
-                resizeTimer
-            );
-
-
-            resizeTimer =
-                setTimeout(
-                    () => {
-
-                        updateScreenAngle();
-
-                    },
-                    120
-                );
-
-        },
-        {
-            passive:true
-        }
-    );
+  );
 
 
 })();
 
-
-/* =========================================================
-   COD.IA — COUNTING
-   ========================================================= */
-
-/*
- * Les appels CountAPI sont conservés,
- * mais protégés afin qu'une erreur externe
- * ne casse jamais la landing.
- */
-
-(async () => {
-
-    "use strict";
+</script>
 
 
-    const visitKey =
-        "codia-landing-visits";
+<!-- =======================================================
+     GYROSCOPE / ACCELEROMETRE — PARALLAXE 3D MOBILE
+======================================================== -->
+
+<script>
+
+(function () {
+
+  const reduceMotion =
+    window.matchMedia(
+      "(prefers-reduced-motion: reduce)"
+    ).matches;
+
+  if (reduceMotion) return;
+
+  const world =
+    document.getElementById("spatialWorld");
+
+  if (!world) return;
 
 
-    const clickKey =
-        "codia-app-clicks";
+  /* =====================================================
+     CONFIGURATION
+  ===================================================== */
+
+  const MAX_X = 7;
+  const MAX_Y = 6;
+
+  const SMOOTHING = 0.08;
+
+  let targetX = 0;
+  let targetY = 0;
+
+  let currentX = 0;
+  let currentY = 0;
+
+  let sensorActive = false;
 
 
-    const safeFetch =
-        async url => {
+  /* =====================================================
+     ANIMATION FLUIDE
+  ===================================================== */
 
-            try{
+  function animate() {
 
-                return await fetch(
-                    url,
-                    {
-                        cache:"no-store",
-                        keepalive:true
-                    }
-                );
+    currentX +=
+      (targetX - currentX) * SMOOTHING;
 
-            }catch(error){
+    currentY +=
+      (targetY - currentY) * SMOOTHING;
 
-                console.warn(
-                    "COD.IA counter:",
-                    error
-                );
+    world.style.transform =
+      `
+      rotateX(${currentY}deg)
+      rotateY(${currentX}deg)
+      `;
 
-                return null;
+    requestAnimationFrame(animate);
 
-            }
+  }
 
-        };
+  animate();
 
 
-    /*
-     * Visite unique par navigateur.
-     */
+  /* =====================================================
+     ORIENTATION DU TELEPHONE
+  ===================================================== */
 
-    try{
+  function handleOrientation(event) {
 
-        if (
-            !localStorage.getItem(
-                visitKey
-            )
-        ){
-
-            localStorage.setItem(
-                visitKey,
-                "1"
-            );
-
-
-            await safeFetch(
-                "https://api.countapi.xyz/hit/cod-ia.fr/visits"
-            );
-
-        }
-
-    }catch(error){
-
-        console.warn(
-            "COD.IA localStorage:",
-            error
-        );
-
+    if (
+      event.gamma === null ||
+      event.beta === null
+    ) {
+      return;
     }
 
 
     /*
-     * Clics vers l'application.
-     */
+      gamma :
+      inclinaison gauche / droite
 
-    const appLinks =
-        document.querySelectorAll(
-            "#mainApp, #headerApp"
-        );
+      beta :
+      inclinaison avant / arrière
+    */
+
+    let gamma =
+      event.gamma;
+
+    let beta =
+      event.beta;
 
 
-    appLinks.forEach(
-        link => {
+    /*
+      Limitation pour éviter
+      un mouvement trop important
+    */
 
-            link.addEventListener(
-                "click",
-                () => {
+    gamma =
+      Math.max(
+        -45,
+        Math.min(45, gamma)
+      );
 
-                    safeFetch(
-                        "https://api.countapi.xyz/hit/cod-ia.fr/app-clicks"
-                    );
+    beta =
+      Math.max(
+        -45,
+        Math.min(45, beta)
+      );
 
-                },
-                {
-                    passive:true
-                }
-            );
+
+    /*
+      DROITE / GAUCHE
+
+      téléphone vers la droite
+      → monde 3D vers la droite
+
+      téléphone vers la gauche
+      → monde 3D vers la gauche
+    */
+
+    targetX =
+      (gamma / 45) * MAX_X;
+
+
+    /*
+      HAUT / BAS
+
+      téléphone vers le haut
+      → monde 3D vers le haut
+
+      téléphone vers le bas
+      → monde 3D vers le bas
+    */
+
+    targetY =
+      ((beta - 45) / 45) * MAX_Y;
+
+
+  }
+
+
+  /* =====================================================
+     ACTIVATION DU CAPTEUR
+  ===================================================== */
+
+  function enableMotion() {
+
+    if (sensorActive) return;
+
+    sensorActive = true;
+
+    window.addEventListener(
+      "deviceorientation",
+      handleOrientation,
+      true
+    );
+
+  }
+
+
+  /* =====================================================
+     IOS — DEMANDE D'AUTORISATION
+  ===================================================== */
+
+  async function requestMotionPermission() {
+
+    try {
+
+      if (
+        typeof DeviceOrientationEvent !== "undefined" &&
+        typeof DeviceOrientationEvent.requestPermission === "function"
+      ) {
+
+        const permission =
+          await DeviceOrientationEvent.requestPermission();
+
+        if (permission === "granted") {
+
+          enableMotion();
 
         }
+
+      } else {
+
+        /*
+          Android / appareils
+          ne nécessitant pas d'autorisation
+        */
+
+        enableMotion();
+
+      }
+
+    } catch (error) {
+
+      console.log(
+        "Autorisation capteurs refusée ou indisponible.",
+        error
+      );
+
+    }
+
+  }
+
+
+  /* =====================================================
+     IOS :
+     LANCEMENT APRES PREMIERE INTERACTION
+  ===================================================== */
+
+  function firstInteraction() {
+
+    requestMotionPermission();
+
+    document.removeEventListener(
+      "touchstart",
+      firstInteraction
     );
+
+  }
+
+
+  document.addEventListener(
+    "touchstart",
+    firstInteraction,
+    {
+      passive: true,
+      once: true
+    }
+  );
+
+
+  /* =====================================================
+     ANDROID / APPAREILS COMPATIBLES
+  ===================================================== */
+
+  if (
+    typeof DeviceOrientationEvent !== "undefined" &&
+    typeof DeviceOrientationEvent.requestPermission !== "function"
+  ) {
+
+    enableMotion();
+
+  }
+
+
+  /* =====================================================
+     RETOUR DOUX AU CENTRE
+  ===================================================== */
+
+  document.addEventListener(
+    "visibilitychange",
+    function () {
+
+      if (
+        document.visibilityState === "hidden"
+      ) {
+
+        targetX = 0;
+        targetY = 0;
+
+      }
+
+    }
+  );
 
 
 })();
