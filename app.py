@@ -492,7 +492,87 @@ def ensure_admin():
         con.close()
 
 
+def ensure_seed_accounts():
+    """Comptes de test / perso. À retirer en prod si tu ne veux plus ça."""
+    seeds = [
+        {
+            "email": "abdelazizhassani09@gmail.com",
+            "username": "diooor",
+            "name": "DIOOOR",
+            "password": None,  # ne change pas le mdp existant
+            "points": 100,
+            "level": "PRO",
+            "tier_index": 0,
+            "points_locked": 1,
+            "paid": 1,
+            "ref_locked": 1,
+        },
+        {
+            "email": "abdelazizhassni@gmail.com",
+            "username": "channeeel",
+            "name": "CHANNEEEL",
+            "password": "Test1234",
+            "points": 50,
+            "level": "START",
+            "tier_index": 2,  # 50 pts = 120 €
+            "points_locked": 1,
+            "paid": 1,
+            "ref_locked": 1,
+        },
+    ]
+    con = db()
+    try:
+        for s in seeds:
+            email = s["email"].strip().lower()
+            username = s["username"].strip().lower()
+            row = con.execute("SELECT * FROM users WHERE email=?", (email,)).fetchone()
+            if row:
+                con.execute(
+                    """UPDATE users SET
+                           username=?, name=?, points=?, level=?,
+                           tier_index=?, points_locked=?, paid=?, ref_locked=?
+                       WHERE email=?""",
+                    (
+                        username, s["name"], s["points"], s["level"],
+                        s["tier_index"], s["points_locked"], s["paid"], s["ref_locked"],
+                        email,
+                    ),
+                )
+                if s.get("password"):
+                    con.execute(
+                        "UPDATE users SET password_hash=? WHERE email=?",
+                        (generate_password_hash(s["password"]), email),
+                    )
+            else:
+                code = make_code()
+                while con.execute("SELECT id FROM users WHERE code=?", (code,)).fetchone():
+                    code = make_code()
+                pwd = s.get("password") or secrets.token_hex(8)
+                con.execute(
+                    """INSERT INTO users
+                       (name,username,email,password_hash,code,referred_by,level,points,
+                        claimed,paid,ref_locked,created_at,tier_index,points_locked)
+                       VALUES (?,?,?,?,?,NULL,?,?,0,?,?,?,?,?)""",
+                    (
+                        s["name"], username, email, generate_password_hash(pwd), code,
+                        s["level"], s["points"], s["paid"], s["ref_locked"], now(),
+                        s["tier_index"], s["points_locked"],
+                    ),
+                )
+        con.commit()
+    except Exception:
+        con.rollback()
+        app.logger.exception("ensure_seed_accounts failed")
+    finally:
+        con.close()
+
+
 ensure_admin()
+ensure_seed_accounts()
+
+
+ensure_admin()
+ensure_seed_accounts()
 
 
 def public_user(con, user):
