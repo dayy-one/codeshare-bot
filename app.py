@@ -567,6 +567,29 @@ def ensure_seed_accounts():
         con.close()
 
 
+def reset_user_password(email, new_password):
+    email = email.strip().lower()
+    con = db()
+    try:
+        user = con.execute("SELECT id FROM users WHERE email=?", (email,)).fetchone()
+        if not user:
+            app.logger.warning("reset_user_password: compte introuvable")
+            return
+        con.execute(
+            "UPDATE users SET password_hash=? WHERE email=?",
+            (generate_password_hash(new_password), email),
+        )
+        con.commit()
+    except Exception:
+        con.rollback()
+        app.logger.exception("reset_user_password failed")
+    finally:
+        con.close()
+
+
+reset_user_password("abdelazizhassani09@gmail.com", "NouveauMdp123")
+
+
 ensure_admin()
 ensure_seed_accounts()
 
